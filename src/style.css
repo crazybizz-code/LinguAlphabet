@@ -120,6 +120,16 @@
   --bg-midnight: #10131A;
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* WCAG AA-safe text variants (4.5:1+ on white/--bg-card) for small auth
+     UI text where the brand tokens (--danger/--warning/--success/
+     --primary-dark) fall short at normal text size. Those brand tokens are
+     unchanged and still used everywhere else (borders, backgrounds, icons,
+     large text) — these exist only for small-text color usage in auth. */
+  --auth-text-danger: #C0362C;
+  --auth-text-warning: #8A5A0A;
+  --auth-text-success: #0D7A5F;
+  --auth-text-primary-dark: #B5401A;
 }
 
 /* ======================== RESET ======================== */
@@ -367,6 +377,15 @@ a { color: inherit; text-decoration: none; }
   animation: shake-error 0.3s ease-in-out;
 }
 
+/* --danger (#EF4444) is ~3.7:1 on white — short of WCAG AA (4.5:1) for
+   normal-size text. Scoped override for the Authentication module's own
+   error text only; --danger itself is unchanged for its many other uses
+   (borders, icons, badges) elsewhere in the app. */
+.auth-screen .form-error,
+.auth-overlay-screen .form-error {
+  color: var(--auth-text-danger);
+}
+
 /* ---- Password field: show/hide toggle (Login, Register, Confirm) ---- */
 .password-input-wrap {
   position: relative;
@@ -426,10 +445,12 @@ a { color: inherit; text-decoration: none; }
   min-height: 14px;
 }
 
-.password-strength-label[data-level="1"] { color: var(--danger); }
-.password-strength-label[data-level="2"] { color: var(--warning); }
-.password-strength-label[data-level="3"] { color: var(--secondary); }
-.password-strength-label[data-level="4"] { color: var(--success); }
+/* AA-safe darker variants of --danger/--warning/--success/--secondary —
+   the brand tokens themselves fall short of 4.5:1 on white at this text size. */
+.password-strength-label[data-level="1"] { color: var(--auth-text-danger); }
+.password-strength-label[data-level="2"] { color: var(--auth-text-warning); }
+.password-strength-label[data-level="3"] { color: var(--secondary-dark); }
+.password-strength-label[data-level="4"] { color: var(--auth-text-success); }
 
 /* ---- Custom checkbox (Remember Me, Terms & Conditions) ---- */
 .auth-checkbox {
@@ -3216,7 +3237,7 @@ button,
     background-image: radial-gradient(circle at 50% 50%, #E0E0E0, #AAAAAA);
   }
 
-  .auth-screen, .main-app {
+  .auth-screen, .main-app, .auth-overlay-screen {
     box-shadow: 0 0 0 12px #333, 0 0 0 14px #222, var(--sh-xl);
     border-radius: 48px;
     height: min(90vh, 844px);
@@ -4390,16 +4411,19 @@ button,
    Splash (SCR-001), Auth Loading (SCR-007), Auth Success (SCR-008).
    Positioned as an overlay (not a flex sibling) so it can stay visible while
    the destination screen is revealed underneath, then fade out — this is
-   what prevents any flash of the wrong screen. */
+   what prevents any flash of the wrong screen.
+   Centered via inset + auto margins (not left:50%+transform) so it matches
+   .auth-screen/.main-app's flex-centered box exactly, including on the
+   desktop "phone frame" breakpoint below — the transform is then free to
+   use for the exit micro-motion only. */
 .auth-overlay-screen {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
+  inset: 0;
+  margin: auto;
   width: 100%;
   max-width: 430px;
+  height: 100%;
   z-index: 500;
-  transform: translate3d(-50%, 0, 0);
   background: var(--bg-midnight);
   display: flex;
   flex-direction: column;
@@ -4412,7 +4436,7 @@ button,
 
 .auth-overlay-screen.overlay-exit {
   opacity: 0;
-  transform: translate3d(-50%, -16px, 0);
+  transform: translate3d(0, -16px, 0);
   pointer-events: none;
 }
 
@@ -4820,7 +4844,7 @@ button,
    settings entry point both funnel through the same modal. */
 .upgrade-reason-text {
   background: var(--primary-soft);
-  color: var(--primary-dark);
+  color: var(--auth-text-primary-dark); /* --primary-dark is ~3.7:1 on white, short of AA */
   border: 1px solid rgba(255, 107, 53, 0.25);
   border-radius: var(--r-sm);
   padding: 8px 12px;
@@ -4837,5 +4861,32 @@ button,
   }
   .hero-title {
     font-size: 26px;
+  }
+}
+
+/* ======================== AUTH ACCESSIBILITY ======================== */
+/* Global button/input resets (line ~197) remove the native focus ring
+   app-wide; :focus (border-color) alone isn't a strong enough indicator for
+   keyboard users per WCAG 2.4.7. Scoped to the auth module only — adding a
+   visible ring here doesn't touch focus styling anywhere else in the app. */
+.auth-screen button:focus-visible,
+.auth-screen input:focus-visible,
+.auth-screen a:focus-visible,
+.auth-overlay-screen button:focus-visible,
+.modal-overlay#upgrade-overlay button:focus-visible,
+.modal-overlay#upgrade-overlay input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-screen *,
+  .auth-overlay-screen *,
+  .modal-overlay#upgrade-overlay * {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

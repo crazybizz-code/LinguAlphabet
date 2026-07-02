@@ -22,6 +22,7 @@ import {
   isValidEmail,
   isValidFullName,
   isPasswordComplex,
+  isLoginPasswordValid,
   renderPasswordStrength,
   setupPasswordToggle,
   bindEnterToSubmit,
@@ -31,7 +32,8 @@ import {
   lockAuthNavigation,
   unlockAuthNavigation,
   setGuestUpgradeHook,
-  requestGuestUpgrade
+  requestGuestUpgrade,
+  setupAuthKeyboardNav
 } from './auth.js';
 
 // ==================== GLOBAL STATE ====================
@@ -427,6 +429,7 @@ function showMainApp() {
 
 function setupAuthListeners() {
   setupWelcomeKeyboard();
+  setupAuthKeyboardNav();
 
   // The Guest name-capture panel (SCR "welcome-panel") keeps its own init
   // logic here in main.js since it owns onboarding-draft state; auth.js
@@ -639,7 +642,7 @@ function setupAuthListeners() {
       shakeFieldError(emailInput);
       return;
     }
-    if (!password) {
+    if (!isLoginPasswordValid(password)) {
       showError(errEl, 'Please enter your password');
       shakeFieldError(passwordInput);
       return;

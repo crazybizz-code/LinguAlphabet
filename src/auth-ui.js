@@ -15,6 +15,12 @@ function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function prefersReducedMotion() {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 // ==================== TUTO MASCOT ====================
 export function getTutoSVG(size = 80) {
   return `
@@ -53,6 +59,7 @@ export function stopTutoBlinkLoop(container) {
 export function startTutoBlinkLoop(container) {
   if (!container) return;
   stopTutoBlinkLoop(container);
+  if (prefersReducedMotion()) return; // no scheduled motion for reduced-motion users
   const scheduleBlink = () => {
     const delay = 3000 + Math.random() * 3000;
     const timerId = setTimeout(() => {
@@ -119,11 +126,40 @@ export function showAuthPanel(panelId) {
 
 // Disables every button/input in a panel for the duration of a submission —
 // prevents duplicate submissions and stray interaction with other fields
-// while the request is running. Paired with the navigation lock above.
+// while the request is running. Paired with the navigation lock above. Also
+// hides the panel from the accessibility tree while it's locked, so a
+// screen reader browsing by element/landmark (not just Tab order) doesn't
+// surface controls that are disabled and visually obscured by the Loading
+// overlay anyway.
 export function setPanelControlsDisabled(panelEl, disabled) {
   if (!panelEl) return;
   panelEl.querySelectorAll('button, input').forEach(el => {
     el.disabled = disabled;
+  });
+  if (disabled) {
+    panelEl.setAttribute('aria-hidden', 'true');
+  } else {
+    panelEl.removeAttribute('aria-hidden');
+  }
+}
+
+// Escape-to-go-back, one entry per panel that has a visible "Back"-style
+// action — mirrors the blueprint's keyboard-shortcut spec. Composes safely
+// with the navigation lock: showAuthPanel() is already a no-op while
+// authentication is running, so this never needs its own lock check.
+const ESCAPE_BACK_TARGETS = {
+  'login-panel': 'welcome-hero-panel',
+  'signup-panel': 'welcome-hero-panel',
+  'forgot-panel': 'login-panel',
+  'guest-mode-panel': 'welcome-hero-panel'
+};
+
+export function setupAuthKeyboardNav() {
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const activePanel = document.querySelector('.auth-panel.active');
+    const backTarget = activePanel && ESCAPE_BACK_TARGETS[activePanel.id];
+    if (backTarget) showAuthPanel(backTarget);
   });
 }
 
