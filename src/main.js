@@ -8,6 +8,16 @@ import { supabase, UserState, CONFIG, updateConfig } from './db.js';
 import { copilot, lookupWord } from './ai.js';
 import { SyncedAudioPlayer } from './player.js';
 import { syncAllFeeds } from './rss.js';
+import {
+  getTutoSVG,
+  startTutoBlinkLoop,
+  showAuthPanel,
+  syncAuthScreenMode,
+  setAuthPanelHook,
+  showSplash,
+  hideSplash,
+  runColdStartSequence
+} from './auth.js';
 
 // ==================== GLOBAL STATE ====================
 const state = {
@@ -116,17 +126,16 @@ async function boot() {
   }).catch(() => {});
   */
 
-  // Check Supabase session
-  await supabase.init().catch(() => {});
-
-  // Show auth or main app
-  const user = UserState._data;
-  const hasSession = Boolean(user?.email) || Boolean(user?.isGuest);
-  if (hasSession) {
+  // Splash validates any existing session while showing the brand mark, then
+  // reports where to land. The destination screen is prepared before Splash
+  // is hidden, so the UI never flashes the wrong screen mid-check.
+  const route = await runColdStartSequence();
+  if (route === 'authenticated') {
     showMainApp();
   } else {
     showAuth();
   }
+  hideSplash();
 
   setupEventListeners();
   setupPlayer();
@@ -285,16 +294,6 @@ function clearWelcomeTimers() {
   }
 }
 
-function syncAuthScreenMode() {
-  const authScreen = document.getElementById('auth-screen');
-  const welcomeActive = document.getElementById('welcome-panel')?.classList.contains('active');
-  authScreen?.classList.toggle('auth-screen--welcome', Boolean(welcomeActive));
-  if (!welcomeActive) {
-    authScreen?.classList.remove('auth-screen--exit');
-    authScreen?.style.removeProperty('--keyboard-offset');
-  }
-}
-
 function setupWelcomeKeyboard() {
   const input = document.getElementById('welcome-name-input');
   const authScreen = document.getElementById('auth-screen');
@@ -337,16 +336,14 @@ function showAuth() {
   document.getElementById('auth-screen').classList.remove('hidden');
   document.getElementById('main-app').classList.add('hidden');
   document.getElementById('onboarding-screen').classList.add('hidden');
-  
-  // Show welcome panel by default and initialize it
-  document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('welcome-panel')?.classList.add('active');
-  syncAuthScreenMode();
-  initWelcomeScreen();
+
+  // Welcome Hero (SCR-002) is the default entry panel; showAuthPanel() is the
+  // single source of truth for activating/initializing any auth panel.
+  showAuthPanel('welcome-hero-panel');
 }
 
 function initWelcomeScreen() {
-  const container = document.getElementById('welcome-tuto-container');
+  const container = document.getElementById('welcome-tuto-avatar');
   const speechEl = document.getElementById('welcome-tuto-speech');
   const typingEl = document.getElementById('welcome-tuto-typing');
   const inputEl = document.getElementById('welcome-name-input');
@@ -358,24 +355,8 @@ function initWelcomeScreen() {
   clearWelcomeTimers();
   syncAuthScreenMode();
 
-  // Random blink interval (3-6 seconds per spec)
-  if (window._welcomeBlinkTimer) clearInterval(window._welcomeBlinkTimer);
-  const scheduleBlink = () => {
-    const delay = 3000 + Math.random() * 3000;
-    window._welcomeBlinkTimer = setTimeout(() => {
-      const tutoEyes = container.querySelectorAll('.tuto-eye');
-      tutoEyes.forEach(eye => {
-        eye.style.animation = 'none';
-        void eye.offsetWidth;
-        eye.style.animation = 'tuto-blink 0.3s ease-in-out';
-        setTimeout(() => {
-          eye.style.animation = '';
-        }, 300);
-      });
-      scheduleBlink();
-    }, delay);
-  };
-  scheduleBlink();
+  // Random blink interval (3-6 seconds per spec) — shared helper (auth.js)
+  startTutoBlinkLoop(container);
 
   // Render Tuto SVG immediately
   const tutoSize = window.matchMedia('(max-width: 360px), (max-height: 740px)').matches ? 120 : 160;
@@ -432,15 +413,40 @@ function showMainApp() {
 function setupAuthListeners() {
   setupWelcomeKeyboard();
 
-  // Panel Switchers helper
-  const showPanel = (panelId) => {
-    document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(panelId)?.classList.add('active');
-    syncAuthScreenMode();
+  // The Guest name-capture panel (SCR "welcome-panel") keeps its own init
+  // logic here in main.js since it owns onboarding-draft state; auth.js
+  // invokes it via this hook whenever that panel becomes active.
+  setAuthPanelHook((panelId) => {
     if (panelId === 'welcome-panel') {
       initWelcomeScreen();
     }
-  };
+  });
+
+  // Welcome Hero (SCR-002) triggers
+  document.getElementById('hero-start-btn')?.addEventListener('click', () => {
+    showAuthPanel('signup-panel');
+  });
+
+  document.getElementById('hero-signin-btn')?.addEventListener('click', () => {
+    showAuthPanel('login-panel');
+  });
+
+  document.getElementById('hero-guest-btn')?.addEventListener('click', () => {
+    showAuthPanel('guest-mode-panel');
+  });
+
+  // Guest Mode (SCR-006) triggers
+  document.getElementById('guest-create-account-btn')?.addEventListener('click', () => {
+    showAuthPanel('signup-panel');
+  });
+
+  document.getElementById('guest-continue-btn')?.addEventListener('click', () => {
+    showAuthPanel('welcome-panel');
+  });
+
+  document.getElementById('guest-back-btn')?.addEventListener('click', () => {
+    showAuthPanel('welcome-hero-panel');
+  });
 
   // Welcome panel name input validation
   const nameInput = document.getElementById('welcome-name-input');
@@ -523,34 +529,34 @@ function setupAuthListeners() {
   // Welcome panel Sign In link trigger
   document.getElementById('welcome-signin-link')?.addEventListener('click', (e) => {
     e.preventDefault();
-    showPanel('login-panel');
+    showAuthPanel('login-panel');
   });
 
   // Login panel triggers
   document.getElementById('goto-welcome-btn')?.addEventListener('click', () => {
-    showPanel('welcome-panel');
+    showAuthPanel('welcome-hero-panel');
   });
 
   document.getElementById('goto-signup')?.addEventListener('click', () => {
-    showPanel('signup-panel');
+    showAuthPanel('signup-panel');
   });
 
   document.getElementById('forgot-password-btn')?.addEventListener('click', () => {
-    showPanel('forgot-panel');
+    showAuthPanel('forgot-panel');
   });
 
   // Signup panel triggers
   document.getElementById('goto-welcome-from-signup-btn')?.addEventListener('click', () => {
-    showPanel('welcome-panel');
+    showAuthPanel('welcome-hero-panel');
   });
 
   document.getElementById('goto-login')?.addEventListener('click', () => {
-    showPanel('login-panel');
+    showAuthPanel('login-panel');
   });
 
   // Forgot password panel triggers
   document.getElementById('goto-login-from-forgot')?.addEventListener('click', () => {
-    showPanel('login-panel');
+    showAuthPanel('login-panel');
   });
 
   // Sign In submission
@@ -3133,29 +3139,6 @@ function checkBadges() {
 }
 
 // ==================== TUTO FLOATING COACH SVG ====================
-function getTutoSVG(size = 80) {
-  return `
-  <svg width="${size}" height="${size}" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-    <!-- Floor Shadow -->
-    <ellipse cx="200" cy="360" rx="80" ry="12" fill="rgba(0,0,0,0.08)"/>
-    <!-- Shell -->
-    <ellipse cx="200" cy="238" rx="95" ry="78" fill="#d4865a"/>
-    <!-- Body / Head -->
-    <ellipse cx="200" cy="172" rx="56" ry="62" fill="#7a9e82" class="tuto-body"/>
-    <!-- Eyes -->
-    <circle cx="181" cy="163" r="13" fill="white"/>
-    <circle cx="219" cy="163" r="13" fill="white"/>
-    <circle cx="184" cy="166" r="8" fill="#2c3e50"/>
-    <circle cx="222" cy="166" r="8" fill="#2c3e50"/>
-    <!-- Smile -->
-    <path d="M188,184 Q200,196 212,184" fill="none" stroke="#6b4226" stroke-width="3" stroke-linecap="round"/>
-    <!-- Headphones -->
-    <path d="M152,152 Q152,108 200,108 Q248,108 248,152" fill="none" stroke="#FF6B35" stroke-width="9" stroke-linecap="round"/>
-    <rect x="143" y="147" width="20" height="28" rx="9" fill="#FF6B35"/>
-    <rect x="237" y="147" width="20" height="28" rx="9" fill="#FF6B35"/>
-  </svg>`;
-}
-
 function renderTuto() {}
 
 // Simple markdown renderer

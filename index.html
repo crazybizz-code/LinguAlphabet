@@ -16,6 +16,23 @@
   <!-- App Root -->
   <div id="app">
 
+    <!-- ===================== SPLASH SCREEN ===================== -->
+    <div id="splash-screen" class="splash-screen" role="img" aria-label="LinguAlphabet">
+      <div class="splash-glow-orb" aria-hidden="true"></div>
+      <div class="splash-center">
+        <div class="splash-logo-icon">
+          <svg width="64" height="64" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="20" fill="#FF6B35"/>
+            <path d="M12 14a8 8 0 0 1 16 0v8a8 8 0 0 1-16 0v-8z" fill="white" opacity="0.9"/>
+            <circle cx="16" cy="18" r="2.5" fill="#FF6B35"/>
+            <circle cx="24" cy="18" r="2.5" fill="#FF6B35"/>
+          </svg>
+        </div>
+        <span class="splash-logotype">LinguAlphabet</span>
+      </div>
+      <div class="splash-offline-banner hidden" id="splash-offline-banner">Connecting offline. Coaching ready.</div>
+    </div>
+
     <!-- ===================== ONBOARDING ASSESSMENT ===================== -->
     <div id="onboarding-screen" class="onboarding-screen hidden">
       <div class="auth-bg">
@@ -196,7 +213,7 @@
     </div>
 
     <!-- ===================== AUTH SCREENS ===================== -->
-    <div id="auth-screen" class="auth-screen">
+    <div id="auth-screen" class="auth-screen hidden">
       <div class="auth-bg">
         <div class="auth-blob auth-blob-1"></div>
         <div class="auth-blob auth-blob-2"></div>
@@ -215,8 +232,59 @@
           <span class="auth-logo-text">LinguAlphabet</span>
         </div>
 
-        <!-- Step 0: Welcome Landing Panel -->
-        <div id="welcome-panel" class="auth-panel active">
+        <!-- Step 0: Welcome Hero (Value Proposition Landing) -->
+        <div id="welcome-hero-panel" class="auth-panel active">
+          <div class="hero-mascot-area">
+            <div class="hero-floating-letters" aria-hidden="true">
+              <span class="hero-floating-letter" style="top:6%;left:8%;animation-delay:0s">A</span>
+              <span class="hero-floating-letter" style="top:12%;right:10%;animation-delay:1.3s">B</span>
+              <span class="hero-floating-letter" style="bottom:20%;left:14%;animation-delay:2.6s">C</span>
+              <span class="hero-floating-letter" style="bottom:12%;right:6%;animation-delay:3.9s">Z</span>
+            </div>
+            <div id="hero-tuto-avatar" class="hero-tuto-avatar"></div>
+          </div>
+          <h1 class="hero-title">Your AI English Coach</h1>
+          <p class="hero-body">Learn by speaking, not by tap-filling cards. Speak natural English with Tuto.</p>
+          <div class="hero-actions">
+            <button id="hero-start-btn" class="btn-primary btn-full btn-sweep" aria-label="Start your journey and create an account">Start Your Journey</button>
+            <button id="hero-signin-btn" class="btn-ghost btn-full" aria-label="Sign in to your account">Sign In to My Coach</button>
+            <button id="hero-guest-btn" class="hero-guest-link" aria-label="Explore guest mode">Explore Guest Mode</button>
+          </div>
+        </div>
+
+        <!-- Step 0b: Guest Mode Comparison -->
+        <div id="guest-mode-panel" class="auth-panel">
+          <h1 class="auth-title">Explore LinguAlphabet</h1>
+          <p class="auth-subtitle">See what you get as a guest versus a full account.</p>
+          <div class="guest-comparison-card">
+            <div class="guest-compare-col guest-col-guest">
+              <span class="guest-col-title">Guest</span>
+              <ul class="guest-col-list">
+                <li>No progress sync</li>
+                <li>Limited AI speech minutes (10m/day)</li>
+              </ul>
+            </div>
+            <div class="guest-compare-col guest-col-full">
+              <span class="guest-col-title">Full Account</span>
+              <ul class="guest-col-list">
+                <li>Unlimited Speech</li>
+                <li>Personalized Vocab Coach</li>
+                <li>Cross-device sync</li>
+              </ul>
+            </div>
+          </div>
+          <div class="guest-warning-box" id="guest-limits-note">
+            Your progress is stored locally on this device only.
+          </div>
+          <div class="auth-form">
+            <button id="guest-create-account-btn" class="btn-primary btn-full">Create Full Account First</button>
+            <button id="guest-continue-btn" class="btn-ghost btn-full">Continue as Guest</button>
+            <button id="guest-back-btn" class="btn-ghost btn-full">Back</button>
+          </div>
+        </div>
+
+        <!-- Step 0c: Guest Name Capture (Tuto conversational entry, reached only from Guest Mode) -->
+        <div id="welcome-panel" class="auth-panel">
             <!-- Safe Area Spacer (Top) -->
             <div class="safe-area-spacer-top"></div>
 

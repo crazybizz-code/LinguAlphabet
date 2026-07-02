@@ -112,6 +112,7 @@
 
   /* Auth Module (Sprint 1) — additive tokens only, existing tokens reused elsewhere */
   --font-display: 'Outfit', var(--font);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --secondary: #8B70DB;
   --secondary-light: #A38EE3;
   --secondary-dark: #6F52C7;
@@ -199,6 +200,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ======================== APP SHELL ======================== */
 #app {
+  position: relative; /* positioning context for the Splash overlay */
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -4201,5 +4203,321 @@ button,
   }
   .welcome-action-section .auth-switch {
     margin-top: 12px !important;
+  }
+}
+
+/* ======================== SPLASH SCREEN (SCR-001) ======================== */
+/* Positioned as an overlay (not a flex sibling) so it can stay visible while
+   the destination screen (Auth or Main App) is revealed underneath, then
+   fade out — this is what prevents any flash of the wrong screen. */
+.splash-screen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 430px;
+  z-index: 500;
+  transform: translate3d(-50%, 0, 0);
+  background: var(--bg-midnight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity var(--dur-slow) var(--ease-spring), transform var(--dur-slow) var(--ease-spring);
+}
+
+.splash-screen.splash-exit {
+  opacity: 0;
+  transform: translate3d(-50%, -16px, 0);
+  pointer-events: none;
+}
+
+.splash-glow-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+  opacity: 0.05;
+  transform: translate3d(-50%, -50%, 0);
+  animation: splash-orb-drift 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes splash-orb-drift {
+  0%, 100% { transform: translate3d(-50%, -50%, 0) scale(1); }
+  50% { transform: translate3d(calc(-50% + 10px), calc(-50% - 10px), 0) scale(1.06); }
+}
+
+.splash-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  opacity: 0;
+  transform: scale(0.95);
+  animation: splash-logo-in 350ms var(--ease-out-expo) forwards;
+}
+
+.splash-logo-icon svg {
+  filter: drop-shadow(0 8px 24px rgba(255, 107, 53, 0.35));
+}
+
+.splash-logotype {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text-on-dark);
+}
+
+@keyframes splash-logo-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.splash-offline-banner {
+  position: absolute;
+  bottom: calc(32px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-on-dark-2);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+
+/* ======================== WELCOME HERO (SCR-002) ======================== */
+.hero-mascot-area {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34vh;
+  margin: -8px -4px 24px;
+}
+
+.hero-floating-letters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-floating-letter {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--secondary);
+  opacity: 0.35;
+  animation: hero-letter-float 6s ease-in-out infinite;
+}
+
+@keyframes hero-letter-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -14px, 0) rotate(6deg); }
+}
+
+.hero-tuto-avatar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  animation: tuto-breath 3s ease-in-out infinite;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 10px;
+  opacity: 0;
+  animation: hero-fade-up var(--dur-slow) var(--ease-out) forwards;
+}
+
+.hero-body {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: hero-fade-up var(--dur-slow) var(--ease-out) forwards;
+  animation-delay: 60ms;
+}
+
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hero-actions > * {
+  opacity: 0;
+  animation: hero-fade-up var(--dur-slow) var(--ease-out) forwards;
+}
+
+.hero-actions > *:nth-child(1) { animation-delay: 120ms; }
+.hero-actions > *:nth-child(2) { animation-delay: 170ms; }
+.hero-actions > *:nth-child(3) { animation-delay: 220ms; }
+
+.hero-guest-link {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 6px;
+  position: relative;
+  cursor: pointer;
+}
+
+.hero-guest-link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 0;
+  height: 1px;
+  background: var(--text-secondary);
+  transition: width var(--dur-normal) var(--ease);
+  transform: translateX(-50%);
+}
+
+.hero-guest-link:hover::after,
+.hero-guest-link:focus-visible::after {
+  width: 64px;
+}
+
+/* Premium metallic sweep — reusable utility for any primary CTA that needs it */
+.btn-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
+  animation: btn-sweep 4s ease-in-out infinite;
+}
+
+@keyframes btn-sweep {
+  0%, 40% { left: -150%; }
+  60%, 100% { left: 150%; }
+}
+
+/* ======================== GUEST MODE (SCR-006) ======================== */
+.guest-comparison-card {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0 14px;
+}
+
+.guest-compare-col {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px 14px;
+  transition: opacity var(--dur-normal) var(--ease);
+}
+
+.guest-col-guest {
+  opacity: 0.6;
+}
+
+.guest-comparison-card:hover .guest-col-guest,
+.guest-comparison-card:focus-within .guest-col-guest {
+  opacity: 0.45;
+}
+
+.guest-col-full {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.guest-col-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.guest-col-full .guest-col-title {
+  color: var(--primary);
+}
+
+.guest-col-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.guest-col-full .guest-col-list {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.guest-col-list li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.guest-col-list li::before {
+  content: '\2022';
+  position: absolute;
+  left: 0;
+  color: currentColor;
+}
+
+.guest-warning-box {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1.5px solid var(--warning);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  line-height: 1.5;
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 360px), (max-height: 740px) {
+  .hero-mascot-area {
+    min-height: 26vh;
+    margin-bottom: 16px;
+  }
+  .hero-title {
+    font-size: 26px;
   }
 }
