@@ -16,7 +16,16 @@ import {
   setAuthPanelHook,
   showSplash,
   hideSplash,
-  runColdStartSequence
+  runColdStartSequence,
+  showError,
+  shakeFieldError,
+  isValidEmail,
+  isValidFullName,
+  isPasswordComplex,
+  renderPasswordStrength,
+  setupPasswordToggle,
+  bindEnterToSubmit,
+  handleGoogleAuth
 } from './auth.js';
 
 // ==================== GLOBAL STATE ====================
@@ -448,6 +457,31 @@ function setupAuthListeners() {
     showAuthPanel('welcome-hero-panel');
   });
 
+  // Login / Register field interactions (shared helpers, see auth.js)
+  setupPasswordToggle('login-password', 'login-password-toggle');
+  setupPasswordToggle('signup-password', 'signup-password-toggle');
+  setupPasswordToggle('signup-confirm-password', 'signup-confirm-password-toggle');
+
+  bindEnterToSubmit(['login-email', 'login-password'], 'login-btn');
+  bindEnterToSubmit(['signup-username', 'signup-email', 'signup-password', 'signup-confirm-password'], 'signup-btn');
+  bindEnterToSubmit(['forgot-email'], 'forgot-submit-btn');
+
+  // Live password strength meter (Register)
+  const signupPasswordInput = document.getElementById('signup-password');
+  const signupStrengthMeter = document.getElementById('signup-strength-meter');
+  const signupStrengthLabel = document.getElementById('signup-strength-label');
+  signupPasswordInput?.addEventListener('input', () => {
+    renderPasswordStrength(signupPasswordInput.value, signupStrengthMeter, signupStrengthLabel);
+  });
+
+  // Google Sign In / Sign Up
+  document.getElementById('login-google-btn')?.addEventListener('click', () => {
+    handleGoogleAuth(document.getElementById('login-google-btn'), document.getElementById('login-error'));
+  });
+  document.getElementById('signup-google-btn')?.addEventListener('click', () => {
+    handleGoogleAuth(document.getElementById('signup-google-btn'), document.getElementById('signup-error'));
+  });
+
   // Welcome panel name input validation
   const nameInput = document.getElementById('welcome-name-input');
   const continueBtn = document.getElementById('welcome-continue-btn');
@@ -561,12 +595,21 @@ function setupAuthListeners() {
 
   // Sign In submission
   document.getElementById('login-btn').addEventListener('click', async () => {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const rememberInput = document.getElementById('login-remember');
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
     const errEl = document.getElementById('login-error');
 
-    if (!email || !password) {
-      showError(errEl, 'Please enter both email and password');
+    if (!isValidEmail(email)) {
+      showError(errEl, 'Please enter a valid email address');
+      shakeFieldError(emailInput);
+      return;
+    }
+    if (!password) {
+      showError(errEl, 'Please enter your password');
+      shakeFieldError(passwordInput);
       return;
     }
 
@@ -575,7 +618,8 @@ function setupAuthListeners() {
     btn.disabled = true;
 
     try {
-      await supabase.signIn(email, password);
+      const remember = rememberInput ? rememberInput.checked : true;
+      await supabase.signIn(email, password, remember);
       UserState.update({
         userId: supabase.currentUser.id,
         email,
@@ -586,25 +630,50 @@ function setupAuthListeners() {
       showMainApp();
     } catch (err) {
       showError(errEl, err.message || 'Incorrect email or password');
+      shakeFieldError(passwordInput);
     } finally {
-      btn.innerHTML = 'Sign In';
+      btn.innerHTML = "Let's Go";
       btn.disabled = false;
     }
   });
 
-  // Sign Up submission
+  // Sign Up submission (the "Full Name" field is stored internally as
+  // `username`, which every other screen — home greeting, avatar initial,
+  // leaderboard — already reads; only the label/validation is "Full Name")
   document.getElementById('signup-btn').addEventListener('click', async () => {
-    const username = document.getElementById('signup-username').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
+    const nameInput = document.getElementById('signup-username');
+    const emailInput = document.getElementById('signup-email');
+    const passwordInput = document.getElementById('signup-password');
+    const confirmInput = document.getElementById('signup-confirm-password');
+    const termsInput = document.getElementById('signup-terms');
+    const fullName = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmInput.value;
     const errEl = document.getElementById('signup-error');
 
-    if (!username || !email || !password) {
-      showError(errEl, 'Please fill in all fields');
+    if (!isValidFullName(fullName)) {
+      showError(errEl, 'Please enter your full name (letters only, 2-50 characters)');
+      shakeFieldError(nameInput);
       return;
     }
-    if (password.length < 6) {
-      showError(errEl, 'Password must be at least 6 characters');
+    if (!isValidEmail(email)) {
+      showError(errEl, 'Please enter a valid email address');
+      shakeFieldError(emailInput);
+      return;
+    }
+    if (!isPasswordComplex(password)) {
+      showError(errEl, 'Password must be at least 8 characters with an uppercase letter, lowercase letter, number and special character');
+      shakeFieldError(passwordInput);
+      return;
+    }
+    if (password !== confirmPassword) {
+      showError(errEl, 'Passwords do not match');
+      shakeFieldError(confirmInput);
+      return;
+    }
+    if (!termsInput?.checked) {
+      showError(errEl, 'Please agree to the Terms and Privacy Policy to continue');
       return;
     }
 
@@ -613,11 +682,11 @@ function setupAuthListeners() {
     btn.disabled = true;
 
     try {
-      await supabase.signUp(email, password, username);
+      await supabase.signUp(email, password, fullName);
       UserState.update({
         userId: supabase.currentUser?.id || 'guest_user',
         email,
-        username,
+        username: fullName,
         isGuest: false,
         hasCompletedAssessment: false // Force onboarding for new accounts
       });
@@ -635,18 +704,21 @@ function setupAuthListeners() {
 
   // Forgot password submission
   document.getElementById('forgot-submit-btn')?.addEventListener('click', async () => {
-    const email = document.getElementById('forgot-email').value.trim();
+    const emailInput = document.getElementById('forgot-email');
+    const email = emailInput.value.trim();
     const errEl = document.getElementById('forgot-error');
     const successEl = document.getElementById('forgot-success');
 
-    if (!email) {
-      showError(errEl, 'Please enter your email address');
+    if (!isValidEmail(email)) {
+      showError(errEl, 'Please enter a valid email address');
+      shakeFieldError(emailInput);
       return;
     }
 
     const btn = document.getElementById('forgot-submit-btn');
     btn.innerHTML = '<span class="spinner"></span> Sending link...';
     btn.disabled = true;
+    emailInput.disabled = true;
 
     try {
       await supabase.resetPassword(email);
@@ -660,15 +732,9 @@ function setupAuthListeners() {
     } finally {
       btn.innerHTML = 'Send Recovery Link';
       btn.disabled = false;
+      emailInput.disabled = false;
     }
   });
-}
-
-function showError(el, msg) {
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.remove('hidden');
-  setTimeout(() => el.classList.add('hidden'), 4000);
 }
 
 // ==================== ONBOARDING ASSESSMENT ENGINE ====================

@@ -1,7 +1,9 @@
 // ============================================================
-// auth.js — Authentication Module (Sprint 1: Splash, Welcome Hero, Guest Mode)
-// Owns the auth entry-experience screens and the Tuto mascot renderer.
-// main.js stays orchestration-only and delegates to this module.
+// auth.js — Authentication Module (Sprint 1: Splash, Welcome Hero, Guest Mode,
+// Login, Register, Forgot Password)
+// Owns the auth entry-experience screens, the Tuto mascot renderer, and every
+// shared auth-form behavior (validation, password strength, Google sign-in,
+// field errors). main.js stays orchestration-only and delegates to this module.
 // ============================================================
 import { supabase, UserState } from './db.js';
 
@@ -176,4 +178,130 @@ export async function runColdStartSequence() {
   ]);
   if (route === 'offline') showSplashOfflineBanner();
   return route === 'welcome' ? 'welcome' : 'authenticated';
+}
+
+// ==================== SHARED ERROR / FIELD FEEDBACK ====================
+export function showError(el, msg) {
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+// Transient shake + red border on a single field (SCR-003 error-state spec).
+export function shakeFieldError(inputEl) {
+  if (!inputEl) return;
+  inputEl.classList.remove('input-error');
+  void inputEl.offsetWidth; // restart the animation if it's already mid-shake
+  inputEl.classList.add('input-error');
+  setTimeout(() => inputEl.classList.remove('input-error'), 600);
+}
+
+// ==================== VALIDATION ====================
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const FULL_NAME_RE = /^[A-Za-z\s]{2,50}$/;
+
+export function isValidEmail(email) {
+  return EMAIL_RE.test(String(email || '').trim());
+}
+
+export function isValidFullName(name) {
+  return FULL_NAME_RE.test(String(name || '').trim());
+}
+
+// Register's hard submit-blocking rule: 8+ chars, upper, lower, digit, special.
+export function isPasswordComplex(password) {
+  const pw = String(password || '');
+  return pw.length >= 8
+    && /[A-Z]/.test(pw)
+    && /[a-z]/.test(pw)
+    && /[0-9]/.test(pw)
+    && /[^A-Za-z0-9]/.test(pw);
+}
+
+// Login's lighter client-side gate (the real check happens server-side).
+export function isLoginPasswordValid(password) {
+  return String(password || '').length > 0;
+}
+
+// 4-tier live strength meter (Weak / Medium / Strong / Excellent), scored
+// across length, uppercase, lowercase, number, and special character.
+export function getPasswordStrength(password) {
+  const pw = String(password || '');
+  if (!pw) return { score: 0, level: 0, label: '' };
+
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[a-z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+  if (score <= 2) return { score, level: 1, label: 'Weak' };
+  if (score === 3) return { score, level: 2, label: 'Medium' };
+  if (score <= 5) return { score, level: 3, label: 'Strong' };
+  return { score, level: 4, label: 'Excellent' };
+}
+
+export function renderPasswordStrength(password, meterEl, labelEl) {
+  const { level, label } = getPasswordStrength(password);
+  if (meterEl) meterEl.dataset.level = String(level);
+  if (labelEl) {
+    labelEl.textContent = label;
+    labelEl.dataset.level = String(level);
+  }
+}
+
+// ==================== FIELD INTERACTIONS ====================
+// Show/hide password toggle, reused by Login, Register and Confirm Password.
+export function setupPasswordToggle(inputId, btnId) {
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(btnId);
+  if (!input || !btn || btn.dataset.bound === '1') return;
+  btn.dataset.bound = '1';
+  btn.addEventListener('click', () => {
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.setAttribute('aria-pressed', String(!showing));
+    btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    btn.innerHTML = showing
+      ? '<i class="fa-regular fa-eye"></i>'
+      : '<i class="fa-regular fa-eye-slash"></i>';
+  });
+}
+
+// Enter-to-submit, reused across every auth form (Login, Register, Forgot).
+export function bindEnterToSubmit(inputIds, buttonId) {
+  const btn = document.getElementById(buttonId);
+  if (!btn) return;
+  inputIds.forEach(id => {
+    const input = document.getElementById(id);
+    if (!input || input.dataset.enterBound === '1') return;
+    input.dataset.enterBound = '1';
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !btn.disabled) {
+        e.preventDefault();
+        btn.click();
+      }
+    });
+  });
+}
+
+// ==================== GOOGLE OAUTH ====================
+// Shared by the Login and Register Google buttons. Reuses the Phase A
+// availability check so an unconfigured provider shows a friendly message
+// instead of crashing or leaving the button stuck in a loading state.
+export async function handleGoogleAuth(button, errorEl) {
+  if (!button || button.disabled) return;
+  const originalHTML = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<span class="spinner"></span> Connecting to Google...';
+  try {
+    await supabase.signInWithGoogle(); // navigates away on success
+  } catch (err) {
+    button.disabled = false;
+    button.innerHTML = originalHTML;
+    showError(errorEl, err.message || 'Google Sign-In isn’t available right now. Please use email instead.');
+  }
 }
