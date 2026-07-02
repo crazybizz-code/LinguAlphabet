@@ -1,0 +1,328 @@
+/* ═════════════════════════════════════════════════════════════════
+   linguAlphabet Mascot Animations — CSS Stylesheet
+   ═════════════════════════════════════════════════════════════════ */
+
+/* Mascot Container & Main SVG */
+.mascot-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  user-select: none;
+  transition: transform 0.3s ease;
+}
+
+#torty-mascot {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Reduced Motion Preference Support */
+@media (prefers-reduced-motion: reduce) {
+  .mascot-container,
+  .mascot-container *,
+  svg,
+  g,
+  path,
+  ellipse,
+  circle {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   STATE 1: IDLE (Default relax state)
+   ═══════════════════════════════════════════ */
+.mascot-state-idle .tuto-head {
+  animation: head-bob-idle 3s ease-in-out infinite;
+  transform-origin: 50% 190px;
+}
+
+.mascot-state-idle .tuto-headphones {
+  animation: headphone-glow 3s ease-in-out infinite;
+}
+
+.mascot-state-idle .tuto-tail {
+  animation: tail-wag 2.5s ease-in-out infinite alternate;
+  transform-origin: 110px 245px;
+}
+
+/* ═══════════════════════════════════════════
+   STATE 2: THINKING (Quiz Question)
+   ═══════════════════════════════════════════ */
+.mascot-state-thinking .tuto-head {
+  animation: head-tilt-thinking 2.5s ease-in-out infinite alternate;
+  transform-origin: 50% 190px;
+}
+
+.mascot-state-thinking .tuto-leg-fl {
+  animation: paw-tap 0.8s ease-in-out infinite alternate;
+  transform-origin: 130px 265px;
+}
+
+/* ═══════════════════════════════════════════
+   STATE 3: CORRECT (Celebration Jump)
+   ═══════════════════════════════════════════ */
+.mascot-state-correct {
+  animation: jump-celebrate 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.mascot-state-correct svg {
+  animation: glow-success 1.2s ease-in-out forwards;
+}
+
+/* ═══════════════════════════════════════════
+   STATE 4: WRONG (Sympathy shake)
+   ═══════════════════════════════════════════ */
+.mascot-state-wrong {
+  animation: shake-wrong 0.8s ease-in-out forwards;
+}
+
+.mascot-state-wrong .tuto-head {
+  animation: head-shake-no 0.8s ease-in-out forwards;
+  transform-origin: 50% 190px;
+}
+
+.mascot-state-wrong .tuto-headphones {
+  opacity: 0.6;
+  filter: grayscale(80%);
+  transition: all 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════
+   STATE 5: LOADING (Processing/Swirl)
+   ═══════════════════════════════════════════ */
+.mascot-state-loading .tuto-head {
+  animation: head-bob-fast 0.6s ease-in-out infinite alternate;
+  transform-origin: 50% 190px;
+}
+
+.mascot-state-loading .tuto-eye {
+  animation: eyes-spiral 1s linear infinite;
+  transform-origin: center;
+}
+
+/* ═══════════════════════════════════════════
+   STATE 6: LEVELUP (Trophy lift / Rainbow)
+   ═══════════════════════════════════════════ */
+.mascot-state-levelup {
+  animation: trophy-lift 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.mascot-state-levelup svg {
+  animation: rainbow-glow 3.5s linear infinite;
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATION KEYFRAMES
+   ═══════════════════════════════════════════ */
+
+@keyframes head-bob-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes headphone-glow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 140, 66, 0.4)); }
+  50% { filter: drop-shadow(0 0 16px rgba(255, 140, 66, 0.85)); }
+}
+
+@keyframes tail-wag {
+  0% { transform: rotate(-5deg); }
+  100% { transform: rotate(8deg); }
+}
+
+@keyframes head-tilt-thinking {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-10deg); }
+}
+
+@keyframes paw-tap {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(15deg); }
+}
+
+@keyframes jump-celebrate {
+  0% { transform: translateY(0) scale(1); }
+  20% { transform: translateY(8px) scaleY(0.8) scaleX(1.15); }
+  45% { transform: translateY(-80px) scale(1.1) rotate(180deg); }
+  70% { transform: translateY(-110px) scale(1.1) rotate(360deg); }
+  85% { transform: translateY(-20px) scale(1); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes glow-success {
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.2)); }
+  40%, 75% { filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.95)) drop-shadow(0 0 10px #10b981); }
+}
+
+@keyframes shake-wrong {
+  0%, 100% { transform: translateX(0); }
+  15%, 45%, 75% { transform: translateX(-10px) rotate(-2deg); }
+  30%, 60%, 90% { transform: translateX(10px) rotate(2deg); }
+}
+
+@keyframes head-shake-no {
+  0%, 100% { transform: rotateZ(0); }
+  25% { transform: rotateZ(-8deg); }
+  75% { transform: rotateZ(8deg); }
+}
+
+@keyframes head-bob-fast {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+@keyframes eyes-spiral {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes trophy-lift {
+  0% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-35px) scale(1.1); }
+  60% { transform: translateY(-20px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes rainbow-glow {
+  0% { filter: drop-shadow(0 0 15px #6366f1); }
+  20% { filter: drop-shadow(0 0 15px #ec4899); }
+  40% { filter: drop-shadow(0 0 15px #f59e0b); }
+  60% { filter: drop-shadow(0 0 15px #10b981); }
+  80% { filter: drop-shadow(0 0 15px #3b82f6); }
+  100% { filter: drop-shadow(0 0 15px #6366f1); }
+}
+
+/* ═══════════════════════════════════════════
+   DYNAMIC INTERFACE COMPONENTS
+   ═══════════════════════════════════════════ */
+
+/* Speech/Thought Bubble */
+.torty-thought-bubble {
+  position: absolute;
+  background: white;
+  border: 2.5px solid var(--border, #eeeae4);
+  border-radius: 18px;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  font-family: 'Outfit', sans-serif;
+  color: #2c3e50;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.8) translateY(10px);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 100;
+  max-width: 180px;
+}
+
+.torty-thought-bubble.active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.torty-thought-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 30px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid white;
+}
+
+.torty-thought-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -13px;
+  left: 29px;
+  width: 0;
+  height: 0;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 11px solid var(--border, #eeeae4);
+  z-index: -1;
+}
+
+/* Confetti Particles */
+.torty-confetti-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+  z-index: 99;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: confetti-fall 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(120px) rotate(720deg); opacity: 0; }
+}
+
+/* XP Floating Text */
+.torty-xp-popup {
+  position: absolute;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #10b981;
+  text-shadow: 0 2px 6px rgba(16,185,129,0.3);
+  pointer-events: none;
+  z-index: 105;
+  animation: float-up-fade 1.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes float-up-fade {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  20% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+  85% { transform: translateY(-70px) scale(1); opacity: 1; }
+  100% { transform: translateY(-95px) scale(0.85); opacity: 0; }
+}
+
+/* Badge Award Popup */
+.torty-badge-popup {
+  position: absolute;
+  background: white;
+  border: 2px solid #ea580c;
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 25px rgba(234,88,12,0.15);
+  font-family: 'Outfit', sans-serif;
+  z-index: 110;
+  opacity: 0;
+  transform: scale(0.5) translateY(20px);
+  animation: badge-award-fly 3.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes badge-award-fly {
+  0% { transform: scale(0.5) translateY(20px); opacity: 0; }
+  15%, 85% { transform: scale(1) translateY(0); opacity: 1; }
+  100% { transform: scale(0.8) translateY(-40px); opacity: 0; }
+}
+
+/* Streak Fire Popup */
+.torty-streak-fire {
+  position: absolute;
+  font-size: 1.8rem;
+  pointer-events: none;
+  z-index: 106;
+  animation: fire-pop 1.5s ease-out forwards;
+}
+
+@keyframes fire-pop {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  30% { transform: scale(1.4) rotate(-15deg); opacity: 1; }
+  75% { transform: scale(1) rotate(15deg); opacity: 1; }
+  100% { transform: translateY(-40px) scale(0.6); opacity: 0; }
+}

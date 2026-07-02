@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torty the Tortoise — Interactive Mascot Demo</title>
+  
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Mascot Style -->
+  <link rel="stylesheet" href="mascot-animations.css">
+  
+  <style>
+    :root {
+      --bg: #f7f4f0;
+      --card-bg: #ffffff;
+      --text: #2c3e50;
+      --accent: #e75d3c;
+      --border: #eeeae4;
+      --primary: #9db8a3;
+      --terracotta: #c97456;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .demo-wrapper {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 900px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .demo-wrapper {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left pane: Mascot container */
+    .mascot-preview-pane {
+      background: radial-gradient(circle at 50% 50%, #ffffff 0%, var(--bg) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      border-right: 2px solid var(--border);
+      position: relative;
+    }
+
+    @media (max-width: 768px) {
+      .mascot-preview-pane {
+        border-right: none;
+        border-bottom: 2px solid var(--border);
+      }
+    }
+
+    .mascot-preview-pane h2 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .mascot-preview-pane p {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      margin-bottom: 2rem;
+    }
+
+    /* Right pane: Controls container */
+    .controls-pane {
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .controls-pane h3 {
+      font-size: 1.4rem;
+      margin-bottom: 1.5rem;
+      font-weight: 700;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 2rem;
+    }
+
+    .demo-btn {
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .demo-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(231,93,60,0.1);
+    }
+
+    .demo-btn:active {
+      transform: translateY(0);
+    }
+
+    .demo-btn.active-action {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .demo-btn.active-action:hover {
+      color: white;
+      box-shadow: 0 4px 12px rgba(231,93,60,0.25);
+    }
+
+    .config-card {
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 0.85rem;
+    }
+
+    .config-card h4 {
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .config-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .config-row:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Custom Switch Toggle styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input { 
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-wrapper">
+    <!-- LEFT PANEL: Torky Mascot Canvas -->
+    <div class="mascot-preview-pane">
+      <h2>Torty the Tortoise</h2>
+      <p>Interactive Mascot System Demo</p>
+      
+      <!-- Interactive Mascot Container -->
+      <div class="mascot-container" id="mascot-container" style="width: 280px; height: 280px;">
+        <svg id="torty-mascot" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Sage Green Skin Gradients -->
+            <linearGradient id="sageSkin" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#bce0c8" />
+              <stop offset="60%" stop-color="#9db8a3" />
+              <stop offset="100%" stop-color="#7c9682" />
+            </linearGradient>
+            <linearGradient id="sageSkinShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#7c9682" />
+              <stop offset="100%" stop-color="#5a7060" />
+            </linearGradient>
+
+            <!-- Terracotta Shell Gradients -->
+            <radialGradient id="terracottaShell" cx="50%" cy="30%" r="60%">
+              <stop offset="0%" stop-color="#e28a6a" />
+              <stop offset="70%" stop-color="#c97456" />
+              <stop offset="100%" stop-color="#a65437" />
+            </radialGradient>
+            <linearGradient id="shellTile1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#d98263" />
+              <stop offset="100%" stop-color="#b56143" />
+            </linearGradient>
+            <linearGradient id="shellTile2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#cf7657" />
+              <stop offset="100%" stop-color="#96482e" />
+            </linearGradient>
+
+            <!-- Coral/Orange Headphones Gradients -->
+            <linearGradient id="headphonesCoral" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#ffb082" />
+              <stop offset="40%" stop-color="#ff8c42" />
+              <stop offset="100%" stop-color="#e05e16" />
+            </linearGradient>
+            <radialGradient id="earcupGloss" cx="35%" cy="35%" r="60%">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+              <stop offset="40%" stop-color="#ff8c42" />
+              <stop offset="100%" stop-color="#b54103" />
+            </radialGradient>
+
+            <!-- Deep Blue-Gray Eye Gradient -->
+            <radialGradient id="eyeIris" cx="40%" cy="40%" r="50%">
+              <stop offset="0%" stop-color="#4a5d6e" />
+              <stop offset="60%" stop-color="#2c3e50" />
+              <stop offset="100%" stop-color="#141c24" />
+            </radialGradient>
+
+            <!-- Backpack Gradients -->
+            <linearGradient id="packGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ffb082" />
+              <stop offset="100%" stop-color="#c97456" />
+            </linearGradient>
+          </defs>
+
+          <!-- 10. GROUND SHADOW -->
+          <ellipse cx="200" cy="340" rx="120" ry="15" fill="rgba(0, 0, 0, 0.08)" />
+
+          <!-- 4. TORTOISE BACK LEGS -->
+          <g id="torty-back-legs">
+            <path d="M125,270 C110,270 100,285 105,305 C108,315 125,320 140,312 C145,300 140,280 125,270 Z" fill="url(#sageSkinShadow)" stroke="#5a7060" stroke-width="1.5" />
+            <path d="M275,270 C290,270 300,285 295,305 C292,315 275,320 260,312 C255,300 260,280 275,270 Z" fill="url(#sageSkinShadow)" stroke="#5a7060" stroke-width="1.5" />
+          </g>
+
+          <!-- 2. BODY & TAIL -->
+          <path d="M110,245 Q90,240 100,230 Q112,230 116,240 Z" fill="url(#sageSkinShadow)" stroke="#5a7060" stroke-width="1.5" class="tuto-tail" />
+
+          <!-- 1. SHELL -->
+          <g id="torty-shell" class="tuto-body-group">
+            <path d="M110,250 C100,160 300,160 290,250 C295,275 105,275 110,250 Z" fill="url(#terracottaShell)" stroke="#8b5a3c" stroke-width="2.5" />
+            <path d="M125,210 C140,175 260,175 275,210" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.25" />
+            
+            <polygon points="180,180 220,180 235,205 220,230 180,230 165,205" fill="url(#shellTile1)" stroke="#8b5a3c" stroke-width="1.5" />
+            <polygon points="135,200 165,205 180,230 165,255 130,250 115,225" fill="url(#shellTile2)" stroke="#8b5a3c" stroke-width="1.5" />
+            <polygon points="235,205 265,200 285,225 270,250 235,255 220,230" fill="url(#shellTile2)" stroke="#8b5a3c" stroke-width="1.5" />
+            <polygon points="180,230 220,230 235,255 200,268 165,255" fill="url(#shellTile1)" stroke="#8b5a3c" stroke-width="1.5" />
+            <path d="M103,252 Q200,285 297,252 C295,260 280,265 200,265 C120,265 105,260 103,252 Z" fill="#ffedd5" stroke="#ea580c" stroke-width="1" opacity="0.95" />
+          </g>
+
+          <!-- 7. FRONT LEGS -->
+          <g id="torty-front-legs">
+            <path d="M130,265 C115,265 110,285 115,315 C118,328 135,332 152,322 C160,310 155,275 130,265 Z" fill="url(#sageSkin)" stroke="#5a7060" stroke-width="1.8" class="tuto-leg-fl" />
+            <g id="torty-waving-arm" class="tuto-leg-fr">
+              <path d="M260,270 C280,260 300,235 305,250 C310,265 295,295 275,302 C262,305 250,285 260,270 Z" fill="url(#sageSkin)" stroke="#5a7060" stroke-width="1.8" />
+            </g>
+          </g>
+
+          <!-- 3. HEAD & NECK -->
+          <path d="M185,190 C180,140 220,140 215,190 Z" fill="url(#sageSkinShadow)" stroke="#5a7060" stroke-width="1.5" />
+          
+          <g class="tuto-head">
+            <ellipse cx="200" cy="130" rx="42" ry="38" fill="url(#sageSkin)" stroke="#5a7060" stroke-width="1.5" />
+            <ellipse cx="168" cy="144" rx="10" ry="6" fill="#fca5a5" opacity="0.45" />
+            <ellipse cx="232" cy="144" rx="10" ry="6" fill="#fca5a5" opacity="0.45" />
+
+            <!-- EYES -->
+            <ellipse cx="180" cy="122" rx="11" ry="13" fill="#ffffff" />
+            <ellipse cx="180" cy="122" rx="8.5" ry="10" fill="url(#eyeIris)" />
+            <circle cx="183.5" cy="118.5" r="2.8" fill="#2c3e50" class="tuto-eye" />
+            <circle cx="183.5" cy="118.5" r="1.1" fill="#ffffff" />
+
+            <ellipse cx="220" cy="122" rx="11" ry="13" fill="#ffffff" />
+            <ellipse cx="220" cy="122" rx="8.5" ry="10" fill="url(#eyeIris)" />
+            <circle cx="223.5" cy="118.5" r="2.8" fill="#2c3e50" class="tuto-eye" />
+            <circle cx="223.5" cy="118.5" r="1.1" fill="#ffffff" />
+
+            <!-- Eyebrows -->
+            <path d="M168,103 Q180,98 190,105" fill="none" stroke="#2c3e50" stroke-width="2.5" stroke-linecap="round" id="tuto-brow-left" />
+            <path d="M232,103 Q220,98 210,105" fill="none" stroke="#2c3e50" stroke-width="2.5" stroke-linecap="round" id="tuto-brow-right" />
+
+            <path d="M196,134 Q200,136 204,134" fill="none" stroke="#5a7060" stroke-width="1.8" stroke-linecap="round" />
+            <path d="M188,146 Q200,154 212,146" fill="none" stroke="#c97456" stroke-width="2.5" stroke-linecap="round" id="tuto-mouth" />
+          </g>
+
+          <!-- Headphones -->
+          <g id="tuto-headphones" class="tuto-headphones">
+            <path d="M158,110 A48,48 0 0,1 242,110" fill="none" stroke="url(#headphonesCoral)" stroke-width="5" stroke-linecap="round" />
+            <g transform="translate(142, 114)">
+              <ellipse cx="12" cy="18" rx="14" ry="18" fill="url(#headphonesCoral)" stroke="#d24e2e" stroke-width="1" />
+              <ellipse cx="12" cy="18" rx="11" ry="15" fill="url(#earcupGloss)" />
+            </g>
+            <g transform="translate(234, 114)">
+              <ellipse cx="12" cy="18" rx="14" ry="18" fill="url(#headphonesCoral)" stroke="#d24e2e" stroke-width="1" />
+              <ellipse cx="12" cy="18" rx="11" ry="15" fill="url(#earcupGloss)" />
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div style="font-size: 0.8rem; color: #95a5a6; font-style: italic;">Tip: Click Torty for a random response!</div>
+    </div>
+
+    <!-- RIGHT PANEL: Action Buttons & Configurations -->
+    <div class="controls-pane">
+      <h3>MASCOT INTERACTIONS</h3>
+      
+      <div class="btn-grid">
+        <button class="demo-btn active-action" id="btn-idle"><i class="fa-solid fa-face-smile"></i> Idle State</button>
+        <button class="demo-btn" id="btn-think"><i class="fa-solid fa-brain"></i> Thinking</button>
+        <button class="demo-btn" id="btn-correct"><i class="fa-solid fa-circle-check" style="color:#10b981"></i> Correct (Jump)</button>
+        <button class="demo-btn" id="btn-wrong"><i class="fa-solid fa-circle-xmark" style="color:#e75d3c"></i> Wrong (Shake)</button>
+        <button class="demo-btn" id="btn-load"><i class="fa-solid fa-circle-notch fa-spin"></i> Processing</button>
+        <button class="demo-btn" id="btn-levelup"><i class="fa-solid fa-trophy" style="color:#f59e0b"></i> Level Up</button>
+        <button class="demo-btn" id="btn-hint"><i class="fa-solid fa-lightbulb"></i> Hint Wink</button>
+        <button class="demo-btn" id="btn-streak"><i class="fa-solid fa-fire" style="color:#ea580c"></i> Day Streak</button>
+      </div>
+
+      <div class="config-card">
+        <h4>SETTINGS</h4>
+        <div class="config-row">
+          <span>Enable Sound Effects</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-sound" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="config-row">
+          <span>Enable Confetti Burst</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-particles" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="mascot-interaction.js"></script>
+  <script>
+    // Initialize interaction manager
+    const manager = new MascotInteractionManager();
+
+    // Map buttons to functions
+    const buttons = {
+      'btn-idle': () => manager.setState('idle'),
+      'btn-think': () => manager.onQuestionShow(),
+      'btn-correct': () => manager.onCorrectAnswer(50),
+      'btn-wrong': () => manager.onWrongAnswer(),
+      'btn-load': () => manager.onLoading(),
+      'btn-levelup': () => manager.onQuizComplete('badge_first', 'Science Scholar'),
+      'btn-hint': () => manager.onHintGiven(),
+      'btn-streak': () => manager.onStreakUpdate(5)
+    };
+
+    // Add event listeners and active states
+    Object.keys(buttons).forEach(btnId => {
+      const el = document.getElementById(btnId);
+      el.addEventListener('click', () => {
+        // Toggle active button style
+        document.querySelectorAll('.demo-btn').forEach(b => b.classList.remove('active-action'));
+        el.classList.add('active-action');
+        // Run action
+        buttons[btnId]();
+      });
+    });
+
+    // Settings listeners
+    document.getElementById('toggle-sound').addEventListener('change', (e) => {
+      manager.configure({ enableSound: e.target.checked });
+    });
+    document.getElementById('toggle-particles').addEventListener('change', (e) => {
+      manager.configure({ enableParticles: e.target.checked });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,5073 @@
+{
+  "engine": "whisper-timestamped",
+  "model": "tiny.en",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.1,
+      "end": 6.37,
+      "text": " Hello and welcome to Real Easy English. We're back with another conversation in Easy English",
+      "words": [
+        {
+          "word": "Hello",
+          "start": 0.1,
+          "end": 0.5,
+          "probability": 0.866
+        },
+        {
+          "word": "and",
+          "start": 0.5,
+          "end": 0.84,
+          "probability": 0.807
+        },
+        {
+          "word": "welcome",
+          "start": 0.84,
+          "end": 1.28,
+          "probability": 0.988
+        },
+        {
+          "word": "to",
+          "start": 1.28,
+          "end": 1.56,
+          "probability": 0.998
+        },
+        {
+          "word": "Real",
+          "start": 1.56,
+          "end": 1.98,
+          "probability": 0.898
+        },
+        {
+          "word": "Easy",
+          "start": 1.98,
+          "end": 2.44,
+          "probability": 0.815
+        },
+        {
+          "word": "English.",
+          "start": 2.44,
+          "end": 3.1,
+          "probability": 0.994
+        },
+        {
+          "word": "We're",
+          "start": 3.26,
+          "end": 3.56,
+          "probability": 0.835
+        },
+        {
+          "word": "back",
+          "start": 3.56,
+          "end": 3.84,
+          "probability": 0.989
+        },
+        {
+          "word": "with",
+          "start": 3.84,
+          "end": 4.16,
+          "probability": 0.993
+        },
+        {
+          "word": "another",
+          "start": 4.16,
+          "end": 4.54,
+          "probability": 0.979
+        },
+        {
+          "word": "conversation",
+          "start": 4.54,
+          "end": 5.3,
+          "probability": 0.826
+        },
+        {
+          "word": "in",
+          "start": 5.3,
+          "end": 5.78,
+          "probability": 0.576
+        },
+        {
+          "word": "Easy",
+          "start": 5.78,
+          "end": 6.12,
+          "probability": 0.629
+        },
+        {
+          "word": "English",
+          "start": 6.12,
+          "end": 6.37,
+          "probability": 0.952
+        }
+      ]
+    },
+    {
+      "start": 6.37,
+      "end": 12.69,
+      "text": " to help you learn. I'm Georgie. And I'm Phil. And you can find a video version of this podcast",
+      "words": [
+        {
+          "word": "to",
+          "start": 6.37,
+          "end": 6.92,
+          "probability": 0.988
+        },
+        {
+          "word": "help",
+          "start": 6.92,
+          "end": 7.16,
+          "probability": 0.997
+        },
+        {
+          "word": "you",
+          "start": 7.16,
+          "end": 7.3,
+          "probability": 0.999
+        },
+        {
+          "word": "learn.",
+          "start": 7.3,
+          "end": 7.56,
+          "probability": 0.999
+        },
+        {
+          "word": "I'm",
+          "start": 7.84,
+          "end": 7.86,
+          "probability": 0.988
+        },
+        {
+          "word": "Georgie.",
+          "start": 7.86,
+          "end": 8.42,
+          "probability": 0.923
+        },
+        {
+          "word": "And",
+          "start": 8.66,
+          "end": 8.9,
+          "probability": 0.692
+        },
+        {
+          "word": "I'm",
+          "start": 8.9,
+          "end": 9.16,
+          "probability": 0.989
+        },
+        {
+          "word": "Phil.",
+          "start": 9.16,
+          "end": 9.54,
+          "probability": 0.991
+        },
+        {
+          "word": "And",
+          "start": 9.92,
+          "end": 10.14,
+          "probability": 0.844
+        },
+        {
+          "word": "you",
+          "start": 10.14,
+          "end": 10.28,
+          "probability": 0.996
+        },
+        {
+          "word": "can",
+          "start": 10.28,
+          "end": 10.48,
+          "probability": 0.996
+        },
+        {
+          "word": "find",
+          "start": 10.48,
+          "end": 10.74,
+          "probability": 0.995
+        },
+        {
+          "word": "a",
+          "start": 10.74,
+          "end": 11.04,
+          "probability": 0.985
+        },
+        {
+          "word": "video",
+          "start": 11.04,
+          "end": 11.5,
+          "probability": 0.977
+        },
+        {
+          "word": "version",
+          "start": 11.5,
+          "end": 12.02,
+          "probability": 0.82
+        },
+        {
+          "word": "of",
+          "start": 12.02,
+          "end": 12.28,
+          "probability": 0.962
+        },
+        {
+          "word": "this",
+          "start": 12.28,
+          "end": 12.48,
+          "probability": 0.946
+        },
+        {
+          "word": "podcast",
+          "start": 12.48,
+          "end": 12.69,
+          "probability": 0.959
+        }
+      ]
+    },
+    {
+      "start": 12.69,
+      "end": 19.62,
+      "text": " with subtitles to help you on our website and that's at bbclearningenglish.com.",
+      "words": [
+        {
+          "word": "with",
+          "start": 12.69,
+          "end": 13.46,
+          "probability": 0.997
+        },
+        {
+          "word": "subtitles",
+          "start": 13.46,
+          "end": 14.0,
+          "probability": 0.871
+        },
+        {
+          "word": "to",
+          "start": 14.0,
+          "end": 14.34,
+          "probability": 0.992
+        },
+        {
+          "word": "help",
+          "start": 14.34,
+          "end": 14.58,
+          "probability": 1.0
+        },
+        {
+          "word": "you",
+          "start": 14.58,
+          "end": 15.2,
+          "probability": 0.999
+        },
+        {
+          "word": "on",
+          "start": 15.2,
+          "end": 15.44,
+          "probability": 0.991
+        },
+        {
+          "word": "our",
+          "start": 15.44,
+          "end": 15.72,
+          "probability": 0.998
+        },
+        {
+          "word": "website",
+          "start": 15.72,
+          "end": 16.36,
+          "probability": 0.994
+        },
+        {
+          "word": "and",
+          "start": 16.36,
+          "end": 16.58,
+          "probability": 0.412
+        },
+        {
+          "word": "that's",
+          "start": 16.58,
+          "end": 16.84,
+          "probability": 0.993
+        },
+        {
+          "word": "at",
+          "start": 16.84,
+          "end": 17.1,
+          "probability": 0.929
+        },
+        {
+          "word": "bbclearningenglish.com.",
+          "start": 17.1,
+          "end": 19.62,
+          "probability": 0.707
+        }
+      ]
+    },
+    {
+      "start": 26.4,
+      "end": 34.2,
+      "text": " Hello Phil, how are you? I'm good, but I'm also a little bit tired because I've been doing",
+      "words": [
+        {
+          "word": "Hello",
+          "start": 26.4,
+          "end": 26.58,
+          "probability": 0.552
+        },
+        {
+          "word": "Phil,",
+          "start": 26.58,
+          "end": 27.14,
+          "probability": 0.899
+        },
+        {
+          "word": "how",
+          "start": 27.3,
+          "end": 27.4,
+          "probability": 0.973
+        },
+        {
+          "word": "are",
+          "start": 27.4,
+          "end": 27.56,
+          "probability": 0.993
+        },
+        {
+          "word": "you?",
+          "start": 27.56,
+          "end": 27.98,
+          "probability": 0.997
+        },
+        {
+          "word": "I'm",
+          "start": 28.5,
+          "end": 29.38,
+          "probability": 0.904
+        },
+        {
+          "word": "good,",
+          "start": 29.38,
+          "end": 29.74,
+          "probability": 0.806
+        },
+        {
+          "word": "but",
+          "start": 30.1,
+          "end": 30.22,
+          "probability": 0.985
+        },
+        {
+          "word": "I'm",
+          "start": 30.22,
+          "end": 30.44,
+          "probability": 0.99
+        },
+        {
+          "word": "also",
+          "start": 30.44,
+          "end": 30.84,
+          "probability": 0.981
+        },
+        {
+          "word": "a",
+          "start": 30.84,
+          "end": 31.16,
+          "probability": 0.984
+        },
+        {
+          "word": "little",
+          "start": 31.16,
+          "end": 31.46,
+          "probability": 0.991
+        },
+        {
+          "word": "bit",
+          "start": 31.46,
+          "end": 31.68,
+          "probability": 0.974
+        },
+        {
+          "word": "tired",
+          "start": 31.68,
+          "end": 32.24,
+          "probability": 0.991
+        },
+        {
+          "word": "because",
+          "start": 32.24,
+          "end": 33.14,
+          "probability": 0.806
+        },
+        {
+          "word": "I've",
+          "start": 33.14,
+          "end": 33.68,
+          "probability": 0.967
+        },
+        {
+          "word": "been",
+          "start": 33.68,
+          "end": 33.8,
+          "probability": 0.887
+        },
+        {
+          "word": "doing",
+          "start": 33.8,
+          "end": 34.2,
+          "probability": 0.823
+        }
+      ]
+    },
+    {
+      "start": 34.2,
+      "end": 43.1,
+      "text": " DIY all weekend. Well, that's lucky because today we're talking about DIY. DIY stands for",
+      "words": [
+        {
+          "word": "DIY",
+          "start": 34.2,
+          "end": 34.88,
+          "probability": 0.906
+        },
+        {
+          "word": "all",
+          "start": 34.88,
+          "end": 35.72,
+          "probability": 0.896
+        },
+        {
+          "word": "weekend.",
+          "start": 35.72,
+          "end": 36.18,
+          "probability": 0.994
+        },
+        {
+          "word": "Well,",
+          "start": 37.1,
+          "end": 37.74,
+          "probability": 0.926
+        },
+        {
+          "word": "that's",
+          "start": 38.14,
+          "end": 38.36,
+          "probability": 0.997
+        },
+        {
+          "word": "lucky",
+          "start": 38.36,
+          "end": 38.56,
+          "probability": 0.991
+        },
+        {
+          "word": "because",
+          "start": 38.56,
+          "end": 38.94,
+          "probability": 0.954
+        },
+        {
+          "word": "today",
+          "start": 38.94,
+          "end": 39.34,
+          "probability": 0.982
+        },
+        {
+          "word": "we're",
+          "start": 39.34,
+          "end": 39.58,
+          "probability": 0.868
+        },
+        {
+          "word": "talking",
+          "start": 39.58,
+          "end": 40.04,
+          "probability": 0.987
+        },
+        {
+          "word": "about",
+          "start": 40.04,
+          "end": 40.4,
+          "probability": 0.992
+        },
+        {
+          "word": "DIY.",
+          "start": 40.4,
+          "end": 41.16,
+          "probability": 0.992
+        },
+        {
+          "word": "DIY",
+          "start": 41.7,
+          "end": 42.14,
+          "probability": 0.764
+        },
+        {
+          "word": "stands",
+          "start": 42.14,
+          "end": 42.72,
+          "probability": 0.993
+        },
+        {
+          "word": "for",
+          "start": 42.72,
+          "end": 43.1,
+          "probability": 0.885
+        }
+      ]
+    },
+    {
+      "start": 43.1,
+      "end": 51.12,
+      "text": " do it yourself and it means doing things to your home such as fixing and painting. So what kind",
+      "words": [
+        {
+          "word": "do",
+          "start": 43.1,
+          "end": 43.48,
+          "probability": 0.55
+        },
+        {
+          "word": "it",
+          "start": 43.48,
+          "end": 43.76,
+          "probability": 0.931
+        },
+        {
+          "word": "yourself",
+          "start": 43.76,
+          "end": 44.44,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 44.44,
+          "end": 44.98,
+          "probability": 0.59
+        },
+        {
+          "word": "it",
+          "start": 44.98,
+          "end": 45.0,
+          "probability": 0.996
+        },
+        {
+          "word": "means",
+          "start": 45.0,
+          "end": 45.58,
+          "probability": 1.0
+        },
+        {
+          "word": "doing",
+          "start": 45.58,
+          "end": 45.98,
+          "probability": 0.995
+        },
+        {
+          "word": "things",
+          "start": 45.98,
+          "end": 46.32,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 46.32,
+          "end": 46.48,
+          "probability": 0.995
+        },
+        {
+          "word": "your",
+          "start": 46.48,
+          "end": 46.66,
+          "probability": 0.996
+        },
+        {
+          "word": "home",
+          "start": 46.66,
+          "end": 47.14,
+          "probability": 0.905
+        },
+        {
+          "word": "such",
+          "start": 47.14,
+          "end": 47.4,
+          "probability": 0.702
+        },
+        {
+          "word": "as",
+          "start": 47.4,
+          "end": 47.64,
+          "probability": 0.999
+        },
+        {
+          "word": "fixing",
+          "start": 47.64,
+          "end": 48.24,
+          "probability": 0.993
+        },
+        {
+          "word": "and",
+          "start": 48.24,
+          "end": 48.88,
+          "probability": 0.992
+        },
+        {
+          "word": "painting.",
+          "start": 48.88,
+          "end": 49.4,
+          "probability": 0.993
+        },
+        {
+          "word": "So",
+          "start": 50.28,
+          "end": 50.38,
+          "probability": 0.83
+        },
+        {
+          "word": "what",
+          "start": 50.38,
+          "end": 50.88,
+          "probability": 0.505
+        },
+        {
+          "word": "kind",
+          "start": 50.88,
+          "end": 51.12,
+          "probability": 0.724
+        }
+      ]
+    },
+    {
+      "start": 51.12,
+      "end": 60.34,
+      "text": " of DIY have you been doing this weekend? Yes, I've been trying to fix my water tank. Okay, and do you do",
+      "words": [
+        {
+          "word": "of",
+          "start": 51.12,
+          "end": 51.34,
+          "probability": 0.999
+        },
+        {
+          "word": "DIY",
+          "start": 51.34,
+          "end": 51.76,
+          "probability": 0.996
+        },
+        {
+          "word": "have",
+          "start": 51.76,
+          "end": 52.58,
+          "probability": 0.976
+        },
+        {
+          "word": "you",
+          "start": 52.58,
+          "end": 52.76,
+          "probability": 1.0
+        },
+        {
+          "word": "been",
+          "start": 52.76,
+          "end": 52.88,
+          "probability": 0.999
+        },
+        {
+          "word": "doing",
+          "start": 52.88,
+          "end": 53.18,
+          "probability": 1.0
+        },
+        {
+          "word": "this",
+          "start": 53.18,
+          "end": 53.46,
+          "probability": 0.998
+        },
+        {
+          "word": "weekend?",
+          "start": 53.46,
+          "end": 53.94,
+          "probability": 1.0
+        },
+        {
+          "word": "Yes,",
+          "start": 54.62,
+          "end": 54.92,
+          "probability": 0.989
+        },
+        {
+          "word": "I've",
+          "start": 55.06,
+          "end": 55.36,
+          "probability": 0.996
+        },
+        {
+          "word": "been",
+          "start": 55.36,
+          "end": 55.84,
+          "probability": 0.999
+        },
+        {
+          "word": "trying",
+          "start": 55.84,
+          "end": 56.48,
+          "probability": 0.996
+        },
+        {
+          "word": "to",
+          "start": 56.48,
+          "end": 56.72,
+          "probability": 1.0
+        },
+        {
+          "word": "fix",
+          "start": 56.72,
+          "end": 57.0,
+          "probability": 0.999
+        },
+        {
+          "word": "my",
+          "start": 57.0,
+          "end": 57.22,
+          "probability": 1.0
+        },
+        {
+          "word": "water",
+          "start": 57.22,
+          "end": 57.48,
+          "probability": 0.959
+        },
+        {
+          "word": "tank.",
+          "start": 57.48,
+          "end": 57.86,
+          "probability": 0.982
+        },
+        {
+          "word": "Okay,",
+          "start": 58.04,
+          "end": 58.68,
+          "probability": 0.762
+        },
+        {
+          "word": "and",
+          "start": 59.3,
+          "end": 59.7,
+          "probability": 0.79
+        },
+        {
+          "word": "do",
+          "start": 59.7,
+          "end": 59.96,
+          "probability": 0.709
+        },
+        {
+          "word": "you",
+          "start": 59.96,
+          "end": 60.16,
+          "probability": 0.712
+        },
+        {
+          "word": "do",
+          "start": 60.16,
+          "end": 60.34,
+          "probability": 0.503
+        }
+      ]
+    },
+    {
+      "start": 60.34,
+      "end": 72.42,
+      "text": " a lot of DIY? More than I want to. I'm not very good at DIY. If it's something I can do,",
+      "words": [
+        {
+          "word": "a",
+          "start": 60.34,
+          "end": 60.84,
+          "probability": 0.672
+        },
+        {
+          "word": "lot",
+          "start": 60.84,
+          "end": 60.98,
+          "probability": 1.0
+        },
+        {
+          "word": "of",
+          "start": 60.98,
+          "end": 61.28,
+          "probability": 0.998
+        },
+        {
+          "word": "DIY?",
+          "start": 61.28,
+          "end": 61.94,
+          "probability": 0.998
+        },
+        {
+          "word": "More",
+          "start": 62.7,
+          "end": 63.9,
+          "probability": 0.848
+        },
+        {
+          "word": "than",
+          "start": 63.9,
+          "end": 64.14,
+          "probability": 0.997
+        },
+        {
+          "word": "I",
+          "start": 64.14,
+          "end": 64.32,
+          "probability": 0.996
+        },
+        {
+          "word": "want",
+          "start": 64.32,
+          "end": 64.72,
+          "probability": 0.999
+        },
+        {
+          "word": "to.",
+          "start": 64.72,
+          "end": 65.38,
+          "probability": 0.995
+        },
+        {
+          "word": "I'm",
+          "start": 66.6,
+          "end": 67.8,
+          "probability": 0.973
+        },
+        {
+          "word": "not",
+          "start": 67.8,
+          "end": 68.06,
+          "probability": 0.992
+        },
+        {
+          "word": "very",
+          "start": 68.06,
+          "end": 68.32,
+          "probability": 0.998
+        },
+        {
+          "word": "good",
+          "start": 68.32,
+          "end": 68.58,
+          "probability": 0.999
+        },
+        {
+          "word": "at",
+          "start": 68.58,
+          "end": 68.78,
+          "probability": 0.997
+        },
+        {
+          "word": "DIY.",
+          "start": 68.78,
+          "end": 69.3,
+          "probability": 0.995
+        },
+        {
+          "word": "If",
+          "start": 70.14,
+          "end": 70.3,
+          "probability": 0.864
+        },
+        {
+          "word": "it's",
+          "start": 70.3,
+          "end": 70.5,
+          "probability": 0.995
+        },
+        {
+          "word": "something",
+          "start": 70.5,
+          "end": 70.92,
+          "probability": 0.996
+        },
+        {
+          "word": "I",
+          "start": 70.92,
+          "end": 71.26,
+          "probability": 0.984
+        },
+        {
+          "word": "can",
+          "start": 71.26,
+          "end": 71.92,
+          "probability": 0.979
+        },
+        {
+          "word": "do,",
+          "start": 71.92,
+          "end": 72.42,
+          "probability": 0.93
+        }
+      ]
+    },
+    {
+      "start": 72.84,
+      "end": 79.95,
+      "text": " I will try and do it. Some things I would never touch like electrics. I wouldn't go anywhere",
+      "words": [
+        {
+          "word": "I",
+          "start": 72.84,
+          "end": 73.1,
+          "probability": 0.992
+        },
+        {
+          "word": "will",
+          "start": 73.1,
+          "end": 73.38,
+          "probability": 0.98
+        },
+        {
+          "word": "try",
+          "start": 73.38,
+          "end": 73.68,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 73.68,
+          "end": 73.88,
+          "probability": 0.989
+        },
+        {
+          "word": "do",
+          "start": 73.88,
+          "end": 74.02,
+          "probability": 0.999
+        },
+        {
+          "word": "it.",
+          "start": 74.02,
+          "end": 74.6,
+          "probability": 0.994
+        },
+        {
+          "word": "Some",
+          "start": 74.86,
+          "end": 75.14,
+          "probability": 0.932
+        },
+        {
+          "word": "things",
+          "start": 75.14,
+          "end": 75.62,
+          "probability": 0.998
+        },
+        {
+          "word": "I",
+          "start": 75.62,
+          "end": 76.0,
+          "probability": 0.984
+        },
+        {
+          "word": "would",
+          "start": 76.0,
+          "end": 76.26,
+          "probability": 0.991
+        },
+        {
+          "word": "never",
+          "start": 76.26,
+          "end": 76.58,
+          "probability": 0.998
+        },
+        {
+          "word": "touch",
+          "start": 76.58,
+          "end": 77.02,
+          "probability": 0.998
+        },
+        {
+          "word": "like",
+          "start": 77.02,
+          "end": 77.62,
+          "probability": 0.619
+        },
+        {
+          "word": "electrics.",
+          "start": 77.62,
+          "end": 78.48,
+          "probability": 0.639
+        },
+        {
+          "word": "I",
+          "start": 78.96,
+          "end": 79.22,
+          "probability": 0.972
+        },
+        {
+          "word": "wouldn't",
+          "start": 79.22,
+          "end": 79.38,
+          "probability": 0.994
+        },
+        {
+          "word": "go",
+          "start": 79.38,
+          "end": 79.66,
+          "probability": 0.995
+        },
+        {
+          "word": "anywhere",
+          "start": 79.66,
+          "end": 79.95,
+          "probability": 0.984
+        }
+      ]
+    },
+    {
+      "start": 79.95,
+      "end": 88.42,
+      "text": " near that or gas because it's not safe. But if it's something that looks safe and I think I can do it,",
+      "words": [
+        {
+          "word": "near",
+          "start": 79.95,
+          "end": 80.32,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 80.32,
+          "end": 80.74,
+          "probability": 0.992
+        },
+        {
+          "word": "or",
+          "start": 80.74,
+          "end": 80.94,
+          "probability": 0.909
+        },
+        {
+          "word": "gas",
+          "start": 80.94,
+          "end": 81.36,
+          "probability": 0.954
+        },
+        {
+          "word": "because",
+          "start": 81.36,
+          "end": 81.66,
+          "probability": 0.933
+        },
+        {
+          "word": "it's",
+          "start": 81.66,
+          "end": 81.92,
+          "probability": 0.999
+        },
+        {
+          "word": "not",
+          "start": 81.92,
+          "end": 82.14,
+          "probability": 1.0
+        },
+        {
+          "word": "safe.",
+          "start": 82.14,
+          "end": 82.72,
+          "probability": 0.999
+        },
+        {
+          "word": "But",
+          "start": 83.76,
+          "end": 84.26,
+          "probability": 0.978
+        },
+        {
+          "word": "if",
+          "start": 84.26,
+          "end": 84.5,
+          "probability": 0.972
+        },
+        {
+          "word": "it's",
+          "start": 84.5,
+          "end": 84.7,
+          "probability": 0.997
+        },
+        {
+          "word": "something",
+          "start": 84.7,
+          "end": 85.2,
+          "probability": 1.0
+        },
+        {
+          "word": "that",
+          "start": 85.2,
+          "end": 85.62,
+          "probability": 0.999
+        },
+        {
+          "word": "looks",
+          "start": 85.62,
+          "end": 86.06,
+          "probability": 0.986
+        },
+        {
+          "word": "safe",
+          "start": 86.06,
+          "end": 86.56,
+          "probability": 1.0
+        },
+        {
+          "word": "and",
+          "start": 86.56,
+          "end": 86.92,
+          "probability": 0.854
+        },
+        {
+          "word": "I",
+          "start": 86.92,
+          "end": 87.2,
+          "probability": 0.995
+        },
+        {
+          "word": "think",
+          "start": 87.2,
+          "end": 87.58,
+          "probability": 0.991
+        },
+        {
+          "word": "I",
+          "start": 87.58,
+          "end": 87.82,
+          "probability": 0.971
+        },
+        {
+          "word": "can",
+          "start": 87.82,
+          "end": 88.0,
+          "probability": 0.988
+        },
+        {
+          "word": "do",
+          "start": 88.0,
+          "end": 88.22,
+          "probability": 0.938
+        },
+        {
+          "word": "it,",
+          "start": 88.22,
+          "end": 88.42,
+          "probability": 0.856
+        }
+      ]
+    },
+    {
+      "start": 89.12,
+      "end": 94.9,
+      "text": " I will try it. Okay, so what kinds of things do you do around the house?",
+      "words": [
+        {
+          "word": "I",
+          "start": 89.12,
+          "end": 89.4,
+          "probability": 0.997
+        },
+        {
+          "word": "will",
+          "start": 89.4,
+          "end": 89.7,
+          "probability": 0.971
+        },
+        {
+          "word": "try",
+          "start": 89.7,
+          "end": 90.04,
+          "probability": 0.998
+        },
+        {
+          "word": "it.",
+          "start": 90.04,
+          "end": 90.4,
+          "probability": 0.995
+        },
+        {
+          "word": "Okay,",
+          "start": 90.58,
+          "end": 90.88,
+          "probability": 0.969
+        },
+        {
+          "word": "so",
+          "start": 91.18,
+          "end": 91.28,
+          "probability": 0.993
+        },
+        {
+          "word": "what",
+          "start": 91.28,
+          "end": 91.56,
+          "probability": 0.992
+        },
+        {
+          "word": "kinds",
+          "start": 91.56,
+          "end": 92.52,
+          "probability": 0.957
+        },
+        {
+          "word": "of",
+          "start": 92.52,
+          "end": 92.92,
+          "probability": 0.998
+        },
+        {
+          "word": "things",
+          "start": 92.92,
+          "end": 93.32,
+          "probability": 0.999
+        },
+        {
+          "word": "do",
+          "start": 93.32,
+          "end": 93.58,
+          "probability": 0.995
+        },
+        {
+          "word": "you",
+          "start": 93.58,
+          "end": 93.6,
+          "probability": 0.999
+        },
+        {
+          "word": "do",
+          "start": 93.6,
+          "end": 94.18,
+          "probability": 0.997
+        },
+        {
+          "word": "around",
+          "start": 94.18,
+          "end": 94.46,
+          "probability": 0.989
+        },
+        {
+          "word": "the",
+          "start": 94.46,
+          "end": 94.62,
+          "probability": 0.996
+        },
+        {
+          "word": "house?",
+          "start": 94.62,
+          "end": 94.9,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 97.0,
+      "end": 101.88,
+      "text": " It could be things like painting and decorating your house making it look nice at that.",
+      "words": [
+        {
+          "word": "It",
+          "start": 97.0,
+          "end": 97.2,
+          "probability": 0.541
+        },
+        {
+          "word": "could",
+          "start": 97.2,
+          "end": 97.44,
+          "probability": 0.999
+        },
+        {
+          "word": "be",
+          "start": 97.44,
+          "end": 97.58,
+          "probability": 1.0
+        },
+        {
+          "word": "things",
+          "start": 97.58,
+          "end": 97.82,
+          "probability": 1.0
+        },
+        {
+          "word": "like",
+          "start": 97.82,
+          "end": 98.06,
+          "probability": 0.999
+        },
+        {
+          "word": "painting",
+          "start": 98.06,
+          "end": 98.74,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 98.74,
+          "end": 99.18,
+          "probability": 0.991
+        },
+        {
+          "word": "decorating",
+          "start": 99.18,
+          "end": 100.02,
+          "probability": 0.997
+        },
+        {
+          "word": "your",
+          "start": 100.02,
+          "end": 100.24,
+          "probability": 0.901
+        },
+        {
+          "word": "house",
+          "start": 100.24,
+          "end": 100.46,
+          "probability": 0.998
+        },
+        {
+          "word": "making",
+          "start": 100.46,
+          "end": 100.72,
+          "probability": 0.576
+        },
+        {
+          "word": "it",
+          "start": 100.72,
+          "end": 100.92,
+          "probability": 0.995
+        },
+        {
+          "word": "look",
+          "start": 100.92,
+          "end": 101.14,
+          "probability": 0.989
+        },
+        {
+          "word": "nice",
+          "start": 101.14,
+          "end": 101.42,
+          "probability": 0.969
+        },
+        {
+          "word": "at",
+          "start": 101.42,
+          "end": 101.6,
+          "probability": 0.431
+        },
+        {
+          "word": "that.",
+          "start": 101.6,
+          "end": 101.88,
+          "probability": 0.978
+        }
+      ]
+    },
+    {
+      "start": 101.88,
+      "end": 111.1,
+      "text": " I quite like. I can do that. Sometimes fixing things with bits of wood that need to go somewhere",
+      "words": [
+        {
+          "word": "I",
+          "start": 101.88,
+          "end": 102.16,
+          "probability": 0.98
+        },
+        {
+          "word": "quite",
+          "start": 102.16,
+          "end": 102.36,
+          "probability": 0.961
+        },
+        {
+          "word": "like.",
+          "start": 102.36,
+          "end": 102.88,
+          "probability": 0.997
+        },
+        {
+          "word": "I",
+          "start": 103.08,
+          "end": 103.1,
+          "probability": 0.998
+        },
+        {
+          "word": "can",
+          "start": 103.1,
+          "end": 103.3,
+          "probability": 0.998
+        },
+        {
+          "word": "do",
+          "start": 103.3,
+          "end": 103.5,
+          "probability": 0.999
+        },
+        {
+          "word": "that.",
+          "start": 103.5,
+          "end": 103.98,
+          "probability": 0.997
+        },
+        {
+          "word": "Sometimes",
+          "start": 106.42,
+          "end": 106.72,
+          "probability": 0.543
+        },
+        {
+          "word": "fixing",
+          "start": 106.72,
+          "end": 107.18,
+          "probability": 0.966
+        },
+        {
+          "word": "things",
+          "start": 107.18,
+          "end": 107.8,
+          "probability": 0.998
+        },
+        {
+          "word": "with",
+          "start": 107.8,
+          "end": 108.34,
+          "probability": 0.992
+        },
+        {
+          "word": "bits",
+          "start": 108.34,
+          "end": 108.62,
+          "probability": 0.997
+        },
+        {
+          "word": "of",
+          "start": 108.62,
+          "end": 109.0,
+          "probability": 0.998
+        },
+        {
+          "word": "wood",
+          "start": 109.0,
+          "end": 109.88,
+          "probability": 0.982
+        },
+        {
+          "word": "that",
+          "start": 109.88,
+          "end": 110.52,
+          "probability": 0.798
+        },
+        {
+          "word": "need",
+          "start": 110.52,
+          "end": 110.74,
+          "probability": 0.959
+        },
+        {
+          "word": "to",
+          "start": 110.74,
+          "end": 110.86,
+          "probability": 0.984
+        },
+        {
+          "word": "go",
+          "start": 110.86,
+          "end": 111.0,
+          "probability": 0.95
+        },
+        {
+          "word": "somewhere",
+          "start": 111.0,
+          "end": 111.1,
+          "probability": 0.463
+        }
+      ]
+    },
+    {
+      "start": 111.1,
+      "end": 122.38,
+      "text": " I can do that. Putting up fences. I could do that, but that's probably it. What about you, Georgie,",
+      "words": [
+        {
+          "word": "I",
+          "start": 111.1,
+          "end": 111.54,
+          "probability": 0.985
+        },
+        {
+          "word": "can",
+          "start": 111.54,
+          "end": 111.82,
+          "probability": 0.997
+        },
+        {
+          "word": "do",
+          "start": 111.82,
+          "end": 112.22,
+          "probability": 0.996
+        },
+        {
+          "word": "that.",
+          "start": 112.22,
+          "end": 113.1,
+          "probability": 0.979
+        },
+        {
+          "word": "Putting",
+          "start": 114.84,
+          "end": 115.14,
+          "probability": 0.878
+        },
+        {
+          "word": "up",
+          "start": 115.14,
+          "end": 115.48,
+          "probability": 0.993
+        },
+        {
+          "word": "fences.",
+          "start": 115.48,
+          "end": 116.36,
+          "probability": 0.976
+        },
+        {
+          "word": "I",
+          "start": 117.18,
+          "end": 117.2,
+          "probability": 0.941
+        },
+        {
+          "word": "could",
+          "start": 117.2,
+          "end": 117.34,
+          "probability": 0.813
+        },
+        {
+          "word": "do",
+          "start": 117.34,
+          "end": 117.6,
+          "probability": 0.998
+        },
+        {
+          "word": "that,",
+          "start": 117.6,
+          "end": 118.46,
+          "probability": 0.999
+        },
+        {
+          "word": "but",
+          "start": 118.92,
+          "end": 119.08,
+          "probability": 0.991
+        },
+        {
+          "word": "that's",
+          "start": 119.08,
+          "end": 119.3,
+          "probability": 0.995
+        },
+        {
+          "word": "probably",
+          "start": 119.3,
+          "end": 119.8,
+          "probability": 0.997
+        },
+        {
+          "word": "it.",
+          "start": 119.8,
+          "end": 120.26,
+          "probability": 0.997
+        },
+        {
+          "word": "What",
+          "start": 121.48,
+          "end": 121.72,
+          "probability": 0.795
+        },
+        {
+          "word": "about",
+          "start": 121.72,
+          "end": 121.9,
+          "probability": 0.987
+        },
+        {
+          "word": "you,",
+          "start": 121.9,
+          "end": 122.18,
+          "probability": 0.958
+        },
+        {
+          "word": "Georgie,",
+          "start": 122.26,
+          "end": 122.38,
+          "probability": 0.62
+        }
+      ]
+    },
+    {
+      "start": 122.38,
+      "end": 131.18,
+      "text": " do you do much DIY? No, I don't. I actually rent my flat. So that means I can't really do much",
+      "words": [
+        {
+          "word": "do",
+          "start": 122.38,
+          "end": 123.0,
+          "probability": 0.612
+        },
+        {
+          "word": "you",
+          "start": 123.0,
+          "end": 123.18,
+          "probability": 0.999
+        },
+        {
+          "word": "do",
+          "start": 123.18,
+          "end": 123.38,
+          "probability": 0.998
+        },
+        {
+          "word": "much",
+          "start": 123.38,
+          "end": 123.66,
+          "probability": 0.977
+        },
+        {
+          "word": "DIY?",
+          "start": 123.66,
+          "end": 124.08,
+          "probability": 0.993
+        },
+        {
+          "word": "No,",
+          "start": 124.8,
+          "end": 125.92,
+          "probability": 0.89
+        },
+        {
+          "word": "I",
+          "start": 126.28,
+          "end": 126.36,
+          "probability": 0.997
+        },
+        {
+          "word": "don't.",
+          "start": 126.36,
+          "end": 126.94,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 127.06,
+          "end": 127.28,
+          "probability": 0.997
+        },
+        {
+          "word": "actually",
+          "start": 127.28,
+          "end": 127.7,
+          "probability": 0.997
+        },
+        {
+          "word": "rent",
+          "start": 127.7,
+          "end": 128.0,
+          "probability": 0.976
+        },
+        {
+          "word": "my",
+          "start": 128.0,
+          "end": 128.24,
+          "probability": 0.999
+        },
+        {
+          "word": "flat.",
+          "start": 128.24,
+          "end": 128.6,
+          "probability": 0.628
+        },
+        {
+          "word": "So",
+          "start": 129.2,
+          "end": 129.28,
+          "probability": 0.905
+        },
+        {
+          "word": "that",
+          "start": 129.28,
+          "end": 129.64,
+          "probability": 0.872
+        },
+        {
+          "word": "means",
+          "start": 129.64,
+          "end": 129.88,
+          "probability": 0.998
+        },
+        {
+          "word": "I",
+          "start": 129.88,
+          "end": 130.04,
+          "probability": 0.991
+        },
+        {
+          "word": "can't",
+          "start": 130.04,
+          "end": 130.32,
+          "probability": 0.989
+        },
+        {
+          "word": "really",
+          "start": 130.32,
+          "end": 130.56,
+          "probability": 0.974
+        },
+        {
+          "word": "do",
+          "start": 130.56,
+          "end": 130.76,
+          "probability": 0.894
+        },
+        {
+          "word": "much",
+          "start": 130.76,
+          "end": 131.18,
+          "probability": 0.696
+        }
+      ]
+    },
+    {
+      "start": 131.34,
+      "end": 138.88,
+      "text": " to the place because it's not mine. But recently I have put up some lights in my room because",
+      "words": [
+        {
+          "word": "to",
+          "start": 131.34,
+          "end": 131.54,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 131.54,
+          "end": 131.66,
+          "probability": 0.998
+        },
+        {
+          "word": "place",
+          "start": 131.66,
+          "end": 132.0,
+          "probability": 0.998
+        },
+        {
+          "word": "because",
+          "start": 132.0,
+          "end": 132.24,
+          "probability": 0.921
+        },
+        {
+          "word": "it's",
+          "start": 132.24,
+          "end": 132.46,
+          "probability": 0.999
+        },
+        {
+          "word": "not",
+          "start": 132.46,
+          "end": 132.6,
+          "probability": 1.0
+        },
+        {
+          "word": "mine.",
+          "start": 132.6,
+          "end": 133.2,
+          "probability": 0.999
+        },
+        {
+          "word": "But",
+          "start": 134.0,
+          "end": 134.14,
+          "probability": 0.828
+        },
+        {
+          "word": "recently",
+          "start": 134.14,
+          "end": 134.68,
+          "probability": 0.981
+        },
+        {
+          "word": "I",
+          "start": 134.68,
+          "end": 134.98,
+          "probability": 0.706
+        },
+        {
+          "word": "have",
+          "start": 134.98,
+          "end": 135.56,
+          "probability": 0.996
+        },
+        {
+          "word": "put",
+          "start": 135.56,
+          "end": 135.98,
+          "probability": 0.986
+        },
+        {
+          "word": "up",
+          "start": 135.98,
+          "end": 136.3,
+          "probability": 0.996
+        },
+        {
+          "word": "some",
+          "start": 136.3,
+          "end": 137.14,
+          "probability": 0.998
+        },
+        {
+          "word": "lights",
+          "start": 137.14,
+          "end": 137.86,
+          "probability": 0.846
+        },
+        {
+          "word": "in",
+          "start": 137.86,
+          "end": 138.1,
+          "probability": 0.995
+        },
+        {
+          "word": "my",
+          "start": 138.1,
+          "end": 138.28,
+          "probability": 0.994
+        },
+        {
+          "word": "room",
+          "start": 138.28,
+          "end": 138.6,
+          "probability": 0.999
+        },
+        {
+          "word": "because",
+          "start": 138.6,
+          "end": 138.88,
+          "probability": 0.677
+        }
+      ]
+    },
+    {
+      "start": 138.88,
+      "end": 146.9,
+      "text": " I changed rooms. So I've put up some nice fairy lights on the wall and I've put up some frames",
+      "words": [
+        {
+          "word": "I",
+          "start": 138.88,
+          "end": 139.44,
+          "probability": 0.997
+        },
+        {
+          "word": "changed",
+          "start": 139.44,
+          "end": 139.94,
+          "probability": 0.933
+        },
+        {
+          "word": "rooms.",
+          "start": 139.94,
+          "end": 140.48,
+          "probability": 0.975
+        },
+        {
+          "word": "So",
+          "start": 141.16,
+          "end": 141.32,
+          "probability": 0.889
+        },
+        {
+          "word": "I've",
+          "start": 141.32,
+          "end": 142.24,
+          "probability": 0.973
+        },
+        {
+          "word": "put",
+          "start": 142.24,
+          "end": 142.4,
+          "probability": 0.997
+        },
+        {
+          "word": "up",
+          "start": 142.4,
+          "end": 142.7,
+          "probability": 0.991
+        },
+        {
+          "word": "some",
+          "start": 142.7,
+          "end": 143.24,
+          "probability": 0.999
+        },
+        {
+          "word": "nice",
+          "start": 143.24,
+          "end": 143.58,
+          "probability": 0.98
+        },
+        {
+          "word": "fairy",
+          "start": 143.58,
+          "end": 143.92,
+          "probability": 0.777
+        },
+        {
+          "word": "lights",
+          "start": 143.92,
+          "end": 144.2,
+          "probability": 0.99
+        },
+        {
+          "word": "on",
+          "start": 144.2,
+          "end": 144.38,
+          "probability": 0.995
+        },
+        {
+          "word": "the",
+          "start": 144.38,
+          "end": 144.56,
+          "probability": 0.999
+        },
+        {
+          "word": "wall",
+          "start": 144.56,
+          "end": 145.04,
+          "probability": 0.992
+        },
+        {
+          "word": "and",
+          "start": 145.04,
+          "end": 145.44,
+          "probability": 0.835
+        },
+        {
+          "word": "I've",
+          "start": 145.44,
+          "end": 145.68,
+          "probability": 0.984
+        },
+        {
+          "word": "put",
+          "start": 145.68,
+          "end": 145.8,
+          "probability": 0.995
+        },
+        {
+          "word": "up",
+          "start": 145.8,
+          "end": 146.04,
+          "probability": 0.995
+        },
+        {
+          "word": "some",
+          "start": 146.04,
+          "end": 146.32,
+          "probability": 0.993
+        },
+        {
+          "word": "frames",
+          "start": 146.32,
+          "end": 146.9,
+          "probability": 0.94
+        }
+      ]
+    },
+    {
+      "start": 147.1,
+      "end": 153.9,
+      "text": " with art and photos. So that's probably my limit. I wouldn't do anything else.",
+      "words": [
+        {
+          "word": "with",
+          "start": 147.1,
+          "end": 147.38,
+          "probability": 0.988
+        },
+        {
+          "word": "art",
+          "start": 147.38,
+          "end": 148.06,
+          "probability": 0.994
+        },
+        {
+          "word": "and",
+          "start": 148.06,
+          "end": 148.46,
+          "probability": 0.996
+        },
+        {
+          "word": "photos.",
+          "start": 148.46,
+          "end": 149.22,
+          "probability": 0.999
+        },
+        {
+          "word": "So",
+          "start": 150.36,
+          "end": 150.64,
+          "probability": 0.893
+        },
+        {
+          "word": "that's",
+          "start": 150.64,
+          "end": 150.92,
+          "probability": 0.982
+        },
+        {
+          "word": "probably",
+          "start": 150.92,
+          "end": 151.36,
+          "probability": 0.999
+        },
+        {
+          "word": "my",
+          "start": 151.36,
+          "end": 151.56,
+          "probability": 0.998
+        },
+        {
+          "word": "limit.",
+          "start": 151.56,
+          "end": 152.04,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 152.22,
+          "end": 152.36,
+          "probability": 0.999
+        },
+        {
+          "word": "wouldn't",
+          "start": 152.36,
+          "end": 152.6,
+          "probability": 0.998
+        },
+        {
+          "word": "do",
+          "start": 152.6,
+          "end": 153.12,
+          "probability": 0.999
+        },
+        {
+          "word": "anything",
+          "start": 153.12,
+          "end": 153.48,
+          "probability": 0.998
+        },
+        {
+          "word": "else.",
+          "start": 153.48,
+          "end": 153.9,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 154.62,
+      "end": 164.38,
+      "text": " Do you enjoy DIY? No, I don't because I'm quite a lazy person. So if I see that something is",
+      "words": [
+        {
+          "word": "Do",
+          "start": 154.62,
+          "end": 154.9,
+          "probability": 0.981
+        },
+        {
+          "word": "you",
+          "start": 154.9,
+          "end": 155.24,
+          "probability": 1.0
+        },
+        {
+          "word": "enjoy",
+          "start": 155.24,
+          "end": 155.78,
+          "probability": 0.97
+        },
+        {
+          "word": "DIY?",
+          "start": 155.78,
+          "end": 156.28,
+          "probability": 0.947
+        },
+        {
+          "word": "No,",
+          "start": 157.1,
+          "end": 158.58,
+          "probability": 0.771
+        },
+        {
+          "word": "I",
+          "start": 158.8,
+          "end": 158.82,
+          "probability": 0.993
+        },
+        {
+          "word": "don't",
+          "start": 158.82,
+          "end": 159.5,
+          "probability": 1.0
+        },
+        {
+          "word": "because",
+          "start": 159.5,
+          "end": 160.0,
+          "probability": 0.695
+        },
+        {
+          "word": "I'm",
+          "start": 160.0,
+          "end": 160.24,
+          "probability": 0.987
+        },
+        {
+          "word": "quite",
+          "start": 160.24,
+          "end": 160.66,
+          "probability": 0.995
+        },
+        {
+          "word": "a",
+          "start": 160.66,
+          "end": 160.84,
+          "probability": 0.98
+        },
+        {
+          "word": "lazy",
+          "start": 160.84,
+          "end": 161.26,
+          "probability": 0.985
+        },
+        {
+          "word": "person.",
+          "start": 161.26,
+          "end": 161.84,
+          "probability": 0.99
+        },
+        {
+          "word": "So",
+          "start": 162.26,
+          "end": 162.44,
+          "probability": 0.932
+        },
+        {
+          "word": "if",
+          "start": 162.44,
+          "end": 162.62,
+          "probability": 0.95
+        },
+        {
+          "word": "I",
+          "start": 162.62,
+          "end": 162.82,
+          "probability": 0.978
+        },
+        {
+          "word": "see",
+          "start": 162.82,
+          "end": 163.34,
+          "probability": 0.986
+        },
+        {
+          "word": "that",
+          "start": 163.34,
+          "end": 163.58,
+          "probability": 0.908
+        },
+        {
+          "word": "something",
+          "start": 163.58,
+          "end": 164.06,
+          "probability": 0.97
+        },
+        {
+          "word": "is",
+          "start": 164.06,
+          "end": 164.38,
+          "probability": 0.565
+        }
+      ]
+    },
+    {
+      "start": 164.38,
+      "end": 173.28,
+      "text": " broken or needs fixing, I will just ignore it, procrastinate, which means to delay something, postpone it",
+      "words": [
+        {
+          "word": "broken",
+          "start": 164.38,
+          "end": 165.1,
+          "probability": 0.998
+        },
+        {
+          "word": "or",
+          "start": 165.1,
+          "end": 165.44,
+          "probability": 0.978
+        },
+        {
+          "word": "needs",
+          "start": 165.44,
+          "end": 165.96,
+          "probability": 0.976
+        },
+        {
+          "word": "fixing,",
+          "start": 165.96,
+          "end": 166.92,
+          "probability": 0.992
+        },
+        {
+          "word": "I",
+          "start": 167.34,
+          "end": 167.36,
+          "probability": 0.999
+        },
+        {
+          "word": "will",
+          "start": 167.36,
+          "end": 167.58,
+          "probability": 0.993
+        },
+        {
+          "word": "just",
+          "start": 167.58,
+          "end": 167.9,
+          "probability": 0.999
+        },
+        {
+          "word": "ignore",
+          "start": 167.9,
+          "end": 168.4,
+          "probability": 1.0
+        },
+        {
+          "word": "it,",
+          "start": 168.4,
+          "end": 168.92,
+          "probability": 0.999
+        },
+        {
+          "word": "procrastinate,",
+          "start": 169.0,
+          "end": 169.98,
+          "probability": 0.984
+        },
+        {
+          "word": "which",
+          "start": 170.08,
+          "end": 170.2,
+          "probability": 0.995
+        },
+        {
+          "word": "means",
+          "start": 170.2,
+          "end": 170.6,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 170.6,
+          "end": 170.98,
+          "probability": 0.991
+        },
+        {
+          "word": "delay",
+          "start": 170.98,
+          "end": 171.42,
+          "probability": 0.989
+        },
+        {
+          "word": "something,",
+          "start": 171.42,
+          "end": 172.04,
+          "probability": 0.968
+        },
+        {
+          "word": "postpone",
+          "start": 172.22,
+          "end": 172.64,
+          "probability": 0.758
+        },
+        {
+          "word": "it",
+          "start": 172.64,
+          "end": 173.28,
+          "probability": 0.518
+        }
+      ]
+    },
+    {
+      "start": 174.2,
+      "end": 180.87,
+      "text": " and wait for someone else to do it. I kind of get used to things being broken and forget that it's",
+      "words": [
+        {
+          "word": "and",
+          "start": 174.2,
+          "end": 174.46,
+          "probability": 0.979
+        },
+        {
+          "word": "wait",
+          "start": 174.46,
+          "end": 174.78,
+          "probability": 1.0
+        },
+        {
+          "word": "for",
+          "start": 174.78,
+          "end": 174.98,
+          "probability": 0.999
+        },
+        {
+          "word": "someone",
+          "start": 174.98,
+          "end": 175.28,
+          "probability": 0.999
+        },
+        {
+          "word": "else",
+          "start": 175.28,
+          "end": 175.84,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 175.84,
+          "end": 176.02,
+          "probability": 0.993
+        },
+        {
+          "word": "do",
+          "start": 176.02,
+          "end": 176.22,
+          "probability": 0.999
+        },
+        {
+          "word": "it.",
+          "start": 176.22,
+          "end": 176.4,
+          "probability": 0.992
+        },
+        {
+          "word": "I",
+          "start": 176.5,
+          "end": 176.64,
+          "probability": 0.987
+        },
+        {
+          "word": "kind",
+          "start": 176.64,
+          "end": 176.76,
+          "probability": 0.962
+        },
+        {
+          "word": "of",
+          "start": 176.76,
+          "end": 177.22,
+          "probability": 1.0
+        },
+        {
+          "word": "get",
+          "start": 177.22,
+          "end": 177.54,
+          "probability": 0.997
+        },
+        {
+          "word": "used",
+          "start": 177.54,
+          "end": 177.92,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 177.92,
+          "end": 178.14,
+          "probability": 0.999
+        },
+        {
+          "word": "things",
+          "start": 178.14,
+          "end": 178.7,
+          "probability": 0.998
+        },
+        {
+          "word": "being",
+          "start": 178.7,
+          "end": 179.12,
+          "probability": 0.966
+        },
+        {
+          "word": "broken",
+          "start": 179.12,
+          "end": 179.54,
+          "probability": 0.997
+        },
+        {
+          "word": "and",
+          "start": 179.54,
+          "end": 179.84,
+          "probability": 0.979
+        },
+        {
+          "word": "forget",
+          "start": 179.84,
+          "end": 180.22,
+          "probability": 0.901
+        },
+        {
+          "word": "that",
+          "start": 180.22,
+          "end": 180.68,
+          "probability": 0.593
+        },
+        {
+          "word": "it's",
+          "start": 180.68,
+          "end": 180.87,
+          "probability": 0.798
+        }
+      ]
+    },
+    {
+      "start": 180.87,
+      "end": 190.12,
+      "text": " like that. So yeah, I'm just a bit lazy. Phil, have you ever put together furniture, like flat",
+      "words": [
+        {
+          "word": "like",
+          "start": 180.87,
+          "end": 181.2,
+          "probability": 0.967
+        },
+        {
+          "word": "that.",
+          "start": 181.2,
+          "end": 181.92,
+          "probability": 0.999
+        },
+        {
+          "word": "So",
+          "start": 183.32,
+          "end": 183.44,
+          "probability": 0.923
+        },
+        {
+          "word": "yeah,",
+          "start": 183.44,
+          "end": 183.88,
+          "probability": 0.84
+        },
+        {
+          "word": "I'm",
+          "start": 184.0,
+          "end": 184.3,
+          "probability": 0.991
+        },
+        {
+          "word": "just",
+          "start": 184.3,
+          "end": 184.5,
+          "probability": 0.938
+        },
+        {
+          "word": "a",
+          "start": 184.5,
+          "end": 184.62,
+          "probability": 0.998
+        },
+        {
+          "word": "bit",
+          "start": 184.62,
+          "end": 184.78,
+          "probability": 0.994
+        },
+        {
+          "word": "lazy.",
+          "start": 184.78,
+          "end": 185.38,
+          "probability": 0.993
+        },
+        {
+          "word": "Phil,",
+          "start": 186.02,
+          "end": 186.14,
+          "probability": 0.658
+        },
+        {
+          "word": "have",
+          "start": 186.26,
+          "end": 186.34,
+          "probability": 0.996
+        },
+        {
+          "word": "you",
+          "start": 186.34,
+          "end": 186.44,
+          "probability": 0.999
+        },
+        {
+          "word": "ever",
+          "start": 186.44,
+          "end": 186.98,
+          "probability": 0.978
+        },
+        {
+          "word": "put",
+          "start": 186.98,
+          "end": 187.3,
+          "probability": 0.999
+        },
+        {
+          "word": "together",
+          "start": 187.3,
+          "end": 188.12,
+          "probability": 0.999
+        },
+        {
+          "word": "furniture,",
+          "start": 188.12,
+          "end": 188.98,
+          "probability": 0.975
+        },
+        {
+          "word": "like",
+          "start": 189.8,
+          "end": 189.96,
+          "probability": 0.519
+        },
+        {
+          "word": "flat",
+          "start": 189.96,
+          "end": 190.12,
+          "probability": 0.769
+        }
+      ]
+    },
+    {
+      "start": 190.12,
+      "end": 199.24,
+      "text": " path furniture? Yes, yes. I've done that. Yeah, quite a lot because a lot of furniture you buy",
+      "words": [
+        {
+          "word": "path",
+          "start": 190.12,
+          "end": 190.42,
+          "probability": 0.204
+        },
+        {
+          "word": "furniture?",
+          "start": 190.42,
+          "end": 190.94,
+          "probability": 0.992
+        },
+        {
+          "word": "Yes,",
+          "start": 191.6,
+          "end": 192.42,
+          "probability": 0.995
+        },
+        {
+          "word": "yes.",
+          "start": 193.3,
+          "end": 193.32,
+          "probability": 0.922
+        },
+        {
+          "word": "I've",
+          "start": 193.42,
+          "end": 193.52,
+          "probability": 0.904
+        },
+        {
+          "word": "done",
+          "start": 193.52,
+          "end": 193.58,
+          "probability": 0.593
+        },
+        {
+          "word": "that.",
+          "start": 193.58,
+          "end": 193.86,
+          "probability": 0.99
+        },
+        {
+          "word": "Yeah,",
+          "start": 193.9,
+          "end": 194.2,
+          "probability": 0.876
+        },
+        {
+          "word": "quite",
+          "start": 194.4,
+          "end": 194.48,
+          "probability": 0.995
+        },
+        {
+          "word": "a",
+          "start": 194.48,
+          "end": 194.64,
+          "probability": 1.0
+        },
+        {
+          "word": "lot",
+          "start": 194.64,
+          "end": 195.22,
+          "probability": 1.0
+        },
+        {
+          "word": "because",
+          "start": 195.22,
+          "end": 196.44,
+          "probability": 0.692
+        },
+        {
+          "word": "a",
+          "start": 196.44,
+          "end": 198.16,
+          "probability": 0.542
+        },
+        {
+          "word": "lot",
+          "start": 198.16,
+          "end": 198.38,
+          "probability": 0.997
+        },
+        {
+          "word": "of",
+          "start": 198.38,
+          "end": 198.58,
+          "probability": 0.995
+        },
+        {
+          "word": "furniture",
+          "start": 198.58,
+          "end": 198.98,
+          "probability": 0.997
+        },
+        {
+          "word": "you",
+          "start": 198.98,
+          "end": 199.16,
+          "probability": 0.815
+        },
+        {
+          "word": "buy",
+          "start": 199.16,
+          "end": 199.24,
+          "probability": 0.933
+        }
+      ]
+    },
+    {
+      "start": 199.24,
+      "end": 208.58,
+      "text": " that's fairly cheap. You have to do that. I don't actually mind that. I quite like that. It's",
+      "words": [
+        {
+          "word": "that's",
+          "start": 199.24,
+          "end": 199.74,
+          "probability": 0.984
+        },
+        {
+          "word": "fairly",
+          "start": 199.74,
+          "end": 200.14,
+          "probability": 0.995
+        },
+        {
+          "word": "cheap.",
+          "start": 200.14,
+          "end": 200.54,
+          "probability": 0.994
+        },
+        {
+          "word": "You",
+          "start": 200.82,
+          "end": 200.84,
+          "probability": 0.992
+        },
+        {
+          "word": "have",
+          "start": 200.84,
+          "end": 201.16,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 201.16,
+          "end": 201.38,
+          "probability": 1.0
+        },
+        {
+          "word": "do",
+          "start": 201.38,
+          "end": 201.64,
+          "probability": 0.999
+        },
+        {
+          "word": "that.",
+          "start": 201.64,
+          "end": 202.52,
+          "probability": 0.997
+        },
+        {
+          "word": "I",
+          "start": 203.54,
+          "end": 203.74,
+          "probability": 0.975
+        },
+        {
+          "word": "don't",
+          "start": 203.74,
+          "end": 204.54,
+          "probability": 0.999
+        },
+        {
+          "word": "actually",
+          "start": 204.54,
+          "end": 205.04,
+          "probability": 0.994
+        },
+        {
+          "word": "mind",
+          "start": 205.04,
+          "end": 205.8,
+          "probability": 0.99
+        },
+        {
+          "word": "that.",
+          "start": 205.8,
+          "end": 206.34,
+          "probability": 0.997
+        },
+        {
+          "word": "I",
+          "start": 206.7,
+          "end": 206.82,
+          "probability": 0.987
+        },
+        {
+          "word": "quite",
+          "start": 206.82,
+          "end": 207.16,
+          "probability": 0.989
+        },
+        {
+          "word": "like",
+          "start": 207.16,
+          "end": 207.72,
+          "probability": 0.994
+        },
+        {
+          "word": "that.",
+          "start": 207.72,
+          "end": 208.1,
+          "probability": 0.968
+        },
+        {
+          "word": "It's",
+          "start": 208.3,
+          "end": 208.58,
+          "probability": 0.874
+        }
+      ]
+    },
+    {
+      "start": 208.58,
+      "end": 216.38,
+      "text": " quite good to do it with someone and you work as a team. Like an activity? Yes, yes, it can",
+      "words": [
+        {
+          "word": "quite",
+          "start": 208.58,
+          "end": 208.98,
+          "probability": 0.999
+        },
+        {
+          "word": "good",
+          "start": 208.98,
+          "end": 209.62,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 209.62,
+          "end": 209.98,
+          "probability": 0.997
+        },
+        {
+          "word": "do",
+          "start": 209.98,
+          "end": 210.16,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 210.16,
+          "end": 210.36,
+          "probability": 0.997
+        },
+        {
+          "word": "with",
+          "start": 210.36,
+          "end": 210.6,
+          "probability": 0.999
+        },
+        {
+          "word": "someone",
+          "start": 210.6,
+          "end": 211.04,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 211.04,
+          "end": 211.34,
+          "probability": 0.871
+        },
+        {
+          "word": "you",
+          "start": 211.34,
+          "end": 211.52,
+          "probability": 0.72
+        },
+        {
+          "word": "work",
+          "start": 211.52,
+          "end": 211.8,
+          "probability": 0.996
+        },
+        {
+          "word": "as",
+          "start": 211.8,
+          "end": 212.02,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 212.02,
+          "end": 212.22,
+          "probability": 0.999
+        },
+        {
+          "word": "team.",
+          "start": 212.22,
+          "end": 212.78,
+          "probability": 0.999
+        },
+        {
+          "word": "Like",
+          "start": 212.84,
+          "end": 213.54,
+          "probability": 0.827
+        },
+        {
+          "word": "an",
+          "start": 213.54,
+          "end": 213.7,
+          "probability": 0.984
+        },
+        {
+          "word": "activity?",
+          "start": 213.7,
+          "end": 214.2,
+          "probability": 0.996
+        },
+        {
+          "word": "Yes,",
+          "start": 214.6,
+          "end": 215.4,
+          "probability": 0.913
+        },
+        {
+          "word": "yes,",
+          "start": 215.6,
+          "end": 215.92,
+          "probability": 0.831
+        },
+        {
+          "word": "it",
+          "start": 215.94,
+          "end": 216.04,
+          "probability": 0.752
+        },
+        {
+          "word": "can",
+          "start": 216.04,
+          "end": 216.38,
+          "probability": 0.976
+        }
+      ]
+    },
+    {
+      "start": 217.1,
+      "end": 223.22,
+      "text": " and well, sometimes it's fun, sometimes it's stressful. Yeah, if it goes well, that can be a nice",
+      "words": [
+        {
+          "word": "and",
+          "start": 217.1,
+          "end": 217.34,
+          "probability": 0.323
+        },
+        {
+          "word": "well,",
+          "start": 217.34,
+          "end": 217.7,
+          "probability": 0.893
+        },
+        {
+          "word": "sometimes",
+          "start": 217.9,
+          "end": 218.12,
+          "probability": 0.999
+        },
+        {
+          "word": "it's",
+          "start": 218.12,
+          "end": 218.32,
+          "probability": 0.993
+        },
+        {
+          "word": "fun,",
+          "start": 218.32,
+          "end": 218.66,
+          "probability": 0.993
+        },
+        {
+          "word": "sometimes",
+          "start": 218.7,
+          "end": 219.08,
+          "probability": 0.997
+        },
+        {
+          "word": "it's",
+          "start": 219.08,
+          "end": 219.3,
+          "probability": 0.997
+        },
+        {
+          "word": "stressful.",
+          "start": 219.3,
+          "end": 219.7,
+          "probability": 0.999
+        },
+        {
+          "word": "Yeah,",
+          "start": 220.2,
+          "end": 220.54,
+          "probability": 0.941
+        },
+        {
+          "word": "if",
+          "start": 220.7,
+          "end": 220.78,
+          "probability": 0.99
+        },
+        {
+          "word": "it",
+          "start": 220.78,
+          "end": 220.94,
+          "probability": 0.999
+        },
+        {
+          "word": "goes",
+          "start": 220.94,
+          "end": 221.2,
+          "probability": 0.995
+        },
+        {
+          "word": "well,",
+          "start": 221.2,
+          "end": 221.82,
+          "probability": 0.996
+        },
+        {
+          "word": "that",
+          "start": 222.14,
+          "end": 222.16,
+          "probability": 0.941
+        },
+        {
+          "word": "can",
+          "start": 222.16,
+          "end": 222.32,
+          "probability": 0.983
+        },
+        {
+          "word": "be",
+          "start": 222.32,
+          "end": 222.52,
+          "probability": 0.942
+        },
+        {
+          "word": "a",
+          "start": 222.52,
+          "end": 222.64,
+          "probability": 0.938
+        },
+        {
+          "word": "nice",
+          "start": 222.64,
+          "end": 223.22,
+          "probability": 0.929
+        }
+      ]
+    },
+    {
+      "start": 223.34,
+      "end": 230.16,
+      "text": " thing to do with someone. But if it goes badly, it could lead to an argument. Do you have any big plans",
+      "words": [
+        {
+          "word": "thing",
+          "start": 223.34,
+          "end": 223.64,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 223.64,
+          "end": 223.78,
+          "probability": 0.999
+        },
+        {
+          "word": "do",
+          "start": 223.78,
+          "end": 223.92,
+          "probability": 1.0
+        },
+        {
+          "word": "with",
+          "start": 223.92,
+          "end": 224.1,
+          "probability": 0.996
+        },
+        {
+          "word": "someone.",
+          "start": 224.1,
+          "end": 224.56,
+          "probability": 0.999
+        },
+        {
+          "word": "But",
+          "start": 225.28,
+          "end": 225.42,
+          "probability": 0.986
+        },
+        {
+          "word": "if",
+          "start": 225.42,
+          "end": 225.54,
+          "probability": 0.94
+        },
+        {
+          "word": "it",
+          "start": 225.54,
+          "end": 225.68,
+          "probability": 0.999
+        },
+        {
+          "word": "goes",
+          "start": 225.68,
+          "end": 225.84,
+          "probability": 0.998
+        },
+        {
+          "word": "badly,",
+          "start": 225.84,
+          "end": 226.44,
+          "probability": 0.997
+        },
+        {
+          "word": "it",
+          "start": 226.72,
+          "end": 226.82,
+          "probability": 0.99
+        },
+        {
+          "word": "could",
+          "start": 226.82,
+          "end": 226.94,
+          "probability": 0.987
+        },
+        {
+          "word": "lead",
+          "start": 226.94,
+          "end": 227.18,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 227.18,
+          "end": 227.3,
+          "probability": 0.999
+        },
+        {
+          "word": "an",
+          "start": 227.3,
+          "end": 227.42,
+          "probability": 0.996
+        },
+        {
+          "word": "argument.",
+          "start": 227.42,
+          "end": 227.96,
+          "probability": 0.999
+        },
+        {
+          "word": "Do",
+          "start": 228.5,
+          "end": 228.98,
+          "probability": 0.846
+        },
+        {
+          "word": "you",
+          "start": 228.98,
+          "end": 229.02,
+          "probability": 0.996
+        },
+        {
+          "word": "have",
+          "start": 229.02,
+          "end": 229.22,
+          "probability": 0.952
+        },
+        {
+          "word": "any",
+          "start": 229.22,
+          "end": 229.4,
+          "probability": 0.713
+        },
+        {
+          "word": "big",
+          "start": 229.4,
+          "end": 229.66,
+          "probability": 0.919
+        },
+        {
+          "word": "plans",
+          "start": 229.66,
+          "end": 230.16,
+          "probability": 0.707
+        }
+      ]
+    },
+    {
+      "start": 230.22,
+      "end": 238.2,
+      "text": " for your house? I would really like to get a very nice bit of wood and make a nice bar for my kitchen.",
+      "words": [
+        {
+          "word": "for",
+          "start": 230.22,
+          "end": 230.46,
+          "probability": 0.777
+        },
+        {
+          "word": "your",
+          "start": 230.46,
+          "end": 230.6,
+          "probability": 1.0
+        },
+        {
+          "word": "house?",
+          "start": 230.6,
+          "end": 231.04,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 231.22,
+          "end": 232.1,
+          "probability": 0.996
+        },
+        {
+          "word": "would",
+          "start": 232.1,
+          "end": 232.56,
+          "probability": 0.999
+        },
+        {
+          "word": "really",
+          "start": 232.56,
+          "end": 233.12,
+          "probability": 0.998
+        },
+        {
+          "word": "like",
+          "start": 233.12,
+          "end": 233.56,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 233.56,
+          "end": 233.68,
+          "probability": 0.997
+        },
+        {
+          "word": "get",
+          "start": 233.68,
+          "end": 233.84,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 233.84,
+          "end": 234.06,
+          "probability": 0.997
+        },
+        {
+          "word": "very",
+          "start": 234.06,
+          "end": 234.34,
+          "probability": 0.998
+        },
+        {
+          "word": "nice",
+          "start": 234.34,
+          "end": 235.08,
+          "probability": 1.0
+        },
+        {
+          "word": "bit",
+          "start": 235.08,
+          "end": 235.34,
+          "probability": 0.992
+        },
+        {
+          "word": "of",
+          "start": 235.34,
+          "end": 235.68,
+          "probability": 0.997
+        },
+        {
+          "word": "wood",
+          "start": 235.68,
+          "end": 236.22,
+          "probability": 0.99
+        },
+        {
+          "word": "and",
+          "start": 236.22,
+          "end": 236.48,
+          "probability": 0.873
+        },
+        {
+          "word": "make",
+          "start": 236.48,
+          "end": 236.6,
+          "probability": 0.993
+        },
+        {
+          "word": "a",
+          "start": 236.6,
+          "end": 236.74,
+          "probability": 0.99
+        },
+        {
+          "word": "nice",
+          "start": 236.74,
+          "end": 237.06,
+          "probability": 0.998
+        },
+        {
+          "word": "bar",
+          "start": 237.06,
+          "end": 237.46,
+          "probability": 0.892
+        },
+        {
+          "word": "for",
+          "start": 237.46,
+          "end": 237.7,
+          "probability": 0.769
+        },
+        {
+          "word": "my",
+          "start": 237.7,
+          "end": 237.88,
+          "probability": 0.905
+        },
+        {
+          "word": "kitchen.",
+          "start": 237.88,
+          "end": 238.2,
+          "probability": 0.877
+        }
+      ]
+    },
+    {
+      "start": 239.0,
+      "end": 244.85,
+      "text": " I'd love to do that, but it's expensive and I haven't done it yet. I keep procrastinating and not",
+      "words": [
+        {
+          "word": "I'd",
+          "start": 239.0,
+          "end": 239.48,
+          "probability": 0.991
+        },
+        {
+          "word": "love",
+          "start": 239.48,
+          "end": 239.66,
+          "probability": 0.996
+        },
+        {
+          "word": "to",
+          "start": 239.66,
+          "end": 239.86,
+          "probability": 1.0
+        },
+        {
+          "word": "do",
+          "start": 239.86,
+          "end": 240.04,
+          "probability": 0.999
+        },
+        {
+          "word": "that,",
+          "start": 240.04,
+          "end": 240.7,
+          "probability": 0.999
+        },
+        {
+          "word": "but",
+          "start": 241.06,
+          "end": 241.08,
+          "probability": 0.997
+        },
+        {
+          "word": "it's",
+          "start": 241.08,
+          "end": 241.3,
+          "probability": 0.995
+        },
+        {
+          "word": "expensive",
+          "start": 241.3,
+          "end": 241.72,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 241.72,
+          "end": 241.96,
+          "probability": 0.643
+        },
+        {
+          "word": "I",
+          "start": 241.96,
+          "end": 242.04,
+          "probability": 0.966
+        },
+        {
+          "word": "haven't",
+          "start": 242.04,
+          "end": 242.22,
+          "probability": 1.0
+        },
+        {
+          "word": "done",
+          "start": 242.22,
+          "end": 242.48,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 242.48,
+          "end": 242.58,
+          "probability": 0.998
+        },
+        {
+          "word": "yet.",
+          "start": 242.58,
+          "end": 242.9,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 242.96,
+          "end": 243.06,
+          "probability": 0.988
+        },
+        {
+          "word": "keep",
+          "start": 243.06,
+          "end": 243.52,
+          "probability": 0.99
+        },
+        {
+          "word": "procrastinating",
+          "start": 243.52,
+          "end": 244.44,
+          "probability": 0.907
+        },
+        {
+          "word": "and",
+          "start": 244.44,
+          "end": 244.78,
+          "probability": 0.77
+        },
+        {
+          "word": "not",
+          "start": 244.78,
+          "end": 244.85,
+          "probability": 0.733
+        }
+      ]
+    },
+    {
+      "start": 244.85,
+      "end": 252.14,
+      "text": " doing it. What about you? I rent my flat, so I can't do anything big. I don't have big plans, but",
+      "words": [
+        {
+          "word": "doing",
+          "start": 244.85,
+          "end": 245.18,
+          "probability": 0.999
+        },
+        {
+          "word": "it.",
+          "start": 245.18,
+          "end": 245.62,
+          "probability": 0.998
+        },
+        {
+          "word": "What",
+          "start": 246.96,
+          "end": 247.08,
+          "probability": 0.88
+        },
+        {
+          "word": "about",
+          "start": 247.08,
+          "end": 247.36,
+          "probability": 0.969
+        },
+        {
+          "word": "you?",
+          "start": 247.36,
+          "end": 247.7,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 248.12,
+          "end": 248.14,
+          "probability": 0.919
+        },
+        {
+          "word": "rent",
+          "start": 248.14,
+          "end": 248.44,
+          "probability": 0.994
+        },
+        {
+          "word": "my",
+          "start": 248.44,
+          "end": 248.66,
+          "probability": 0.992
+        },
+        {
+          "word": "flat,",
+          "start": 248.66,
+          "end": 248.9,
+          "probability": 0.927
+        },
+        {
+          "word": "so",
+          "start": 249.06,
+          "end": 249.08,
+          "probability": 0.99
+        },
+        {
+          "word": "I",
+          "start": 249.08,
+          "end": 249.16,
+          "probability": 0.995
+        },
+        {
+          "word": "can't",
+          "start": 249.16,
+          "end": 249.44,
+          "probability": 0.998
+        },
+        {
+          "word": "do",
+          "start": 249.44,
+          "end": 249.6,
+          "probability": 1.0
+        },
+        {
+          "word": "anything",
+          "start": 249.6,
+          "end": 250.04,
+          "probability": 0.999
+        },
+        {
+          "word": "big.",
+          "start": 250.04,
+          "end": 250.72,
+          "probability": 0.996
+        },
+        {
+          "word": "I",
+          "start": 250.74,
+          "end": 250.86,
+          "probability": 0.994
+        },
+        {
+          "word": "don't",
+          "start": 250.86,
+          "end": 251.0,
+          "probability": 0.999
+        },
+        {
+          "word": "have",
+          "start": 251.0,
+          "end": 251.18,
+          "probability": 0.999
+        },
+        {
+          "word": "big",
+          "start": 251.18,
+          "end": 251.42,
+          "probability": 0.997
+        },
+        {
+          "word": "plans,",
+          "start": 251.42,
+          "end": 251.74,
+          "probability": 0.986
+        },
+        {
+          "word": "but",
+          "start": 251.8,
+          "end": 252.14,
+          "probability": 0.663
+        }
+      ]
+    },
+    {
+      "start": 252.22,
+      "end": 261.14,
+      "text": " we do have an outdoor terrace, which at the moment it's not very, it's not in a very good state. So",
+      "words": [
+        {
+          "word": "we",
+          "start": 252.22,
+          "end": 252.52,
+          "probability": 0.999
+        },
+        {
+          "word": "do",
+          "start": 252.52,
+          "end": 252.82,
+          "probability": 0.999
+        },
+        {
+          "word": "have",
+          "start": 252.82,
+          "end": 253.32,
+          "probability": 1.0
+        },
+        {
+          "word": "an",
+          "start": 253.32,
+          "end": 253.56,
+          "probability": 0.999
+        },
+        {
+          "word": "outdoor",
+          "start": 253.56,
+          "end": 253.92,
+          "probability": 0.986
+        },
+        {
+          "word": "terrace,",
+          "start": 253.92,
+          "end": 255.12,
+          "probability": 0.995
+        },
+        {
+          "word": "which",
+          "start": 255.28,
+          "end": 256.06,
+          "probability": 0.998
+        },
+        {
+          "word": "at",
+          "start": 256.06,
+          "end": 257.26,
+          "probability": 0.851
+        },
+        {
+          "word": "the",
+          "start": 257.26,
+          "end": 257.4,
+          "probability": 0.999
+        },
+        {
+          "word": "moment",
+          "start": 257.4,
+          "end": 257.8,
+          "probability": 1.0
+        },
+        {
+          "word": "it's",
+          "start": 257.8,
+          "end": 258.2,
+          "probability": 0.68
+        },
+        {
+          "word": "not",
+          "start": 258.2,
+          "end": 258.52,
+          "probability": 0.997
+        },
+        {
+          "word": "very,",
+          "start": 258.52,
+          "end": 259.16,
+          "probability": 0.869
+        },
+        {
+          "word": "it's",
+          "start": 259.16,
+          "end": 259.5,
+          "probability": 0.985
+        },
+        {
+          "word": "not",
+          "start": 259.5,
+          "end": 259.68,
+          "probability": 1.0
+        },
+        {
+          "word": "in",
+          "start": 259.68,
+          "end": 259.78,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 259.78,
+          "end": 259.92,
+          "probability": 0.999
+        },
+        {
+          "word": "very",
+          "start": 259.92,
+          "end": 260.18,
+          "probability": 0.998
+        },
+        {
+          "word": "good",
+          "start": 260.18,
+          "end": 260.42,
+          "probability": 0.994
+        },
+        {
+          "word": "state.",
+          "start": 260.42,
+          "end": 260.74,
+          "probability": 0.918
+        },
+        {
+          "word": "So",
+          "start": 261.0,
+          "end": 261.14,
+          "probability": 0.549
+        }
+      ]
+    },
+    {
+      "start": 261.14,
+      "end": 268.22,
+      "text": " I would like to clean it, maybe get some plants for it. I'd like to put some lights out there,",
+      "words": [
+        {
+          "word": "I",
+          "start": 261.14,
+          "end": 261.5,
+          "probability": 0.707
+        },
+        {
+          "word": "would",
+          "start": 261.5,
+          "end": 261.68,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 261.68,
+          "end": 262.0,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 262.0,
+          "end": 262.76,
+          "probability": 0.999
+        },
+        {
+          "word": "clean",
+          "start": 262.76,
+          "end": 263.1,
+          "probability": 0.999
+        },
+        {
+          "word": "it,",
+          "start": 263.1,
+          "end": 263.56,
+          "probability": 0.999
+        },
+        {
+          "word": "maybe",
+          "start": 263.82,
+          "end": 263.88,
+          "probability": 0.998
+        },
+        {
+          "word": "get",
+          "start": 263.88,
+          "end": 264.16,
+          "probability": 0.998
+        },
+        {
+          "word": "some",
+          "start": 264.16,
+          "end": 264.68,
+          "probability": 0.999
+        },
+        {
+          "word": "plants",
+          "start": 264.68,
+          "end": 265.2,
+          "probability": 0.715
+        },
+        {
+          "word": "for",
+          "start": 265.2,
+          "end": 265.56,
+          "probability": 0.999
+        },
+        {
+          "word": "it.",
+          "start": 265.56,
+          "end": 266.12,
+          "probability": 1.0
+        },
+        {
+          "word": "I'd",
+          "start": 266.14,
+          "end": 266.68,
+          "probability": 0.983
+        },
+        {
+          "word": "like",
+          "start": 266.68,
+          "end": 266.86,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 266.86,
+          "end": 266.92,
+          "probability": 0.999
+        },
+        {
+          "word": "put",
+          "start": 266.92,
+          "end": 267.08,
+          "probability": 0.999
+        },
+        {
+          "word": "some",
+          "start": 267.08,
+          "end": 267.3,
+          "probability": 0.999
+        },
+        {
+          "word": "lights",
+          "start": 267.3,
+          "end": 267.66,
+          "probability": 0.953
+        },
+        {
+          "word": "out",
+          "start": 267.66,
+          "end": 267.92,
+          "probability": 0.904
+        },
+        {
+          "word": "there,",
+          "start": 267.92,
+          "end": 268.22,
+          "probability": 0.976
+        }
+      ]
+    },
+    {
+      "start": 268.9,
+      "end": 275.52,
+      "text": " so that when people come around, it will be really nice in the evenings. So yeah, that's my plan",
+      "words": [
+        {
+          "word": "so",
+          "start": 268.9,
+          "end": 269.16,
+          "probability": 0.997
+        },
+        {
+          "word": "that",
+          "start": 269.16,
+          "end": 269.34,
+          "probability": 0.983
+        },
+        {
+          "word": "when",
+          "start": 269.34,
+          "end": 269.88,
+          "probability": 0.989
+        },
+        {
+          "word": "people",
+          "start": 269.88,
+          "end": 270.3,
+          "probability": 0.998
+        },
+        {
+          "word": "come",
+          "start": 270.3,
+          "end": 270.58,
+          "probability": 0.998
+        },
+        {
+          "word": "around,",
+          "start": 270.58,
+          "end": 271.22,
+          "probability": 0.529
+        },
+        {
+          "word": "it",
+          "start": 271.36,
+          "end": 271.74,
+          "probability": 0.997
+        },
+        {
+          "word": "will",
+          "start": 271.74,
+          "end": 271.86,
+          "probability": 0.739
+        },
+        {
+          "word": "be",
+          "start": 271.86,
+          "end": 272.06,
+          "probability": 1.0
+        },
+        {
+          "word": "really",
+          "start": 272.06,
+          "end": 272.28,
+          "probability": 0.997
+        },
+        {
+          "word": "nice",
+          "start": 272.28,
+          "end": 272.68,
+          "probability": 0.999
+        },
+        {
+          "word": "in",
+          "start": 272.68,
+          "end": 272.86,
+          "probability": 0.994
+        },
+        {
+          "word": "the",
+          "start": 272.86,
+          "end": 273.02,
+          "probability": 0.999
+        },
+        {
+          "word": "evenings.",
+          "start": 273.02,
+          "end": 273.52,
+          "probability": 0.985
+        },
+        {
+          "word": "So",
+          "start": 274.4,
+          "end": 274.42,
+          "probability": 0.927
+        },
+        {
+          "word": "yeah,",
+          "start": 274.42,
+          "end": 274.68,
+          "probability": 0.757
+        },
+        {
+          "word": "that's",
+          "start": 274.72,
+          "end": 274.94,
+          "probability": 0.97
+        },
+        {
+          "word": "my",
+          "start": 274.94,
+          "end": 275.08,
+          "probability": 0.921
+        },
+        {
+          "word": "plan",
+          "start": 275.08,
+          "end": 275.52,
+          "probability": 0.935
+        }
+      ]
+    },
+    {
+      "start": 275.6,
+      "end": 278.16,
+      "text": " ready for the summer. That sounds lovely.",
+      "words": [
+        {
+          "word": "ready",
+          "start": 275.6,
+          "end": 276.02,
+          "probability": 0.987
+        },
+        {
+          "word": "for",
+          "start": 276.02,
+          "end": 276.22,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 276.22,
+          "end": 276.38,
+          "probability": 0.998
+        },
+        {
+          "word": "summer.",
+          "start": 276.38,
+          "end": 276.78,
+          "probability": 0.995
+        },
+        {
+          "word": "That",
+          "start": 277.42,
+          "end": 277.66,
+          "probability": 0.939
+        },
+        {
+          "word": "sounds",
+          "start": 277.66,
+          "end": 277.88,
+          "probability": 0.992
+        },
+        {
+          "word": "lovely.",
+          "start": 277.88,
+          "end": 278.16,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 285.3,
+      "end": 292.12,
+      "text": " Okay, let's recap the language we heard during the conversation, starting with DIY, which stands for",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 285.3,
+          "end": 285.64,
+          "probability": 0.877
+        },
+        {
+          "word": "let's",
+          "start": 285.92,
+          "end": 286.16,
+          "probability": 0.997
+        },
+        {
+          "word": "recap",
+          "start": 286.16,
+          "end": 286.44,
+          "probability": 0.989
+        },
+        {
+          "word": "the",
+          "start": 286.44,
+          "end": 286.6,
+          "probability": 0.998
+        },
+        {
+          "word": "language",
+          "start": 286.6,
+          "end": 287.02,
+          "probability": 0.999
+        },
+        {
+          "word": "we",
+          "start": 287.02,
+          "end": 287.28,
+          "probability": 0.986
+        },
+        {
+          "word": "heard",
+          "start": 287.28,
+          "end": 287.74,
+          "probability": 0.993
+        },
+        {
+          "word": "during",
+          "start": 287.74,
+          "end": 288.06,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 288.06,
+          "end": 288.32,
+          "probability": 0.998
+        },
+        {
+          "word": "conversation,",
+          "start": 288.32,
+          "end": 289.0,
+          "probability": 0.996
+        },
+        {
+          "word": "starting",
+          "start": 289.26,
+          "end": 289.56,
+          "probability": 0.898
+        },
+        {
+          "word": "with",
+          "start": 289.56,
+          "end": 290.14,
+          "probability": 0.99
+        },
+        {
+          "word": "DIY,",
+          "start": 290.14,
+          "end": 290.78,
+          "probability": 0.549
+        },
+        {
+          "word": "which",
+          "start": 291.08,
+          "end": 291.42,
+          "probability": 0.524
+        },
+        {
+          "word": "stands",
+          "start": 291.42,
+          "end": 291.78,
+          "probability": 0.766
+        },
+        {
+          "word": "for",
+          "start": 291.78,
+          "end": 292.12,
+          "probability": 0.506
+        }
+      ]
+    },
+    {
+      "start": 292.14,
+      "end": 298.1,
+      "text": " do it yourself. These are jobs you do around the house like fixing or painting. For example,",
+      "words": [
+        {
+          "word": "do",
+          "start": 292.14,
+          "end": 292.36,
+          "probability": 0.746
+        },
+        {
+          "word": "it",
+          "start": 292.36,
+          "end": 292.48,
+          "probability": 0.553
+        },
+        {
+          "word": "yourself.",
+          "start": 292.48,
+          "end": 293.04,
+          "probability": 0.999
+        },
+        {
+          "word": "These",
+          "start": 293.5,
+          "end": 293.68,
+          "probability": 0.995
+        },
+        {
+          "word": "are",
+          "start": 293.68,
+          "end": 293.88,
+          "probability": 0.999
+        },
+        {
+          "word": "jobs",
+          "start": 293.88,
+          "end": 294.14,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 294.14,
+          "end": 294.28,
+          "probability": 0.976
+        },
+        {
+          "word": "do",
+          "start": 294.28,
+          "end": 294.6,
+          "probability": 0.999
+        },
+        {
+          "word": "around",
+          "start": 294.6,
+          "end": 294.96,
+          "probability": 0.991
+        },
+        {
+          "word": "the",
+          "start": 294.96,
+          "end": 295.1,
+          "probability": 0.998
+        },
+        {
+          "word": "house",
+          "start": 295.1,
+          "end": 295.44,
+          "probability": 0.998
+        },
+        {
+          "word": "like",
+          "start": 295.44,
+          "end": 295.76,
+          "probability": 0.659
+        },
+        {
+          "word": "fixing",
+          "start": 295.76,
+          "end": 296.28,
+          "probability": 0.991
+        },
+        {
+          "word": "or",
+          "start": 296.28,
+          "end": 296.62,
+          "probability": 0.987
+        },
+        {
+          "word": "painting.",
+          "start": 296.62,
+          "end": 297.2,
+          "probability": 0.998
+        },
+        {
+          "word": "For",
+          "start": 297.56,
+          "end": 297.7,
+          "probability": 0.973
+        },
+        {
+          "word": "example,",
+          "start": 297.7,
+          "end": 298.1,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 298.3,
+      "end": 305.88,
+      "text": " I don't like DIY, I'm too lazy. We also heard decorate, which means paint a room or change how it",
+      "words": [
+        {
+          "word": "I",
+          "start": 298.3,
+          "end": 298.54,
+          "probability": 0.997
+        },
+        {
+          "word": "don't",
+          "start": 298.54,
+          "end": 298.74,
+          "probability": 1.0
+        },
+        {
+          "word": "like",
+          "start": 298.74,
+          "end": 299.0,
+          "probability": 1.0
+        },
+        {
+          "word": "DIY,",
+          "start": 299.0,
+          "end": 299.42,
+          "probability": 0.996
+        },
+        {
+          "word": "I'm",
+          "start": 299.92,
+          "end": 300.04,
+          "probability": 0.997
+        },
+        {
+          "word": "too",
+          "start": 300.04,
+          "end": 300.2,
+          "probability": 0.999
+        },
+        {
+          "word": "lazy.",
+          "start": 300.2,
+          "end": 300.6,
+          "probability": 0.998
+        },
+        {
+          "word": "We",
+          "start": 301.36,
+          "end": 301.68,
+          "probability": 0.908
+        },
+        {
+          "word": "also",
+          "start": 301.68,
+          "end": 302.02,
+          "probability": 0.999
+        },
+        {
+          "word": "heard",
+          "start": 302.02,
+          "end": 302.44,
+          "probability": 0.983
+        },
+        {
+          "word": "decorate,",
+          "start": 302.44,
+          "end": 303.18,
+          "probability": 0.959
+        },
+        {
+          "word": "which",
+          "start": 303.32,
+          "end": 303.46,
+          "probability": 0.986
+        },
+        {
+          "word": "means",
+          "start": 303.46,
+          "end": 303.82,
+          "probability": 0.997
+        },
+        {
+          "word": "paint",
+          "start": 303.82,
+          "end": 304.22,
+          "probability": 0.671
+        },
+        {
+          "word": "a",
+          "start": 304.22,
+          "end": 304.38,
+          "probability": 0.986
+        },
+        {
+          "word": "room",
+          "start": 304.38,
+          "end": 304.68,
+          "probability": 0.988
+        },
+        {
+          "word": "or",
+          "start": 304.68,
+          "end": 305.08,
+          "probability": 0.722
+        },
+        {
+          "word": "change",
+          "start": 305.08,
+          "end": 305.52,
+          "probability": 0.928
+        },
+        {
+          "word": "how",
+          "start": 305.52,
+          "end": 305.72,
+          "probability": 0.64
+        },
+        {
+          "word": "it",
+          "start": 305.72,
+          "end": 305.88,
+          "probability": 0.618
+        }
+      ]
+    },
+    {
+      "start": 306.8,
+      "end": 312.2,
+      "text": " looks. We heard flat pack furniture, which is furniture, which comes with instructions so that you",
+      "words": [
+        {
+          "word": "looks.",
+          "start": 306.8,
+          "end": 306.82,
+          "probability": 0.999
+        },
+        {
+          "word": "We",
+          "start": 307.04,
+          "end": 307.12,
+          "probability": 0.997
+        },
+        {
+          "word": "heard",
+          "start": 307.12,
+          "end": 307.66,
+          "probability": 0.997
+        },
+        {
+          "word": "flat",
+          "start": 307.66,
+          "end": 307.96,
+          "probability": 0.76
+        },
+        {
+          "word": "pack",
+          "start": 307.96,
+          "end": 308.24,
+          "probability": 0.691
+        },
+        {
+          "word": "furniture,",
+          "start": 308.24,
+          "end": 308.76,
+          "probability": 0.996
+        },
+        {
+          "word": "which",
+          "start": 309.14,
+          "end": 309.3,
+          "probability": 0.999
+        },
+        {
+          "word": "is",
+          "start": 309.3,
+          "end": 309.48,
+          "probability": 0.992
+        },
+        {
+          "word": "furniture,",
+          "start": 309.48,
+          "end": 309.98,
+          "probability": 0.997
+        },
+        {
+          "word": "which",
+          "start": 310.16,
+          "end": 310.36,
+          "probability": 0.997
+        },
+        {
+          "word": "comes",
+          "start": 310.36,
+          "end": 310.66,
+          "probability": 0.998
+        },
+        {
+          "word": "with",
+          "start": 310.66,
+          "end": 310.96,
+          "probability": 0.998
+        },
+        {
+          "word": "instructions",
+          "start": 310.96,
+          "end": 311.66,
+          "probability": 0.993
+        },
+        {
+          "word": "so",
+          "start": 311.66,
+          "end": 312.02,
+          "probability": 0.747
+        },
+        {
+          "word": "that",
+          "start": 312.02,
+          "end": 312.14,
+          "probability": 0.933
+        },
+        {
+          "word": "you",
+          "start": 312.14,
+          "end": 312.2,
+          "probability": 0.645
+        }
+      ]
+    },
+    {
+      "start": 312.2,
+      "end": 320.19,
+      "text": " can build it yourself. And we heard a couple of phrasal verbs. If you put something up, you fix it",
+      "words": [
+        {
+          "word": "can",
+          "start": 312.2,
+          "end": 312.5,
+          "probability": 0.996
+        },
+        {
+          "word": "build",
+          "start": 312.5,
+          "end": 312.74,
+          "probability": 0.998
+        },
+        {
+          "word": "it",
+          "start": 312.74,
+          "end": 312.9,
+          "probability": 0.999
+        },
+        {
+          "word": "yourself.",
+          "start": 312.9,
+          "end": 313.48,
+          "probability": 0.999
+        },
+        {
+          "word": "And",
+          "start": 314.56,
+          "end": 314.92,
+          "probability": 0.936
+        },
+        {
+          "word": "we",
+          "start": 314.92,
+          "end": 315.1,
+          "probability": 0.997
+        },
+        {
+          "word": "heard",
+          "start": 315.1,
+          "end": 315.4,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 315.4,
+          "end": 315.56,
+          "probability": 0.999
+        },
+        {
+          "word": "couple",
+          "start": 315.56,
+          "end": 315.94,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 315.94,
+          "end": 316.28,
+          "probability": 0.993
+        },
+        {
+          "word": "phrasal",
+          "start": 316.28,
+          "end": 316.74,
+          "probability": 0.991
+        },
+        {
+          "word": "verbs.",
+          "start": 316.74,
+          "end": 317.18,
+          "probability": 0.996
+        },
+        {
+          "word": "If",
+          "start": 317.62,
+          "end": 317.9,
+          "probability": 0.995
+        },
+        {
+          "word": "you",
+          "start": 317.9,
+          "end": 318.24,
+          "probability": 1.0
+        },
+        {
+          "word": "put",
+          "start": 318.24,
+          "end": 318.62,
+          "probability": 0.996
+        },
+        {
+          "word": "something",
+          "start": 318.62,
+          "end": 319.06,
+          "probability": 1.0
+        },
+        {
+          "word": "up,",
+          "start": 319.06,
+          "end": 319.5,
+          "probability": 0.99
+        },
+        {
+          "word": "you",
+          "start": 319.6,
+          "end": 319.82,
+          "probability": 0.575
+        },
+        {
+          "word": "fix",
+          "start": 319.82,
+          "end": 320.08,
+          "probability": 0.711
+        },
+        {
+          "word": "it",
+          "start": 320.08,
+          "end": 320.19,
+          "probability": 0.724
+        }
+      ]
+    },
+    {
+      "start": 320.19,
+      "end": 326.53,
+      "text": " to the wall. So for example, Georgie put up some picture frames in her bedroom. And if you put",
+      "words": [
+        {
+          "word": "to",
+          "start": 320.19,
+          "end": 320.46,
+          "probability": 0.992
+        },
+        {
+          "word": "the",
+          "start": 320.46,
+          "end": 320.6,
+          "probability": 1.0
+        },
+        {
+          "word": "wall.",
+          "start": 320.6,
+          "end": 321.02,
+          "probability": 0.989
+        },
+        {
+          "word": "So",
+          "start": 321.2,
+          "end": 321.34,
+          "probability": 0.958
+        },
+        {
+          "word": "for",
+          "start": 321.34,
+          "end": 321.58,
+          "probability": 0.803
+        },
+        {
+          "word": "example,",
+          "start": 321.58,
+          "end": 322.04,
+          "probability": 0.999
+        },
+        {
+          "word": "Georgie",
+          "start": 322.28,
+          "end": 322.62,
+          "probability": 0.853
+        },
+        {
+          "word": "put",
+          "start": 322.62,
+          "end": 322.88,
+          "probability": 0.608
+        },
+        {
+          "word": "up",
+          "start": 322.88,
+          "end": 323.12,
+          "probability": 0.997
+        },
+        {
+          "word": "some",
+          "start": 323.12,
+          "end": 323.32,
+          "probability": 0.999
+        },
+        {
+          "word": "picture",
+          "start": 323.32,
+          "end": 323.64,
+          "probability": 0.996
+        },
+        {
+          "word": "frames",
+          "start": 323.64,
+          "end": 324.08,
+          "probability": 0.991
+        },
+        {
+          "word": "in",
+          "start": 324.08,
+          "end": 324.44,
+          "probability": 0.998
+        },
+        {
+          "word": "her",
+          "start": 324.44,
+          "end": 324.6,
+          "probability": 0.999
+        },
+        {
+          "word": "bedroom.",
+          "start": 324.6,
+          "end": 325.12,
+          "probability": 0.999
+        },
+        {
+          "word": "And",
+          "start": 325.52,
+          "end": 326.0,
+          "probability": 0.675
+        },
+        {
+          "word": "if",
+          "start": 326.0,
+          "end": 326.22,
+          "probability": 0.98
+        },
+        {
+          "word": "you",
+          "start": 326.22,
+          "end": 326.4,
+          "probability": 0.983
+        },
+        {
+          "word": "put",
+          "start": 326.4,
+          "end": 326.53,
+          "probability": 0.957
+        }
+      ]
+    },
+    {
+      "start": 326.53,
+      "end": 332.49,
+      "text": " something together, you build it. For example, Phil likes to put together flat pack furniture with",
+      "words": [
+        {
+          "word": "something",
+          "start": 326.53,
+          "end": 327.04,
+          "probability": 1.0
+        },
+        {
+          "word": "together,",
+          "start": 327.04,
+          "end": 327.72,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 327.9,
+          "end": 328.0,
+          "probability": 0.998
+        },
+        {
+          "word": "build",
+          "start": 328.0,
+          "end": 328.28,
+          "probability": 0.975
+        },
+        {
+          "word": "it.",
+          "start": 328.28,
+          "end": 328.6,
+          "probability": 0.999
+        },
+        {
+          "word": "For",
+          "start": 328.74,
+          "end": 328.9,
+          "probability": 0.995
+        },
+        {
+          "word": "example,",
+          "start": 328.9,
+          "end": 329.48,
+          "probability": 1.0
+        },
+        {
+          "word": "Phil",
+          "start": 329.54,
+          "end": 329.92,
+          "probability": 0.53
+        },
+        {
+          "word": "likes",
+          "start": 329.92,
+          "end": 330.28,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 330.28,
+          "end": 330.42,
+          "probability": 0.999
+        },
+        {
+          "word": "put",
+          "start": 330.42,
+          "end": 330.68,
+          "probability": 1.0
+        },
+        {
+          "word": "together",
+          "start": 330.68,
+          "end": 331.1,
+          "probability": 0.999
+        },
+        {
+          "word": "flat",
+          "start": 331.1,
+          "end": 331.48,
+          "probability": 0.948
+        },
+        {
+          "word": "pack",
+          "start": 331.48,
+          "end": 331.74,
+          "probability": 0.916
+        },
+        {
+          "word": "furniture",
+          "start": 331.74,
+          "end": 332.2,
+          "probability": 0.997
+        },
+        {
+          "word": "with",
+          "start": 332.2,
+          "end": 332.49,
+          "probability": 0.581
+        }
+      ]
+    },
+    {
+      "start": 332.49,
+      "end": 340.06,
+      "text": " someone else. And that's it for this episode of Real Easy English. You can practice what you've",
+      "words": [
+        {
+          "word": "someone",
+          "start": 332.49,
+          "end": 332.88,
+          "probability": 0.999
+        },
+        {
+          "word": "else.",
+          "start": 332.88,
+          "end": 333.34,
+          "probability": 1.0
+        },
+        {
+          "word": "And",
+          "start": 334.36,
+          "end": 334.44,
+          "probability": 0.992
+        },
+        {
+          "word": "that's",
+          "start": 334.44,
+          "end": 334.96,
+          "probability": 0.997
+        },
+        {
+          "word": "it",
+          "start": 334.96,
+          "end": 335.26,
+          "probability": 1.0
+        },
+        {
+          "word": "for",
+          "start": 335.26,
+          "end": 335.58,
+          "probability": 0.96
+        },
+        {
+          "word": "this",
+          "start": 335.58,
+          "end": 335.86,
+          "probability": 0.999
+        },
+        {
+          "word": "episode",
+          "start": 335.86,
+          "end": 336.44,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 336.44,
+          "end": 336.86,
+          "probability": 0.97
+        },
+        {
+          "word": "Real",
+          "start": 336.86,
+          "end": 337.4,
+          "probability": 0.862
+        },
+        {
+          "word": "Easy",
+          "start": 337.4,
+          "end": 337.86,
+          "probability": 0.852
+        },
+        {
+          "word": "English.",
+          "start": 337.86,
+          "end": 338.38,
+          "probability": 0.996
+        },
+        {
+          "word": "You",
+          "start": 338.9,
+          "end": 338.96,
+          "probability": 0.992
+        },
+        {
+          "word": "can",
+          "start": 338.96,
+          "end": 339.26,
+          "probability": 0.999
+        },
+        {
+          "word": "practice",
+          "start": 339.26,
+          "end": 339.58,
+          "probability": 0.959
+        },
+        {
+          "word": "what",
+          "start": 339.58,
+          "end": 339.88,
+          "probability": 0.971
+        },
+        {
+          "word": "you've",
+          "start": 339.88,
+          "end": 340.06,
+          "probability": 0.914
+        }
+      ]
+    },
+    {
+      "start": 340.06,
+      "end": 347.95,
+      "text": " learned with a worksheet that's on our website, bbclearningenglish.com. And we'll be back next week",
+      "words": [
+        {
+          "word": "learned",
+          "start": 340.06,
+          "end": 340.48,
+          "probability": 0.713
+        },
+        {
+          "word": "with",
+          "start": 340.48,
+          "end": 340.76,
+          "probability": 0.992
+        },
+        {
+          "word": "a",
+          "start": 340.76,
+          "end": 341.04,
+          "probability": 0.99
+        },
+        {
+          "word": "worksheet",
+          "start": 341.04,
+          "end": 341.64,
+          "probability": 0.975
+        },
+        {
+          "word": "that's",
+          "start": 341.64,
+          "end": 342.12,
+          "probability": 0.981
+        },
+        {
+          "word": "on",
+          "start": 342.12,
+          "end": 342.24,
+          "probability": 0.999
+        },
+        {
+          "word": "our",
+          "start": 342.24,
+          "end": 342.44,
+          "probability": 0.999
+        },
+        {
+          "word": "website,",
+          "start": 342.44,
+          "end": 343.1,
+          "probability": 0.998
+        },
+        {
+          "word": "bbclearningenglish.com.",
+          "start": 343.5,
+          "end": 346.04,
+          "probability": 0.653
+        },
+        {
+          "word": "And",
+          "start": 346.16,
+          "end": 346.76,
+          "probability": 0.886
+        },
+        {
+          "word": "we'll",
+          "start": 346.76,
+          "end": 347.06,
+          "probability": 0.994
+        },
+        {
+          "word": "be",
+          "start": 347.06,
+          "end": 347.16,
+          "probability": 0.992
+        },
+        {
+          "word": "back",
+          "start": 347.16,
+          "end": 347.42,
+          "probability": 0.993
+        },
+        {
+          "word": "next",
+          "start": 347.42,
+          "end": 347.72,
+          "probability": 0.958
+        },
+        {
+          "word": "week",
+          "start": 347.72,
+          "end": 347.95,
+          "probability": 0.617
+        }
+      ]
+    },
+    {
+      "start": 347.95,
+      "end": 352.38,
+      "text": " with another conversation in Easy English. Goodbye for now. Bye.",
+      "words": [
+        {
+          "word": "with",
+          "start": 347.95,
+          "end": 348.24,
+          "probability": 0.986
+        },
+        {
+          "word": "another",
+          "start": 348.24,
+          "end": 348.58,
+          "probability": 0.997
+        },
+        {
+          "word": "conversation",
+          "start": 348.58,
+          "end": 349.42,
+          "probability": 0.999
+        },
+        {
+          "word": "in",
+          "start": 349.42,
+          "end": 349.88,
+          "probability": 0.992
+        },
+        {
+          "word": "Easy",
+          "start": 349.88,
+          "end": 350.3,
+          "probability": 0.62
+        },
+        {
+          "word": "English.",
+          "start": 350.3,
+          "end": 350.84,
+          "probability": 0.992
+        },
+        {
+          "word": "Goodbye",
+          "start": 350.92,
+          "end": 351.22,
+          "probability": 0.767
+        },
+        {
+          "word": "for",
+          "start": 351.22,
+          "end": 351.42,
+          "probability": 0.922
+        },
+        {
+          "word": "now.",
+          "start": 351.42,
+          "end": 351.8,
+          "probability": 0.999
+        },
+        {
+          "word": "Bye.",
+          "start": 351.9,
+          "end": 352.38,
+          "probability": 0.92
+        }
+      ]
+    }
+  ]
+}

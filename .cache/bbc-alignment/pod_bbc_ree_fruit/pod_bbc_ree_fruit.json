@@ -1,0 +1,5706 @@
+{
+  "engine": "whisper-timestamped",
+  "model": "tiny.en",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.38,
+      "end": 6.4,
+      "text": " Hello and welcome to Real Easy English, where we have easy conversations to help you",
+      "words": [
+        {
+          "word": "Hello",
+          "start": 0.38,
+          "end": 1.02,
+          "probability": 0.91
+        },
+        {
+          "word": "and",
+          "start": 1.02,
+          "end": 1.48,
+          "probability": 0.748
+        },
+        {
+          "word": "welcome",
+          "start": 1.48,
+          "end": 1.94,
+          "probability": 0.979
+        },
+        {
+          "word": "to",
+          "start": 1.94,
+          "end": 2.16,
+          "probability": 0.997
+        },
+        {
+          "word": "Real",
+          "start": 2.16,
+          "end": 2.42,
+          "probability": 0.536
+        },
+        {
+          "word": "Easy",
+          "start": 2.42,
+          "end": 2.76,
+          "probability": 0.875
+        },
+        {
+          "word": "English,",
+          "start": 2.76,
+          "end": 3.36,
+          "probability": 0.986
+        },
+        {
+          "word": "where",
+          "start": 3.54,
+          "end": 3.76,
+          "probability": 0.807
+        },
+        {
+          "word": "we",
+          "start": 3.76,
+          "end": 3.96,
+          "probability": 0.989
+        },
+        {
+          "word": "have",
+          "start": 3.96,
+          "end": 4.4,
+          "probability": 0.99
+        },
+        {
+          "word": "easy",
+          "start": 4.4,
+          "end": 4.78,
+          "probability": 0.988
+        },
+        {
+          "word": "conversations",
+          "start": 4.78,
+          "end": 5.68,
+          "probability": 0.986
+        },
+        {
+          "word": "to",
+          "start": 5.68,
+          "end": 6.02,
+          "probability": 0.912
+        },
+        {
+          "word": "help",
+          "start": 6.02,
+          "end": 6.32,
+          "probability": 0.986
+        },
+        {
+          "word": "you",
+          "start": 6.32,
+          "end": 6.4,
+          "probability": 0.937
+        }
+      ]
+    },
+    {
+      "start": 6.4,
+      "end": 9.24,
+      "text": " with your listening skills and learn new vocabulary.",
+      "words": [
+        {
+          "word": "with",
+          "start": 6.4,
+          "end": 6.74,
+          "probability": 0.994
+        },
+        {
+          "word": "your",
+          "start": 6.74,
+          "end": 6.92,
+          "probability": 0.964
+        },
+        {
+          "word": "listening",
+          "start": 6.92,
+          "end": 7.34,
+          "probability": 0.99
+        },
+        {
+          "word": "skills",
+          "start": 7.34,
+          "end": 7.9,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 7.9,
+          "end": 8.24,
+          "probability": 0.915
+        },
+        {
+          "word": "learn",
+          "start": 8.24,
+          "end": 8.48,
+          "probability": 0.99
+        },
+        {
+          "word": "new",
+          "start": 8.48,
+          "end": 8.64,
+          "probability": 0.853
+        },
+        {
+          "word": "vocabulary.",
+          "start": 8.64,
+          "end": 9.24,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 9.64,
+      "end": 10.34,
+      "text": " I'm Baka.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 9.64,
+          "end": 10.02,
+          "probability": 0.979
+        },
+        {
+          "word": "Baka.",
+          "start": 10.02,
+          "end": 10.34,
+          "probability": 0.261
+        }
+      ]
+    },
+    {
+      "start": 10.66,
+      "end": 11.32,
+      "text": " And I'm Neil.",
+      "words": [
+        {
+          "word": "And",
+          "start": 10.66,
+          "end": 10.86,
+          "probability": 0.874
+        },
+        {
+          "word": "I'm",
+          "start": 10.86,
+          "end": 11.08,
+          "probability": 0.977
+        },
+        {
+          "word": "Neil.",
+          "start": 11.08,
+          "end": 11.32,
+          "probability": 0.905
+        }
+      ]
+    },
+    {
+      "start": 11.32,
+      "end": 16.55,
+      "text": " If you'd like to see a video version of this podcast, you can find it on our website",
+      "words": [
+        {
+          "word": "If",
+          "start": 11.32,
+          "end": 11.9,
+          "probability": 0.997
+        },
+        {
+          "word": "you'd",
+          "start": 11.9,
+          "end": 12.08,
+          "probability": 0.98
+        },
+        {
+          "word": "like",
+          "start": 12.08,
+          "end": 12.26,
+          "probability": 0.996
+        },
+        {
+          "word": "to",
+          "start": 12.26,
+          "end": 12.48,
+          "probability": 0.998
+        },
+        {
+          "word": "see",
+          "start": 12.48,
+          "end": 12.78,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 12.78,
+          "end": 13.08,
+          "probability": 0.995
+        },
+        {
+          "word": "video",
+          "start": 13.08,
+          "end": 13.42,
+          "probability": 0.993
+        },
+        {
+          "word": "version",
+          "start": 13.42,
+          "end": 13.82,
+          "probability": 0.995
+        },
+        {
+          "word": "of",
+          "start": 13.82,
+          "end": 14.0,
+          "probability": 0.995
+        },
+        {
+          "word": "this",
+          "start": 14.0,
+          "end": 14.22,
+          "probability": 0.994
+        },
+        {
+          "word": "podcast,",
+          "start": 14.22,
+          "end": 14.64,
+          "probability": 0.992
+        },
+        {
+          "word": "you",
+          "start": 14.88,
+          "end": 14.94,
+          "probability": 0.982
+        },
+        {
+          "word": "can",
+          "start": 14.94,
+          "end": 15.18,
+          "probability": 0.997
+        },
+        {
+          "word": "find",
+          "start": 15.18,
+          "end": 15.46,
+          "probability": 0.995
+        },
+        {
+          "word": "it",
+          "start": 15.46,
+          "end": 15.8,
+          "probability": 0.983
+        },
+        {
+          "word": "on",
+          "start": 15.8,
+          "end": 15.96,
+          "probability": 0.962
+        },
+        {
+          "word": "our",
+          "start": 15.96,
+          "end": 16.12,
+          "probability": 0.991
+        },
+        {
+          "word": "website",
+          "start": 16.12,
+          "end": 16.55,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 16.55,
+      "end": 18.82,
+      "text": " at BBCLearningEnglish.com.",
+      "words": [
+        {
+          "word": "at",
+          "start": 16.55,
+          "end": 16.76,
+          "probability": 0.984
+        },
+        {
+          "word": "BBCLearningEnglish.com.",
+          "start": 16.76,
+          "end": 18.82,
+          "probability": 0.665
+        }
+      ]
+    },
+    {
+      "start": 18.82,
+      "end": 21.64,
+      "text": " The video has subtitles which can help you learn.",
+      "words": [
+        {
+          "word": "The",
+          "start": 18.82,
+          "end": 19.32,
+          "probability": 0.978
+        },
+        {
+          "word": "video",
+          "start": 19.32,
+          "end": 19.56,
+          "probability": 0.995
+        },
+        {
+          "word": "has",
+          "start": 19.56,
+          "end": 19.82,
+          "probability": 0.999
+        },
+        {
+          "word": "subtitles",
+          "start": 19.82,
+          "end": 20.36,
+          "probability": 0.942
+        },
+        {
+          "word": "which",
+          "start": 20.36,
+          "end": 20.8,
+          "probability": 0.602
+        },
+        {
+          "word": "can",
+          "start": 20.8,
+          "end": 21.0,
+          "probability": 0.996
+        },
+        {
+          "word": "help",
+          "start": 21.0,
+          "end": 21.2,
+          "probability": 1.0
+        },
+        {
+          "word": "you",
+          "start": 21.2,
+          "end": 21.36,
+          "probability": 0.998
+        },
+        {
+          "word": "learn.",
+          "start": 21.36,
+          "end": 21.64,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 22.22,
+      "end": 29.6,
+      "text": " Hi, Neil.",
+      "words": [
+        {
+          "word": "Hi,",
+          "start": 22.22,
+          "end": 29.26,
+          "probability": 0.274
+        },
+        {
+          "word": "Neil.",
+          "start": 29.4,
+          "end": 29.6,
+          "probability": 0.979
+        }
+      ]
+    },
+    {
+      "start": 29.6,
+      "end": 30.6,
+      "text": " How are you doing today?",
+      "words": [
+        {
+          "word": "How",
+          "start": 29.6,
+          "end": 29.86,
+          "probability": 0.995
+        },
+        {
+          "word": "are",
+          "start": 29.86,
+          "end": 29.94,
+          "probability": 0.945
+        },
+        {
+          "word": "you",
+          "start": 29.94,
+          "end": 30.02,
+          "probability": 0.997
+        },
+        {
+          "word": "doing",
+          "start": 30.02,
+          "end": 30.24,
+          "probability": 0.998
+        },
+        {
+          "word": "today?",
+          "start": 30.24,
+          "end": 30.6,
+          "probability": 0.981
+        }
+      ]
+    },
+    {
+      "start": 30.96,
+      "end": 31.48,
+      "text": " I'm good.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 30.96,
+          "end": 31.26,
+          "probability": 0.954
+        },
+        {
+          "word": "good.",
+          "start": 31.26,
+          "end": 31.48,
+          "probability": 0.99
+        }
+      ]
+    },
+    {
+      "start": 31.48,
+      "end": 32.1,
+      "text": " Thank you.",
+      "words": [
+        {
+          "word": "Thank",
+          "start": 31.48,
+          "end": 31.82,
+          "probability": 0.988
+        },
+        {
+          "word": "you.",
+          "start": 31.82,
+          "end": 32.1,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 32.38,
+      "end": 35.14,
+      "text": " I feel great because I just ate a banana.",
+      "words": [
+        {
+          "word": "I",
+          "start": 32.38,
+          "end": 32.62,
+          "probability": 0.991
+        },
+        {
+          "word": "feel",
+          "start": 32.62,
+          "end": 32.78,
+          "probability": 0.996
+        },
+        {
+          "word": "great",
+          "start": 32.78,
+          "end": 33.16,
+          "probability": 0.996
+        },
+        {
+          "word": "because",
+          "start": 33.16,
+          "end": 33.74,
+          "probability": 0.769
+        },
+        {
+          "word": "I",
+          "start": 33.74,
+          "end": 33.84,
+          "probability": 0.996
+        },
+        {
+          "word": "just",
+          "start": 33.84,
+          "end": 34.22,
+          "probability": 0.994
+        },
+        {
+          "word": "ate",
+          "start": 34.22,
+          "end": 34.66,
+          "probability": 0.996
+        },
+        {
+          "word": "a",
+          "start": 34.66,
+          "end": 34.82,
+          "probability": 0.983
+        },
+        {
+          "word": "banana.",
+          "start": 34.82,
+          "end": 35.14,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 35.96,
+      "end": 36.56,
+      "text": " Yum.",
+      "words": [
+        {
+          "word": "Yum.",
+          "start": 35.96,
+          "end": 36.56,
+          "probability": 0.531
+        }
+      ]
+    },
+    {
+      "start": 36.56,
+      "end": 37.04,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 36.56,
+          "end": 37.04,
+          "probability": 0.844
+        }
+      ]
+    },
+    {
+      "start": 37.04,
+      "end": 41.05,
+      "text": " I saw you, you started off your day quite healthily this morning.",
+      "words": [
+        {
+          "word": "I",
+          "start": 37.04,
+          "end": 37.32,
+          "probability": 0.981
+        },
+        {
+          "word": "saw",
+          "start": 37.32,
+          "end": 37.62,
+          "probability": 0.969
+        },
+        {
+          "word": "you,",
+          "start": 37.62,
+          "end": 38.3,
+          "probability": 0.994
+        },
+        {
+          "word": "you",
+          "start": 38.3,
+          "end": 38.42,
+          "probability": 0.83
+        },
+        {
+          "word": "started",
+          "start": 38.42,
+          "end": 38.74,
+          "probability": 0.998
+        },
+        {
+          "word": "off",
+          "start": 38.74,
+          "end": 38.94,
+          "probability": 0.992
+        },
+        {
+          "word": "your",
+          "start": 38.94,
+          "end": 39.06,
+          "probability": 0.986
+        },
+        {
+          "word": "day",
+          "start": 39.06,
+          "end": 39.28,
+          "probability": 0.985
+        },
+        {
+          "word": "quite",
+          "start": 39.28,
+          "end": 39.62,
+          "probability": 0.975
+        },
+        {
+          "word": "healthily",
+          "start": 39.62,
+          "end": 40.36,
+          "probability": 0.882
+        },
+        {
+          "word": "this",
+          "start": 40.36,
+          "end": 40.86,
+          "probability": 0.897
+        },
+        {
+          "word": "morning.",
+          "start": 40.86,
+          "end": 41.05,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 41.05,
+      "end": 42.28,
+      "text": " I also had a banana.",
+      "words": [
+        {
+          "word": "I",
+          "start": 41.05,
+          "end": 41.48,
+          "probability": 0.999
+        },
+        {
+          "word": "also",
+          "start": 41.48,
+          "end": 41.72,
+          "probability": 0.995
+        },
+        {
+          "word": "had",
+          "start": 41.72,
+          "end": 41.88,
+          "probability": 0.992
+        },
+        {
+          "word": "a",
+          "start": 41.88,
+          "end": 42.0,
+          "probability": 0.994
+        },
+        {
+          "word": "banana.",
+          "start": 42.0,
+          "end": 42.28,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 42.56,
+      "end": 42.96,
+      "text": " Yes.",
+      "words": [
+        {
+          "word": "Yes.",
+          "start": 42.56,
+          "end": 42.96,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 43.1,
+      "end": 44.5,
+      "text": " I saw you eating your banana.",
+      "words": [
+        {
+          "word": "I",
+          "start": 43.1,
+          "end": 43.32,
+          "probability": 0.997
+        },
+        {
+          "word": "saw",
+          "start": 43.32,
+          "end": 43.62,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 43.62,
+          "end": 43.8,
+          "probability": 0.998
+        },
+        {
+          "word": "eating",
+          "start": 43.8,
+          "end": 44.1,
+          "probability": 0.989
+        },
+        {
+          "word": "your",
+          "start": 44.1,
+          "end": 44.36,
+          "probability": 0.957
+        },
+        {
+          "word": "banana.",
+          "start": 44.36,
+          "end": 44.5,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 44.5,
+      "end": 46.49,
+      "text": " And I thought I'm going to eat a banana.",
+      "words": [
+        {
+          "word": "And",
+          "start": 44.5,
+          "end": 45.02,
+          "probability": 0.983
+        },
+        {
+          "word": "I",
+          "start": 45.02,
+          "end": 45.16,
+          "probability": 0.998
+        },
+        {
+          "word": "thought",
+          "start": 45.16,
+          "end": 45.54,
+          "probability": 0.996
+        },
+        {
+          "word": "I'm",
+          "start": 45.54,
+          "end": 45.82,
+          "probability": 0.762
+        },
+        {
+          "word": "going",
+          "start": 45.82,
+          "end": 46.0,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 46.0,
+          "end": 46.14,
+          "probability": 0.998
+        },
+        {
+          "word": "eat",
+          "start": 46.14,
+          "end": 46.28,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 46.28,
+          "end": 46.42,
+          "probability": 0.979
+        },
+        {
+          "word": "banana.",
+          "start": 46.42,
+          "end": 46.49,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 46.49,
+      "end": 47.95,
+      "text": " Ah, really?",
+      "words": [
+        {
+          "word": "Ah,",
+          "start": 46.49,
+          "end": 47.38,
+          "probability": 0.47
+        },
+        {
+          "word": "really?",
+          "start": 47.4,
+          "end": 47.95,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 47.95,
+      "end": 48.32,
+      "text": " Yes.",
+      "words": [
+        {
+          "word": "Yes.",
+          "start": 47.95,
+          "end": 48.32,
+          "probability": 0.94
+        }
+      ]
+    },
+    {
+      "start": 48.38,
+      "end": 49.84,
+      "text": " Bananas are delicious.",
+      "words": [
+        {
+          "word": "Bananas",
+          "start": 48.38,
+          "end": 48.94,
+          "probability": 0.637
+        },
+        {
+          "word": "are",
+          "start": 48.94,
+          "end": 49.44,
+          "probability": 0.995
+        },
+        {
+          "word": "delicious.",
+          "start": 49.44,
+          "end": 49.84,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 50.64,
+      "end": 52.88,
+      "text": " And today we are actually talking about fruit.",
+      "words": [
+        {
+          "word": "And",
+          "start": 50.64,
+          "end": 50.78,
+          "probability": 0.931
+        },
+        {
+          "word": "today",
+          "start": 50.78,
+          "end": 51.14,
+          "probability": 0.992
+        },
+        {
+          "word": "we",
+          "start": 51.14,
+          "end": 51.36,
+          "probability": 0.683
+        },
+        {
+          "word": "are",
+          "start": 51.36,
+          "end": 51.6,
+          "probability": 0.972
+        },
+        {
+          "word": "actually",
+          "start": 51.6,
+          "end": 51.9,
+          "probability": 0.937
+        },
+        {
+          "word": "talking",
+          "start": 51.9,
+          "end": 52.24,
+          "probability": 0.998
+        },
+        {
+          "word": "about",
+          "start": 52.24,
+          "end": 52.48,
+          "probability": 0.998
+        },
+        {
+          "word": "fruit.",
+          "start": 52.48,
+          "end": 52.88,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 53.12,
+      "end": 53.72,
+      "text": " We are.",
+      "words": [
+        {
+          "word": "We",
+          "start": 53.12,
+          "end": 53.4,
+          "probability": 0.998
+        },
+        {
+          "word": "are.",
+          "start": 53.4,
+          "end": 53.72,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 53.72,
+      "end": 54.26,
+      "text": " Yes.",
+      "words": [
+        {
+          "word": "Yes.",
+          "start": 53.72,
+          "end": 54.26,
+          "probability": 0.978
+        }
+      ]
+    },
+    {
+      "start": 54.7,
+      "end": 56.08,
+      "text": " And I love eating fruit.",
+      "words": [
+        {
+          "word": "And",
+          "start": 54.7,
+          "end": 55.14,
+          "probability": 0.92
+        },
+        {
+          "word": "I",
+          "start": 55.14,
+          "end": 55.2,
+          "probability": 0.961
+        },
+        {
+          "word": "love",
+          "start": 55.2,
+          "end": 55.44,
+          "probability": 0.999
+        },
+        {
+          "word": "eating",
+          "start": 55.44,
+          "end": 55.74,
+          "probability": 0.997
+        },
+        {
+          "word": "fruit.",
+          "start": 55.74,
+          "end": 56.08,
+          "probability": 0.985
+        }
+      ]
+    },
+    {
+      "start": 56.12,
+      "end": 57.32,
+      "text": " Me too.",
+      "words": [
+        {
+          "word": "Me",
+          "start": 56.12,
+          "end": 56.92,
+          "probability": 0.707
+        },
+        {
+          "word": "too.",
+          "start": 56.92,
+          "end": 57.32,
+          "probability": 0.958
+        }
+      ]
+    },
+    {
+      "start": 57.5,
+      "end": 59.06,
+      "text": " What kind of fruit do you like?",
+      "words": [
+        {
+          "word": "What",
+          "start": 57.5,
+          "end": 57.92,
+          "probability": 0.991
+        },
+        {
+          "word": "kind",
+          "start": 57.92,
+          "end": 58.1,
+          "probability": 0.997
+        },
+        {
+          "word": "of",
+          "start": 58.1,
+          "end": 58.2,
+          "probability": 0.999
+        },
+        {
+          "word": "fruit",
+          "start": 58.2,
+          "end": 58.4,
+          "probability": 0.995
+        },
+        {
+          "word": "do",
+          "start": 58.4,
+          "end": 58.6,
+          "probability": 0.993
+        },
+        {
+          "word": "you",
+          "start": 58.6,
+          "end": 58.7,
+          "probability": 0.999
+        },
+        {
+          "word": "like?",
+          "start": 58.7,
+          "end": 59.06,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 59.08,
+      "end": 64.5,
+      "text": " Oh, besides bananas, I really love berries.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 59.08,
+          "end": 59.88,
+          "probability": 0.44
+        },
+        {
+          "word": "besides",
+          "start": 60.22,
+          "end": 60.72,
+          "probability": 0.959
+        },
+        {
+          "word": "bananas,",
+          "start": 60.72,
+          "end": 61.2,
+          "probability": 0.956
+        },
+        {
+          "word": "I",
+          "start": 62.16,
+          "end": 62.38,
+          "probability": 0.995
+        },
+        {
+          "word": "really",
+          "start": 62.38,
+          "end": 63.18,
+          "probability": 0.998
+        },
+        {
+          "word": "love",
+          "start": 63.18,
+          "end": 63.76,
+          "probability": 0.994
+        },
+        {
+          "word": "berries.",
+          "start": 63.76,
+          "end": 64.5,
+          "probability": 0.987
+        }
+      ]
+    },
+    {
+      "start": 65.14,
+      "end": 72.08,
+      "text": " And I like green apples and red grapes.",
+      "words": [
+        {
+          "word": "And",
+          "start": 65.14,
+          "end": 66.8,
+          "probability": 0.923
+        },
+        {
+          "word": "I",
+          "start": 66.8,
+          "end": 66.98,
+          "probability": 0.973
+        },
+        {
+          "word": "like",
+          "start": 66.98,
+          "end": 67.6,
+          "probability": 0.993
+        },
+        {
+          "word": "green",
+          "start": 67.6,
+          "end": 68.06,
+          "probability": 0.996
+        },
+        {
+          "word": "apples",
+          "start": 68.06,
+          "end": 68.96,
+          "probability": 0.991
+        },
+        {
+          "word": "and",
+          "start": 68.96,
+          "end": 71.14,
+          "probability": 0.818
+        },
+        {
+          "word": "red",
+          "start": 71.14,
+          "end": 71.48,
+          "probability": 0.992
+        },
+        {
+          "word": "grapes.",
+          "start": 71.48,
+          "end": 72.08,
+          "probability": 0.957
+        }
+      ]
+    },
+    {
+      "start": 72.14,
+      "end": 73.69,
+      "text": " I like lots of fruit.",
+      "words": [
+        {
+          "word": "I",
+          "start": 72.14,
+          "end": 72.4,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 72.4,
+          "end": 72.8,
+          "probability": 0.995
+        },
+        {
+          "word": "lots",
+          "start": 72.8,
+          "end": 73.16,
+          "probability": 0.988
+        },
+        {
+          "word": "of",
+          "start": 73.16,
+          "end": 73.38,
+          "probability": 0.999
+        },
+        {
+          "word": "fruit.",
+          "start": 73.38,
+          "end": 73.69,
+          "probability": 0.97
+        }
+      ]
+    },
+    {
+      "start": 73.69,
+      "end": 74.62,
+      "text": " How about you?",
+      "words": [
+        {
+          "word": "How",
+          "start": 73.69,
+          "end": 74.02,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 74.02,
+          "end": 74.26,
+          "probability": 0.997
+        },
+        {
+          "word": "you?",
+          "start": 74.26,
+          "end": 74.62,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 74.94,
+      "end": 75.41,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 74.94,
+          "end": 75.41,
+          "probability": 0.847
+        }
+      ]
+    },
+    {
+      "start": 75.41,
+      "end": 76.52,
+      "text": " I really like fruit.",
+      "words": [
+        {
+          "word": "I",
+          "start": 75.41,
+          "end": 75.7,
+          "probability": 0.906
+        },
+        {
+          "word": "really",
+          "start": 75.7,
+          "end": 75.96,
+          "probability": 0.984
+        },
+        {
+          "word": "like",
+          "start": 75.96,
+          "end": 76.22,
+          "probability": 0.995
+        },
+        {
+          "word": "fruit.",
+          "start": 76.22,
+          "end": 76.52,
+          "probability": 0.993
+        }
+      ]
+    },
+    {
+      "start": 76.52,
+      "end": 79.26,
+      "text": " I try to eat fruit every day.",
+      "words": [
+        {
+          "word": "I",
+          "start": 76.52,
+          "end": 76.86,
+          "probability": 0.707
+        },
+        {
+          "word": "try",
+          "start": 76.86,
+          "end": 77.22,
+          "probability": 0.983
+        },
+        {
+          "word": "to",
+          "start": 77.22,
+          "end": 77.46,
+          "probability": 0.998
+        },
+        {
+          "word": "eat",
+          "start": 77.46,
+          "end": 78.24,
+          "probability": 0.999
+        },
+        {
+          "word": "fruit",
+          "start": 78.24,
+          "end": 78.64,
+          "probability": 0.99
+        },
+        {
+          "word": "every",
+          "start": 78.64,
+          "end": 78.94,
+          "probability": 0.965
+        },
+        {
+          "word": "day.",
+          "start": 78.94,
+          "end": 79.26,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 80.16,
+      "end": 80.74,
+      "text": " I like you.",
+      "words": [
+        {
+          "word": "I",
+          "start": 80.16,
+          "end": 80.3,
+          "probability": 0.751
+        },
+        {
+          "word": "like",
+          "start": 80.3,
+          "end": 80.44,
+          "probability": 0.747
+        },
+        {
+          "word": "you.",
+          "start": 80.44,
+          "end": 80.74,
+          "probability": 0.699
+        }
+      ]
+    },
+    {
+      "start": 80.84,
+      "end": 84.16,
+      "text": " I like apples, but not just green ones.",
+      "words": [
+        {
+          "word": "I",
+          "start": 80.84,
+          "end": 81.12,
+          "probability": 0.997
+        },
+        {
+          "word": "like",
+          "start": 81.12,
+          "end": 81.44,
+          "probability": 0.998
+        },
+        {
+          "word": "apples,",
+          "start": 81.44,
+          "end": 82.06,
+          "probability": 0.987
+        },
+        {
+          "word": "but",
+          "start": 82.66,
+          "end": 82.96,
+          "probability": 0.988
+        },
+        {
+          "word": "not",
+          "start": 82.96,
+          "end": 83.22,
+          "probability": 0.996
+        },
+        {
+          "word": "just",
+          "start": 83.22,
+          "end": 83.56,
+          "probability": 0.998
+        },
+        {
+          "word": "green",
+          "start": 83.56,
+          "end": 83.82,
+          "probability": 0.979
+        },
+        {
+          "word": "ones.",
+          "start": 83.82,
+          "end": 84.16,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 84.54,
+      "end": 87.32,
+      "text": " The red ones I like those two.",
+      "words": [
+        {
+          "word": "The",
+          "start": 84.54,
+          "end": 85.2,
+          "probability": 0.988
+        },
+        {
+          "word": "red",
+          "start": 85.2,
+          "end": 85.38,
+          "probability": 0.999
+        },
+        {
+          "word": "ones",
+          "start": 85.38,
+          "end": 85.68,
+          "probability": 0.998
+        },
+        {
+          "word": "I",
+          "start": 85.68,
+          "end": 85.9,
+          "probability": 0.518
+        },
+        {
+          "word": "like",
+          "start": 85.9,
+          "end": 86.12,
+          "probability": 0.996
+        },
+        {
+          "word": "those",
+          "start": 86.12,
+          "end": 86.44,
+          "probability": 0.99
+        },
+        {
+          "word": "two.",
+          "start": 86.44,
+          "end": 87.32,
+          "probability": 0.611
+        }
+      ]
+    },
+    {
+      "start": 87.32,
+      "end": 88.38,
+      "text": " And oranges.",
+      "words": [
+        {
+          "word": "And",
+          "start": 87.32,
+          "end": 87.9,
+          "probability": 0.978
+        },
+        {
+          "word": "oranges.",
+          "start": 87.9,
+          "end": 88.38,
+          "probability": 0.946
+        }
+      ]
+    },
+    {
+      "start": 88.7,
+      "end": 90.94,
+      "text": " And I like frozen berries.",
+      "words": [
+        {
+          "word": "And",
+          "start": 88.7,
+          "end": 89.42,
+          "probability": 0.991
+        },
+        {
+          "word": "I",
+          "start": 89.42,
+          "end": 89.48,
+          "probability": 0.996
+        },
+        {
+          "word": "like",
+          "start": 89.48,
+          "end": 89.92,
+          "probability": 0.998
+        },
+        {
+          "word": "frozen",
+          "start": 89.92,
+          "end": 90.4,
+          "probability": 0.989
+        },
+        {
+          "word": "berries.",
+          "start": 90.4,
+          "end": 90.94,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 91.6,
+      "end": 92.82,
+      "text": " Oh, I breakfast.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 91.6,
+          "end": 92.02,
+          "probability": 0.604
+        },
+        {
+          "word": "I",
+          "start": 92.18,
+          "end": 92.32,
+          "probability": 0.478
+        },
+        {
+          "word": "breakfast.",
+          "start": 92.32,
+          "end": 92.82,
+          "probability": 0.316
+        }
+      ]
+    },
+    {
+      "start": 93.12,
+      "end": 95.08,
+      "text": " So you mentioned oranges.",
+      "words": [
+        {
+          "word": "So",
+          "start": 93.12,
+          "end": 93.44,
+          "probability": 0.996
+        },
+        {
+          "word": "you",
+          "start": 93.44,
+          "end": 93.54,
+          "probability": 0.993
+        },
+        {
+          "word": "mentioned",
+          "start": 93.54,
+          "end": 94.32,
+          "probability": 0.999
+        },
+        {
+          "word": "oranges.",
+          "start": 94.32,
+          "end": 95.08,
+          "probability": 0.99
+        }
+      ]
+    },
+    {
+      "start": 95.34,
+      "end": 100.68,
+      "text": " Oranges can be a little sweet, but they're actually more sour, aren't they?",
+      "words": [
+        {
+          "word": "Oranges",
+          "start": 95.34,
+          "end": 96.0,
+          "probability": 0.904
+        },
+        {
+          "word": "can",
+          "start": 96.0,
+          "end": 96.46,
+          "probability": 0.995
+        },
+        {
+          "word": "be",
+          "start": 96.46,
+          "end": 96.98,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 96.98,
+          "end": 97.14,
+          "probability": 0.998
+        },
+        {
+          "word": "little",
+          "start": 97.14,
+          "end": 97.44,
+          "probability": 0.999
+        },
+        {
+          "word": "sweet,",
+          "start": 97.44,
+          "end": 97.98,
+          "probability": 0.99
+        },
+        {
+          "word": "but",
+          "start": 98.28,
+          "end": 98.3,
+          "probability": 0.988
+        },
+        {
+          "word": "they're",
+          "start": 98.3,
+          "end": 98.66,
+          "probability": 0.869
+        },
+        {
+          "word": "actually",
+          "start": 98.66,
+          "end": 99.06,
+          "probability": 0.99
+        },
+        {
+          "word": "more",
+          "start": 99.06,
+          "end": 99.52,
+          "probability": 0.993
+        },
+        {
+          "word": "sour,",
+          "start": 99.52,
+          "end": 100.04,
+          "probability": 0.991
+        },
+        {
+          "word": "aren't",
+          "start": 100.14,
+          "end": 100.44,
+          "probability": 0.988
+        },
+        {
+          "word": "they?",
+          "start": 100.44,
+          "end": 100.68,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 100.9,
+      "end": 101.46,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 100.9,
+          "end": 101.46,
+          "probability": 0.932
+        }
+      ]
+    },
+    {
+      "start": 101.46,
+      "end": 102.54,
+      "text": " Sour or sharp?",
+      "words": [
+        {
+          "word": "Sour",
+          "start": 101.46,
+          "end": 101.82,
+          "probability": 0.964
+        },
+        {
+          "word": "or",
+          "start": 101.82,
+          "end": 102.08,
+          "probability": 0.992
+        },
+        {
+          "word": "sharp?",
+          "start": 102.08,
+          "end": 102.54,
+          "probability": 0.834
+        }
+      ]
+    },
+    {
+      "start": 102.62,
+      "end": 103.2,
+      "text": " Sharp.",
+      "words": [
+        {
+          "word": "Sharp.",
+          "start": 102.62,
+          "end": 103.2,
+          "probability": 0.777
+        }
+      ]
+    },
+    {
+      "start": 103.38,
+      "end": 103.74,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 103.38,
+          "end": 103.74,
+          "probability": 0.871
+        }
+      ]
+    },
+    {
+      "start": 104.38,
+      "end": 109.32,
+      "text": " That's the taste that you get from fruit like oranges.",
+      "words": [
+        {
+          "word": "That's",
+          "start": 104.38,
+          "end": 104.76,
+          "probability": 0.791
+        },
+        {
+          "word": "the",
+          "start": 104.76,
+          "end": 105.88,
+          "probability": 0.999
+        },
+        {
+          "word": "taste",
+          "start": 105.88,
+          "end": 106.24,
+          "probability": 0.98
+        },
+        {
+          "word": "that",
+          "start": 106.24,
+          "end": 106.44,
+          "probability": 0.99
+        },
+        {
+          "word": "you",
+          "start": 106.44,
+          "end": 106.52,
+          "probability": 1.0
+        },
+        {
+          "word": "get",
+          "start": 106.52,
+          "end": 106.88,
+          "probability": 0.999
+        },
+        {
+          "word": "from",
+          "start": 106.88,
+          "end": 107.88,
+          "probability": 0.998
+        },
+        {
+          "word": "fruit",
+          "start": 107.88,
+          "end": 108.26,
+          "probability": 0.97
+        },
+        {
+          "word": "like",
+          "start": 108.26,
+          "end": 108.84,
+          "probability": 0.505
+        },
+        {
+          "word": "oranges.",
+          "start": 108.84,
+          "end": 109.32,
+          "probability": 0.991
+        }
+      ]
+    },
+    {
+      "start": 110.84,
+      "end": 113.86,
+      "text": " And more so with lemons or limes.",
+      "words": [
+        {
+          "word": "And",
+          "start": 110.84,
+          "end": 110.92,
+          "probability": 0.989
+        },
+        {
+          "word": "more",
+          "start": 110.92,
+          "end": 111.54,
+          "probability": 0.99
+        },
+        {
+          "word": "so",
+          "start": 111.54,
+          "end": 112.04,
+          "probability": 0.927
+        },
+        {
+          "word": "with",
+          "start": 112.04,
+          "end": 112.5,
+          "probability": 0.973
+        },
+        {
+          "word": "lemons",
+          "start": 112.5,
+          "end": 113.06,
+          "probability": 0.991
+        },
+        {
+          "word": "or",
+          "start": 113.06,
+          "end": 113.26,
+          "probability": 0.98
+        },
+        {
+          "word": "limes.",
+          "start": 113.26,
+          "end": 113.86,
+          "probability": 0.917
+        }
+      ]
+    },
+    {
+      "start": 113.88,
+      "end": 116.1,
+      "text": " These are called citrus fruit.",
+      "words": [
+        {
+          "word": "These",
+          "start": 113.88,
+          "end": 114.54,
+          "probability": 0.998
+        },
+        {
+          "word": "are",
+          "start": 114.54,
+          "end": 114.7,
+          "probability": 0.998
+        },
+        {
+          "word": "called",
+          "start": 114.7,
+          "end": 115.14,
+          "probability": 1.0
+        },
+        {
+          "word": "citrus",
+          "start": 115.14,
+          "end": 115.66,
+          "probability": 0.97
+        },
+        {
+          "word": "fruit.",
+          "start": 115.66,
+          "end": 116.1,
+          "probability": 0.943
+        }
+      ]
+    },
+    {
+      "start": 116.52,
+      "end": 117.71,
+      "text": " Yeah, citrus fruit.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 116.52,
+          "end": 116.76,
+          "probability": 0.738
+        },
+        {
+          "word": "citrus",
+          "start": 117.06,
+          "end": 117.38,
+          "probability": 0.995
+        },
+        {
+          "word": "fruit.",
+          "start": 117.38,
+          "end": 117.71,
+          "probability": 0.976
+        }
+      ]
+    },
+    {
+      "start": 117.71,
+      "end": 120.0,
+      "text": " They have more of a sour taste.",
+      "words": [
+        {
+          "word": "They",
+          "start": 117.71,
+          "end": 118.24,
+          "probability": 0.998
+        },
+        {
+          "word": "have",
+          "start": 118.24,
+          "end": 118.68,
+          "probability": 0.996
+        },
+        {
+          "word": "more",
+          "start": 118.68,
+          "end": 119.02,
+          "probability": 0.6
+        },
+        {
+          "word": "of",
+          "start": 119.02,
+          "end": 119.22,
+          "probability": 0.977
+        },
+        {
+          "word": "a",
+          "start": 119.22,
+          "end": 119.28,
+          "probability": 0.967
+        },
+        {
+          "word": "sour",
+          "start": 119.28,
+          "end": 119.52,
+          "probability": 0.985
+        },
+        {
+          "word": "taste.",
+          "start": 119.52,
+          "end": 120.0,
+          "probability": 0.984
+        }
+      ]
+    },
+    {
+      "start": 120.02,
+      "end": 120.46,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 120.02,
+          "end": 120.46,
+          "probability": 0.937
+        }
+      ]
+    },
+    {
+      "start": 120.62,
+      "end": 124.16,
+      "text": " If you bite into a lemon, that's sour.",
+      "words": [
+        {
+          "word": "If",
+          "start": 120.62,
+          "end": 120.64,
+          "probability": 0.987
+        },
+        {
+          "word": "you",
+          "start": 120.64,
+          "end": 120.88,
+          "probability": 0.999
+        },
+        {
+          "word": "bite",
+          "start": 120.88,
+          "end": 121.22,
+          "probability": 0.997
+        },
+        {
+          "word": "into",
+          "start": 121.22,
+          "end": 121.48,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 121.48,
+          "end": 121.72,
+          "probability": 0.998
+        },
+        {
+          "word": "lemon,",
+          "start": 121.72,
+          "end": 122.3,
+          "probability": 0.987
+        },
+        {
+          "word": "that's",
+          "start": 122.48,
+          "end": 123.82,
+          "probability": 0.973
+        },
+        {
+          "word": "sour.",
+          "start": 123.82,
+          "end": 124.16,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 124.36,
+      "end": 124.78,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 124.36,
+          "end": 124.78,
+          "probability": 0.985
+        }
+      ]
+    },
+    {
+      "start": 124.78,
+      "end": 128.43,
+      "text": " The face that you make when you bite into something citrus.",
+      "words": [
+        {
+          "word": "The",
+          "start": 124.78,
+          "end": 125.0,
+          "probability": 0.981
+        },
+        {
+          "word": "face",
+          "start": 125.0,
+          "end": 125.36,
+          "probability": 0.972
+        },
+        {
+          "word": "that",
+          "start": 125.36,
+          "end": 125.58,
+          "probability": 0.994
+        },
+        {
+          "word": "you",
+          "start": 125.58,
+          "end": 125.64,
+          "probability": 0.999
+        },
+        {
+          "word": "make",
+          "start": 125.64,
+          "end": 126.16,
+          "probability": 0.997
+        },
+        {
+          "word": "when",
+          "start": 126.16,
+          "end": 126.8,
+          "probability": 0.772
+        },
+        {
+          "word": "you",
+          "start": 126.8,
+          "end": 126.94,
+          "probability": 0.999
+        },
+        {
+          "word": "bite",
+          "start": 126.94,
+          "end": 127.22,
+          "probability": 0.997
+        },
+        {
+          "word": "into",
+          "start": 127.22,
+          "end": 127.48,
+          "probability": 0.991
+        },
+        {
+          "word": "something",
+          "start": 127.48,
+          "end": 128.0,
+          "probability": 0.99
+        },
+        {
+          "word": "citrus.",
+          "start": 128.0,
+          "end": 128.43,
+          "probability": 0.92
+        }
+      ]
+    },
+    {
+      "start": 128.43,
+      "end": 129.1,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 128.43,
+          "end": 129.1,
+          "probability": 0.602
+        }
+      ]
+    },
+    {
+      "start": 129.34,
+      "end": 132.28,
+      "text": " Do you prefer sweet fruit or sour fruit?",
+      "words": [
+        {
+          "word": "Do",
+          "start": 129.34,
+          "end": 129.66,
+          "probability": 0.991
+        },
+        {
+          "word": "you",
+          "start": 129.66,
+          "end": 129.86,
+          "probability": 0.999
+        },
+        {
+          "word": "prefer",
+          "start": 129.86,
+          "end": 130.2,
+          "probability": 0.995
+        },
+        {
+          "word": "sweet",
+          "start": 130.2,
+          "end": 130.6,
+          "probability": 0.997
+        },
+        {
+          "word": "fruit",
+          "start": 130.6,
+          "end": 131.06,
+          "probability": 0.966
+        },
+        {
+          "word": "or",
+          "start": 131.06,
+          "end": 131.32,
+          "probability": 0.927
+        },
+        {
+          "word": "sour",
+          "start": 131.32,
+          "end": 131.72,
+          "probability": 0.98
+        },
+        {
+          "word": "fruit?",
+          "start": 131.72,
+          "end": 132.28,
+          "probability": 0.929
+        }
+      ]
+    },
+    {
+      "start": 132.56,
+      "end": 132.94,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 132.56,
+          "end": 132.94,
+          "probability": 0.975
+        }
+      ]
+    },
+    {
+      "start": 133.02,
+      "end": 134.28,
+      "text": " I like sweet fruit.",
+      "words": [
+        {
+          "word": "I",
+          "start": 133.02,
+          "end": 133.1,
+          "probability": 0.994
+        },
+        {
+          "word": "like",
+          "start": 133.1,
+          "end": 133.48,
+          "probability": 0.997
+        },
+        {
+          "word": "sweet",
+          "start": 133.48,
+          "end": 133.84,
+          "probability": 0.997
+        },
+        {
+          "word": "fruit.",
+          "start": 133.84,
+          "end": 134.28,
+          "probability": 0.991
+        }
+      ]
+    },
+    {
+      "start": 134.44,
+      "end": 138.64,
+      "text": " And probably I like fruit when it's ripe.",
+      "words": [
+        {
+          "word": "And",
+          "start": 134.44,
+          "end": 135.08,
+          "probability": 0.924
+        },
+        {
+          "word": "probably",
+          "start": 135.08,
+          "end": 135.8,
+          "probability": 0.991
+        },
+        {
+          "word": "I",
+          "start": 135.8,
+          "end": 136.3,
+          "probability": 0.653
+        },
+        {
+          "word": "like",
+          "start": 136.3,
+          "end": 137.04,
+          "probability": 0.998
+        },
+        {
+          "word": "fruit",
+          "start": 137.04,
+          "end": 137.52,
+          "probability": 0.99
+        },
+        {
+          "word": "when",
+          "start": 137.52,
+          "end": 137.8,
+          "probability": 0.978
+        },
+        {
+          "word": "it's",
+          "start": 137.8,
+          "end": 138.3,
+          "probability": 0.996
+        },
+        {
+          "word": "ripe.",
+          "start": 138.3,
+          "end": 138.64,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 139.0,
+      "end": 139.83,
+      "text": " Okay.",
+      "words": [
+        {
+          "word": "Okay.",
+          "start": 139.0,
+          "end": 139.83,
+          "probability": 0.377
+        }
+      ]
+    },
+    {
+      "start": 139.83,
+      "end": 140.96,
+      "text": " What does that mean?",
+      "words": [
+        {
+          "word": "What",
+          "start": 139.83,
+          "end": 140.38,
+          "probability": 0.982
+        },
+        {
+          "word": "does",
+          "start": 140.38,
+          "end": 140.52,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 140.52,
+          "end": 140.68,
+          "probability": 0.998
+        },
+        {
+          "word": "mean?",
+          "start": 140.68,
+          "end": 140.96,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 140.96,
+      "end": 141.36,
+      "text": " Right.",
+      "words": [
+        {
+          "word": "Right.",
+          "start": 140.96,
+          "end": 141.36,
+          "probability": 0.325
+        }
+      ]
+    },
+    {
+      "start": 141.42,
+      "end": 143.44,
+      "text": " It means that it's ready to eat.",
+      "words": [
+        {
+          "word": "It",
+          "start": 141.42,
+          "end": 141.7,
+          "probability": 0.991
+        },
+        {
+          "word": "means",
+          "start": 141.7,
+          "end": 141.98,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 141.98,
+          "end": 142.16,
+          "probability": 0.994
+        },
+        {
+          "word": "it's",
+          "start": 142.16,
+          "end": 142.6,
+          "probability": 0.996
+        },
+        {
+          "word": "ready",
+          "start": 142.6,
+          "end": 142.82,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 142.82,
+          "end": 143.08,
+          "probability": 0.999
+        },
+        {
+          "word": "eat.",
+          "start": 143.08,
+          "end": 143.44,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 143.6,
+      "end": 148.66,
+      "text": " It's at its sweetest, usually, probably quite juicy.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 143.6,
+          "end": 144.64,
+          "probability": 0.994
+        },
+        {
+          "word": "at",
+          "start": 144.64,
+          "end": 144.84,
+          "probability": 0.946
+        },
+        {
+          "word": "its",
+          "start": 144.84,
+          "end": 145.5,
+          "probability": 0.937
+        },
+        {
+          "word": "sweetest,",
+          "start": 145.5,
+          "end": 146.3,
+          "probability": 0.99
+        },
+        {
+          "word": "usually,",
+          "start": 146.3,
+          "end": 146.98,
+          "probability": 0.995
+        },
+        {
+          "word": "probably",
+          "start": 147.48,
+          "end": 147.56,
+          "probability": 0.995
+        },
+        {
+          "word": "quite",
+          "start": 147.56,
+          "end": 148.14,
+          "probability": 0.991
+        },
+        {
+          "word": "juicy.",
+          "start": 148.14,
+          "end": 148.66,
+          "probability": 0.979
+        }
+      ]
+    },
+    {
+      "start": 148.92,
+      "end": 156.28,
+      "text": " If fruit is juicy, it means juice comes from it and juice is liquid, watery.",
+      "words": [
+        {
+          "word": "If",
+          "start": 148.92,
+          "end": 149.72,
+          "probability": 0.556
+        },
+        {
+          "word": "fruit",
+          "start": 149.72,
+          "end": 149.98,
+          "probability": 0.958
+        },
+        {
+          "word": "is",
+          "start": 149.98,
+          "end": 150.28,
+          "probability": 0.999
+        },
+        {
+          "word": "juicy,",
+          "start": 150.28,
+          "end": 150.94,
+          "probability": 0.996
+        },
+        {
+          "word": "it",
+          "start": 151.28,
+          "end": 151.42,
+          "probability": 0.996
+        },
+        {
+          "word": "means",
+          "start": 151.42,
+          "end": 151.9,
+          "probability": 0.999
+        },
+        {
+          "word": "juice",
+          "start": 151.9,
+          "end": 152.3,
+          "probability": 0.991
+        },
+        {
+          "word": "comes",
+          "start": 152.3,
+          "end": 152.62,
+          "probability": 0.993
+        },
+        {
+          "word": "from",
+          "start": 152.62,
+          "end": 152.86,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 152.86,
+          "end": 153.06,
+          "probability": 0.997
+        },
+        {
+          "word": "and",
+          "start": 153.06,
+          "end": 153.28,
+          "probability": 0.75
+        },
+        {
+          "word": "juice",
+          "start": 153.28,
+          "end": 153.58,
+          "probability": 0.854
+        },
+        {
+          "word": "is",
+          "start": 153.58,
+          "end": 154.1,
+          "probability": 0.987
+        },
+        {
+          "word": "liquid,",
+          "start": 154.1,
+          "end": 154.76,
+          "probability": 0.836
+        },
+        {
+          "word": "watery.",
+          "start": 155.04,
+          "end": 156.28,
+          "probability": 0.978
+        }
+      ]
+    },
+    {
+      "start": 157.26,
+      "end": 163.91,
+      "text": " And it's, if it's ripe, it's just before it goes bad or goes off.",
+      "words": [
+        {
+          "word": "And",
+          "start": 157.26,
+          "end": 158.34,
+          "probability": 0.998
+        },
+        {
+          "word": "it's,",
+          "start": 158.34,
+          "end": 159.4,
+          "probability": 0.793
+        },
+        {
+          "word": "if",
+          "start": 159.5,
+          "end": 159.56,
+          "probability": 0.983
+        },
+        {
+          "word": "it's",
+          "start": 159.56,
+          "end": 159.78,
+          "probability": 0.996
+        },
+        {
+          "word": "ripe,",
+          "start": 159.78,
+          "end": 160.1,
+          "probability": 0.998
+        },
+        {
+          "word": "it's",
+          "start": 160.54,
+          "end": 160.84,
+          "probability": 0.973
+        },
+        {
+          "word": "just",
+          "start": 160.84,
+          "end": 161.14,
+          "probability": 0.989
+        },
+        {
+          "word": "before",
+          "start": 161.14,
+          "end": 161.86,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 161.86,
+          "end": 162.34,
+          "probability": 0.887
+        },
+        {
+          "word": "goes",
+          "start": 162.34,
+          "end": 162.74,
+          "probability": 0.997
+        },
+        {
+          "word": "bad",
+          "start": 162.74,
+          "end": 163.14,
+          "probability": 0.995
+        },
+        {
+          "word": "or",
+          "start": 163.14,
+          "end": 163.32,
+          "probability": 0.864
+        },
+        {
+          "word": "goes",
+          "start": 163.32,
+          "end": 163.62,
+          "probability": 0.959
+        },
+        {
+          "word": "off.",
+          "start": 163.62,
+          "end": 163.91,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 163.91,
+      "end": 164.49,
+      "text": " Right.",
+      "words": [
+        {
+          "word": "Right.",
+          "start": 163.91,
+          "end": 164.49,
+          "probability": 0.946
+        }
+      ]
+    },
+    {
+      "start": 164.49,
+      "end": 165.16,
+      "text": " I see.",
+      "words": [
+        {
+          "word": "I",
+          "start": 164.49,
+          "end": 164.76,
+          "probability": 0.67
+        },
+        {
+          "word": "see.",
+          "start": 164.76,
+          "end": 165.16,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 165.98,
+      "end": 168.32,
+      "text": " I'm thinking about bananas, for example.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 165.98,
+          "end": 166.42,
+          "probability": 0.344
+        },
+        {
+          "word": "thinking",
+          "start": 166.42,
+          "end": 166.44,
+          "probability": 0.901
+        },
+        {
+          "word": "about",
+          "start": 166.44,
+          "end": 166.84,
+          "probability": 0.993
+        },
+        {
+          "word": "bananas,",
+          "start": 166.84,
+          "end": 167.28,
+          "probability": 0.981
+        },
+        {
+          "word": "for",
+          "start": 167.58,
+          "end": 167.62,
+          "probability": 0.997
+        },
+        {
+          "word": "example.",
+          "start": 167.62,
+          "end": 168.32,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 168.84,
+      "end": 171.89,
+      "text": " A green coloured banana, perhaps, isn't ready to eat.",
+      "words": [
+        {
+          "word": "A",
+          "start": 168.84,
+          "end": 169.16,
+          "probability": 0.91
+        },
+        {
+          "word": "green",
+          "start": 169.16,
+          "end": 169.44,
+          "probability": 0.994
+        },
+        {
+          "word": "coloured",
+          "start": 169.44,
+          "end": 169.76,
+          "probability": 0.522
+        },
+        {
+          "word": "banana,",
+          "start": 169.76,
+          "end": 170.34,
+          "probability": 0.994
+        },
+        {
+          "word": "perhaps,",
+          "start": 170.5,
+          "end": 170.9,
+          "probability": 0.991
+        },
+        {
+          "word": "isn't",
+          "start": 170.96,
+          "end": 171.2,
+          "probability": 0.992
+        },
+        {
+          "word": "ready",
+          "start": 171.2,
+          "end": 171.52,
+          "probability": 0.996
+        },
+        {
+          "word": "to",
+          "start": 171.52,
+          "end": 171.68,
+          "probability": 0.997
+        },
+        {
+          "word": "eat.",
+          "start": 171.68,
+          "end": 171.89,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 171.89,
+      "end": 173.74,
+      "text": " It's not ripe, like a yellow banana.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 171.89,
+          "end": 172.2,
+          "probability": 0.998
+        },
+        {
+          "word": "not",
+          "start": 172.2,
+          "end": 172.38,
+          "probability": 0.999
+        },
+        {
+          "word": "ripe,",
+          "start": 172.38,
+          "end": 172.82,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 173.04,
+          "end": 173.08,
+          "probability": 0.988
+        },
+        {
+          "word": "a",
+          "start": 173.08,
+          "end": 173.22,
+          "probability": 0.991
+        },
+        {
+          "word": "yellow",
+          "start": 173.22,
+          "end": 173.4,
+          "probability": 0.985
+        },
+        {
+          "word": "banana.",
+          "start": 173.4,
+          "end": 173.74,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 174.1,
+      "end": 174.36,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 174.1,
+          "end": 174.36,
+          "probability": 0.989
+        }
+      ]
+    },
+    {
+      "start": 174.54,
+      "end": 177.92,
+      "text": " But a yellow one with sort of brown bits on it.",
+      "words": [
+        {
+          "word": "But",
+          "start": 174.54,
+          "end": 174.72,
+          "probability": 0.789
+        },
+        {
+          "word": "a",
+          "start": 174.72,
+          "end": 174.88,
+          "probability": 0.964
+        },
+        {
+          "word": "yellow",
+          "start": 174.88,
+          "end": 175.32,
+          "probability": 0.998
+        },
+        {
+          "word": "one",
+          "start": 175.32,
+          "end": 175.88,
+          "probability": 0.991
+        },
+        {
+          "word": "with",
+          "start": 175.88,
+          "end": 176.22,
+          "probability": 0.932
+        },
+        {
+          "word": "sort",
+          "start": 176.22,
+          "end": 176.26,
+          "probability": 0.613
+        },
+        {
+          "word": "of",
+          "start": 176.26,
+          "end": 176.5,
+          "probability": 0.995
+        },
+        {
+          "word": "brown",
+          "start": 176.5,
+          "end": 176.88,
+          "probability": 0.995
+        },
+        {
+          "word": "bits",
+          "start": 176.88,
+          "end": 177.2,
+          "probability": 0.995
+        },
+        {
+          "word": "on",
+          "start": 177.2,
+          "end": 177.4,
+          "probability": 0.983
+        },
+        {
+          "word": "it.",
+          "start": 177.4,
+          "end": 177.92,
+          "probability": 0.986
+        }
+      ]
+    },
+    {
+      "start": 177.92,
+      "end": 179.16,
+      "text": " That's a ripe banana.",
+      "words": [
+        {
+          "word": "That's",
+          "start": 177.92,
+          "end": 178.46,
+          "probability": 0.992
+        },
+        {
+          "word": "a",
+          "start": 178.46,
+          "end": 178.58,
+          "probability": 0.876
+        },
+        {
+          "word": "ripe",
+          "start": 178.58,
+          "end": 178.86,
+          "probability": 0.985
+        },
+        {
+          "word": "banana.",
+          "start": 178.86,
+          "end": 179.16,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 179.52,
+      "end": 180.04,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 179.52,
+          "end": 180.04,
+          "probability": 0.993
+        }
+      ]
+    },
+    {
+      "start": 180.04,
+      "end": 182.1,
+      "text": " They're a bit too sweet for me.",
+      "words": [
+        {
+          "word": "They're",
+          "start": 180.04,
+          "end": 180.62,
+          "probability": 0.842
+        },
+        {
+          "word": "a",
+          "start": 180.62,
+          "end": 180.72,
+          "probability": 0.999
+        },
+        {
+          "word": "bit",
+          "start": 180.72,
+          "end": 181.02,
+          "probability": 0.994
+        },
+        {
+          "word": "too",
+          "start": 181.02,
+          "end": 181.5,
+          "probability": 0.996
+        },
+        {
+          "word": "sweet",
+          "start": 181.5,
+          "end": 181.82,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 181.82,
+          "end": 181.98,
+          "probability": 0.985
+        },
+        {
+          "word": "me.",
+          "start": 181.98,
+          "end": 182.1,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 182.1,
+      "end": 186.58,
+      "text": " I kind of like that middle yellow bananas.",
+      "words": [
+        {
+          "word": "I",
+          "start": 182.1,
+          "end": 182.5,
+          "probability": 0.93
+        },
+        {
+          "word": "kind",
+          "start": 182.5,
+          "end": 182.76,
+          "probability": 0.955
+        },
+        {
+          "word": "of",
+          "start": 182.76,
+          "end": 182.92,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 182.92,
+          "end": 183.62,
+          "probability": 0.929
+        },
+        {
+          "word": "that",
+          "start": 183.62,
+          "end": 183.88,
+          "probability": 0.915
+        },
+        {
+          "word": "middle",
+          "start": 183.88,
+          "end": 184.48,
+          "probability": 0.949
+        },
+        {
+          "word": "yellow",
+          "start": 184.48,
+          "end": 186.14,
+          "probability": 0.492
+        },
+        {
+          "word": "bananas.",
+          "start": 186.14,
+          "end": 186.58,
+          "probability": 0.96
+        }
+      ]
+    },
+    {
+      "start": 187.44,
+      "end": 189.31,
+      "text": " How about dried fruit?",
+      "words": [
+        {
+          "word": "How",
+          "start": 187.44,
+          "end": 187.74,
+          "probability": 0.847
+        },
+        {
+          "word": "about",
+          "start": 187.74,
+          "end": 188.42,
+          "probability": 0.999
+        },
+        {
+          "word": "dried",
+          "start": 188.42,
+          "end": 188.96,
+          "probability": 0.997
+        },
+        {
+          "word": "fruit?",
+          "start": 188.96,
+          "end": 189.31,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 189.31,
+      "end": 190.56,
+      "text": " Do you like dried fruit?",
+      "words": [
+        {
+          "word": "Do",
+          "start": 189.31,
+          "end": 189.56,
+          "probability": 0.984
+        },
+        {
+          "word": "you",
+          "start": 189.56,
+          "end": 189.64,
+          "probability": 0.995
+        },
+        {
+          "word": "like",
+          "start": 189.64,
+          "end": 189.88,
+          "probability": 0.999
+        },
+        {
+          "word": "dried",
+          "start": 189.88,
+          "end": 190.28,
+          "probability": 0.998
+        },
+        {
+          "word": "fruit?",
+          "start": 190.28,
+          "end": 190.56,
+          "probability": 0.991
+        }
+      ]
+    },
+    {
+      "start": 190.76,
+      "end": 192.2,
+      "text": " Oh, I'm glad you asked.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 190.76,
+          "end": 191.12,
+          "probability": 0.947
+        },
+        {
+          "word": "I'm",
+          "start": 191.22,
+          "end": 191.32,
+          "probability": 0.982
+        },
+        {
+          "word": "glad",
+          "start": 191.32,
+          "end": 191.56,
+          "probability": 1.0
+        },
+        {
+          "word": "you",
+          "start": 191.56,
+          "end": 191.76,
+          "probability": 0.995
+        },
+        {
+          "word": "asked.",
+          "start": 191.76,
+          "end": 192.2,
+          "probability": 0.991
+        }
+      ]
+    },
+    {
+      "start": 192.26,
+      "end": 192.66,
+      "text": " Yes.",
+      "words": [
+        {
+          "word": "Yes.",
+          "start": 192.26,
+          "end": 192.66,
+          "probability": 0.933
+        }
+      ]
+    },
+    {
+      "start": 192.78,
+      "end": 195.0,
+      "text": " I really like dried fruit.",
+      "words": [
+        {
+          "word": "I",
+          "start": 192.78,
+          "end": 193.24,
+          "probability": 0.76
+        },
+        {
+          "word": "really",
+          "start": 193.24,
+          "end": 193.9,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 193.9,
+          "end": 194.34,
+          "probability": 0.992
+        },
+        {
+          "word": "dried",
+          "start": 194.34,
+          "end": 194.68,
+          "probability": 1.0
+        },
+        {
+          "word": "fruit.",
+          "start": 194.68,
+          "end": 195.0,
+          "probability": 0.939
+        }
+      ]
+    },
+    {
+      "start": 195.52,
+      "end": 199.44,
+      "text": " So I will often have raisins.",
+      "words": [
+        {
+          "word": "So",
+          "start": 195.52,
+          "end": 195.62,
+          "probability": 0.943
+        },
+        {
+          "word": "I",
+          "start": 195.62,
+          "end": 195.86,
+          "probability": 0.976
+        },
+        {
+          "word": "will",
+          "start": 195.86,
+          "end": 196.28,
+          "probability": 0.99
+        },
+        {
+          "word": "often",
+          "start": 196.28,
+          "end": 197.46,
+          "probability": 0.99
+        },
+        {
+          "word": "have",
+          "start": 197.46,
+          "end": 198.5,
+          "probability": 0.984
+        },
+        {
+          "word": "raisins.",
+          "start": 198.5,
+          "end": 199.44,
+          "probability": 0.967
+        }
+      ]
+    },
+    {
+      "start": 199.56,
+      "end": 202.24,
+      "text": " So raisins are dried grapes.",
+      "words": [
+        {
+          "word": "So",
+          "start": 199.56,
+          "end": 199.9,
+          "probability": 0.998
+        },
+        {
+          "word": "raisins",
+          "start": 199.9,
+          "end": 200.52,
+          "probability": 0.999
+        },
+        {
+          "word": "are",
+          "start": 200.52,
+          "end": 200.96,
+          "probability": 0.998
+        },
+        {
+          "word": "dried",
+          "start": 200.96,
+          "end": 201.58,
+          "probability": 0.995
+        },
+        {
+          "word": "grapes.",
+          "start": 201.58,
+          "end": 202.24,
+          "probability": 0.988
+        }
+      ]
+    },
+    {
+      "start": 202.48,
+      "end": 206.3,
+      "text": " And dried means that it doesn't have any of that juice or liquid.",
+      "words": [
+        {
+          "word": "And",
+          "start": 202.48,
+          "end": 202.98,
+          "probability": 0.997
+        },
+        {
+          "word": "dried",
+          "start": 202.98,
+          "end": 203.28,
+          "probability": 0.99
+        },
+        {
+          "word": "means",
+          "start": 203.28,
+          "end": 203.6,
+          "probability": 0.994
+        },
+        {
+          "word": "that",
+          "start": 203.6,
+          "end": 203.78,
+          "probability": 0.991
+        },
+        {
+          "word": "it",
+          "start": 203.78,
+          "end": 203.9,
+          "probability": 0.998
+        },
+        {
+          "word": "doesn't",
+          "start": 203.9,
+          "end": 204.18,
+          "probability": 1.0
+        },
+        {
+          "word": "have",
+          "start": 204.18,
+          "end": 204.54,
+          "probability": 1.0
+        },
+        {
+          "word": "any",
+          "start": 204.54,
+          "end": 204.76,
+          "probability": 0.996
+        },
+        {
+          "word": "of",
+          "start": 204.76,
+          "end": 204.9,
+          "probability": 0.994
+        },
+        {
+          "word": "that",
+          "start": 204.9,
+          "end": 205.12,
+          "probability": 0.967
+        },
+        {
+          "word": "juice",
+          "start": 205.12,
+          "end": 205.56,
+          "probability": 0.998
+        },
+        {
+          "word": "or",
+          "start": 205.56,
+          "end": 205.8,
+          "probability": 0.971
+        },
+        {
+          "word": "liquid.",
+          "start": 205.8,
+          "end": 206.3,
+          "probability": 0.881
+        }
+      ]
+    },
+    {
+      "start": 207.22,
+      "end": 211.42,
+      "text": " So Becca here is a really important and interesting question.",
+      "words": [
+        {
+          "word": "So",
+          "start": 207.22,
+          "end": 207.48,
+          "probability": 0.998
+        },
+        {
+          "word": "Becca",
+          "start": 207.48,
+          "end": 207.86,
+          "probability": 0.558
+        },
+        {
+          "word": "here",
+          "start": 207.86,
+          "end": 208.4,
+          "probability": 0.75
+        },
+        {
+          "word": "is",
+          "start": 208.4,
+          "end": 208.92,
+          "probability": 0.91
+        },
+        {
+          "word": "a",
+          "start": 208.92,
+          "end": 209.2,
+          "probability": 0.978
+        },
+        {
+          "word": "really",
+          "start": 209.2,
+          "end": 209.52,
+          "probability": 0.999
+        },
+        {
+          "word": "important",
+          "start": 209.52,
+          "end": 210.22,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 210.22,
+          "end": 210.44,
+          "probability": 0.986
+        },
+        {
+          "word": "interesting",
+          "start": 210.44,
+          "end": 210.86,
+          "probability": 0.999
+        },
+        {
+          "word": "question.",
+          "start": 210.86,
+          "end": 211.42,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 211.76,
+      "end": 217.18,
+      "text": " If you could only eat one fruit for the rest of your life, which would you choose?",
+      "words": [
+        {
+          "word": "If",
+          "start": 211.76,
+          "end": 212.14,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 212.14,
+          "end": 212.3,
+          "probability": 0.999
+        },
+        {
+          "word": "could",
+          "start": 212.3,
+          "end": 212.56,
+          "probability": 0.995
+        },
+        {
+          "word": "only",
+          "start": 212.56,
+          "end": 213.06,
+          "probability": 0.999
+        },
+        {
+          "word": "eat",
+          "start": 213.06,
+          "end": 213.54,
+          "probability": 0.999
+        },
+        {
+          "word": "one",
+          "start": 213.54,
+          "end": 214.04,
+          "probability": 0.977
+        },
+        {
+          "word": "fruit",
+          "start": 214.04,
+          "end": 214.46,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 214.46,
+          "end": 214.76,
+          "probability": 0.983
+        },
+        {
+          "word": "the",
+          "start": 214.76,
+          "end": 214.84,
+          "probability": 1.0
+        },
+        {
+          "word": "rest",
+          "start": 214.84,
+          "end": 215.12,
+          "probability": 1.0
+        },
+        {
+          "word": "of",
+          "start": 215.12,
+          "end": 215.28,
+          "probability": 1.0
+        },
+        {
+          "word": "your",
+          "start": 215.28,
+          "end": 215.38,
+          "probability": 0.999
+        },
+        {
+          "word": "life,",
+          "start": 215.38,
+          "end": 215.86,
+          "probability": 0.998
+        },
+        {
+          "word": "which",
+          "start": 216.02,
+          "end": 216.38,
+          "probability": 0.992
+        },
+        {
+          "word": "would",
+          "start": 216.38,
+          "end": 216.6,
+          "probability": 0.995
+        },
+        {
+          "word": "you",
+          "start": 216.6,
+          "end": 216.74,
+          "probability": 0.999
+        },
+        {
+          "word": "choose?",
+          "start": 216.74,
+          "end": 217.18,
+          "probability": 0.993
+        }
+      ]
+    },
+    {
+      "start": 217.4,
+      "end": 220.5,
+      "text": " Oh, that is a very difficult question.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 217.4,
+          "end": 218.12,
+          "probability": 0.659
+        },
+        {
+          "word": "that",
+          "start": 218.22,
+          "end": 218.32,
+          "probability": 0.998
+        },
+        {
+          "word": "is",
+          "start": 218.32,
+          "end": 218.54,
+          "probability": 0.994
+        },
+        {
+          "word": "a",
+          "start": 218.54,
+          "end": 218.86,
+          "probability": 0.994
+        },
+        {
+          "word": "very",
+          "start": 218.86,
+          "end": 219.46,
+          "probability": 0.999
+        },
+        {
+          "word": "difficult",
+          "start": 219.46,
+          "end": 219.82,
+          "probability": 0.997
+        },
+        {
+          "word": "question.",
+          "start": 219.82,
+          "end": 220.5,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 220.56,
+      "end": 222.78,
+      "text": " We've talked a lot about the fruit that we love.",
+      "words": [
+        {
+          "word": "We've",
+          "start": 220.56,
+          "end": 220.98,
+          "probability": 0.744
+        },
+        {
+          "word": "talked",
+          "start": 220.98,
+          "end": 221.18,
+          "probability": 0.996
+        },
+        {
+          "word": "a",
+          "start": 221.18,
+          "end": 221.28,
+          "probability": 0.996
+        },
+        {
+          "word": "lot",
+          "start": 221.28,
+          "end": 221.44,
+          "probability": 1.0
+        },
+        {
+          "word": "about",
+          "start": 221.44,
+          "end": 221.78,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 221.78,
+          "end": 221.86,
+          "probability": 0.999
+        },
+        {
+          "word": "fruit",
+          "start": 221.86,
+          "end": 222.08,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 222.08,
+          "end": 222.2,
+          "probability": 0.993
+        },
+        {
+          "word": "we",
+          "start": 222.2,
+          "end": 222.3,
+          "probability": 1.0
+        },
+        {
+          "word": "love.",
+          "start": 222.3,
+          "end": 222.78,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 223.94,
+      "end": 228.46,
+      "text": " But probably bananas, because I do eat them every day.",
+      "words": [
+        {
+          "word": "But",
+          "start": 223.94,
+          "end": 224.42,
+          "probability": 0.846
+        },
+        {
+          "word": "probably",
+          "start": 224.42,
+          "end": 224.92,
+          "probability": 0.973
+        },
+        {
+          "word": "bananas,",
+          "start": 224.92,
+          "end": 225.4,
+          "probability": 0.994
+        },
+        {
+          "word": "because",
+          "start": 225.88,
+          "end": 226.62,
+          "probability": 0.976
+        },
+        {
+          "word": "I",
+          "start": 226.62,
+          "end": 227.1,
+          "probability": 0.928
+        },
+        {
+          "word": "do",
+          "start": 227.1,
+          "end": 227.34,
+          "probability": 0.992
+        },
+        {
+          "word": "eat",
+          "start": 227.34,
+          "end": 227.5,
+          "probability": 0.991
+        },
+        {
+          "word": "them",
+          "start": 227.5,
+          "end": 227.7,
+          "probability": 0.997
+        },
+        {
+          "word": "every",
+          "start": 227.7,
+          "end": 227.98,
+          "probability": 0.958
+        },
+        {
+          "word": "day.",
+          "start": 227.98,
+          "end": 228.46,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 228.54,
+      "end": 234.3,
+      "text": " It feels quite strange to not eat a banana every day for me.",
+      "words": [
+        {
+          "word": "It",
+          "start": 228.54,
+          "end": 228.88,
+          "probability": 0.998
+        },
+        {
+          "word": "feels",
+          "start": 228.88,
+          "end": 229.82,
+          "probability": 0.757
+        },
+        {
+          "word": "quite",
+          "start": 229.82,
+          "end": 230.32,
+          "probability": 0.995
+        },
+        {
+          "word": "strange",
+          "start": 230.32,
+          "end": 230.92,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 230.92,
+          "end": 231.3,
+          "probability": 0.991
+        },
+        {
+          "word": "not",
+          "start": 231.3,
+          "end": 231.74,
+          "probability": 0.999
+        },
+        {
+          "word": "eat",
+          "start": 231.74,
+          "end": 232.12,
+          "probability": 0.995
+        },
+        {
+          "word": "a",
+          "start": 232.12,
+          "end": 232.3,
+          "probability": 0.971
+        },
+        {
+          "word": "banana",
+          "start": 232.3,
+          "end": 232.76,
+          "probability": 0.997
+        },
+        {
+          "word": "every",
+          "start": 232.76,
+          "end": 233.24,
+          "probability": 0.908
+        },
+        {
+          "word": "day",
+          "start": 233.24,
+          "end": 233.54,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 233.54,
+          "end": 233.66,
+          "probability": 0.918
+        },
+        {
+          "word": "me.",
+          "start": 233.66,
+          "end": 234.3,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 235.02,
+      "end": 239.9,
+      "text": " And also, I really enjoy banana bread and dried bananas.",
+      "words": [
+        {
+          "word": "And",
+          "start": 235.02,
+          "end": 235.34,
+          "probability": 0.978
+        },
+        {
+          "word": "also,",
+          "start": 235.34,
+          "end": 235.74,
+          "probability": 0.988
+        },
+        {
+          "word": "I",
+          "start": 235.94,
+          "end": 235.96,
+          "probability": 0.998
+        },
+        {
+          "word": "really",
+          "start": 235.96,
+          "end": 236.28,
+          "probability": 0.999
+        },
+        {
+          "word": "enjoy",
+          "start": 236.28,
+          "end": 237.02,
+          "probability": 0.995
+        },
+        {
+          "word": "banana",
+          "start": 237.02,
+          "end": 237.54,
+          "probability": 0.967
+        },
+        {
+          "word": "bread",
+          "start": 237.54,
+          "end": 238.04,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 238.04,
+          "end": 238.9,
+          "probability": 0.474
+        },
+        {
+          "word": "dried",
+          "start": 238.9,
+          "end": 239.52,
+          "probability": 0.943
+        },
+        {
+          "word": "bananas.",
+          "start": 239.52,
+          "end": 239.9,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 239.9,
+      "end": 241.87,
+      "text": " I completely forgot about those.",
+      "words": [
+        {
+          "word": "I",
+          "start": 239.9,
+          "end": 240.44,
+          "probability": 0.998
+        },
+        {
+          "word": "completely",
+          "start": 240.44,
+          "end": 240.88,
+          "probability": 0.989
+        },
+        {
+          "word": "forgot",
+          "start": 240.88,
+          "end": 241.22,
+          "probability": 0.995
+        },
+        {
+          "word": "about",
+          "start": 241.22,
+          "end": 241.46,
+          "probability": 0.999
+        },
+        {
+          "word": "those.",
+          "start": 241.46,
+          "end": 241.87,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 241.87,
+      "end": 243.0,
+      "text": " They're really tasty.",
+      "words": [
+        {
+          "word": "They're",
+          "start": 241.87,
+          "end": 242.28,
+          "probability": 0.981
+        },
+        {
+          "word": "really",
+          "start": 242.28,
+          "end": 242.64,
+          "probability": 0.993
+        },
+        {
+          "word": "tasty.",
+          "start": 242.64,
+          "end": 243.0,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 244.14,
+      "end": 246.7,
+      "text": " So, yeah, there's lots of things you can do with bananas.",
+      "words": [
+        {
+          "word": "So,",
+          "start": 244.14,
+          "end": 244.2,
+          "probability": 0.993
+        },
+        {
+          "word": "yeah,",
+          "start": 244.22,
+          "end": 244.4,
+          "probability": 0.965
+        },
+        {
+          "word": "there's",
+          "start": 244.54,
+          "end": 244.66,
+          "probability": 0.988
+        },
+        {
+          "word": "lots",
+          "start": 244.66,
+          "end": 244.98,
+          "probability": 0.996
+        },
+        {
+          "word": "of",
+          "start": 244.98,
+          "end": 245.12,
+          "probability": 0.998
+        },
+        {
+          "word": "things",
+          "start": 245.12,
+          "end": 245.38,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 245.38,
+          "end": 245.6,
+          "probability": 0.949
+        },
+        {
+          "word": "can",
+          "start": 245.6,
+          "end": 245.76,
+          "probability": 0.987
+        },
+        {
+          "word": "do",
+          "start": 245.76,
+          "end": 245.94,
+          "probability": 0.998
+        },
+        {
+          "word": "with",
+          "start": 245.94,
+          "end": 246.12,
+          "probability": 0.998
+        },
+        {
+          "word": "bananas.",
+          "start": 246.12,
+          "end": 246.7,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 246.86,
+      "end": 247.92,
+      "text": " Probably those.",
+      "words": [
+        {
+          "word": "Probably",
+          "start": 246.86,
+          "end": 247.38,
+          "probability": 0.997
+        },
+        {
+          "word": "those.",
+          "start": 247.38,
+          "end": 247.92,
+          "probability": 0.983
+        }
+      ]
+    },
+    {
+      "start": 248.08,
+      "end": 249.94,
+      "text": " How about you, what fruit would you choose?",
+      "words": [
+        {
+          "word": "How",
+          "start": 248.08,
+          "end": 248.38,
+          "probability": 0.998
+        },
+        {
+          "word": "about",
+          "start": 248.38,
+          "end": 248.54,
+          "probability": 0.997
+        },
+        {
+          "word": "you,",
+          "start": 248.54,
+          "end": 248.82,
+          "probability": 0.988
+        },
+        {
+          "word": "what",
+          "start": 248.84,
+          "end": 249.04,
+          "probability": 0.994
+        },
+        {
+          "word": "fruit",
+          "start": 249.04,
+          "end": 249.24,
+          "probability": 0.997
+        },
+        {
+          "word": "would",
+          "start": 249.24,
+          "end": 249.44,
+          "probability": 0.994
+        },
+        {
+          "word": "you",
+          "start": 249.44,
+          "end": 249.56,
+          "probability": 1.0
+        },
+        {
+          "word": "choose?",
+          "start": 249.56,
+          "end": 249.94,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 250.28,
+      "end": 255.78,
+      "text": " I think maybe it sounds boring, but the apple is the perfect snack.",
+      "words": [
+        {
+          "word": "I",
+          "start": 250.28,
+          "end": 250.58,
+          "probability": 0.984
+        },
+        {
+          "word": "think",
+          "start": 250.58,
+          "end": 251.12,
+          "probability": 0.999
+        },
+        {
+          "word": "maybe",
+          "start": 251.12,
+          "end": 251.52,
+          "probability": 0.787
+        },
+        {
+          "word": "it",
+          "start": 251.52,
+          "end": 251.7,
+          "probability": 0.99
+        },
+        {
+          "word": "sounds",
+          "start": 251.7,
+          "end": 252.02,
+          "probability": 0.997
+        },
+        {
+          "word": "boring,",
+          "start": 252.02,
+          "end": 252.54,
+          "probability": 0.994
+        },
+        {
+          "word": "but",
+          "start": 252.9,
+          "end": 253.12,
+          "probability": 0.984
+        },
+        {
+          "word": "the",
+          "start": 253.12,
+          "end": 253.32,
+          "probability": 0.994
+        },
+        {
+          "word": "apple",
+          "start": 253.32,
+          "end": 253.76,
+          "probability": 0.983
+        },
+        {
+          "word": "is",
+          "start": 253.76,
+          "end": 254.08,
+          "probability": 0.987
+        },
+        {
+          "word": "the",
+          "start": 254.08,
+          "end": 254.28,
+          "probability": 0.995
+        },
+        {
+          "word": "perfect",
+          "start": 254.28,
+          "end": 255.02,
+          "probability": 0.999
+        },
+        {
+          "word": "snack.",
+          "start": 255.02,
+          "end": 255.78,
+          "probability": 0.988
+        }
+      ]
+    },
+    {
+      "start": 255.78,
+      "end": 257.94,
+      "text": " You always feel good after an apple.",
+      "words": [
+        {
+          "word": "You",
+          "start": 255.78,
+          "end": 256.4,
+          "probability": 0.989
+        },
+        {
+          "word": "always",
+          "start": 256.4,
+          "end": 256.66,
+          "probability": 0.999
+        },
+        {
+          "word": "feel",
+          "start": 256.66,
+          "end": 256.88,
+          "probability": 0.999
+        },
+        {
+          "word": "good",
+          "start": 256.88,
+          "end": 257.18,
+          "probability": 0.999
+        },
+        {
+          "word": "after",
+          "start": 257.18,
+          "end": 257.42,
+          "probability": 0.994
+        },
+        {
+          "word": "an",
+          "start": 257.42,
+          "end": 257.6,
+          "probability": 0.996
+        },
+        {
+          "word": "apple.",
+          "start": 257.6,
+          "end": 257.94,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 257.94,
+      "end": 261.64,
+      "text": " And it makes a fantastic noise when you bite into an apple.",
+      "words": [
+        {
+          "word": "And",
+          "start": 257.94,
+          "end": 258.54,
+          "probability": 0.996
+        },
+        {
+          "word": "it",
+          "start": 258.54,
+          "end": 258.56,
+          "probability": 0.994
+        },
+        {
+          "word": "makes",
+          "start": 258.56,
+          "end": 258.84,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 258.84,
+          "end": 259.06,
+          "probability": 0.98
+        },
+        {
+          "word": "fantastic",
+          "start": 259.06,
+          "end": 259.46,
+          "probability": 0.999
+        },
+        {
+          "word": "noise",
+          "start": 259.46,
+          "end": 260.02,
+          "probability": 0.998
+        },
+        {
+          "word": "when",
+          "start": 260.02,
+          "end": 260.6,
+          "probability": 0.495
+        },
+        {
+          "word": "you",
+          "start": 260.6,
+          "end": 260.7,
+          "probability": 0.999
+        },
+        {
+          "word": "bite",
+          "start": 260.7,
+          "end": 260.96,
+          "probability": 0.998
+        },
+        {
+          "word": "into",
+          "start": 260.96,
+          "end": 261.2,
+          "probability": 0.994
+        },
+        {
+          "word": "an",
+          "start": 261.2,
+          "end": 261.38,
+          "probability": 0.993
+        },
+        {
+          "word": "apple.",
+          "start": 261.38,
+          "end": 261.64,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 261.64,
+      "end": 263.58,
+      "text": " That noise is called a crunch.",
+      "words": [
+        {
+          "word": "That",
+          "start": 261.64,
+          "end": 261.92,
+          "probability": 0.995
+        },
+        {
+          "word": "noise",
+          "start": 261.92,
+          "end": 262.22,
+          "probability": 0.996
+        },
+        {
+          "word": "is",
+          "start": 262.22,
+          "end": 262.44,
+          "probability": 0.995
+        },
+        {
+          "word": "called",
+          "start": 262.44,
+          "end": 262.7,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 262.7,
+          "end": 263.0,
+          "probability": 0.995
+        },
+        {
+          "word": "crunch.",
+          "start": 263.0,
+          "end": 263.58,
+          "probability": 0.912
+        }
+      ]
+    },
+    {
+      "start": 263.94,
+      "end": 266.56,
+      "text": " And it's a very nice sound.",
+      "words": [
+        {
+          "word": "And",
+          "start": 263.94,
+          "end": 264.64,
+          "probability": 0.994
+        },
+        {
+          "word": "it's",
+          "start": 264.64,
+          "end": 265.7,
+          "probability": 0.985
+        },
+        {
+          "word": "a",
+          "start": 265.7,
+          "end": 265.8,
+          "probability": 0.931
+        },
+        {
+          "word": "very",
+          "start": 265.8,
+          "end": 265.94,
+          "probability": 0.997
+        },
+        {
+          "word": "nice",
+          "start": 265.94,
+          "end": 266.24,
+          "probability": 0.48
+        },
+        {
+          "word": "sound.",
+          "start": 266.24,
+          "end": 266.56,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 266.6,
+      "end": 267.77,
+      "text": " It is a nice sound.",
+      "words": [
+        {
+          "word": "It",
+          "start": 266.6,
+          "end": 266.82,
+          "probability": 0.992
+        },
+        {
+          "word": "is",
+          "start": 266.82,
+          "end": 267.02,
+          "probability": 0.994
+        },
+        {
+          "word": "a",
+          "start": 267.02,
+          "end": 267.14,
+          "probability": 0.99
+        },
+        {
+          "word": "nice",
+          "start": 267.14,
+          "end": 267.4,
+          "probability": 0.98
+        },
+        {
+          "word": "sound.",
+          "start": 267.4,
+          "end": 267.77,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 267.77,
+      "end": 270.79,
+      "text": " And so we can describe apples as being crunchy.",
+      "words": [
+        {
+          "word": "And",
+          "start": 267.77,
+          "end": 268.04,
+          "probability": 0.913
+        },
+        {
+          "word": "so",
+          "start": 268.04,
+          "end": 268.14,
+          "probability": 0.998
+        },
+        {
+          "word": "we",
+          "start": 268.14,
+          "end": 268.22,
+          "probability": 0.896
+        },
+        {
+          "word": "can",
+          "start": 268.22,
+          "end": 268.44,
+          "probability": 0.999
+        },
+        {
+          "word": "describe",
+          "start": 268.44,
+          "end": 269.0,
+          "probability": 0.999
+        },
+        {
+          "word": "apples",
+          "start": 269.0,
+          "end": 269.46,
+          "probability": 0.944
+        },
+        {
+          "word": "as",
+          "start": 269.46,
+          "end": 269.8,
+          "probability": 0.996
+        },
+        {
+          "word": "being",
+          "start": 269.8,
+          "end": 270.16,
+          "probability": 0.997
+        },
+        {
+          "word": "crunchy.",
+          "start": 270.16,
+          "end": 270.79,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 270.79,
+      "end": 271.84,
+      "text": " That's the adjective.",
+      "words": [
+        {
+          "word": "That's",
+          "start": 270.79,
+          "end": 271.12,
+          "probability": 0.959
+        },
+        {
+          "word": "the",
+          "start": 271.12,
+          "end": 271.26,
+          "probability": 0.996
+        },
+        {
+          "word": "adjective.",
+          "start": 271.26,
+          "end": 271.84,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 271.98,
+      "end": 272.34,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 271.98,
+          "end": 272.34,
+          "probability": 0.957
+        }
+      ]
+    },
+    {
+      "start": 273.24,
+      "end": 283.48,
+      "text": " OK, it's time to recap the vocabulary that we've learned.",
+      "words": [
+        {
+          "word": "OK,",
+          "start": 273.24,
+          "end": 280.28,
+          "probability": 0.626
+        },
+        {
+          "word": "it's",
+          "start": 280.64,
+          "end": 280.96,
+          "probability": 0.989
+        },
+        {
+          "word": "time",
+          "start": 280.96,
+          "end": 281.3,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 281.3,
+          "end": 281.46,
+          "probability": 0.999
+        },
+        {
+          "word": "recap",
+          "start": 281.46,
+          "end": 281.8,
+          "probability": 0.985
+        },
+        {
+          "word": "the",
+          "start": 281.8,
+          "end": 282.04,
+          "probability": 0.969
+        },
+        {
+          "word": "vocabulary",
+          "start": 282.04,
+          "end": 282.54,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 282.54,
+          "end": 282.96,
+          "probability": 0.973
+        },
+        {
+          "word": "we've",
+          "start": 282.96,
+          "end": 283.2,
+          "probability": 0.989
+        },
+        {
+          "word": "learned.",
+          "start": 283.2,
+          "end": 283.48,
+          "probability": 0.795
+        }
+      ]
+    },
+    {
+      "start": 283.48,
+      "end": 284.9,
+      "text": " And we'll start with sour.",
+      "words": [
+        {
+          "word": "And",
+          "start": 283.48,
+          "end": 283.94,
+          "probability": 0.996
+        },
+        {
+          "word": "we'll",
+          "start": 283.94,
+          "end": 284.18,
+          "probability": 0.995
+        },
+        {
+          "word": "start",
+          "start": 284.18,
+          "end": 284.32,
+          "probability": 0.999
+        },
+        {
+          "word": "with",
+          "start": 284.32,
+          "end": 284.52,
+          "probability": 0.999
+        },
+        {
+          "word": "sour.",
+          "start": 284.52,
+          "end": 284.9,
+          "probability": 0.929
+        }
+      ]
+    },
+    {
+      "start": 285.26,
+      "end": 289.16,
+      "text": " And that is the taste, for example, in lemon or in vinegar.",
+      "words": [
+        {
+          "word": "And",
+          "start": 285.26,
+          "end": 285.42,
+          "probability": 0.993
+        },
+        {
+          "word": "that",
+          "start": 285.42,
+          "end": 285.56,
+          "probability": 0.998
+        },
+        {
+          "word": "is",
+          "start": 285.56,
+          "end": 285.72,
+          "probability": 0.993
+        },
+        {
+          "word": "the",
+          "start": 285.72,
+          "end": 285.86,
+          "probability": 0.998
+        },
+        {
+          "word": "taste,",
+          "start": 285.86,
+          "end": 286.36,
+          "probability": 0.997
+        },
+        {
+          "word": "for",
+          "start": 286.64,
+          "end": 286.84,
+          "probability": 0.998
+        },
+        {
+          "word": "example,",
+          "start": 286.84,
+          "end": 287.26,
+          "probability": 0.996
+        },
+        {
+          "word": "in",
+          "start": 287.84,
+          "end": 287.86,
+          "probability": 0.996
+        },
+        {
+          "word": "lemon",
+          "start": 287.86,
+          "end": 288.36,
+          "probability": 0.925
+        },
+        {
+          "word": "or",
+          "start": 288.36,
+          "end": 288.62,
+          "probability": 0.912
+        },
+        {
+          "word": "in",
+          "start": 288.62,
+          "end": 288.82,
+          "probability": 0.98
+        },
+        {
+          "word": "vinegar.",
+          "start": 288.82,
+          "end": 289.16,
+          "probability": 0.991
+        }
+      ]
+    },
+    {
+      "start": 289.74,
+      "end": 291.52,
+      "text": " It's not very sweet.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 289.74,
+          "end": 290.42,
+          "probability": 0.997
+        },
+        {
+          "word": "not",
+          "start": 290.42,
+          "end": 290.64,
+          "probability": 1.0
+        },
+        {
+          "word": "very",
+          "start": 290.64,
+          "end": 290.96,
+          "probability": 0.998
+        },
+        {
+          "word": "sweet.",
+          "start": 290.96,
+          "end": 291.52,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 291.66,
+      "end": 296.14,
+      "text": " Citrus fruits, for example, like grapefruit, oranges, limes.",
+      "words": [
+        {
+          "word": "Citrus",
+          "start": 291.66,
+          "end": 292.28,
+          "probability": 0.881
+        },
+        {
+          "word": "fruits,",
+          "start": 292.28,
+          "end": 292.66,
+          "probability": 0.972
+        },
+        {
+          "word": "for",
+          "start": 292.92,
+          "end": 293.1,
+          "probability": 0.992
+        },
+        {
+          "word": "example,",
+          "start": 293.1,
+          "end": 293.58,
+          "probability": 0.995
+        },
+        {
+          "word": "like",
+          "start": 294.02,
+          "end": 294.06,
+          "probability": 0.978
+        },
+        {
+          "word": "grapefruit,",
+          "start": 294.06,
+          "end": 294.76,
+          "probability": 0.994
+        },
+        {
+          "word": "oranges,",
+          "start": 294.78,
+          "end": 295.46,
+          "probability": 0.972
+        },
+        {
+          "word": "limes.",
+          "start": 295.6,
+          "end": 296.14,
+          "probability": 0.444
+        }
+      ]
+    },
+    {
+      "start": 296.26,
+      "end": 297.8,
+      "text": " They are very sour.",
+      "words": [
+        {
+          "word": "They",
+          "start": 296.26,
+          "end": 296.78,
+          "probability": 0.998
+        },
+        {
+          "word": "are",
+          "start": 296.78,
+          "end": 296.98,
+          "probability": 0.973
+        },
+        {
+          "word": "very",
+          "start": 296.98,
+          "end": 297.28,
+          "probability": 0.998
+        },
+        {
+          "word": "sour.",
+          "start": 297.28,
+          "end": 297.8,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 298.76,
+      "end": 300.44,
+      "text": " So we use the word ripe.",
+      "words": [
+        {
+          "word": "So",
+          "start": 298.76,
+          "end": 298.82,
+          "probability": 0.288
+        },
+        {
+          "word": "we",
+          "start": 298.82,
+          "end": 298.84,
+          "probability": 0.284
+        },
+        {
+          "word": "use",
+          "start": 298.84,
+          "end": 299.08,
+          "probability": 0.369
+        },
+        {
+          "word": "the",
+          "start": 299.08,
+          "end": 299.34,
+          "probability": 0.998
+        },
+        {
+          "word": "word",
+          "start": 299.34,
+          "end": 299.9,
+          "probability": 0.999
+        },
+        {
+          "word": "ripe.",
+          "start": 299.9,
+          "end": 300.44,
+          "probability": 0.915
+        }
+      ]
+    },
+    {
+      "start": 300.68,
+      "end": 303.9,
+      "text": " Ripe describes fruit, which is ready to eat.",
+      "words": [
+        {
+          "word": "Ripe",
+          "start": 300.68,
+          "end": 301.16,
+          "probability": 0.479
+        },
+        {
+          "word": "describes",
+          "start": 301.16,
+          "end": 301.92,
+          "probability": 0.976
+        },
+        {
+          "word": "fruit,",
+          "start": 301.92,
+          "end": 302.4,
+          "probability": 0.996
+        },
+        {
+          "word": "which",
+          "start": 302.7,
+          "end": 302.74,
+          "probability": 0.995
+        },
+        {
+          "word": "is",
+          "start": 302.74,
+          "end": 303.04,
+          "probability": 0.999
+        },
+        {
+          "word": "ready",
+          "start": 303.04,
+          "end": 303.36,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 303.36,
+          "end": 303.6,
+          "probability": 0.998
+        },
+        {
+          "word": "eat.",
+          "start": 303.6,
+          "end": 303.9,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 304.22,
+      "end": 305.72,
+      "text": " We also had juicy.",
+      "words": [
+        {
+          "word": "We",
+          "start": 304.22,
+          "end": 304.5,
+          "probability": 0.998
+        },
+        {
+          "word": "also",
+          "start": 304.5,
+          "end": 304.82,
+          "probability": 0.996
+        },
+        {
+          "word": "had",
+          "start": 304.82,
+          "end": 305.16,
+          "probability": 0.945
+        },
+        {
+          "word": "juicy.",
+          "start": 305.16,
+          "end": 305.72,
+          "probability": 0.958
+        }
+      ]
+    },
+    {
+      "start": 305.72,
+      "end": 310.11,
+      "text": " And that's an adjective to describe something that has juice or liquid.",
+      "words": [
+        {
+          "word": "And",
+          "start": 305.72,
+          "end": 306.04,
+          "probability": 0.979
+        },
+        {
+          "word": "that's",
+          "start": 306.04,
+          "end": 306.26,
+          "probability": 0.998
+        },
+        {
+          "word": "an",
+          "start": 306.26,
+          "end": 306.44,
+          "probability": 0.999
+        },
+        {
+          "word": "adjective",
+          "start": 306.44,
+          "end": 306.98,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 306.98,
+          "end": 307.28,
+          "probability": 0.976
+        },
+        {
+          "word": "describe",
+          "start": 307.28,
+          "end": 307.76,
+          "probability": 0.999
+        },
+        {
+          "word": "something",
+          "start": 307.76,
+          "end": 308.22,
+          "probability": 0.994
+        },
+        {
+          "word": "that",
+          "start": 308.22,
+          "end": 308.46,
+          "probability": 0.953
+        },
+        {
+          "word": "has",
+          "start": 308.46,
+          "end": 308.74,
+          "probability": 0.992
+        },
+        {
+          "word": "juice",
+          "start": 308.74,
+          "end": 309.46,
+          "probability": 0.972
+        },
+        {
+          "word": "or",
+          "start": 309.46,
+          "end": 309.84,
+          "probability": 0.93
+        },
+        {
+          "word": "liquid.",
+          "start": 309.84,
+          "end": 310.11,
+          "probability": 0.789
+        }
+      ]
+    },
+    {
+      "start": 310.11,
+      "end": 316.17,
+      "text": " So, for example, a juicy fruit, like strawberry, when you bite into it, juice will come",
+      "words": [
+        {
+          "word": "So,",
+          "start": 310.11,
+          "end": 310.58,
+          "probability": 0.981
+        },
+        {
+          "word": "for",
+          "start": 310.74,
+          "end": 310.78,
+          "probability": 0.999
+        },
+        {
+          "word": "example,",
+          "start": 310.78,
+          "end": 311.44,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 311.68,
+          "end": 311.7,
+          "probability": 0.915
+        },
+        {
+          "word": "juicy",
+          "start": 311.7,
+          "end": 312.1,
+          "probability": 0.993
+        },
+        {
+          "word": "fruit,",
+          "start": 312.1,
+          "end": 312.64,
+          "probability": 0.995
+        },
+        {
+          "word": "like",
+          "start": 312.8,
+          "end": 313.2,
+          "probability": 0.982
+        },
+        {
+          "word": "strawberry,",
+          "start": 313.2,
+          "end": 313.84,
+          "probability": 0.92
+        },
+        {
+          "word": "when",
+          "start": 313.92,
+          "end": 314.16,
+          "probability": 0.727
+        },
+        {
+          "word": "you",
+          "start": 314.16,
+          "end": 314.26,
+          "probability": 0.993
+        },
+        {
+          "word": "bite",
+          "start": 314.26,
+          "end": 314.6,
+          "probability": 0.997
+        },
+        {
+          "word": "into",
+          "start": 314.6,
+          "end": 314.96,
+          "probability": 0.988
+        },
+        {
+          "word": "it,",
+          "start": 314.96,
+          "end": 315.54,
+          "probability": 0.996
+        },
+        {
+          "word": "juice",
+          "start": 315.58,
+          "end": 315.88,
+          "probability": 0.438
+        },
+        {
+          "word": "will",
+          "start": 315.88,
+          "end": 316.08,
+          "probability": 0.997
+        },
+        {
+          "word": "come",
+          "start": 316.08,
+          "end": 316.17,
+          "probability": 0.982
+        }
+      ]
+    },
+    {
+      "start": 316.17,
+      "end": 316.98,
+      "text": " out of it.",
+      "words": [
+        {
+          "word": "out",
+          "start": 316.17,
+          "end": 316.5,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 316.5,
+          "end": 316.62,
+          "probability": 0.999
+        },
+        {
+          "word": "it.",
+          "start": 316.62,
+          "end": 316.98,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 317.96,
+      "end": 320.34,
+      "text": " We also heard about dried fruit.",
+      "words": [
+        {
+          "word": "We",
+          "start": 317.96,
+          "end": 318.22,
+          "probability": 0.999
+        },
+        {
+          "word": "also",
+          "start": 318.22,
+          "end": 318.66,
+          "probability": 0.998
+        },
+        {
+          "word": "heard",
+          "start": 318.66,
+          "end": 318.98,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 318.98,
+          "end": 319.42,
+          "probability": 0.999
+        },
+        {
+          "word": "dried",
+          "start": 319.42,
+          "end": 319.9,
+          "probability": 0.998
+        },
+        {
+          "word": "fruit.",
+          "start": 319.9,
+          "end": 320.34,
+          "probability": 0.989
+        }
+      ]
+    },
+    {
+      "start": 320.48,
+      "end": 325.16,
+      "text": " Dried fruit has had all of the juice taken out of it.",
+      "words": [
+        {
+          "word": "Dried",
+          "start": 320.48,
+          "end": 320.96,
+          "probability": 0.784
+        },
+        {
+          "word": "fruit",
+          "start": 320.96,
+          "end": 321.34,
+          "probability": 0.995
+        },
+        {
+          "word": "has",
+          "start": 321.34,
+          "end": 321.64,
+          "probability": 0.99
+        },
+        {
+          "word": "had",
+          "start": 321.64,
+          "end": 321.94,
+          "probability": 0.996
+        },
+        {
+          "word": "all",
+          "start": 321.94,
+          "end": 322.18,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 322.18,
+          "end": 322.38,
+          "probability": 0.996
+        },
+        {
+          "word": "the",
+          "start": 322.38,
+          "end": 322.84,
+          "probability": 0.998
+        },
+        {
+          "word": "juice",
+          "start": 322.84,
+          "end": 323.56,
+          "probability": 0.998
+        },
+        {
+          "word": "taken",
+          "start": 323.56,
+          "end": 324.26,
+          "probability": 0.959
+        },
+        {
+          "word": "out",
+          "start": 324.26,
+          "end": 324.62,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 324.62,
+          "end": 324.76,
+          "probability": 0.998
+        },
+        {
+          "word": "it.",
+          "start": 324.76,
+          "end": 325.16,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 325.68,
+      "end": 326.86,
+      "text": " And it comes by the sun.",
+      "words": [
+        {
+          "word": "And",
+          "start": 325.68,
+          "end": 325.7,
+          "probability": 0.083
+        },
+        {
+          "word": "it",
+          "start": 325.7,
+          "end": 325.72,
+          "probability": 0.162
+        },
+        {
+          "word": "comes",
+          "start": 325.72,
+          "end": 325.84,
+          "probability": 0.495
+        },
+        {
+          "word": "by",
+          "start": 325.84,
+          "end": 326.14,
+          "probability": 0.986
+        },
+        {
+          "word": "the",
+          "start": 326.14,
+          "end": 326.42,
+          "probability": 0.98
+        },
+        {
+          "word": "sun.",
+          "start": 326.42,
+          "end": 326.86,
+          "probability": 0.821
+        }
+      ]
+    },
+    {
+      "start": 326.86,
+      "end": 329.92,
+      "text": " So for example, raisins are dried fruit.",
+      "words": [
+        {
+          "word": "So",
+          "start": 326.86,
+          "end": 327.18,
+          "probability": 0.996
+        },
+        {
+          "word": "for",
+          "start": 327.18,
+          "end": 327.34,
+          "probability": 0.653
+        },
+        {
+          "word": "example,",
+          "start": 327.34,
+          "end": 328.02,
+          "probability": 0.999
+        },
+        {
+          "word": "raisins",
+          "start": 328.18,
+          "end": 328.78,
+          "probability": 0.978
+        },
+        {
+          "word": "are",
+          "start": 328.78,
+          "end": 329.04,
+          "probability": 0.995
+        },
+        {
+          "word": "dried",
+          "start": 329.04,
+          "end": 329.42,
+          "probability": 0.999
+        },
+        {
+          "word": "fruit.",
+          "start": 329.42,
+          "end": 329.92,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 330.64,
+      "end": 333.97,
+      "text": " That's it for this week's episode of Real Easy English.",
+      "words": [
+        {
+          "word": "That's",
+          "start": 330.64,
+          "end": 331.04,
+          "probability": 0.997
+        },
+        {
+          "word": "it",
+          "start": 331.04,
+          "end": 331.24,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 331.24,
+          "end": 331.38,
+          "probability": 0.965
+        },
+        {
+          "word": "this",
+          "start": 331.38,
+          "end": 331.56,
+          "probability": 0.996
+        },
+        {
+          "word": "week's",
+          "start": 331.56,
+          "end": 332.02,
+          "probability": 0.991
+        },
+        {
+          "word": "episode",
+          "start": 332.02,
+          "end": 332.44,
+          "probability": 0.997
+        },
+        {
+          "word": "of",
+          "start": 332.44,
+          "end": 332.72,
+          "probability": 0.992
+        },
+        {
+          "word": "Real",
+          "start": 332.72,
+          "end": 333.04,
+          "probability": 0.944
+        },
+        {
+          "word": "Easy",
+          "start": 333.04,
+          "end": 333.46,
+          "probability": 0.808
+        },
+        {
+          "word": "English.",
+          "start": 333.46,
+          "end": 333.97,
+          "probability": 0.99
+        }
+      ]
+    },
+    {
+      "start": 333.97,
+      "end": 338.88,
+      "text": " You can find a free worksheet on our website to test what you've learned from this episode.",
+      "words": [
+        {
+          "word": "You",
+          "start": 333.97,
+          "end": 334.48,
+          "probability": 0.996
+        },
+        {
+          "word": "can",
+          "start": 334.48,
+          "end": 334.78,
+          "probability": 0.999
+        },
+        {
+          "word": "find",
+          "start": 334.78,
+          "end": 335.14,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 335.14,
+          "end": 335.36,
+          "probability": 0.993
+        },
+        {
+          "word": "free",
+          "start": 335.36,
+          "end": 335.58,
+          "probability": 0.983
+        },
+        {
+          "word": "worksheet",
+          "start": 335.58,
+          "end": 336.08,
+          "probability": 0.981
+        },
+        {
+          "word": "on",
+          "start": 336.08,
+          "end": 336.28,
+          "probability": 0.983
+        },
+        {
+          "word": "our",
+          "start": 336.28,
+          "end": 336.48,
+          "probability": 0.998
+        },
+        {
+          "word": "website",
+          "start": 336.48,
+          "end": 336.92,
+          "probability": 0.992
+        },
+        {
+          "word": "to",
+          "start": 336.92,
+          "end": 337.2,
+          "probability": 0.931
+        },
+        {
+          "word": "test",
+          "start": 337.2,
+          "end": 337.48,
+          "probability": 0.957
+        },
+        {
+          "word": "what",
+          "start": 337.48,
+          "end": 337.7,
+          "probability": 0.989
+        },
+        {
+          "word": "you've",
+          "start": 337.7,
+          "end": 337.92,
+          "probability": 0.99
+        },
+        {
+          "word": "learned",
+          "start": 337.92,
+          "end": 338.12,
+          "probability": 0.76
+        },
+        {
+          "word": "from",
+          "start": 338.12,
+          "end": 338.28,
+          "probability": 0.99
+        },
+        {
+          "word": "this",
+          "start": 338.28,
+          "end": 338.5,
+          "probability": 0.998
+        },
+        {
+          "word": "episode.",
+          "start": 338.5,
+          "end": 338.88,
+          "probability": 0.898
+        }
+      ]
+    },
+    {
+      "start": 338.88,
+      "end": 341.88,
+      "text": " That's at BBC LearningEnglish.com.",
+      "words": [
+        {
+          "word": "That's",
+          "start": 338.88,
+          "end": 339.52,
+          "probability": 0.992
+        },
+        {
+          "word": "at",
+          "start": 339.52,
+          "end": 339.68,
+          "probability": 0.953
+        },
+        {
+          "word": "BBC",
+          "start": 339.68,
+          "end": 340.22,
+          "probability": 0.806
+        },
+        {
+          "word": "LearningEnglish.com.",
+          "start": 340.22,
+          "end": 341.88,
+          "probability": 0.665
+        }
+      ]
+    },
+    {
+      "start": 342.14,
+      "end": 345.92,
+      "text": " And we'll be back next week with another episode of Real Easy English.",
+      "words": [
+        {
+          "word": "And",
+          "start": 342.14,
+          "end": 342.38,
+          "probability": 0.994
+        },
+        {
+          "word": "we'll",
+          "start": 342.38,
+          "end": 342.52,
+          "probability": 0.997
+        },
+        {
+          "word": "be",
+          "start": 342.52,
+          "end": 342.6,
+          "probability": 0.997
+        },
+        {
+          "word": "back",
+          "start": 342.6,
+          "end": 342.82,
+          "probability": 1.0
+        },
+        {
+          "word": "next",
+          "start": 342.82,
+          "end": 343.12,
+          "probability": 0.999
+        },
+        {
+          "word": "week",
+          "start": 343.12,
+          "end": 343.4,
+          "probability": 1.0
+        },
+        {
+          "word": "with",
+          "start": 343.4,
+          "end": 343.58,
+          "probability": 0.975
+        },
+        {
+          "word": "another",
+          "start": 343.58,
+          "end": 343.88,
+          "probability": 0.999
+        },
+        {
+          "word": "episode",
+          "start": 343.88,
+          "end": 344.46,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 344.46,
+          "end": 344.76,
+          "probability": 0.998
+        },
+        {
+          "word": "Real",
+          "start": 344.76,
+          "end": 345.06,
+          "probability": 0.978
+        },
+        {
+          "word": "Easy",
+          "start": 345.06,
+          "end": 345.42,
+          "probability": 0.992
+        },
+        {
+          "word": "English.",
+          "start": 345.42,
+          "end": 345.92,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 345.98,
+      "end": 346.83,
+      "text": " Join us then.",
+      "words": [
+        {
+          "word": "Join",
+          "start": 345.98,
+          "end": 346.24,
+          "probability": 0.988
+        },
+        {
+          "word": "us",
+          "start": 346.24,
+          "end": 346.44,
+          "probability": 0.999
+        },
+        {
+          "word": "then.",
+          "start": 346.44,
+          "end": 346.83,
+          "probability": 0.918
+        }
+      ]
+    },
+    {
+      "start": 346.83,
+      "end": 347.48,
+      "text": " Bye for now.",
+      "words": [
+        {
+          "word": "Bye",
+          "start": 346.83,
+          "end": 347.08,
+          "probability": 0.788
+        },
+        {
+          "word": "for",
+          "start": 347.08,
+          "end": 347.26,
+          "probability": 0.974
+        },
+        {
+          "word": "now.",
+          "start": 347.26,
+          "end": 347.48,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 347.58,
+      "end": 347.84,
+      "text": " Bye.",
+      "words": [
+        {
+          "word": "Bye.",
+          "start": 347.58,
+          "end": 347.84,
+          "probability": 0.931
+        }
+      ]
+    }
+  ]
+}

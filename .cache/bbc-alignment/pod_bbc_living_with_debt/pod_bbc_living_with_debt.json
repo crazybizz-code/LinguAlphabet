@@ -1,0 +1,6228 @@
+{
+  "engine": "whisper-timestamped",
+  "model": "tiny.en",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.14,
+      "end": 5.32,
+      "text": " 6 New English from BBC Learning English.com",
+      "words": [
+        {
+          "word": "6",
+          "start": 0.14,
+          "end": 1.38,
+          "probability": 0.209
+        },
+        {
+          "word": "New",
+          "start": 1.38,
+          "end": 1.74,
+          "probability": 0.102
+        },
+        {
+          "word": "English",
+          "start": 1.74,
+          "end": 2.34,
+          "probability": 0.915
+        },
+        {
+          "word": "from",
+          "start": 2.34,
+          "end": 2.9,
+          "probability": 0.323
+        },
+        {
+          "word": "BBC",
+          "start": 2.9,
+          "end": 3.54,
+          "probability": 0.881
+        },
+        {
+          "word": "Learning",
+          "start": 3.54,
+          "end": 4.06,
+          "probability": 0.291
+        },
+        {
+          "word": "English.com",
+          "start": 4.06,
+          "end": 5.32,
+          "probability": 0.726
+        }
+      ]
+    },
+    {
+      "start": 8.02,
+      "end": 12.08,
+      "text": " Hello, this is 6 Minute English from BBC Learning English. I'm Neil.",
+      "words": [
+        {
+          "word": "Hello,",
+          "start": 8.02,
+          "end": 8.34,
+          "probability": 0.991
+        },
+        {
+          "word": "this",
+          "start": 8.64,
+          "end": 8.68,
+          "probability": 0.992
+        },
+        {
+          "word": "is",
+          "start": 8.68,
+          "end": 8.88,
+          "probability": 0.996
+        },
+        {
+          "word": "6",
+          "start": 8.88,
+          "end": 9.14,
+          "probability": 0.867
+        },
+        {
+          "word": "Minute",
+          "start": 9.14,
+          "end": 9.38,
+          "probability": 0.858
+        },
+        {
+          "word": "English",
+          "start": 9.38,
+          "end": 9.78,
+          "probability": 0.995
+        },
+        {
+          "word": "from",
+          "start": 9.78,
+          "end": 10.1,
+          "probability": 0.985
+        },
+        {
+          "word": "BBC",
+          "start": 10.1,
+          "end": 10.7,
+          "probability": 0.992
+        },
+        {
+          "word": "Learning",
+          "start": 10.7,
+          "end": 11.12,
+          "probability": 0.962
+        },
+        {
+          "word": "English.",
+          "start": 11.12,
+          "end": 11.54,
+          "probability": 0.996
+        },
+        {
+          "word": "I'm",
+          "start": 11.76,
+          "end": 11.84,
+          "probability": 0.759
+        },
+        {
+          "word": "Neil.",
+          "start": 11.84,
+          "end": 12.08,
+          "probability": 0.893
+        }
+      ]
+    },
+    {
+      "start": 12.24,
+      "end": 17.56,
+      "text": " And I'm Pippa. Are you good at saving money, Neil? Or do you like to spend it?",
+      "words": [
+        {
+          "word": "And",
+          "start": 12.24,
+          "end": 12.62,
+          "probability": 0.958
+        },
+        {
+          "word": "I'm",
+          "start": 12.62,
+          "end": 12.98,
+          "probability": 0.981
+        },
+        {
+          "word": "Pippa.",
+          "start": 12.98,
+          "end": 13.54,
+          "probability": 0.804
+        },
+        {
+          "word": "Are",
+          "start": 13.86,
+          "end": 14.16,
+          "probability": 0.868
+        },
+        {
+          "word": "you",
+          "start": 14.16,
+          "end": 14.36,
+          "probability": 0.997
+        },
+        {
+          "word": "good",
+          "start": 14.36,
+          "end": 14.62,
+          "probability": 0.997
+        },
+        {
+          "word": "at",
+          "start": 14.62,
+          "end": 14.82,
+          "probability": 0.999
+        },
+        {
+          "word": "saving",
+          "start": 14.82,
+          "end": 15.12,
+          "probability": 0.989
+        },
+        {
+          "word": "money,",
+          "start": 15.12,
+          "end": 15.42,
+          "probability": 0.987
+        },
+        {
+          "word": "Neil?",
+          "start": 15.5,
+          "end": 15.88,
+          "probability": 0.992
+        },
+        {
+          "word": "Or",
+          "start": 16.2,
+          "end": 16.28,
+          "probability": 0.614
+        },
+        {
+          "word": "do",
+          "start": 16.28,
+          "end": 16.46,
+          "probability": 0.879
+        },
+        {
+          "word": "you",
+          "start": 16.46,
+          "end": 16.54,
+          "probability": 0.998
+        },
+        {
+          "word": "like",
+          "start": 16.54,
+          "end": 16.8,
+          "probability": 0.982
+        },
+        {
+          "word": "to",
+          "start": 16.8,
+          "end": 17.0,
+          "probability": 0.998
+        },
+        {
+          "word": "spend",
+          "start": 17.0,
+          "end": 17.28,
+          "probability": 0.989
+        },
+        {
+          "word": "it?",
+          "start": 17.28,
+          "end": 17.56,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 17.84,
+      "end": 25.58,
+      "text": " Well, actually, a bit of both. I like to spend money on nice things, but I also try to save",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 17.84,
+          "end": 18.42,
+          "probability": 0.995
+        },
+        {
+          "word": "actually,",
+          "start": 18.62,
+          "end": 19.16,
+          "probability": 0.99
+        },
+        {
+          "word": "a",
+          "start": 19.5,
+          "end": 19.6,
+          "probability": 0.945
+        },
+        {
+          "word": "bit",
+          "start": 19.6,
+          "end": 19.76,
+          "probability": 1.0
+        },
+        {
+          "word": "of",
+          "start": 19.76,
+          "end": 19.98,
+          "probability": 0.998
+        },
+        {
+          "word": "both.",
+          "start": 19.98,
+          "end": 20.4,
+          "probability": 0.996
+        },
+        {
+          "word": "I",
+          "start": 20.86,
+          "end": 21.08,
+          "probability": 0.947
+        },
+        {
+          "word": "like",
+          "start": 21.08,
+          "end": 21.38,
+          "probability": 0.983
+        },
+        {
+          "word": "to",
+          "start": 21.38,
+          "end": 21.6,
+          "probability": 0.998
+        },
+        {
+          "word": "spend",
+          "start": 21.6,
+          "end": 21.82,
+          "probability": 0.994
+        },
+        {
+          "word": "money",
+          "start": 21.82,
+          "end": 22.16,
+          "probability": 0.997
+        },
+        {
+          "word": "on",
+          "start": 22.16,
+          "end": 22.78,
+          "probability": 0.96
+        },
+        {
+          "word": "nice",
+          "start": 22.78,
+          "end": 23.1,
+          "probability": 0.929
+        },
+        {
+          "word": "things,",
+          "start": 23.1,
+          "end": 23.44,
+          "probability": 0.999
+        },
+        {
+          "word": "but",
+          "start": 23.72,
+          "end": 23.74,
+          "probability": 0.62
+        },
+        {
+          "word": "I",
+          "start": 23.74,
+          "end": 23.86,
+          "probability": 0.978
+        },
+        {
+          "word": "also",
+          "start": 23.86,
+          "end": 24.46,
+          "probability": 0.994
+        },
+        {
+          "word": "try",
+          "start": 24.46,
+          "end": 24.84,
+          "probability": 0.808
+        },
+        {
+          "word": "to",
+          "start": 24.84,
+          "end": 25.02,
+          "probability": 0.946
+        },
+        {
+          "word": "save",
+          "start": 25.02,
+          "end": 25.58,
+          "probability": 0.945
+        }
+      ]
+    },
+    {
+      "start": 25.76,
+      "end": 28.22,
+      "text": " mainly because I've got children. How about you?",
+      "words": [
+        {
+          "word": "mainly",
+          "start": 25.76,
+          "end": 26.14,
+          "probability": 0.813
+        },
+        {
+          "word": "because",
+          "start": 26.14,
+          "end": 26.5,
+          "probability": 0.906
+        },
+        {
+          "word": "I've",
+          "start": 26.5,
+          "end": 26.74,
+          "probability": 0.982
+        },
+        {
+          "word": "got",
+          "start": 26.74,
+          "end": 26.94,
+          "probability": 0.999
+        },
+        {
+          "word": "children.",
+          "start": 26.94,
+          "end": 27.36,
+          "probability": 0.998
+        },
+        {
+          "word": "How",
+          "start": 27.44,
+          "end": 27.7,
+          "probability": 0.984
+        },
+        {
+          "word": "about",
+          "start": 27.7,
+          "end": 27.94,
+          "probability": 0.999
+        },
+        {
+          "word": "you?",
+          "start": 27.94,
+          "end": 28.22,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 28.68,
+      "end": 33.72,
+      "text": " Yeah, I'm the same. I like to save money or I try to for the future.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 28.68,
+          "end": 29.3,
+          "probability": 0.958
+        },
+        {
+          "word": "I'm",
+          "start": 29.3,
+          "end": 29.64,
+          "probability": 0.961
+        },
+        {
+          "word": "the",
+          "start": 29.64,
+          "end": 29.88,
+          "probability": 0.999
+        },
+        {
+          "word": "same.",
+          "start": 29.88,
+          "end": 30.3,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 30.38,
+          "end": 30.52,
+          "probability": 0.996
+        },
+        {
+          "word": "like",
+          "start": 30.52,
+          "end": 30.88,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 30.88,
+          "end": 31.06,
+          "probability": 0.999
+        },
+        {
+          "word": "save",
+          "start": 31.06,
+          "end": 31.32,
+          "probability": 0.998
+        },
+        {
+          "word": "money",
+          "start": 31.32,
+          "end": 31.8,
+          "probability": 0.998
+        },
+        {
+          "word": "or",
+          "start": 31.8,
+          "end": 32.02,
+          "probability": 0.628
+        },
+        {
+          "word": "I",
+          "start": 32.02,
+          "end": 32.14,
+          "probability": 0.942
+        },
+        {
+          "word": "try",
+          "start": 32.14,
+          "end": 32.54,
+          "probability": 0.989
+        },
+        {
+          "word": "to",
+          "start": 32.54,
+          "end": 32.88,
+          "probability": 0.993
+        },
+        {
+          "word": "for",
+          "start": 32.88,
+          "end": 33.06,
+          "probability": 0.639
+        },
+        {
+          "word": "the",
+          "start": 33.06,
+          "end": 33.2,
+          "probability": 0.995
+        },
+        {
+          "word": "future.",
+          "start": 33.2,
+          "end": 33.72,
+          "probability": 0.982
+        }
+      ]
+    },
+    {
+      "start": 34.74,
+      "end": 41.74,
+      "text": " But I also do spend it. I don't count every penny that I spend and save every single penny that I am.",
+      "words": [
+        {
+          "word": "But",
+          "start": 34.74,
+          "end": 35.06,
+          "probability": 0.994
+        },
+        {
+          "word": "I",
+          "start": 35.06,
+          "end": 35.44,
+          "probability": 0.979
+        },
+        {
+          "word": "also",
+          "start": 35.44,
+          "end": 35.9,
+          "probability": 0.996
+        },
+        {
+          "word": "do",
+          "start": 35.9,
+          "end": 36.26,
+          "probability": 0.996
+        },
+        {
+          "word": "spend",
+          "start": 36.26,
+          "end": 36.56,
+          "probability": 0.998
+        },
+        {
+          "word": "it.",
+          "start": 36.56,
+          "end": 36.8,
+          "probability": 0.997
+        },
+        {
+          "word": "I",
+          "start": 36.88,
+          "end": 37.0,
+          "probability": 0.988
+        },
+        {
+          "word": "don't",
+          "start": 37.0,
+          "end": 37.52,
+          "probability": 0.999
+        },
+        {
+          "word": "count",
+          "start": 37.52,
+          "end": 38.0,
+          "probability": 0.996
+        },
+        {
+          "word": "every",
+          "start": 38.0,
+          "end": 38.32,
+          "probability": 0.987
+        },
+        {
+          "word": "penny",
+          "start": 38.32,
+          "end": 38.78,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 38.78,
+          "end": 38.98,
+          "probability": 0.938
+        },
+        {
+          "word": "I",
+          "start": 38.98,
+          "end": 39.12,
+          "probability": 0.988
+        },
+        {
+          "word": "spend",
+          "start": 39.12,
+          "end": 39.46,
+          "probability": 0.989
+        },
+        {
+          "word": "and",
+          "start": 39.46,
+          "end": 39.7,
+          "probability": 0.923
+        },
+        {
+          "word": "save",
+          "start": 39.7,
+          "end": 40.14,
+          "probability": 0.976
+        },
+        {
+          "word": "every",
+          "start": 40.14,
+          "end": 40.56,
+          "probability": 0.901
+        },
+        {
+          "word": "single",
+          "start": 40.56,
+          "end": 40.84,
+          "probability": 0.975
+        },
+        {
+          "word": "penny",
+          "start": 40.84,
+          "end": 41.24,
+          "probability": 0.977
+        },
+        {
+          "word": "that",
+          "start": 41.24,
+          "end": 41.44,
+          "probability": 0.513
+        },
+        {
+          "word": "I",
+          "start": 41.44,
+          "end": 41.58,
+          "probability": 0.678
+        },
+        {
+          "word": "am.",
+          "start": 41.58,
+          "end": 41.74,
+          "probability": 0.599
+        }
+      ]
+    },
+    {
+      "start": 42.56,
+      "end": 48.18,
+      "text": " Well, whether you're a saver or a spender, being in debt is common in the UK.",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 42.56,
+          "end": 43.14,
+          "probability": 0.996
+        },
+        {
+          "word": "whether",
+          "start": 43.3,
+          "end": 43.5,
+          "probability": 0.997
+        },
+        {
+          "word": "you're",
+          "start": 43.5,
+          "end": 43.96,
+          "probability": 0.989
+        },
+        {
+          "word": "a",
+          "start": 43.96,
+          "end": 44.08,
+          "probability": 0.999
+        },
+        {
+          "word": "saver",
+          "start": 44.08,
+          "end": 44.54,
+          "probability": 0.844
+        },
+        {
+          "word": "or",
+          "start": 44.54,
+          "end": 44.76,
+          "probability": 0.981
+        },
+        {
+          "word": "a",
+          "start": 44.76,
+          "end": 44.94,
+          "probability": 0.991
+        },
+        {
+          "word": "spender,",
+          "start": 44.94,
+          "end": 45.46,
+          "probability": 0.846
+        },
+        {
+          "word": "being",
+          "start": 45.8,
+          "end": 45.96,
+          "probability": 0.929
+        },
+        {
+          "word": "in",
+          "start": 45.96,
+          "end": 46.22,
+          "probability": 0.998
+        },
+        {
+          "word": "debt",
+          "start": 46.22,
+          "end": 46.54,
+          "probability": 0.996
+        },
+        {
+          "word": "is",
+          "start": 46.54,
+          "end": 46.86,
+          "probability": 0.98
+        },
+        {
+          "word": "common",
+          "start": 46.86,
+          "end": 47.24,
+          "probability": 0.994
+        },
+        {
+          "word": "in",
+          "start": 47.24,
+          "end": 47.52,
+          "probability": 0.969
+        },
+        {
+          "word": "the",
+          "start": 47.52,
+          "end": 47.7,
+          "probability": 0.997
+        },
+        {
+          "word": "UK.",
+          "start": 47.7,
+          "end": 48.18,
+          "probability": 0.976
+        }
+      ]
+    },
+    {
+      "start": 48.54,
+      "end": 52.12,
+      "text": " Debt refers to money a person has borrowed to buy something,",
+      "words": [
+        {
+          "word": "Debt",
+          "start": 48.54,
+          "end": 48.98,
+          "probability": 0.951
+        },
+        {
+          "word": "refers",
+          "start": 48.98,
+          "end": 49.46,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 49.46,
+          "end": 49.72,
+          "probability": 0.999
+        },
+        {
+          "word": "money",
+          "start": 49.72,
+          "end": 49.98,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 49.98,
+          "end": 50.24,
+          "probability": 0.817
+        },
+        {
+          "word": "person",
+          "start": 50.24,
+          "end": 50.48,
+          "probability": 1.0
+        },
+        {
+          "word": "has",
+          "start": 50.48,
+          "end": 50.74,
+          "probability": 0.958
+        },
+        {
+          "word": "borrowed",
+          "start": 50.74,
+          "end": 51.14,
+          "probability": 0.98
+        },
+        {
+          "word": "to",
+          "start": 51.14,
+          "end": 51.44,
+          "probability": 0.987
+        },
+        {
+          "word": "buy",
+          "start": 51.44,
+          "end": 51.74,
+          "probability": 0.999
+        },
+        {
+          "word": "something,",
+          "start": 51.74,
+          "end": 52.12,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 52.4,
+      "end": 57.76,
+      "text": " and which they have to pay back. Usually to a bank, a credit card company, or another person.",
+      "words": [
+        {
+          "word": "and",
+          "start": 52.4,
+          "end": 52.64,
+          "probability": 0.401
+        },
+        {
+          "word": "which",
+          "start": 52.64,
+          "end": 52.9,
+          "probability": 0.997
+        },
+        {
+          "word": "they",
+          "start": 52.9,
+          "end": 53.06,
+          "probability": 0.999
+        },
+        {
+          "word": "have",
+          "start": 53.06,
+          "end": 53.22,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 53.22,
+          "end": 53.34,
+          "probability": 0.999
+        },
+        {
+          "word": "pay",
+          "start": 53.34,
+          "end": 53.58,
+          "probability": 0.99
+        },
+        {
+          "word": "back.",
+          "start": 53.58,
+          "end": 54.06,
+          "probability": 0.996
+        },
+        {
+          "word": "Usually",
+          "start": 54.08,
+          "end": 54.52,
+          "probability": 0.913
+        },
+        {
+          "word": "to",
+          "start": 54.52,
+          "end": 54.82,
+          "probability": 0.903
+        },
+        {
+          "word": "a",
+          "start": 54.82,
+          "end": 55.0,
+          "probability": 0.97
+        },
+        {
+          "word": "bank,",
+          "start": 55.0,
+          "end": 55.4,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 55.56,
+          "end": 55.7,
+          "probability": 0.876
+        },
+        {
+          "word": "credit",
+          "start": 55.7,
+          "end": 55.94,
+          "probability": 0.996
+        },
+        {
+          "word": "card",
+          "start": 55.94,
+          "end": 56.22,
+          "probability": 0.998
+        },
+        {
+          "word": "company,",
+          "start": 56.22,
+          "end": 56.74,
+          "probability": 0.994
+        },
+        {
+          "word": "or",
+          "start": 56.78,
+          "end": 57.12,
+          "probability": 0.826
+        },
+        {
+          "word": "another",
+          "start": 57.12,
+          "end": 57.36,
+          "probability": 0.985
+        },
+        {
+          "word": "person.",
+          "start": 57.36,
+          "end": 57.76,
+          "probability": 0.985
+        }
+      ]
+    },
+    {
+      "start": 58.58,
+      "end": 66.5,
+      "text": " Many people avoid talking about debt, but it affects us all. In 2025, over 1,000 people contacted",
+      "words": [
+        {
+          "word": "Many",
+          "start": 58.58,
+          "end": 58.9,
+          "probability": 0.994
+        },
+        {
+          "word": "people",
+          "start": 58.9,
+          "end": 59.44,
+          "probability": 0.999
+        },
+        {
+          "word": "avoid",
+          "start": 59.44,
+          "end": 59.98,
+          "probability": 0.963
+        },
+        {
+          "word": "talking",
+          "start": 59.98,
+          "end": 60.52,
+          "probability": 0.997
+        },
+        {
+          "word": "about",
+          "start": 60.52,
+          "end": 60.86,
+          "probability": 0.999
+        },
+        {
+          "word": "debt,",
+          "start": 60.86,
+          "end": 61.2,
+          "probability": 0.994
+        },
+        {
+          "word": "but",
+          "start": 61.48,
+          "end": 61.78,
+          "probability": 0.928
+        },
+        {
+          "word": "it",
+          "start": 61.78,
+          "end": 61.92,
+          "probability": 0.997
+        },
+        {
+          "word": "affects",
+          "start": 61.92,
+          "end": 62.4,
+          "probability": 0.956
+        },
+        {
+          "word": "us",
+          "start": 62.4,
+          "end": 62.66,
+          "probability": 0.919
+        },
+        {
+          "word": "all.",
+          "start": 62.66,
+          "end": 63.08,
+          "probability": 0.989
+        },
+        {
+          "word": "In",
+          "start": 63.3,
+          "end": 63.52,
+          "probability": 0.689
+        },
+        {
+          "word": "2025,",
+          "start": 63.52,
+          "end": 64.34,
+          "probability": 0.945
+        },
+        {
+          "word": "over",
+          "start": 64.74,
+          "end": 64.9,
+          "probability": 0.852
+        },
+        {
+          "word": "1,000",
+          "start": 64.9,
+          "end": 65.62,
+          "probability": 0.879
+        },
+        {
+          "word": "people",
+          "start": 65.62,
+          "end": 65.94,
+          "probability": 0.961
+        },
+        {
+          "word": "contacted",
+          "start": 65.94,
+          "end": 66.5,
+          "probability": 0.903
+        }
+      ]
+    },
+    {
+      "start": 66.6,
+      "end": 71.88,
+      "text": " the UK citizens' advice bureau every single day of the year for help with their debt.",
+      "words": [
+        {
+          "word": "the",
+          "start": 66.6,
+          "end": 66.96,
+          "probability": 0.995
+        },
+        {
+          "word": "UK",
+          "start": 66.96,
+          "end": 67.2,
+          "probability": 0.987
+        },
+        {
+          "word": "citizens'",
+          "start": 67.2,
+          "end": 67.9,
+          "probability": 0.745
+        },
+        {
+          "word": "advice",
+          "start": 67.9,
+          "end": 68.24,
+          "probability": 0.587
+        },
+        {
+          "word": "bureau",
+          "start": 68.24,
+          "end": 68.64,
+          "probability": 0.956
+        },
+        {
+          "word": "every",
+          "start": 68.64,
+          "end": 69.22,
+          "probability": 0.984
+        },
+        {
+          "word": "single",
+          "start": 69.22,
+          "end": 69.76,
+          "probability": 0.989
+        },
+        {
+          "word": "day",
+          "start": 69.76,
+          "end": 70.14,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 70.14,
+          "end": 70.32,
+          "probability": 0.993
+        },
+        {
+          "word": "the",
+          "start": 70.32,
+          "end": 70.52,
+          "probability": 0.99
+        },
+        {
+          "word": "year",
+          "start": 70.52,
+          "end": 70.82,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 70.82,
+          "end": 71.02,
+          "probability": 0.895
+        },
+        {
+          "word": "help",
+          "start": 71.02,
+          "end": 71.24,
+          "probability": 0.997
+        },
+        {
+          "word": "with",
+          "start": 71.24,
+          "end": 71.4,
+          "probability": 0.995
+        },
+        {
+          "word": "their",
+          "start": 71.4,
+          "end": 71.54,
+          "probability": 0.997
+        },
+        {
+          "word": "debt.",
+          "start": 71.54,
+          "end": 71.88,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 72.52,
+      "end": 78.18,
+      "text": " And when debt gets out of control, it causes stress and worry. BBC Radio 4 programmes",
+      "words": [
+        {
+          "word": "And",
+          "start": 72.52,
+          "end": 72.64,
+          "probability": 0.959
+        },
+        {
+          "word": "when",
+          "start": 72.64,
+          "end": 72.84,
+          "probability": 0.973
+        },
+        {
+          "word": "debt",
+          "start": 72.84,
+          "end": 73.02,
+          "probability": 0.986
+        },
+        {
+          "word": "gets",
+          "start": 73.02,
+          "end": 73.3,
+          "probability": 0.985
+        },
+        {
+          "word": "out",
+          "start": 73.3,
+          "end": 73.52,
+          "probability": 1.0
+        },
+        {
+          "word": "of",
+          "start": 73.52,
+          "end": 73.74,
+          "probability": 0.999
+        },
+        {
+          "word": "control,",
+          "start": 73.74,
+          "end": 74.26,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 74.5,
+          "end": 74.54,
+          "probability": 0.996
+        },
+        {
+          "word": "causes",
+          "start": 74.54,
+          "end": 74.96,
+          "probability": 0.997
+        },
+        {
+          "word": "stress",
+          "start": 74.96,
+          "end": 75.42,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 75.42,
+          "end": 75.66,
+          "probability": 0.998
+        },
+        {
+          "word": "worry.",
+          "start": 75.66,
+          "end": 76.12,
+          "probability": 0.999
+        },
+        {
+          "word": "BBC",
+          "start": 76.6,
+          "end": 77.08,
+          "probability": 0.812
+        },
+        {
+          "word": "Radio",
+          "start": 77.08,
+          "end": 77.54,
+          "probability": 0.682
+        },
+        {
+          "word": "4",
+          "start": 77.54,
+          "end": 77.9,
+          "probability": 0.806
+        },
+        {
+          "word": "programmes",
+          "start": 77.9,
+          "end": 78.18,
+          "probability": 0.73
+        }
+      ]
+    },
+    {
+      "start": 78.18,
+      "end": 82.48,
+      "text": " thinking allowed interviewed one young man Jason about his debt.",
+      "words": [
+        {
+          "word": "thinking",
+          "start": 78.18,
+          "end": 78.8,
+          "probability": 0.989
+        },
+        {
+          "word": "allowed",
+          "start": 78.8,
+          "end": 79.3,
+          "probability": 0.654
+        },
+        {
+          "word": "interviewed",
+          "start": 79.3,
+          "end": 79.94,
+          "probability": 0.947
+        },
+        {
+          "word": "one",
+          "start": 79.94,
+          "end": 80.26,
+          "probability": 0.97
+        },
+        {
+          "word": "young",
+          "start": 80.26,
+          "end": 80.48,
+          "probability": 0.997
+        },
+        {
+          "word": "man",
+          "start": 80.48,
+          "end": 80.84,
+          "probability": 0.99
+        },
+        {
+          "word": "Jason",
+          "start": 80.84,
+          "end": 81.42,
+          "probability": 0.653
+        },
+        {
+          "word": "about",
+          "start": 81.42,
+          "end": 81.86,
+          "probability": 0.962
+        },
+        {
+          "word": "his",
+          "start": 81.86,
+          "end": 82.14,
+          "probability": 1.0
+        },
+        {
+          "word": "debt.",
+          "start": 82.14,
+          "end": 82.48,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 82.86,
+      "end": 86.35,
+      "text": " Wherever jobs there are aren't enough to provide for a family. Sometimes you need to take",
+      "words": [
+        {
+          "word": "Wherever",
+          "start": 82.86,
+          "end": 83.16,
+          "probability": 0.618
+        },
+        {
+          "word": "jobs",
+          "start": 83.16,
+          "end": 83.4,
+          "probability": 0.995
+        },
+        {
+          "word": "there",
+          "start": 83.4,
+          "end": 83.66,
+          "probability": 0.954
+        },
+        {
+          "word": "are",
+          "start": 83.66,
+          "end": 83.86,
+          "probability": 0.996
+        },
+        {
+          "word": "aren't",
+          "start": 83.86,
+          "end": 84.04,
+          "probability": 0.921
+        },
+        {
+          "word": "enough",
+          "start": 84.04,
+          "end": 84.28,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 84.28,
+          "end": 84.44,
+          "probability": 0.998
+        },
+        {
+          "word": "provide",
+          "start": 84.44,
+          "end": 84.68,
+          "probability": 0.997
+        },
+        {
+          "word": "for",
+          "start": 84.68,
+          "end": 84.86,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 84.86,
+          "end": 84.96,
+          "probability": 0.979
+        },
+        {
+          "word": "family.",
+          "start": 84.96,
+          "end": 85.34,
+          "probability": 0.997
+        },
+        {
+          "word": "Sometimes",
+          "start": 85.54,
+          "end": 85.74,
+          "probability": 0.871
+        },
+        {
+          "word": "you",
+          "start": 85.74,
+          "end": 85.96,
+          "probability": 0.88
+        },
+        {
+          "word": "need",
+          "start": 85.96,
+          "end": 86.12,
+          "probability": 0.933
+        },
+        {
+          "word": "to",
+          "start": 86.12,
+          "end": 86.18,
+          "probability": 0.917
+        },
+        {
+          "word": "take",
+          "start": 86.18,
+          "end": 86.35,
+          "probability": 0.773
+        }
+      ]
+    },
+    {
+      "start": 86.35,
+      "end": 90.69,
+      "text": " out loans. I've done it a few times. You can't ever pay it back. You can't see a way out",
+      "words": [
+        {
+          "word": "out",
+          "start": 86.35,
+          "end": 86.5,
+          "probability": 0.777
+        },
+        {
+          "word": "loans.",
+          "start": 86.5,
+          "end": 86.9,
+          "probability": 0.997
+        },
+        {
+          "word": "I've",
+          "start": 87.06,
+          "end": 87.2,
+          "probability": 0.957
+        },
+        {
+          "word": "done",
+          "start": 87.2,
+          "end": 87.28,
+          "probability": 0.983
+        },
+        {
+          "word": "it",
+          "start": 87.28,
+          "end": 87.36,
+          "probability": 0.98
+        },
+        {
+          "word": "a",
+          "start": 87.36,
+          "end": 87.42,
+          "probability": 0.982
+        },
+        {
+          "word": "few",
+          "start": 87.42,
+          "end": 87.58,
+          "probability": 0.999
+        },
+        {
+          "word": "times.",
+          "start": 87.58,
+          "end": 88.02,
+          "probability": 0.999
+        },
+        {
+          "word": "You",
+          "start": 88.54,
+          "end": 88.66,
+          "probability": 0.655
+        },
+        {
+          "word": "can't",
+          "start": 88.66,
+          "end": 88.8,
+          "probability": 0.996
+        },
+        {
+          "word": "ever",
+          "start": 88.8,
+          "end": 88.94,
+          "probability": 0.871
+        },
+        {
+          "word": "pay",
+          "start": 88.94,
+          "end": 89.1,
+          "probability": 0.998
+        },
+        {
+          "word": "it",
+          "start": 89.1,
+          "end": 89.22,
+          "probability": 0.947
+        },
+        {
+          "word": "back.",
+          "start": 89.22,
+          "end": 89.64,
+          "probability": 0.999
+        },
+        {
+          "word": "You",
+          "start": 89.92,
+          "end": 90.0,
+          "probability": 0.582
+        },
+        {
+          "word": "can't",
+          "start": 90.0,
+          "end": 90.22,
+          "probability": 0.999
+        },
+        {
+          "word": "see",
+          "start": 90.22,
+          "end": 90.32,
+          "probability": 0.471
+        },
+        {
+          "word": "a",
+          "start": 90.32,
+          "end": 90.38,
+          "probability": 0.862
+        },
+        {
+          "word": "way",
+          "start": 90.38,
+          "end": 90.58,
+          "probability": 0.928
+        },
+        {
+          "word": "out",
+          "start": 90.58,
+          "end": 90.69,
+          "probability": 0.836
+        }
+      ]
+    },
+    {
+      "start": 90.69,
+      "end": 94.52,
+      "text": " other than winning the lottery or something. I'd like to think I could clear them all one day,",
+      "words": [
+        {
+          "word": "other",
+          "start": 90.69,
+          "end": 90.96,
+          "probability": 0.684
+        },
+        {
+          "word": "than",
+          "start": 90.96,
+          "end": 91.18,
+          "probability": 0.993
+        },
+        {
+          "word": "winning",
+          "start": 91.18,
+          "end": 91.46,
+          "probability": 0.992
+        },
+        {
+          "word": "the",
+          "start": 91.46,
+          "end": 91.58,
+          "probability": 0.993
+        },
+        {
+          "word": "lottery",
+          "start": 91.58,
+          "end": 91.88,
+          "probability": 0.999
+        },
+        {
+          "word": "or",
+          "start": 91.88,
+          "end": 92.06,
+          "probability": 0.975
+        },
+        {
+          "word": "something.",
+          "start": 92.06,
+          "end": 92.4,
+          "probability": 0.999
+        },
+        {
+          "word": "I'd",
+          "start": 92.78,
+          "end": 93.04,
+          "probability": 0.99
+        },
+        {
+          "word": "like",
+          "start": 93.04,
+          "end": 93.18,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 93.18,
+          "end": 93.26,
+          "probability": 0.998
+        },
+        {
+          "word": "think",
+          "start": 93.26,
+          "end": 93.42,
+          "probability": 0.974
+        },
+        {
+          "word": "I",
+          "start": 93.42,
+          "end": 93.48,
+          "probability": 0.986
+        },
+        {
+          "word": "could",
+          "start": 93.48,
+          "end": 93.66,
+          "probability": 0.482
+        },
+        {
+          "word": "clear",
+          "start": 93.66,
+          "end": 93.88,
+          "probability": 0.976
+        },
+        {
+          "word": "them",
+          "start": 93.88,
+          "end": 94.06,
+          "probability": 0.997
+        },
+        {
+          "word": "all",
+          "start": 94.06,
+          "end": 94.2,
+          "probability": 0.994
+        },
+        {
+          "word": "one",
+          "start": 94.2,
+          "end": 94.36,
+          "probability": 0.915
+        },
+        {
+          "word": "day,",
+          "start": 94.36,
+          "end": 94.52,
+          "probability": 0.956
+        }
+      ]
+    },
+    {
+      "start": 95.18,
+      "end": 101.32,
+      "text": " even if it means like five years paying them off. Jason uses three phrases. Pay back,",
+      "words": [
+        {
+          "word": "even",
+          "start": 95.18,
+          "end": 95.4,
+          "probability": 0.996
+        },
+        {
+          "word": "if",
+          "start": 95.4,
+          "end": 95.52,
+          "probability": 0.997
+        },
+        {
+          "word": "it",
+          "start": 95.52,
+          "end": 95.6,
+          "probability": 0.999
+        },
+        {
+          "word": "means",
+          "start": 95.6,
+          "end": 95.92,
+          "probability": 0.986
+        },
+        {
+          "word": "like",
+          "start": 95.92,
+          "end": 96.22,
+          "probability": 0.748
+        },
+        {
+          "word": "five",
+          "start": 96.22,
+          "end": 96.44,
+          "probability": 0.724
+        },
+        {
+          "word": "years",
+          "start": 96.44,
+          "end": 96.7,
+          "probability": 0.999
+        },
+        {
+          "word": "paying",
+          "start": 96.7,
+          "end": 96.94,
+          "probability": 0.984
+        },
+        {
+          "word": "them",
+          "start": 96.94,
+          "end": 97.1,
+          "probability": 0.998
+        },
+        {
+          "word": "off.",
+          "start": 97.1,
+          "end": 97.36,
+          "probability": 0.999
+        },
+        {
+          "word": "Jason",
+          "start": 97.78,
+          "end": 98.18,
+          "probability": 0.627
+        },
+        {
+          "word": "uses",
+          "start": 98.18,
+          "end": 98.74,
+          "probability": 0.997
+        },
+        {
+          "word": "three",
+          "start": 98.74,
+          "end": 99.48,
+          "probability": 0.973
+        },
+        {
+          "word": "phrases.",
+          "start": 99.48,
+          "end": 100.18,
+          "probability": 0.985
+        },
+        {
+          "word": "Pay",
+          "start": 100.56,
+          "end": 100.86,
+          "probability": 0.951
+        },
+        {
+          "word": "back,",
+          "start": 100.86,
+          "end": 101.32,
+          "probability": 0.798
+        }
+      ]
+    },
+    {
+      "start": 101.52,
+      "end": 107.92,
+      "text": " pay off, and clear debt. All of which mean the same thing. To give back the money you've borrowed.",
+      "words": [
+        {
+          "word": "pay",
+          "start": 101.52,
+          "end": 101.86,
+          "probability": 0.942
+        },
+        {
+          "word": "off,",
+          "start": 101.86,
+          "end": 102.28,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 102.64,
+          "end": 102.98,
+          "probability": 0.996
+        },
+        {
+          "word": "clear",
+          "start": 102.98,
+          "end": 103.36,
+          "probability": 0.99
+        },
+        {
+          "word": "debt.",
+          "start": 103.36,
+          "end": 103.94,
+          "probability": 0.998
+        },
+        {
+          "word": "All",
+          "start": 104.16,
+          "end": 104.52,
+          "probability": 0.993
+        },
+        {
+          "word": "of",
+          "start": 104.52,
+          "end": 104.7,
+          "probability": 0.998
+        },
+        {
+          "word": "which",
+          "start": 104.7,
+          "end": 104.98,
+          "probability": 0.999
+        },
+        {
+          "word": "mean",
+          "start": 104.98,
+          "end": 105.22,
+          "probability": 0.957
+        },
+        {
+          "word": "the",
+          "start": 105.22,
+          "end": 105.36,
+          "probability": 0.999
+        },
+        {
+          "word": "same",
+          "start": 105.36,
+          "end": 105.64,
+          "probability": 0.999
+        },
+        {
+          "word": "thing.",
+          "start": 105.64,
+          "end": 105.92,
+          "probability": 0.998
+        },
+        {
+          "word": "To",
+          "start": 106.0,
+          "end": 106.18,
+          "probability": 0.928
+        },
+        {
+          "word": "give",
+          "start": 106.18,
+          "end": 106.46,
+          "probability": 0.996
+        },
+        {
+          "word": "back",
+          "start": 106.46,
+          "end": 106.78,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 106.78,
+          "end": 106.92,
+          "probability": 0.987
+        },
+        {
+          "word": "money",
+          "start": 106.92,
+          "end": 107.32,
+          "probability": 0.997
+        },
+        {
+          "word": "you've",
+          "start": 107.32,
+          "end": 107.7,
+          "probability": 0.892
+        },
+        {
+          "word": "borrowed.",
+          "start": 107.7,
+          "end": 107.92,
+          "probability": 0.863
+        }
+      ]
+    },
+    {
+      "start": 108.54,
+      "end": 114.54,
+      "text": " In this episode, we'll hear more about living with debt by learning some useful new words and phrases.",
+      "words": [
+        {
+          "word": "In",
+          "start": 108.54,
+          "end": 108.86,
+          "probability": 0.976
+        },
+        {
+          "word": "this",
+          "start": 108.86,
+          "end": 109.12,
+          "probability": 0.999
+        },
+        {
+          "word": "episode,",
+          "start": 109.12,
+          "end": 109.68,
+          "probability": 0.998
+        },
+        {
+          "word": "we'll",
+          "start": 109.8,
+          "end": 110.1,
+          "probability": 0.989
+        },
+        {
+          "word": "hear",
+          "start": 110.1,
+          "end": 110.34,
+          "probability": 0.997
+        },
+        {
+          "word": "more",
+          "start": 110.34,
+          "end": 110.72,
+          "probability": 0.998
+        },
+        {
+          "word": "about",
+          "start": 110.72,
+          "end": 111.08,
+          "probability": 0.999
+        },
+        {
+          "word": "living",
+          "start": 111.08,
+          "end": 111.44,
+          "probability": 0.861
+        },
+        {
+          "word": "with",
+          "start": 111.44,
+          "end": 111.68,
+          "probability": 0.995
+        },
+        {
+          "word": "debt",
+          "start": 111.68,
+          "end": 112.02,
+          "probability": 0.537
+        },
+        {
+          "word": "by",
+          "start": 112.02,
+          "end": 112.3,
+          "probability": 0.705
+        },
+        {
+          "word": "learning",
+          "start": 112.3,
+          "end": 112.68,
+          "probability": 0.935
+        },
+        {
+          "word": "some",
+          "start": 112.68,
+          "end": 112.92,
+          "probability": 0.977
+        },
+        {
+          "word": "useful",
+          "start": 112.92,
+          "end": 113.3,
+          "probability": 0.953
+        },
+        {
+          "word": "new",
+          "start": 113.3,
+          "end": 113.62,
+          "probability": 0.818
+        },
+        {
+          "word": "words",
+          "start": 113.62,
+          "end": 113.94,
+          "probability": 0.908
+        },
+        {
+          "word": "and",
+          "start": 113.94,
+          "end": 114.12,
+          "probability": 0.529
+        },
+        {
+          "word": "phrases.",
+          "start": 114.12,
+          "end": 114.54,
+          "probability": 0.488
+        }
+      ]
+    },
+    {
+      "start": 115.02,
+      "end": 120.34,
+      "text": " And remember, you'll find all the vocabulary used, plus a quiz and worksheet on our websites,",
+      "words": [
+        {
+          "word": "And",
+          "start": 115.02,
+          "end": 115.32,
+          "probability": 0.975
+        },
+        {
+          "word": "remember,",
+          "start": 115.32,
+          "end": 115.86,
+          "probability": 0.984
+        },
+        {
+          "word": "you'll",
+          "start": 115.96,
+          "end": 116.18,
+          "probability": 0.989
+        },
+        {
+          "word": "find",
+          "start": 116.18,
+          "end": 116.36,
+          "probability": 0.997
+        },
+        {
+          "word": "all",
+          "start": 116.36,
+          "end": 116.58,
+          "probability": 0.993
+        },
+        {
+          "word": "the",
+          "start": 116.58,
+          "end": 116.68,
+          "probability": 0.939
+        },
+        {
+          "word": "vocabulary",
+          "start": 116.68,
+          "end": 117.22,
+          "probability": 0.994
+        },
+        {
+          "word": "used,",
+          "start": 117.22,
+          "end": 117.8,
+          "probability": 0.996
+        },
+        {
+          "word": "plus",
+          "start": 117.94,
+          "end": 118.22,
+          "probability": 0.962
+        },
+        {
+          "word": "a",
+          "start": 118.22,
+          "end": 118.36,
+          "probability": 0.827
+        },
+        {
+          "word": "quiz",
+          "start": 118.36,
+          "end": 118.64,
+          "probability": 0.99
+        },
+        {
+          "word": "and",
+          "start": 118.64,
+          "end": 118.9,
+          "probability": 0.768
+        },
+        {
+          "word": "worksheet",
+          "start": 118.9,
+          "end": 119.48,
+          "probability": 0.898
+        },
+        {
+          "word": "on",
+          "start": 119.48,
+          "end": 119.7,
+          "probability": 0.93
+        },
+        {
+          "word": "our",
+          "start": 119.7,
+          "end": 119.88,
+          "probability": 0.981
+        },
+        {
+          "word": "websites,",
+          "start": 119.88,
+          "end": 120.34,
+          "probability": 0.787
+        }
+      ]
+    },
+    {
+      "start": 120.46,
+      "end": 127.38,
+      "text": " BBClearningenglish.com. But first, I have a question for you, Pippa. According to debt support",
+      "words": [
+        {
+          "word": "BBClearningenglish.com.",
+          "start": 120.46,
+          "end": 122.62,
+          "probability": 0.572
+        },
+        {
+          "word": "But",
+          "start": 122.84,
+          "end": 123.08,
+          "probability": 0.72
+        },
+        {
+          "word": "first,",
+          "start": 123.08,
+          "end": 123.54,
+          "probability": 0.968
+        },
+        {
+          "word": "I",
+          "start": 123.66,
+          "end": 123.78,
+          "probability": 0.988
+        },
+        {
+          "word": "have",
+          "start": 123.78,
+          "end": 123.96,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 123.96,
+          "end": 124.1,
+          "probability": 0.996
+        },
+        {
+          "word": "question",
+          "start": 124.1,
+          "end": 124.48,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 124.48,
+          "end": 124.74,
+          "probability": 0.993
+        },
+        {
+          "word": "you,",
+          "start": 124.74,
+          "end": 124.84,
+          "probability": 0.997
+        },
+        {
+          "word": "Pippa.",
+          "start": 124.84,
+          "end": 125.36,
+          "probability": 0.742
+        },
+        {
+          "word": "According",
+          "start": 125.74,
+          "end": 126.08,
+          "probability": 0.811
+        },
+        {
+          "word": "to",
+          "start": 126.08,
+          "end": 126.66,
+          "probability": 0.902
+        },
+        {
+          "word": "debt",
+          "start": 126.66,
+          "end": 127.0,
+          "probability": 0.566
+        },
+        {
+          "word": "support",
+          "start": 127.0,
+          "end": 127.38,
+          "probability": 0.885
+        }
+      ]
+    },
+    {
+      "start": 127.38,
+      "end": 134.31,
+      "text": " group, the money charity, roughly how much is the average British adult in debt through credit",
+      "words": [
+        {
+          "word": "group,",
+          "start": 127.38,
+          "end": 127.88,
+          "probability": 0.962
+        },
+        {
+          "word": "the",
+          "start": 128.04,
+          "end": 128.12,
+          "probability": 0.91
+        },
+        {
+          "word": "money",
+          "start": 128.12,
+          "end": 128.4,
+          "probability": 0.933
+        },
+        {
+          "word": "charity,",
+          "start": 128.4,
+          "end": 129.04,
+          "probability": 0.986
+        },
+        {
+          "word": "roughly",
+          "start": 129.36,
+          "end": 129.98,
+          "probability": 0.992
+        },
+        {
+          "word": "how",
+          "start": 129.98,
+          "end": 130.28,
+          "probability": 0.903
+        },
+        {
+          "word": "much",
+          "start": 130.28,
+          "end": 130.7,
+          "probability": 0.999
+        },
+        {
+          "word": "is",
+          "start": 130.7,
+          "end": 130.98,
+          "probability": 0.996
+        },
+        {
+          "word": "the",
+          "start": 130.98,
+          "end": 131.18,
+          "probability": 0.998
+        },
+        {
+          "word": "average",
+          "start": 131.18,
+          "end": 131.76,
+          "probability": 0.999
+        },
+        {
+          "word": "British",
+          "start": 131.76,
+          "end": 132.34,
+          "probability": 0.901
+        },
+        {
+          "word": "adult",
+          "start": 132.34,
+          "end": 132.84,
+          "probability": 0.988
+        },
+        {
+          "word": "in",
+          "start": 132.84,
+          "end": 133.22,
+          "probability": 0.97
+        },
+        {
+          "word": "debt",
+          "start": 133.22,
+          "end": 133.68,
+          "probability": 0.995
+        },
+        {
+          "word": "through",
+          "start": 133.68,
+          "end": 134.0,
+          "probability": 0.689
+        },
+        {
+          "word": "credit",
+          "start": 134.0,
+          "end": 134.31,
+          "probability": 0.908
+        }
+      ]
+    },
+    {
+      "start": 134.31,
+      "end": 145.88,
+      "text": " cards, overdrafts, and personal loans. Is it A, 2,200 pounds, B, 4,200 pounds, or C, 6,200 pounds?",
+      "words": [
+        {
+          "word": "cards,",
+          "start": 134.31,
+          "end": 134.92,
+          "probability": 0.987
+        },
+        {
+          "word": "overdrafts,",
+          "start": 135.32,
+          "end": 136.34,
+          "probability": 0.946
+        },
+        {
+          "word": "and",
+          "start": 136.34,
+          "end": 136.56,
+          "probability": 0.995
+        },
+        {
+          "word": "personal",
+          "start": 136.56,
+          "end": 136.88,
+          "probability": 0.998
+        },
+        {
+          "word": "loans.",
+          "start": 136.88,
+          "end": 137.34,
+          "probability": 0.998
+        },
+        {
+          "word": "Is",
+          "start": 137.86,
+          "end": 137.98,
+          "probability": 0.988
+        },
+        {
+          "word": "it",
+          "start": 137.98,
+          "end": 138.3,
+          "probability": 0.997
+        },
+        {
+          "word": "A,",
+          "start": 138.3,
+          "end": 138.76,
+          "probability": 0.635
+        },
+        {
+          "word": "2,200",
+          "start": 138.82,
+          "end": 140.06,
+          "probability": 0.813
+        },
+        {
+          "word": "pounds,",
+          "start": 140.06,
+          "end": 140.62,
+          "probability": 0.903
+        },
+        {
+          "word": "B,",
+          "start": 141.02,
+          "end": 141.58,
+          "probability": 0.956
+        },
+        {
+          "word": "4,200",
+          "start": 141.78,
+          "end": 142.88,
+          "probability": 0.988
+        },
+        {
+          "word": "pounds,",
+          "start": 142.88,
+          "end": 143.3,
+          "probability": 0.993
+        },
+        {
+          "word": "or",
+          "start": 143.58,
+          "end": 143.78,
+          "probability": 0.931
+        },
+        {
+          "word": "C,",
+          "start": 143.78,
+          "end": 144.12,
+          "probability": 0.957
+        },
+        {
+          "word": "6,200",
+          "start": 144.4,
+          "end": 145.5,
+          "probability": 0.948
+        },
+        {
+          "word": "pounds?",
+          "start": 145.5,
+          "end": 145.88,
+          "probability": 0.984
+        }
+      ]
+    },
+    {
+      "start": 146.48,
+      "end": 153.78,
+      "text": " I'm not sure. I'll say 2,200 pounds. Okay, well, we will find out the answer later in the program.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 146.48,
+          "end": 147.1,
+          "probability": 0.95
+        },
+        {
+          "word": "not",
+          "start": 147.1,
+          "end": 147.36,
+          "probability": 0.998
+        },
+        {
+          "word": "sure.",
+          "start": 147.36,
+          "end": 147.66,
+          "probability": 1.0
+        },
+        {
+          "word": "I'll",
+          "start": 147.68,
+          "end": 148.0,
+          "probability": 0.996
+        },
+        {
+          "word": "say",
+          "start": 148.0,
+          "end": 148.48,
+          "probability": 0.998
+        },
+        {
+          "word": "2,200",
+          "start": 148.48,
+          "end": 149.68,
+          "probability": 0.992
+        },
+        {
+          "word": "pounds.",
+          "start": 149.68,
+          "end": 150.14,
+          "probability": 0.998
+        },
+        {
+          "word": "Okay,",
+          "start": 150.52,
+          "end": 150.74,
+          "probability": 0.528
+        },
+        {
+          "word": "well,",
+          "start": 150.98,
+          "end": 151.18,
+          "probability": 0.963
+        },
+        {
+          "word": "we",
+          "start": 151.32,
+          "end": 151.4,
+          "probability": 0.983
+        },
+        {
+          "word": "will",
+          "start": 151.4,
+          "end": 151.72,
+          "probability": 0.985
+        },
+        {
+          "word": "find",
+          "start": 151.72,
+          "end": 152.0,
+          "probability": 0.986
+        },
+        {
+          "word": "out",
+          "start": 152.0,
+          "end": 152.12,
+          "probability": 0.991
+        },
+        {
+          "word": "the",
+          "start": 152.12,
+          "end": 152.3,
+          "probability": 0.995
+        },
+        {
+          "word": "answer",
+          "start": 152.3,
+          "end": 152.66,
+          "probability": 0.994
+        },
+        {
+          "word": "later",
+          "start": 152.66,
+          "end": 153.02,
+          "probability": 0.953
+        },
+        {
+          "word": "in",
+          "start": 153.02,
+          "end": 153.3,
+          "probability": 0.941
+        },
+        {
+          "word": "the",
+          "start": 153.3,
+          "end": 153.42,
+          "probability": 0.955
+        },
+        {
+          "word": "program.",
+          "start": 153.42,
+          "end": 153.78,
+          "probability": 0.794
+        }
+      ]
+    },
+    {
+      "start": 154.24,
+      "end": 160.87,
+      "text": " Jason's story features in a new book by sociologist Ryan Davey. Ryan spent months living in a",
+      "words": [
+        {
+          "word": "Jason's",
+          "start": 154.24,
+          "end": 154.86,
+          "probability": 0.993
+        },
+        {
+          "word": "story",
+          "start": 154.86,
+          "end": 155.24,
+          "probability": 0.981
+        },
+        {
+          "word": "features",
+          "start": 155.24,
+          "end": 155.7,
+          "probability": 0.982
+        },
+        {
+          "word": "in",
+          "start": 155.7,
+          "end": 156.0,
+          "probability": 0.815
+        },
+        {
+          "word": "a",
+          "start": 156.0,
+          "end": 156.16,
+          "probability": 0.996
+        },
+        {
+          "word": "new",
+          "start": 156.16,
+          "end": 156.36,
+          "probability": 0.998
+        },
+        {
+          "word": "book",
+          "start": 156.36,
+          "end": 156.62,
+          "probability": 0.999
+        },
+        {
+          "word": "by",
+          "start": 156.62,
+          "end": 156.86,
+          "probability": 0.991
+        },
+        {
+          "word": "sociologist",
+          "start": 156.86,
+          "end": 157.62,
+          "probability": 0.933
+        },
+        {
+          "word": "Ryan",
+          "start": 157.62,
+          "end": 158.12,
+          "probability": 0.898
+        },
+        {
+          "word": "Davey.",
+          "start": 158.12,
+          "end": 158.8,
+          "probability": 0.602
+        },
+        {
+          "word": "Ryan",
+          "start": 159.02,
+          "end": 159.34,
+          "probability": 0.955
+        },
+        {
+          "word": "spent",
+          "start": 159.34,
+          "end": 159.66,
+          "probability": 0.992
+        },
+        {
+          "word": "months",
+          "start": 159.66,
+          "end": 160.14,
+          "probability": 0.977
+        },
+        {
+          "word": "living",
+          "start": 160.14,
+          "end": 160.42,
+          "probability": 0.691
+        },
+        {
+          "word": "in",
+          "start": 160.42,
+          "end": 160.74,
+          "probability": 0.79
+        },
+        {
+          "word": "a",
+          "start": 160.74,
+          "end": 160.87,
+          "probability": 0.839
+        }
+      ]
+    },
+    {
+      "start": 160.87,
+      "end": 166.61,
+      "text": " low-income housing estate, which he gave the fictional name, Woldam. He talked with residents",
+      "words": [
+        {
+          "word": "low-income",
+          "start": 160.87,
+          "end": 161.54,
+          "probability": 0.891
+        },
+        {
+          "word": "housing",
+          "start": 161.54,
+          "end": 161.98,
+          "probability": 0.997
+        },
+        {
+          "word": "estate,",
+          "start": 161.98,
+          "end": 162.58,
+          "probability": 0.976
+        },
+        {
+          "word": "which",
+          "start": 162.9,
+          "end": 163.02,
+          "probability": 0.998
+        },
+        {
+          "word": "he",
+          "start": 163.02,
+          "end": 163.16,
+          "probability": 0.993
+        },
+        {
+          "word": "gave",
+          "start": 163.16,
+          "end": 163.4,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 163.4,
+          "end": 163.58,
+          "probability": 0.991
+        },
+        {
+          "word": "fictional",
+          "start": 163.58,
+          "end": 164.0,
+          "probability": 0.994
+        },
+        {
+          "word": "name,",
+          "start": 164.0,
+          "end": 164.54,
+          "probability": 0.999
+        },
+        {
+          "word": "Woldam.",
+          "start": 164.66,
+          "end": 165.16,
+          "probability": 0.586
+        },
+        {
+          "word": "He",
+          "start": 165.6,
+          "end": 165.72,
+          "probability": 0.982
+        },
+        {
+          "word": "talked",
+          "start": 165.72,
+          "end": 166.0,
+          "probability": 0.989
+        },
+        {
+          "word": "with",
+          "start": 166.0,
+          "end": 166.14,
+          "probability": 0.99
+        },
+        {
+          "word": "residents",
+          "start": 166.14,
+          "end": 166.61,
+          "probability": 0.887
+        }
+      ]
+    },
+    {
+      "start": 166.61,
+      "end": 172.9,
+      "text": " and listened to their money worries. Here, Ryan explains more to BBC Radio 4's thinking aloud.",
+      "words": [
+        {
+          "word": "and",
+          "start": 166.61,
+          "end": 166.94,
+          "probability": 0.998
+        },
+        {
+          "word": "listened",
+          "start": 166.94,
+          "end": 167.18,
+          "probability": 0.996
+        },
+        {
+          "word": "to",
+          "start": 167.18,
+          "end": 167.38,
+          "probability": 1.0
+        },
+        {
+          "word": "their",
+          "start": 167.38,
+          "end": 167.6,
+          "probability": 0.988
+        },
+        {
+          "word": "money",
+          "start": 167.6,
+          "end": 167.84,
+          "probability": 0.891
+        },
+        {
+          "word": "worries.",
+          "start": 167.84,
+          "end": 168.32,
+          "probability": 0.973
+        },
+        {
+          "word": "Here,",
+          "start": 168.76,
+          "end": 169.16,
+          "probability": 0.996
+        },
+        {
+          "word": "Ryan",
+          "start": 169.42,
+          "end": 169.68,
+          "probability": 0.991
+        },
+        {
+          "word": "explains",
+          "start": 169.68,
+          "end": 170.18,
+          "probability": 0.998
+        },
+        {
+          "word": "more",
+          "start": 170.18,
+          "end": 170.58,
+          "probability": 0.979
+        },
+        {
+          "word": "to",
+          "start": 170.58,
+          "end": 170.74,
+          "probability": 0.98
+        },
+        {
+          "word": "BBC",
+          "start": 170.74,
+          "end": 171.18,
+          "probability": 0.991
+        },
+        {
+          "word": "Radio",
+          "start": 171.18,
+          "end": 171.64,
+          "probability": 0.914
+        },
+        {
+          "word": "4's",
+          "start": 171.64,
+          "end": 172.22,
+          "probability": 0.689
+        },
+        {
+          "word": "thinking",
+          "start": 172.22,
+          "end": 172.56,
+          "probability": 0.58
+        },
+        {
+          "word": "aloud.",
+          "start": 172.56,
+          "end": 172.9,
+          "probability": 0.953
+        }
+      ]
+    },
+    {
+      "start": 173.36,
+      "end": 177.6,
+      "text": " My approach was to let people know that I was interested in learning about their lives and how",
+      "words": [
+        {
+          "word": "My",
+          "start": 173.36,
+          "end": 173.7,
+          "probability": 0.996
+        },
+        {
+          "word": "approach",
+          "start": 173.7,
+          "end": 174.08,
+          "probability": 1.0
+        },
+        {
+          "word": "was",
+          "start": 174.08,
+          "end": 174.38,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 174.38,
+          "end": 174.5,
+          "probability": 0.998
+        },
+        {
+          "word": "let",
+          "start": 174.5,
+          "end": 174.66,
+          "probability": 0.999
+        },
+        {
+          "word": "people",
+          "start": 174.66,
+          "end": 174.94,
+          "probability": 0.999
+        },
+        {
+          "word": "know",
+          "start": 174.94,
+          "end": 175.28,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 175.28,
+          "end": 175.38,
+          "probability": 0.982
+        },
+        {
+          "word": "I",
+          "start": 175.38,
+          "end": 175.5,
+          "probability": 0.996
+        },
+        {
+          "word": "was",
+          "start": 175.5,
+          "end": 175.62,
+          "probability": 0.999
+        },
+        {
+          "word": "interested",
+          "start": 175.62,
+          "end": 175.94,
+          "probability": 0.997
+        },
+        {
+          "word": "in",
+          "start": 175.94,
+          "end": 176.16,
+          "probability": 0.99
+        },
+        {
+          "word": "learning",
+          "start": 176.16,
+          "end": 176.48,
+          "probability": 0.992
+        },
+        {
+          "word": "about",
+          "start": 176.48,
+          "end": 176.8,
+          "probability": 0.989
+        },
+        {
+          "word": "their",
+          "start": 176.8,
+          "end": 177.02,
+          "probability": 0.951
+        },
+        {
+          "word": "lives",
+          "start": 177.02,
+          "end": 177.36,
+          "probability": 0.972
+        },
+        {
+          "word": "and",
+          "start": 177.36,
+          "end": 177.56,
+          "probability": 0.675
+        },
+        {
+          "word": "how",
+          "start": 177.56,
+          "end": 177.6,
+          "probability": 0.599
+        }
+      ]
+    },
+    {
+      "start": 177.6,
+      "end": 182.76,
+      "text": " they were making ends meet, so I did some interviews with residents, and I paid attention to where",
+      "words": [
+        {
+          "word": "they",
+          "start": 177.6,
+          "end": 177.86,
+          "probability": 0.998
+        },
+        {
+          "word": "were",
+          "start": 177.86,
+          "end": 177.92,
+          "probability": 0.999
+        },
+        {
+          "word": "making",
+          "start": 177.92,
+          "end": 178.24,
+          "probability": 0.999
+        },
+        {
+          "word": "ends",
+          "start": 178.24,
+          "end": 178.58,
+          "probability": 0.968
+        },
+        {
+          "word": "meet,",
+          "start": 178.58,
+          "end": 178.94,
+          "probability": 0.981
+        },
+        {
+          "word": "so",
+          "start": 179.14,
+          "end": 179.22,
+          "probability": 0.997
+        },
+        {
+          "word": "I",
+          "start": 179.22,
+          "end": 179.26,
+          "probability": 0.997
+        },
+        {
+          "word": "did",
+          "start": 179.26,
+          "end": 179.42,
+          "probability": 0.999
+        },
+        {
+          "word": "some",
+          "start": 179.42,
+          "end": 179.58,
+          "probability": 0.999
+        },
+        {
+          "word": "interviews",
+          "start": 179.58,
+          "end": 179.94,
+          "probability": 0.997
+        },
+        {
+          "word": "with",
+          "start": 179.94,
+          "end": 180.14,
+          "probability": 0.999
+        },
+        {
+          "word": "residents,",
+          "start": 180.14,
+          "end": 180.7,
+          "probability": 0.986
+        },
+        {
+          "word": "and",
+          "start": 181.0,
+          "end": 181.52,
+          "probability": 0.99
+        },
+        {
+          "word": "I",
+          "start": 181.52,
+          "end": 181.6,
+          "probability": 0.99
+        },
+        {
+          "word": "paid",
+          "start": 181.6,
+          "end": 181.8,
+          "probability": 0.982
+        },
+        {
+          "word": "attention",
+          "start": 181.8,
+          "end": 182.26,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 182.26,
+          "end": 182.54,
+          "probability": 0.974
+        },
+        {
+          "word": "where",
+          "start": 182.54,
+          "end": 182.76,
+          "probability": 0.845
+        }
+      ]
+    },
+    {
+      "start": 182.76,
+      "end": 189.6,
+      "text": " debt came up in everyday conversations. For many people in Woldam, Jason included debt was an",
+      "words": [
+        {
+          "word": "debt",
+          "start": 182.76,
+          "end": 183.04,
+          "probability": 0.957
+        },
+        {
+          "word": "came",
+          "start": 183.04,
+          "end": 183.32,
+          "probability": 0.999
+        },
+        {
+          "word": "up",
+          "start": 183.32,
+          "end": 183.52,
+          "probability": 0.997
+        },
+        {
+          "word": "in",
+          "start": 183.52,
+          "end": 183.66,
+          "probability": 0.997
+        },
+        {
+          "word": "everyday",
+          "start": 183.66,
+          "end": 183.92,
+          "probability": 0.989
+        },
+        {
+          "word": "conversations.",
+          "start": 183.92,
+          "end": 184.9,
+          "probability": 0.993
+        },
+        {
+          "word": "For",
+          "start": 185.16,
+          "end": 185.36,
+          "probability": 0.996
+        },
+        {
+          "word": "many",
+          "start": 185.36,
+          "end": 185.6,
+          "probability": 0.998
+        },
+        {
+          "word": "people",
+          "start": 185.6,
+          "end": 185.98,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 185.98,
+          "end": 186.16,
+          "probability": 0.962
+        },
+        {
+          "word": "Woldam,",
+          "start": 186.16,
+          "end": 186.48,
+          "probability": 0.946
+        },
+        {
+          "word": "Jason",
+          "start": 186.52,
+          "end": 186.86,
+          "probability": 0.994
+        },
+        {
+          "word": "included",
+          "start": 186.86,
+          "end": 187.42,
+          "probability": 0.978
+        },
+        {
+          "word": "debt",
+          "start": 187.42,
+          "end": 188.44,
+          "probability": 0.384
+        },
+        {
+          "word": "was",
+          "start": 188.44,
+          "end": 189.1,
+          "probability": 0.7
+        },
+        {
+          "word": "an",
+          "start": 189.1,
+          "end": 189.6,
+          "probability": 0.809
+        }
+      ]
+    },
+    {
+      "start": 190.1,
+      "end": 194.92,
+      "text": " ordinary feature of daily life, and beyond that being in a rear, so being behind with one",
+      "words": [
+        {
+          "word": "ordinary",
+          "start": 190.1,
+          "end": 190.4,
+          "probability": 0.891
+        },
+        {
+          "word": "feature",
+          "start": 190.4,
+          "end": 190.78,
+          "probability": 0.829
+        },
+        {
+          "word": "of",
+          "start": 190.78,
+          "end": 190.96,
+          "probability": 0.992
+        },
+        {
+          "word": "daily",
+          "start": 190.96,
+          "end": 191.3,
+          "probability": 0.989
+        },
+        {
+          "word": "life,",
+          "start": 191.3,
+          "end": 191.66,
+          "probability": 0.986
+        },
+        {
+          "word": "and",
+          "start": 191.8,
+          "end": 191.92,
+          "probability": 0.994
+        },
+        {
+          "word": "beyond",
+          "start": 191.92,
+          "end": 192.26,
+          "probability": 0.991
+        },
+        {
+          "word": "that",
+          "start": 192.26,
+          "end": 192.54,
+          "probability": 0.865
+        },
+        {
+          "word": "being",
+          "start": 192.54,
+          "end": 192.84,
+          "probability": 0.771
+        },
+        {
+          "word": "in",
+          "start": 192.84,
+          "end": 193.04,
+          "probability": 0.922
+        },
+        {
+          "word": "a",
+          "start": 193.04,
+          "end": 193.18,
+          "probability": 0.815
+        },
+        {
+          "word": "rear,",
+          "start": 193.18,
+          "end": 193.34,
+          "probability": 0.588
+        },
+        {
+          "word": "so",
+          "start": 193.44,
+          "end": 193.58,
+          "probability": 0.955
+        },
+        {
+          "word": "being",
+          "start": 193.58,
+          "end": 193.82,
+          "probability": 0.973
+        },
+        {
+          "word": "behind",
+          "start": 193.82,
+          "end": 194.26,
+          "probability": 0.973
+        },
+        {
+          "word": "with",
+          "start": 194.26,
+          "end": 194.74,
+          "probability": 0.981
+        },
+        {
+          "word": "one",
+          "start": 194.74,
+          "end": 194.92,
+          "probability": 0.758
+        }
+      ]
+    },
+    {
+      "start": 194.92,
+      "end": 201.72,
+      "text": " or more monthly payment commitment was part of daily life. The people of Woldam were making ends meet.",
+      "words": [
+        {
+          "word": "or",
+          "start": 194.92,
+          "end": 195.16,
+          "probability": 0.811
+        },
+        {
+          "word": "more",
+          "start": 195.16,
+          "end": 195.36,
+          "probability": 0.997
+        },
+        {
+          "word": "monthly",
+          "start": 195.36,
+          "end": 195.78,
+          "probability": 0.788
+        },
+        {
+          "word": "payment",
+          "start": 195.78,
+          "end": 196.28,
+          "probability": 0.988
+        },
+        {
+          "word": "commitment",
+          "start": 196.28,
+          "end": 196.88,
+          "probability": 0.973
+        },
+        {
+          "word": "was",
+          "start": 196.88,
+          "end": 197.1,
+          "probability": 0.85
+        },
+        {
+          "word": "part",
+          "start": 197.1,
+          "end": 197.42,
+          "probability": 0.985
+        },
+        {
+          "word": "of",
+          "start": 197.42,
+          "end": 197.54,
+          "probability": 0.999
+        },
+        {
+          "word": "daily",
+          "start": 197.54,
+          "end": 197.8,
+          "probability": 0.989
+        },
+        {
+          "word": "life.",
+          "start": 197.8,
+          "end": 198.24,
+          "probability": 0.999
+        },
+        {
+          "word": "The",
+          "start": 198.58,
+          "end": 198.78,
+          "probability": 0.971
+        },
+        {
+          "word": "people",
+          "start": 198.78,
+          "end": 199.22,
+          "probability": 0.993
+        },
+        {
+          "word": "of",
+          "start": 199.22,
+          "end": 199.48,
+          "probability": 0.982
+        },
+        {
+          "word": "Woldam",
+          "start": 199.48,
+          "end": 200.06,
+          "probability": 0.997
+        },
+        {
+          "word": "were",
+          "start": 200.06,
+          "end": 200.38,
+          "probability": 0.92
+        },
+        {
+          "word": "making",
+          "start": 200.38,
+          "end": 200.88,
+          "probability": 0.96
+        },
+        {
+          "word": "ends",
+          "start": 200.88,
+          "end": 201.34,
+          "probability": 0.583
+        },
+        {
+          "word": "meet.",
+          "start": 201.34,
+          "end": 201.72,
+          "probability": 0.741
+        }
+      ]
+    },
+    {
+      "start": 202.0,
+      "end": 207.8,
+      "text": " To make ends meet means having just enough money to pay for basic living expenses like food,",
+      "words": [
+        {
+          "word": "To",
+          "start": 202.0,
+          "end": 202.24,
+          "probability": 0.994
+        },
+        {
+          "word": "make",
+          "start": 202.24,
+          "end": 202.56,
+          "probability": 0.997
+        },
+        {
+          "word": "ends",
+          "start": 202.56,
+          "end": 202.88,
+          "probability": 0.997
+        },
+        {
+          "word": "meet",
+          "start": 202.88,
+          "end": 203.3,
+          "probability": 0.999
+        },
+        {
+          "word": "means",
+          "start": 203.3,
+          "end": 203.66,
+          "probability": 0.895
+        },
+        {
+          "word": "having",
+          "start": 203.66,
+          "end": 204.02,
+          "probability": 0.993
+        },
+        {
+          "word": "just",
+          "start": 204.02,
+          "end": 204.42,
+          "probability": 0.951
+        },
+        {
+          "word": "enough",
+          "start": 204.42,
+          "end": 204.72,
+          "probability": 1.0
+        },
+        {
+          "word": "money",
+          "start": 204.72,
+          "end": 205.08,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 205.08,
+          "end": 205.2,
+          "probability": 0.989
+        },
+        {
+          "word": "pay",
+          "start": 205.2,
+          "end": 205.46,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 205.46,
+          "end": 205.58,
+          "probability": 0.997
+        },
+        {
+          "word": "basic",
+          "start": 205.58,
+          "end": 206.04,
+          "probability": 0.993
+        },
+        {
+          "word": "living",
+          "start": 206.04,
+          "end": 206.34,
+          "probability": 0.998
+        },
+        {
+          "word": "expenses",
+          "start": 206.34,
+          "end": 206.96,
+          "probability": 0.992
+        },
+        {
+          "word": "like",
+          "start": 206.96,
+          "end": 207.38,
+          "probability": 0.865
+        },
+        {
+          "word": "food,",
+          "start": 207.38,
+          "end": 207.8,
+          "probability": 0.856
+        }
+      ]
+    },
+    {
+      "start": 207.82,
+      "end": 214.1,
+      "text": " bills, and rent. Ryan found that many residents were in arrears, a phrase meaning to still",
+      "words": [
+        {
+          "word": "bills,",
+          "start": 207.82,
+          "end": 208.34,
+          "probability": 0.987
+        },
+        {
+          "word": "and",
+          "start": 208.54,
+          "end": 208.58,
+          "probability": 0.992
+        },
+        {
+          "word": "rent.",
+          "start": 208.58,
+          "end": 209.02,
+          "probability": 0.998
+        },
+        {
+          "word": "Ryan",
+          "start": 209.58,
+          "end": 209.92,
+          "probability": 0.992
+        },
+        {
+          "word": "found",
+          "start": 209.92,
+          "end": 210.28,
+          "probability": 0.993
+        },
+        {
+          "word": "that",
+          "start": 210.28,
+          "end": 210.5,
+          "probability": 0.991
+        },
+        {
+          "word": "many",
+          "start": 210.5,
+          "end": 210.74,
+          "probability": 0.994
+        },
+        {
+          "word": "residents",
+          "start": 210.74,
+          "end": 211.26,
+          "probability": 0.995
+        },
+        {
+          "word": "were",
+          "start": 211.26,
+          "end": 211.56,
+          "probability": 0.995
+        },
+        {
+          "word": "in",
+          "start": 211.56,
+          "end": 211.82,
+          "probability": 0.976
+        },
+        {
+          "word": "arrears,",
+          "start": 211.82,
+          "end": 212.42,
+          "probability": 0.697
+        },
+        {
+          "word": "a",
+          "start": 212.84,
+          "end": 212.94,
+          "probability": 0.869
+        },
+        {
+          "word": "phrase",
+          "start": 212.94,
+          "end": 213.24,
+          "probability": 0.984
+        },
+        {
+          "word": "meaning",
+          "start": 213.24,
+          "end": 213.56,
+          "probability": 0.903
+        },
+        {
+          "word": "to",
+          "start": 213.56,
+          "end": 213.82,
+          "probability": 0.916
+        },
+        {
+          "word": "still",
+          "start": 213.82,
+          "end": 214.1,
+          "probability": 0.816
+        }
+      ]
+    },
+    {
+      "start": 214.1,
+      "end": 220.94,
+      "text": " owe money that should have already been repaid. For most residents, debt was a normal part of daily life.",
+      "words": [
+        {
+          "word": "owe",
+          "start": 214.1,
+          "end": 214.42,
+          "probability": 0.997
+        },
+        {
+          "word": "money",
+          "start": 214.42,
+          "end": 214.78,
+          "probability": 0.997
+        },
+        {
+          "word": "that",
+          "start": 214.78,
+          "end": 215.08,
+          "probability": 0.979
+        },
+        {
+          "word": "should",
+          "start": 215.08,
+          "end": 215.28,
+          "probability": 0.997
+        },
+        {
+          "word": "have",
+          "start": 215.28,
+          "end": 215.6,
+          "probability": 0.954
+        },
+        {
+          "word": "already",
+          "start": 215.6,
+          "end": 216.04,
+          "probability": 0.982
+        },
+        {
+          "word": "been",
+          "start": 216.04,
+          "end": 216.32,
+          "probability": 0.985
+        },
+        {
+          "word": "repaid.",
+          "start": 216.32,
+          "end": 216.82,
+          "probability": 0.906
+        },
+        {
+          "word": "For",
+          "start": 217.4,
+          "end": 217.58,
+          "probability": 0.997
+        },
+        {
+          "word": "most",
+          "start": 217.58,
+          "end": 217.88,
+          "probability": 0.999
+        },
+        {
+          "word": "residents,",
+          "start": 217.88,
+          "end": 218.52,
+          "probability": 0.992
+        },
+        {
+          "word": "debt",
+          "start": 218.9,
+          "end": 219.04,
+          "probability": 0.99
+        },
+        {
+          "word": "was",
+          "start": 219.04,
+          "end": 219.3,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 219.3,
+          "end": 219.44,
+          "probability": 0.994
+        },
+        {
+          "word": "normal",
+          "start": 219.44,
+          "end": 219.78,
+          "probability": 0.995
+        },
+        {
+          "word": "part",
+          "start": 219.78,
+          "end": 220.18,
+          "probability": 0.978
+        },
+        {
+          "word": "of",
+          "start": 220.18,
+          "end": 220.3,
+          "probability": 0.919
+        },
+        {
+          "word": "daily",
+          "start": 220.3,
+          "end": 220.62,
+          "probability": 0.621
+        },
+        {
+          "word": "life.",
+          "start": 220.62,
+          "end": 220.94,
+          "probability": 0.599
+        }
+      ]
+    },
+    {
+      "start": 221.78,
+      "end": 228.0,
+      "text": " With a regular income, debt can be managed, but for those who are unemployed or on low incomes,",
+      "words": [
+        {
+          "word": "With",
+          "start": 221.78,
+          "end": 222.12,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 222.12,
+          "end": 222.34,
+          "probability": 0.794
+        },
+        {
+          "word": "regular",
+          "start": 222.34,
+          "end": 222.78,
+          "probability": 0.996
+        },
+        {
+          "word": "income,",
+          "start": 222.78,
+          "end": 223.48,
+          "probability": 0.824
+        },
+        {
+          "word": "debt",
+          "start": 223.72,
+          "end": 223.78,
+          "probability": 0.997
+        },
+        {
+          "word": "can",
+          "start": 223.78,
+          "end": 224.1,
+          "probability": 0.998
+        },
+        {
+          "word": "be",
+          "start": 224.1,
+          "end": 224.28,
+          "probability": 1.0
+        },
+        {
+          "word": "managed,",
+          "start": 224.28,
+          "end": 224.76,
+          "probability": 0.996
+        },
+        {
+          "word": "but",
+          "start": 225.12,
+          "end": 225.38,
+          "probability": 0.982
+        },
+        {
+          "word": "for",
+          "start": 225.38,
+          "end": 225.56,
+          "probability": 0.993
+        },
+        {
+          "word": "those",
+          "start": 225.56,
+          "end": 225.84,
+          "probability": 0.998
+        },
+        {
+          "word": "who",
+          "start": 225.84,
+          "end": 226.0,
+          "probability": 0.993
+        },
+        {
+          "word": "are",
+          "start": 226.0,
+          "end": 226.18,
+          "probability": 0.815
+        },
+        {
+          "word": "unemployed",
+          "start": 226.18,
+          "end": 226.74,
+          "probability": 0.96
+        },
+        {
+          "word": "or",
+          "start": 226.74,
+          "end": 227.14,
+          "probability": 0.896
+        },
+        {
+          "word": "on",
+          "start": 227.14,
+          "end": 227.34,
+          "probability": 0.839
+        },
+        {
+          "word": "low",
+          "start": 227.34,
+          "end": 227.58,
+          "probability": 0.987
+        },
+        {
+          "word": "incomes,",
+          "start": 227.58,
+          "end": 228.0,
+          "probability": 0.737
+        }
+      ]
+    },
+    {
+      "start": 228.06,
+      "end": 234.42,
+      "text": " it can cause serious distress. Here, Ryan discusses how the residents he met felt about their debt,",
+      "words": [
+        {
+          "word": "it",
+          "start": 228.06,
+          "end": 228.42,
+          "probability": 0.997
+        },
+        {
+          "word": "can",
+          "start": 228.42,
+          "end": 228.7,
+          "probability": 0.998
+        },
+        {
+          "word": "cause",
+          "start": 228.7,
+          "end": 229.14,
+          "probability": 0.999
+        },
+        {
+          "word": "serious",
+          "start": 229.14,
+          "end": 229.68,
+          "probability": 0.999
+        },
+        {
+          "word": "distress.",
+          "start": 229.68,
+          "end": 230.32,
+          "probability": 0.998
+        },
+        {
+          "word": "Here,",
+          "start": 230.82,
+          "end": 231.26,
+          "probability": 0.996
+        },
+        {
+          "word": "Ryan",
+          "start": 231.48,
+          "end": 231.62,
+          "probability": 0.995
+        },
+        {
+          "word": "discusses",
+          "start": 231.62,
+          "end": 232.02,
+          "probability": 0.992
+        },
+        {
+          "word": "how",
+          "start": 232.02,
+          "end": 232.32,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 232.32,
+          "end": 232.38,
+          "probability": 0.995
+        },
+        {
+          "word": "residents",
+          "start": 232.38,
+          "end": 232.9,
+          "probability": 0.857
+        },
+        {
+          "word": "he",
+          "start": 232.9,
+          "end": 233.14,
+          "probability": 0.96
+        },
+        {
+          "word": "met",
+          "start": 233.14,
+          "end": 233.48,
+          "probability": 0.996
+        },
+        {
+          "word": "felt",
+          "start": 233.48,
+          "end": 233.78,
+          "probability": 0.912
+        },
+        {
+          "word": "about",
+          "start": 233.78,
+          "end": 234.04,
+          "probability": 0.94
+        },
+        {
+          "word": "their",
+          "start": 234.04,
+          "end": 234.24,
+          "probability": 0.817
+        },
+        {
+          "word": "debt,",
+          "start": 234.24,
+          "end": 234.42,
+          "probability": 0.706
+        }
+      ]
+    },
+    {
+      "start": 234.42,
+      "end": 241.28,
+      "text": " with BBC Radio 4's thinking aloud. Jason actually fluctuated between wanting to clear all of",
+      "words": [
+        {
+          "word": "with",
+          "start": 234.42,
+          "end": 234.88,
+          "probability": 0.991
+        },
+        {
+          "word": "BBC",
+          "start": 234.88,
+          "end": 235.32,
+          "probability": 0.993
+        },
+        {
+          "word": "Radio",
+          "start": 235.32,
+          "end": 235.76,
+          "probability": 0.991
+        },
+        {
+          "word": "4's",
+          "start": 235.76,
+          "end": 236.2,
+          "probability": 0.96
+        },
+        {
+          "word": "thinking",
+          "start": 236.2,
+          "end": 236.54,
+          "probability": 0.995
+        },
+        {
+          "word": "aloud.",
+          "start": 236.54,
+          "end": 236.98,
+          "probability": 0.979
+        },
+        {
+          "word": "Jason",
+          "start": 237.4,
+          "end": 237.8,
+          "probability": 0.889
+        },
+        {
+          "word": "actually",
+          "start": 237.8,
+          "end": 238.58,
+          "probability": 0.972
+        },
+        {
+          "word": "fluctuated",
+          "start": 238.58,
+          "end": 239.36,
+          "probability": 0.965
+        },
+        {
+          "word": "between",
+          "start": 239.36,
+          "end": 240.08,
+          "probability": 0.981
+        },
+        {
+          "word": "wanting",
+          "start": 240.08,
+          "end": 240.42,
+          "probability": 0.991
+        },
+        {
+          "word": "to",
+          "start": 240.42,
+          "end": 240.66,
+          "probability": 0.959
+        },
+        {
+          "word": "clear",
+          "start": 240.66,
+          "end": 241.0,
+          "probability": 0.898
+        },
+        {
+          "word": "all",
+          "start": 241.0,
+          "end": 241.26,
+          "probability": 0.614
+        },
+        {
+          "word": "of",
+          "start": 241.26,
+          "end": 241.28,
+          "probability": 0.654
+        }
+      ]
+    },
+    {
+      "start": 241.28,
+      "end": 246.96,
+      "text": " his debts on the one hand and on the other, what he described as living on the never-never,",
+      "words": [
+        {
+          "word": "his",
+          "start": 241.28,
+          "end": 241.48,
+          "probability": 0.977
+        },
+        {
+          "word": "debts",
+          "start": 241.48,
+          "end": 242.06,
+          "probability": 0.98
+        },
+        {
+          "word": "on",
+          "start": 242.06,
+          "end": 242.26,
+          "probability": 0.388
+        },
+        {
+          "word": "the",
+          "start": 242.26,
+          "end": 242.34,
+          "probability": 0.913
+        },
+        {
+          "word": "one",
+          "start": 242.34,
+          "end": 242.6,
+          "probability": 0.993
+        },
+        {
+          "word": "hand",
+          "start": 242.6,
+          "end": 243.3,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 243.3,
+          "end": 243.56,
+          "probability": 0.55
+        },
+        {
+          "word": "on",
+          "start": 243.56,
+          "end": 243.66,
+          "probability": 0.928
+        },
+        {
+          "word": "the",
+          "start": 243.66,
+          "end": 243.8,
+          "probability": 0.997
+        },
+        {
+          "word": "other,",
+          "start": 243.8,
+          "end": 244.38,
+          "probability": 0.999
+        },
+        {
+          "word": "what",
+          "start": 245.02,
+          "end": 245.18,
+          "probability": 0.986
+        },
+        {
+          "word": "he",
+          "start": 245.18,
+          "end": 245.4,
+          "probability": 0.998
+        },
+        {
+          "word": "described",
+          "start": 245.4,
+          "end": 245.8,
+          "probability": 0.98
+        },
+        {
+          "word": "as",
+          "start": 245.8,
+          "end": 245.94,
+          "probability": 0.992
+        },
+        {
+          "word": "living",
+          "start": 245.94,
+          "end": 246.16,
+          "probability": 0.983
+        },
+        {
+          "word": "on",
+          "start": 246.16,
+          "end": 246.34,
+          "probability": 0.996
+        },
+        {
+          "word": "the",
+          "start": 246.34,
+          "end": 246.44,
+          "probability": 0.989
+        },
+        {
+          "word": "never-never,",
+          "start": 246.44,
+          "end": 246.96,
+          "probability": 0.769
+        }
+      ]
+    },
+    {
+      "start": 247.12,
+      "end": 253.54,
+      "text": " and actually questioning the supposed moral obligation to pay his debts. Over the months that I knew",
+      "words": [
+        {
+          "word": "and",
+          "start": 247.12,
+          "end": 247.44,
+          "probability": 0.996
+        },
+        {
+          "word": "actually",
+          "start": 247.44,
+          "end": 247.82,
+          "probability": 0.75
+        },
+        {
+          "word": "questioning",
+          "start": 247.82,
+          "end": 248.8,
+          "probability": 0.995
+        },
+        {
+          "word": "the",
+          "start": 248.8,
+          "end": 249.34,
+          "probability": 0.992
+        },
+        {
+          "word": "supposed",
+          "start": 249.34,
+          "end": 249.76,
+          "probability": 0.76
+        },
+        {
+          "word": "moral",
+          "start": 249.76,
+          "end": 250.06,
+          "probability": 0.992
+        },
+        {
+          "word": "obligation",
+          "start": 250.06,
+          "end": 250.62,
+          "probability": 0.996
+        },
+        {
+          "word": "to",
+          "start": 250.62,
+          "end": 250.92,
+          "probability": 0.998
+        },
+        {
+          "word": "pay",
+          "start": 250.92,
+          "end": 251.14,
+          "probability": 0.999
+        },
+        {
+          "word": "his",
+          "start": 251.14,
+          "end": 251.34,
+          "probability": 0.998
+        },
+        {
+          "word": "debts.",
+          "start": 251.34,
+          "end": 251.86,
+          "probability": 0.993
+        },
+        {
+          "word": "Over",
+          "start": 252.24,
+          "end": 252.48,
+          "probability": 0.93
+        },
+        {
+          "word": "the",
+          "start": 252.48,
+          "end": 252.66,
+          "probability": 0.996
+        },
+        {
+          "word": "months",
+          "start": 252.66,
+          "end": 252.94,
+          "probability": 0.981
+        },
+        {
+          "word": "that",
+          "start": 252.94,
+          "end": 253.12,
+          "probability": 0.761
+        },
+        {
+          "word": "I",
+          "start": 253.12,
+          "end": 253.22,
+          "probability": 0.873
+        },
+        {
+          "word": "knew",
+          "start": 253.22,
+          "end": 253.54,
+          "probability": 0.675
+        }
+      ]
+    },
+    {
+      "start": 253.54,
+      "end": 261.07,
+      "text": " him, the financial strain on him and his partner increased the mist of their bills that internet",
+      "words": [
+        {
+          "word": "him,",
+          "start": 253.54,
+          "end": 254.24,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 255.16,
+          "end": 255.38,
+          "probability": 0.995
+        },
+        {
+          "word": "financial",
+          "start": 255.38,
+          "end": 255.9,
+          "probability": 0.992
+        },
+        {
+          "word": "strain",
+          "start": 255.9,
+          "end": 256.44,
+          "probability": 0.996
+        },
+        {
+          "word": "on",
+          "start": 256.44,
+          "end": 256.62,
+          "probability": 0.993
+        },
+        {
+          "word": "him",
+          "start": 256.62,
+          "end": 256.76,
+          "probability": 0.994
+        },
+        {
+          "word": "and",
+          "start": 256.76,
+          "end": 256.86,
+          "probability": 0.963
+        },
+        {
+          "word": "his",
+          "start": 256.86,
+          "end": 257.0,
+          "probability": 1.0
+        },
+        {
+          "word": "partner",
+          "start": 257.0,
+          "end": 257.52,
+          "probability": 0.999
+        },
+        {
+          "word": "increased",
+          "start": 257.52,
+          "end": 258.44,
+          "probability": 0.985
+        },
+        {
+          "word": "the",
+          "start": 258.44,
+          "end": 258.92,
+          "probability": 0.397
+        },
+        {
+          "word": "mist",
+          "start": 258.92,
+          "end": 259.34,
+          "probability": 0.467
+        },
+        {
+          "word": "of",
+          "start": 259.34,
+          "end": 259.52,
+          "probability": 0.539
+        },
+        {
+          "word": "their",
+          "start": 259.52,
+          "end": 260.06,
+          "probability": 0.684
+        },
+        {
+          "word": "bills",
+          "start": 260.06,
+          "end": 260.7,
+          "probability": 0.98
+        },
+        {
+          "word": "that",
+          "start": 260.7,
+          "end": 260.9,
+          "probability": 0.832
+        },
+        {
+          "word": "internet",
+          "start": 260.9,
+          "end": 261.07,
+          "probability": 0.747
+        }
+      ]
+    },
+    {
+      "start": 261.07,
+      "end": 267.96,
+      "text": " was disconnected. Jason was living on the never-never, an informal phrase for buying the things you need",
+      "words": [
+        {
+          "word": "was",
+          "start": 261.07,
+          "end": 261.44,
+          "probability": 0.996
+        },
+        {
+          "word": "disconnected.",
+          "start": 261.44,
+          "end": 262.08,
+          "probability": 0.996
+        },
+        {
+          "word": "Jason",
+          "start": 262.54,
+          "end": 262.9,
+          "probability": 0.994
+        },
+        {
+          "word": "was",
+          "start": 262.9,
+          "end": 263.22,
+          "probability": 0.998
+        },
+        {
+          "word": "living",
+          "start": 263.22,
+          "end": 263.72,
+          "probability": 0.999
+        },
+        {
+          "word": "on",
+          "start": 263.72,
+          "end": 263.96,
+          "probability": 0.996
+        },
+        {
+          "word": "the",
+          "start": 263.96,
+          "end": 264.2,
+          "probability": 0.974
+        },
+        {
+          "word": "never-never,",
+          "start": 264.2,
+          "end": 264.94,
+          "probability": 0.965
+        },
+        {
+          "word": "an",
+          "start": 265.24,
+          "end": 265.4,
+          "probability": 0.818
+        },
+        {
+          "word": "informal",
+          "start": 265.4,
+          "end": 265.92,
+          "probability": 0.997
+        },
+        {
+          "word": "phrase",
+          "start": 265.92,
+          "end": 266.42,
+          "probability": 0.997
+        },
+        {
+          "word": "for",
+          "start": 266.42,
+          "end": 266.64,
+          "probability": 0.961
+        },
+        {
+          "word": "buying",
+          "start": 266.64,
+          "end": 266.96,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 266.96,
+          "end": 267.12,
+          "probability": 0.958
+        },
+        {
+          "word": "things",
+          "start": 267.12,
+          "end": 267.4,
+          "probability": 0.85
+        },
+        {
+          "word": "you",
+          "start": 267.4,
+          "end": 267.6,
+          "probability": 0.632
+        },
+        {
+          "word": "need",
+          "start": 267.6,
+          "end": 267.96,
+          "probability": 0.479
+        }
+      ]
+    },
+    {
+      "start": 268.04,
+      "end": 273.47,
+      "text": " by making regular, small payments over a long time. It's called the never-never because it",
+      "words": [
+        {
+          "word": "by",
+          "start": 268.04,
+          "end": 268.24,
+          "probability": 0.98
+        },
+        {
+          "word": "making",
+          "start": 268.24,
+          "end": 268.66,
+          "probability": 0.999
+        },
+        {
+          "word": "regular,",
+          "start": 268.66,
+          "end": 269.28,
+          "probability": 0.995
+        },
+        {
+          "word": "small",
+          "start": 269.3,
+          "end": 269.62,
+          "probability": 0.998
+        },
+        {
+          "word": "payments",
+          "start": 269.62,
+          "end": 270.16,
+          "probability": 0.993
+        },
+        {
+          "word": "over",
+          "start": 270.16,
+          "end": 270.56,
+          "probability": 0.984
+        },
+        {
+          "word": "a",
+          "start": 270.56,
+          "end": 270.72,
+          "probability": 0.998
+        },
+        {
+          "word": "long",
+          "start": 270.72,
+          "end": 270.98,
+          "probability": 0.996
+        },
+        {
+          "word": "time.",
+          "start": 270.98,
+          "end": 271.44,
+          "probability": 0.999
+        },
+        {
+          "word": "It's",
+          "start": 271.7,
+          "end": 271.92,
+          "probability": 0.986
+        },
+        {
+          "word": "called",
+          "start": 271.92,
+          "end": 272.22,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 272.22,
+          "end": 272.42,
+          "probability": 0.937
+        },
+        {
+          "word": "never-never",
+          "start": 272.42,
+          "end": 272.92,
+          "probability": 0.962
+        },
+        {
+          "word": "because",
+          "start": 272.92,
+          "end": 273.3,
+          "probability": 0.666
+        },
+        {
+          "word": "it",
+          "start": 273.3,
+          "end": 273.47,
+          "probability": 0.668
+        }
+      ]
+    },
+    {
+      "start": 273.47,
+      "end": 281.22,
+      "text": " seems the debt will never be repaid. Jason experienced financial strain. Emotional stress caused by a",
+      "words": [
+        {
+          "word": "seems",
+          "start": 273.47,
+          "end": 273.94,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 273.94,
+          "end": 274.08,
+          "probability": 0.851
+        },
+        {
+          "word": "debt",
+          "start": 274.08,
+          "end": 274.4,
+          "probability": 0.996
+        },
+        {
+          "word": "will",
+          "start": 274.4,
+          "end": 274.74,
+          "probability": 0.997
+        },
+        {
+          "word": "never",
+          "start": 274.74,
+          "end": 275.14,
+          "probability": 0.985
+        },
+        {
+          "word": "be",
+          "start": 275.14,
+          "end": 275.44,
+          "probability": 0.999
+        },
+        {
+          "word": "repaid.",
+          "start": 275.44,
+          "end": 275.92,
+          "probability": 0.981
+        },
+        {
+          "word": "Jason",
+          "start": 276.26,
+          "end": 276.68,
+          "probability": 0.992
+        },
+        {
+          "word": "experienced",
+          "start": 276.68,
+          "end": 277.64,
+          "probability": 0.96
+        },
+        {
+          "word": "financial",
+          "start": 277.64,
+          "end": 278.3,
+          "probability": 0.99
+        },
+        {
+          "word": "strain.",
+          "start": 278.3,
+          "end": 279.0,
+          "probability": 0.996
+        },
+        {
+          "word": "Emotional",
+          "start": 279.38,
+          "end": 280.0,
+          "probability": 0.797
+        },
+        {
+          "word": "stress",
+          "start": 280.0,
+          "end": 280.44,
+          "probability": 0.454
+        },
+        {
+          "word": "caused",
+          "start": 280.44,
+          "end": 280.8,
+          "probability": 0.869
+        },
+        {
+          "word": "by",
+          "start": 280.8,
+          "end": 281.08,
+          "probability": 0.56
+        },
+        {
+          "word": "a",
+          "start": 281.08,
+          "end": 281.22,
+          "probability": 0.517
+        }
+      ]
+    },
+    {
+      "start": 281.22,
+      "end": 287.31,
+      "text": " lack of money to meet his basic needs or to repay his debt. Debt is a serious issue. It affects",
+      "words": [
+        {
+          "word": "lack",
+          "start": 281.22,
+          "end": 281.46,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 281.46,
+          "end": 281.58,
+          "probability": 1.0
+        },
+        {
+          "word": "money",
+          "start": 281.58,
+          "end": 281.88,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 281.88,
+          "end": 282.04,
+          "probability": 1.0
+        },
+        {
+          "word": "meet",
+          "start": 282.04,
+          "end": 282.26,
+          "probability": 0.997
+        },
+        {
+          "word": "his",
+          "start": 282.26,
+          "end": 282.44,
+          "probability": 0.998
+        },
+        {
+          "word": "basic",
+          "start": 282.44,
+          "end": 282.86,
+          "probability": 0.996
+        },
+        {
+          "word": "needs",
+          "start": 282.86,
+          "end": 283.36,
+          "probability": 0.999
+        },
+        {
+          "word": "or",
+          "start": 283.36,
+          "end": 283.68,
+          "probability": 0.731
+        },
+        {
+          "word": "to",
+          "start": 283.68,
+          "end": 283.86,
+          "probability": 0.987
+        },
+        {
+          "word": "repay",
+          "start": 283.86,
+          "end": 284.08,
+          "probability": 0.998
+        },
+        {
+          "word": "his",
+          "start": 284.08,
+          "end": 284.36,
+          "probability": 0.999
+        },
+        {
+          "word": "debt.",
+          "start": 284.36,
+          "end": 284.82,
+          "probability": 0.977
+        },
+        {
+          "word": "Debt",
+          "start": 285.3,
+          "end": 285.62,
+          "probability": 0.86
+        },
+        {
+          "word": "is",
+          "start": 285.62,
+          "end": 285.88,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 285.88,
+          "end": 286.04,
+          "probability": 0.999
+        },
+        {
+          "word": "serious",
+          "start": 286.04,
+          "end": 286.48,
+          "probability": 0.999
+        },
+        {
+          "word": "issue.",
+          "start": 286.48,
+          "end": 286.84,
+          "probability": 0.997
+        },
+        {
+          "word": "It",
+          "start": 287.1,
+          "end": 287.22,
+          "probability": 0.868
+        },
+        {
+          "word": "affects",
+          "start": 287.22,
+          "end": 287.31,
+          "probability": 0.923
+        }
+      ]
+    },
+    {
+      "start": 287.31,
+      "end": 292.89,
+      "text": " many people and there are support groups who can help if you need it. Okay, Neil, what was the",
+      "words": [
+        {
+          "word": "many",
+          "start": 287.31,
+          "end": 287.92,
+          "probability": 0.997
+        },
+        {
+          "word": "people",
+          "start": 287.92,
+          "end": 288.34,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 288.34,
+          "end": 288.58,
+          "probability": 0.78
+        },
+        {
+          "word": "there",
+          "start": 288.58,
+          "end": 288.8,
+          "probability": 0.997
+        },
+        {
+          "word": "are",
+          "start": 288.8,
+          "end": 288.96,
+          "probability": 0.998
+        },
+        {
+          "word": "support",
+          "start": 288.96,
+          "end": 289.3,
+          "probability": 0.998
+        },
+        {
+          "word": "groups",
+          "start": 289.3,
+          "end": 289.58,
+          "probability": 0.998
+        },
+        {
+          "word": "who",
+          "start": 289.58,
+          "end": 289.74,
+          "probability": 0.99
+        },
+        {
+          "word": "can",
+          "start": 289.74,
+          "end": 289.92,
+          "probability": 0.999
+        },
+        {
+          "word": "help",
+          "start": 289.92,
+          "end": 290.12,
+          "probability": 1.0
+        },
+        {
+          "word": "if",
+          "start": 290.12,
+          "end": 290.3,
+          "probability": 0.975
+        },
+        {
+          "word": "you",
+          "start": 290.3,
+          "end": 290.34,
+          "probability": 0.994
+        },
+        {
+          "word": "need",
+          "start": 290.34,
+          "end": 290.64,
+          "probability": 0.998
+        },
+        {
+          "word": "it.",
+          "start": 290.64,
+          "end": 291.1,
+          "probability": 0.999
+        },
+        {
+          "word": "Okay,",
+          "start": 291.42,
+          "end": 291.86,
+          "probability": 0.835
+        },
+        {
+          "word": "Neil,",
+          "start": 292.08,
+          "end": 292.3,
+          "probability": 0.94
+        },
+        {
+          "word": "what",
+          "start": 292.44,
+          "end": 292.6,
+          "probability": 0.919
+        },
+        {
+          "word": "was",
+          "start": 292.6,
+          "end": 292.78,
+          "probability": 0.966
+        },
+        {
+          "word": "the",
+          "start": 292.78,
+          "end": 292.89,
+          "probability": 0.853
+        }
+      ]
+    },
+    {
+      "start": 292.89,
+      "end": 299.26,
+      "text": " the answer to your question? I asked what the average amount of debt a British adult has through",
+      "words": [
+        {
+          "word": "the",
+          "start": 292.89,
+          "end": 293.08,
+          "probability": 0.697
+        },
+        {
+          "word": "answer",
+          "start": 293.08,
+          "end": 293.34,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 293.34,
+          "end": 293.56,
+          "probability": 0.991
+        },
+        {
+          "word": "your",
+          "start": 293.56,
+          "end": 293.72,
+          "probability": 0.997
+        },
+        {
+          "word": "question?",
+          "start": 293.72,
+          "end": 294.24,
+          "probability": 1.0
+        },
+        {
+          "word": "I",
+          "start": 294.54,
+          "end": 294.84,
+          "probability": 0.985
+        },
+        {
+          "word": "asked",
+          "start": 294.84,
+          "end": 295.22,
+          "probability": 0.997
+        },
+        {
+          "word": "what",
+          "start": 295.22,
+          "end": 295.54,
+          "probability": 0.797
+        },
+        {
+          "word": "the",
+          "start": 295.54,
+          "end": 295.84,
+          "probability": 0.997
+        },
+        {
+          "word": "average",
+          "start": 295.84,
+          "end": 296.3,
+          "probability": 0.999
+        },
+        {
+          "word": "amount",
+          "start": 296.3,
+          "end": 296.68,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 296.68,
+          "end": 296.9,
+          "probability": 0.999
+        },
+        {
+          "word": "debt",
+          "start": 296.9,
+          "end": 297.24,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 297.24,
+          "end": 297.52,
+          "probability": 0.972
+        },
+        {
+          "word": "British",
+          "start": 297.52,
+          "end": 297.98,
+          "probability": 0.992
+        },
+        {
+          "word": "adult",
+          "start": 297.98,
+          "end": 298.34,
+          "probability": 0.96
+        },
+        {
+          "word": "has",
+          "start": 298.34,
+          "end": 298.78,
+          "probability": 0.97
+        },
+        {
+          "word": "through",
+          "start": 298.78,
+          "end": 299.26,
+          "probability": 0.718
+        }
+      ]
+    },
+    {
+      "start": 299.36,
+      "end": 307.09,
+      "text": " credit cards, overdrafts and personal loans. I said it was around £2,200. I'm afraid that's",
+      "words": [
+        {
+          "word": "credit",
+          "start": 299.36,
+          "end": 299.76,
+          "probability": 0.994
+        },
+        {
+          "word": "cards,",
+          "start": 299.76,
+          "end": 300.32,
+          "probability": 0.984
+        },
+        {
+          "word": "overdrafts",
+          "start": 300.44,
+          "end": 301.26,
+          "probability": 0.975
+        },
+        {
+          "word": "and",
+          "start": 301.26,
+          "end": 301.42,
+          "probability": 0.604
+        },
+        {
+          "word": "personal",
+          "start": 301.42,
+          "end": 301.8,
+          "probability": 0.999
+        },
+        {
+          "word": "loans.",
+          "start": 301.8,
+          "end": 302.32,
+          "probability": 0.996
+        },
+        {
+          "word": "I",
+          "start": 302.8,
+          "end": 303.06,
+          "probability": 0.996
+        },
+        {
+          "word": "said",
+          "start": 303.06,
+          "end": 303.34,
+          "probability": 0.998
+        },
+        {
+          "word": "it",
+          "start": 303.34,
+          "end": 303.52,
+          "probability": 0.975
+        },
+        {
+          "word": "was",
+          "start": 303.52,
+          "end": 303.68,
+          "probability": 0.999
+        },
+        {
+          "word": "around",
+          "start": 303.68,
+          "end": 304.06,
+          "probability": 0.991
+        },
+        {
+          "word": "£2,200.",
+          "start": 304.06,
+          "end": 305.22,
+          "probability": 0.897
+        },
+        {
+          "word": "I'm",
+          "start": 305.76,
+          "end": 306.2,
+          "probability": 0.971
+        },
+        {
+          "word": "afraid",
+          "start": 306.2,
+          "end": 306.52,
+          "probability": 0.988
+        },
+        {
+          "word": "that's",
+          "start": 306.52,
+          "end": 307.09,
+          "probability": 0.793
+        }
+      ]
+    },
+    {
+      "start": 307.09,
+      "end": 315.7,
+      "text": " not the right answer. In fact, it's £4,232. Okay, let's recap the vocabulary we've learned starting",
+      "words": [
+        {
+          "word": "not",
+          "start": 307.09,
+          "end": 307.44,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 307.44,
+          "end": 307.56,
+          "probability": 0.999
+        },
+        {
+          "word": "right",
+          "start": 307.56,
+          "end": 307.82,
+          "probability": 1.0
+        },
+        {
+          "word": "answer.",
+          "start": 307.82,
+          "end": 308.2,
+          "probability": 1.0
+        },
+        {
+          "word": "In",
+          "start": 308.56,
+          "end": 308.68,
+          "probability": 0.995
+        },
+        {
+          "word": "fact,",
+          "start": 308.68,
+          "end": 308.94,
+          "probability": 0.999
+        },
+        {
+          "word": "it's",
+          "start": 309.2,
+          "end": 309.62,
+          "probability": 0.994
+        },
+        {
+          "word": "£4,232.",
+          "start": 309.62,
+          "end": 311.68,
+          "probability": 0.885
+        },
+        {
+          "word": "Okay,",
+          "start": 312.8,
+          "end": 313.12,
+          "probability": 0.941
+        },
+        {
+          "word": "let's",
+          "start": 313.32,
+          "end": 313.72,
+          "probability": 0.997
+        },
+        {
+          "word": "recap",
+          "start": 313.72,
+          "end": 314.0,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 314.0,
+          "end": 314.16,
+          "probability": 0.999
+        },
+        {
+          "word": "vocabulary",
+          "start": 314.16,
+          "end": 314.76,
+          "probability": 1.0
+        },
+        {
+          "word": "we've",
+          "start": 314.76,
+          "end": 315.12,
+          "probability": 0.988
+        },
+        {
+          "word": "learned",
+          "start": 315.12,
+          "end": 315.42,
+          "probability": 0.773
+        },
+        {
+          "word": "starting",
+          "start": 315.42,
+          "end": 315.7,
+          "probability": 0.459
+        }
+      ]
+    },
+    {
+      "start": 315.78,
+      "end": 323.0,
+      "text": " with debt. Money a person has borrowed and needs to give back. The phrase is to pay back, to pay off",
+      "words": [
+        {
+          "word": "with",
+          "start": 315.78,
+          "end": 316.26,
+          "probability": 0.989
+        },
+        {
+          "word": "debt.",
+          "start": 316.26,
+          "end": 316.76,
+          "probability": 0.996
+        },
+        {
+          "word": "Money",
+          "start": 316.98,
+          "end": 317.32,
+          "probability": 0.987
+        },
+        {
+          "word": "a",
+          "start": 317.32,
+          "end": 317.56,
+          "probability": 0.925
+        },
+        {
+          "word": "person",
+          "start": 317.56,
+          "end": 317.82,
+          "probability": 0.999
+        },
+        {
+          "word": "has",
+          "start": 317.82,
+          "end": 318.04,
+          "probability": 0.996
+        },
+        {
+          "word": "borrowed",
+          "start": 318.04,
+          "end": 318.48,
+          "probability": 0.993
+        },
+        {
+          "word": "and",
+          "start": 318.48,
+          "end": 318.76,
+          "probability": 0.816
+        },
+        {
+          "word": "needs",
+          "start": 318.76,
+          "end": 319.12,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 319.12,
+          "end": 319.32,
+          "probability": 0.998
+        },
+        {
+          "word": "give",
+          "start": 319.32,
+          "end": 319.52,
+          "probability": 0.995
+        },
+        {
+          "word": "back.",
+          "start": 319.52,
+          "end": 320.04,
+          "probability": 0.999
+        },
+        {
+          "word": "The",
+          "start": 320.44,
+          "end": 320.76,
+          "probability": 0.984
+        },
+        {
+          "word": "phrase",
+          "start": 320.76,
+          "end": 321.06,
+          "probability": 0.988
+        },
+        {
+          "word": "is",
+          "start": 321.06,
+          "end": 321.36,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 321.36,
+          "end": 321.48,
+          "probability": 0.955
+        },
+        {
+          "word": "pay",
+          "start": 321.48,
+          "end": 321.76,
+          "probability": 0.993
+        },
+        {
+          "word": "back,",
+          "start": 321.76,
+          "end": 322.18,
+          "probability": 0.971
+        },
+        {
+          "word": "to",
+          "start": 322.34,
+          "end": 322.42,
+          "probability": 0.565
+        },
+        {
+          "word": "pay",
+          "start": 322.42,
+          "end": 322.7,
+          "probability": 0.836
+        },
+        {
+          "word": "off",
+          "start": 322.7,
+          "end": 323.0,
+          "probability": 0.698
+        }
+      ]
+    },
+    {
+      "start": 323.1,
+      "end": 329.18,
+      "text": " and to clear a debt all mean to give back money you've borrowed. If someone is making ends meet,",
+      "words": [
+        {
+          "word": "and",
+          "start": 323.1,
+          "end": 323.38,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 323.38,
+          "end": 323.58,
+          "probability": 0.997
+        },
+        {
+          "word": "clear",
+          "start": 323.58,
+          "end": 323.9,
+          "probability": 0.996
+        },
+        {
+          "word": "a",
+          "start": 323.9,
+          "end": 324.12,
+          "probability": 0.909
+        },
+        {
+          "word": "debt",
+          "start": 324.12,
+          "end": 324.42,
+          "probability": 0.978
+        },
+        {
+          "word": "all",
+          "start": 324.42,
+          "end": 324.8,
+          "probability": 0.626
+        },
+        {
+          "word": "mean",
+          "start": 324.8,
+          "end": 325.1,
+          "probability": 0.959
+        },
+        {
+          "word": "to",
+          "start": 325.1,
+          "end": 325.16,
+          "probability": 0.995
+        },
+        {
+          "word": "give",
+          "start": 325.16,
+          "end": 325.4,
+          "probability": 0.999
+        },
+        {
+          "word": "back",
+          "start": 325.4,
+          "end": 325.7,
+          "probability": 0.999
+        },
+        {
+          "word": "money",
+          "start": 325.7,
+          "end": 326.04,
+          "probability": 0.999
+        },
+        {
+          "word": "you've",
+          "start": 326.04,
+          "end": 326.44,
+          "probability": 0.707
+        },
+        {
+          "word": "borrowed.",
+          "start": 326.44,
+          "end": 326.74,
+          "probability": 0.985
+        },
+        {
+          "word": "If",
+          "start": 327.2,
+          "end": 327.44,
+          "probability": 0.99
+        },
+        {
+          "word": "someone",
+          "start": 327.44,
+          "end": 327.7,
+          "probability": 0.997
+        },
+        {
+          "word": "is",
+          "start": 327.7,
+          "end": 327.98,
+          "probability": 0.996
+        },
+        {
+          "word": "making",
+          "start": 327.98,
+          "end": 328.34,
+          "probability": 0.997
+        },
+        {
+          "word": "ends",
+          "start": 328.34,
+          "end": 328.84,
+          "probability": 0.957
+        },
+        {
+          "word": "meet,",
+          "start": 328.84,
+          "end": 329.18,
+          "probability": 0.748
+        }
+      ]
+    },
+    {
+      "start": 329.46,
+      "end": 334.63,
+      "text": " they have just enough money to pay for basic living expenses and if they are in arrears,",
+      "words": [
+        {
+          "word": "they",
+          "start": 329.46,
+          "end": 329.72,
+          "probability": 0.999
+        },
+        {
+          "word": "have",
+          "start": 329.72,
+          "end": 329.96,
+          "probability": 0.998
+        },
+        {
+          "word": "just",
+          "start": 329.96,
+          "end": 330.3,
+          "probability": 0.991
+        },
+        {
+          "word": "enough",
+          "start": 330.3,
+          "end": 330.54,
+          "probability": 1.0
+        },
+        {
+          "word": "money",
+          "start": 330.54,
+          "end": 331.0,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 331.0,
+          "end": 331.18,
+          "probability": 0.992
+        },
+        {
+          "word": "pay",
+          "start": 331.18,
+          "end": 331.4,
+          "probability": 1.0
+        },
+        {
+          "word": "for",
+          "start": 331.4,
+          "end": 331.6,
+          "probability": 0.998
+        },
+        {
+          "word": "basic",
+          "start": 331.6,
+          "end": 332.06,
+          "probability": 0.993
+        },
+        {
+          "word": "living",
+          "start": 332.06,
+          "end": 332.4,
+          "probability": 0.997
+        },
+        {
+          "word": "expenses",
+          "start": 332.4,
+          "end": 333.04,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 333.04,
+          "end": 333.62,
+          "probability": 0.546
+        },
+        {
+          "word": "if",
+          "start": 333.62,
+          "end": 333.76,
+          "probability": 0.98
+        },
+        {
+          "word": "they",
+          "start": 333.76,
+          "end": 333.92,
+          "probability": 0.999
+        },
+        {
+          "word": "are",
+          "start": 333.92,
+          "end": 334.14,
+          "probability": 0.996
+        },
+        {
+          "word": "in",
+          "start": 334.14,
+          "end": 334.4,
+          "probability": 0.968
+        },
+        {
+          "word": "arrears,",
+          "start": 334.4,
+          "end": 334.63,
+          "probability": 0.525
+        }
+      ]
+    },
+    {
+      "start": 334.63,
+      "end": 340.84,
+      "text": " they still owe money that should have been repaid already. If you buy something on the never-never,",
+      "words": [
+        {
+          "word": "they",
+          "start": 334.63,
+          "end": 335.26,
+          "probability": 0.998
+        },
+        {
+          "word": "still",
+          "start": 335.26,
+          "end": 335.64,
+          "probability": 0.991
+        },
+        {
+          "word": "owe",
+          "start": 335.64,
+          "end": 335.92,
+          "probability": 0.999
+        },
+        {
+          "word": "money",
+          "start": 335.92,
+          "end": 336.26,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 336.26,
+          "end": 336.5,
+          "probability": 0.988
+        },
+        {
+          "word": "should",
+          "start": 336.5,
+          "end": 336.7,
+          "probability": 0.997
+        },
+        {
+          "word": "have",
+          "start": 336.7,
+          "end": 336.82,
+          "probability": 0.961
+        },
+        {
+          "word": "been",
+          "start": 336.82,
+          "end": 337.0,
+          "probability": 0.998
+        },
+        {
+          "word": "repaid",
+          "start": 337.0,
+          "end": 337.46,
+          "probability": 0.952
+        },
+        {
+          "word": "already.",
+          "start": 337.46,
+          "end": 338.1,
+          "probability": 0.992
+        },
+        {
+          "word": "If",
+          "start": 338.5,
+          "end": 338.94,
+          "probability": 0.904
+        },
+        {
+          "word": "you",
+          "start": 338.94,
+          "end": 339.08,
+          "probability": 0.998
+        },
+        {
+          "word": "buy",
+          "start": 339.08,
+          "end": 339.36,
+          "probability": 0.998
+        },
+        {
+          "word": "something",
+          "start": 339.36,
+          "end": 339.74,
+          "probability": 0.991
+        },
+        {
+          "word": "on",
+          "start": 339.74,
+          "end": 340.04,
+          "probability": 0.961
+        },
+        {
+          "word": "the",
+          "start": 340.04,
+          "end": 340.24,
+          "probability": 0.942
+        },
+        {
+          "word": "never-never,",
+          "start": 340.24,
+          "end": 340.84,
+          "probability": 0.96
+        }
+      ]
+    },
+    {
+      "start": 341.1,
+      "end": 347.0,
+      "text": " you buy it by making small, regular payments over a long period. And finally, financial strain",
+      "words": [
+        {
+          "word": "you",
+          "start": 341.1,
+          "end": 341.38,
+          "probability": 0.991
+        },
+        {
+          "word": "buy",
+          "start": 341.38,
+          "end": 341.66,
+          "probability": 0.993
+        },
+        {
+          "word": "it",
+          "start": 341.66,
+          "end": 341.78,
+          "probability": 0.911
+        },
+        {
+          "word": "by",
+          "start": 341.78,
+          "end": 341.9,
+          "probability": 0.994
+        },
+        {
+          "word": "making",
+          "start": 341.9,
+          "end": 342.38,
+          "probability": 0.997
+        },
+        {
+          "word": "small,",
+          "start": 342.38,
+          "end": 342.8,
+          "probability": 0.972
+        },
+        {
+          "word": "regular",
+          "start": 342.8,
+          "end": 343.2,
+          "probability": 0.996
+        },
+        {
+          "word": "payments",
+          "start": 343.2,
+          "end": 343.7,
+          "probability": 0.995
+        },
+        {
+          "word": "over",
+          "start": 343.7,
+          "end": 344.08,
+          "probability": 0.993
+        },
+        {
+          "word": "a",
+          "start": 344.08,
+          "end": 344.26,
+          "probability": 0.997
+        },
+        {
+          "word": "long",
+          "start": 344.26,
+          "end": 344.64,
+          "probability": 0.999
+        },
+        {
+          "word": "period.",
+          "start": 344.64,
+          "end": 345.06,
+          "probability": 0.999
+        },
+        {
+          "word": "And",
+          "start": 345.64,
+          "end": 345.72,
+          "probability": 0.651
+        },
+        {
+          "word": "finally,",
+          "start": 345.72,
+          "end": 346.18,
+          "probability": 0.9
+        },
+        {
+          "word": "financial",
+          "start": 346.3,
+          "end": 346.68,
+          "probability": 0.923
+        },
+        {
+          "word": "strain",
+          "start": 346.68,
+          "end": 347.0,
+          "probability": 0.675
+        }
+      ]
+    },
+    {
+      "start": 347.0,
+      "end": 353.2,
+      "text": " is emotional stress caused by a lack of money to meet your basic needs. Once again, our six",
+      "words": [
+        {
+          "word": "is",
+          "start": 347.0,
+          "end": 347.48,
+          "probability": 0.999
+        },
+        {
+          "word": "emotional",
+          "start": 347.48,
+          "end": 348.04,
+          "probability": 0.823
+        },
+        {
+          "word": "stress",
+          "start": 348.04,
+          "end": 348.54,
+          "probability": 0.997
+        },
+        {
+          "word": "caused",
+          "start": 348.54,
+          "end": 349.02,
+          "probability": 0.981
+        },
+        {
+          "word": "by",
+          "start": 349.02,
+          "end": 349.3,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 349.3,
+          "end": 349.42,
+          "probability": 0.99
+        },
+        {
+          "word": "lack",
+          "start": 349.42,
+          "end": 349.6,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 349.6,
+          "end": 349.76,
+          "probability": 1.0
+        },
+        {
+          "word": "money",
+          "start": 349.76,
+          "end": 350.08,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 350.08,
+          "end": 350.24,
+          "probability": 0.998
+        },
+        {
+          "word": "meet",
+          "start": 350.24,
+          "end": 350.5,
+          "probability": 0.998
+        },
+        {
+          "word": "your",
+          "start": 350.5,
+          "end": 350.7,
+          "probability": 0.997
+        },
+        {
+          "word": "basic",
+          "start": 350.7,
+          "end": 351.12,
+          "probability": 0.997
+        },
+        {
+          "word": "needs.",
+          "start": 351.12,
+          "end": 351.6,
+          "probability": 0.999
+        },
+        {
+          "word": "Once",
+          "start": 352.04,
+          "end": 352.32,
+          "probability": 0.975
+        },
+        {
+          "word": "again,",
+          "start": 352.32,
+          "end": 352.64,
+          "probability": 0.999
+        },
+        {
+          "word": "our",
+          "start": 352.76,
+          "end": 352.92,
+          "probability": 0.932
+        },
+        {
+          "word": "six",
+          "start": 352.92,
+          "end": 353.2,
+          "probability": 0.738
+        }
+      ]
+    },
+    {
+      "start": 353.2,
+      "end": 358.62,
+      "text": " minutes are up, but if you'd like to know how debt is spelled and all the other words from this",
+      "words": [
+        {
+          "word": "minutes",
+          "start": 353.2,
+          "end": 353.48,
+          "probability": 0.997
+        },
+        {
+          "word": "are",
+          "start": 353.48,
+          "end": 353.68,
+          "probability": 0.997
+        },
+        {
+          "word": "up,",
+          "start": 353.68,
+          "end": 353.9,
+          "probability": 0.999
+        },
+        {
+          "word": "but",
+          "start": 354.02,
+          "end": 354.14,
+          "probability": 0.998
+        },
+        {
+          "word": "if",
+          "start": 354.14,
+          "end": 354.32,
+          "probability": 0.997
+        },
+        {
+          "word": "you'd",
+          "start": 354.32,
+          "end": 354.5,
+          "probability": 0.995
+        },
+        {
+          "word": "like",
+          "start": 354.5,
+          "end": 354.7,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 354.7,
+          "end": 354.8,
+          "probability": 0.999
+        },
+        {
+          "word": "know",
+          "start": 354.8,
+          "end": 354.98,
+          "probability": 1.0
+        },
+        {
+          "word": "how",
+          "start": 354.98,
+          "end": 355.32,
+          "probability": 0.996
+        },
+        {
+          "word": "debt",
+          "start": 355.32,
+          "end": 355.72,
+          "probability": 0.994
+        },
+        {
+          "word": "is",
+          "start": 355.72,
+          "end": 356.02,
+          "probability": 1.0
+        },
+        {
+          "word": "spelled",
+          "start": 356.02,
+          "end": 356.48,
+          "probability": 0.878
+        },
+        {
+          "word": "and",
+          "start": 356.48,
+          "end": 357.1,
+          "probability": 0.692
+        },
+        {
+          "word": "all",
+          "start": 357.1,
+          "end": 357.32,
+          "probability": 0.972
+        },
+        {
+          "word": "the",
+          "start": 357.32,
+          "end": 357.5,
+          "probability": 0.995
+        },
+        {
+          "word": "other",
+          "start": 357.5,
+          "end": 357.76,
+          "probability": 0.998
+        },
+        {
+          "word": "words",
+          "start": 357.76,
+          "end": 358.0,
+          "probability": 0.998
+        },
+        {
+          "word": "from",
+          "start": 358.0,
+          "end": 358.3,
+          "probability": 0.956
+        },
+        {
+          "word": "this",
+          "start": 358.3,
+          "end": 358.62,
+          "probability": 0.833
+        }
+      ]
+    },
+    {
+      "start": 358.62,
+      "end": 365.23,
+      "text": " episode, visit our website, BBClearningenglish.com to find a full vocabulary list. See you again",
+      "words": [
+        {
+          "word": "episode,",
+          "start": 358.62,
+          "end": 359.22,
+          "probability": 0.992
+        },
+        {
+          "word": "visit",
+          "start": 359.46,
+          "end": 359.74,
+          "probability": 0.998
+        },
+        {
+          "word": "our",
+          "start": 359.74,
+          "end": 360.04,
+          "probability": 0.996
+        },
+        {
+          "word": "website,",
+          "start": 360.04,
+          "end": 360.54,
+          "probability": 0.998
+        },
+        {
+          "word": "BBClearningenglish.com",
+          "start": 360.72,
+          "end": 362.38,
+          "probability": 0.649
+        },
+        {
+          "word": "to",
+          "start": 362.38,
+          "end": 362.52,
+          "probability": 0.898
+        },
+        {
+          "word": "find",
+          "start": 362.52,
+          "end": 362.76,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 362.76,
+          "end": 362.94,
+          "probability": 0.996
+        },
+        {
+          "word": "full",
+          "start": 362.94,
+          "end": 363.16,
+          "probability": 0.984
+        },
+        {
+          "word": "vocabulary",
+          "start": 363.16,
+          "end": 363.7,
+          "probability": 0.994
+        },
+        {
+          "word": "list.",
+          "start": 363.7,
+          "end": 364.28,
+          "probability": 0.996
+        },
+        {
+          "word": "See",
+          "start": 364.64,
+          "end": 364.82,
+          "probability": 0.773
+        },
+        {
+          "word": "you",
+          "start": 364.82,
+          "end": 364.94,
+          "probability": 0.943
+        },
+        {
+          "word": "again",
+          "start": 364.94,
+          "end": 365.23,
+          "probability": 0.83
+        }
+      ]
+    },
+    {
+      "start": 365.23,
+      "end": 367.28,
+      "text": " soon, but for now, it's goodbye. Bye!",
+      "words": [
+        {
+          "word": "soon,",
+          "start": 365.23,
+          "end": 365.54,
+          "probability": 0.998
+        },
+        {
+          "word": "but",
+          "start": 365.62,
+          "end": 365.84,
+          "probability": 0.953
+        },
+        {
+          "word": "for",
+          "start": 365.84,
+          "end": 366.0,
+          "probability": 0.995
+        },
+        {
+          "word": "now,",
+          "start": 366.0,
+          "end": 366.24,
+          "probability": 1.0
+        },
+        {
+          "word": "it's",
+          "start": 366.44,
+          "end": 366.52,
+          "probability": 0.983
+        },
+        {
+          "word": "goodbye.",
+          "start": 366.52,
+          "end": 366.88,
+          "probability": 0.944
+        },
+        {
+          "word": "Bye!",
+          "start": 366.96,
+          "end": 367.28,
+          "probability": 0.931
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5654 @@
+{
+  "engine": "whisper-timestamped",
+  "model": "tiny.en",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.26,
+      "end": 5.8,
+      "text": " Hello and welcome to Real Easy English from BBC Learning English.",
+      "words": [
+        {
+          "word": "Hello",
+          "start": 0.26,
+          "end": 0.82,
+          "probability": 0.82
+        },
+        {
+          "word": "and",
+          "start": 0.82,
+          "end": 1.5,
+          "probability": 0.664
+        },
+        {
+          "word": "welcome",
+          "start": 1.5,
+          "end": 2.02,
+          "probability": 0.99
+        },
+        {
+          "word": "to",
+          "start": 2.02,
+          "end": 2.36,
+          "probability": 0.992
+        },
+        {
+          "word": "Real",
+          "start": 2.36,
+          "end": 2.84,
+          "probability": 0.847
+        },
+        {
+          "word": "Easy",
+          "start": 2.84,
+          "end": 3.24,
+          "probability": 0.752
+        },
+        {
+          "word": "English",
+          "start": 3.24,
+          "end": 3.9,
+          "probability": 0.997
+        },
+        {
+          "word": "from",
+          "start": 3.9,
+          "end": 4.32,
+          "probability": 0.936
+        },
+        {
+          "word": "BBC",
+          "start": 4.32,
+          "end": 4.78,
+          "probability": 0.984
+        },
+        {
+          "word": "Learning",
+          "start": 4.78,
+          "end": 5.22,
+          "probability": 0.94
+        },
+        {
+          "word": "English.",
+          "start": 5.22,
+          "end": 5.8,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 6.36,
+      "end": 12.31,
+      "text": " Each week we have a real conversation in Easy English to help you learn.",
+      "words": [
+        {
+          "word": "Each",
+          "start": 6.36,
+          "end": 6.94,
+          "probability": 0.989
+        },
+        {
+          "word": "week",
+          "start": 6.94,
+          "end": 7.36,
+          "probability": 0.999
+        },
+        {
+          "word": "we",
+          "start": 7.36,
+          "end": 7.64,
+          "probability": 0.721
+        },
+        {
+          "word": "have",
+          "start": 7.64,
+          "end": 7.9,
+          "probability": 0.995
+        },
+        {
+          "word": "a",
+          "start": 7.9,
+          "end": 8.24,
+          "probability": 0.992
+        },
+        {
+          "word": "real",
+          "start": 8.24,
+          "end": 8.54,
+          "probability": 0.78
+        },
+        {
+          "word": "conversation",
+          "start": 8.54,
+          "end": 9.32,
+          "probability": 0.995
+        },
+        {
+          "word": "in",
+          "start": 9.32,
+          "end": 10.12,
+          "probability": 0.947
+        },
+        {
+          "word": "Easy",
+          "start": 10.12,
+          "end": 10.5,
+          "probability": 0.747
+        },
+        {
+          "word": "English",
+          "start": 10.5,
+          "end": 11.12,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 11.12,
+          "end": 11.48,
+          "probability": 0.954
+        },
+        {
+          "word": "help",
+          "start": 11.48,
+          "end": 11.74,
+          "probability": 0.993
+        },
+        {
+          "word": "you",
+          "start": 11.74,
+          "end": 11.96,
+          "probability": 0.994
+        },
+        {
+          "word": "learn.",
+          "start": 11.96,
+          "end": 12.31,
+          "probability": 0.987
+        }
+      ]
+    },
+    {
+      "start": 12.31,
+      "end": 13.56,
+      "text": " I'm Phil.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 12.31,
+          "end": 13.14,
+          "probability": 0.961
+        },
+        {
+          "word": "Phil.",
+          "start": 13.14,
+          "end": 13.56,
+          "probability": 0.989
+        }
+      ]
+    },
+    {
+      "start": 13.9,
+      "end": 14.74,
+      "text": " And I'm Becker.",
+      "words": [
+        {
+          "word": "And",
+          "start": 13.9,
+          "end": 14.1,
+          "probability": 0.967
+        },
+        {
+          "word": "I'm",
+          "start": 14.1,
+          "end": 14.32,
+          "probability": 0.982
+        },
+        {
+          "word": "Becker.",
+          "start": 14.32,
+          "end": 14.74,
+          "probability": 0.269
+        }
+      ]
+    },
+    {
+      "start": 14.92,
+      "end": 21.15,
+      "text": " You can find a video version of this podcast on our website along with a free worksheet,",
+      "words": [
+        {
+          "word": "You",
+          "start": 14.92,
+          "end": 15.28,
+          "probability": 0.992
+        },
+        {
+          "word": "can",
+          "start": 15.28,
+          "end": 15.52,
+          "probability": 0.995
+        },
+        {
+          "word": "find",
+          "start": 15.52,
+          "end": 15.9,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 15.9,
+          "end": 16.1,
+          "probability": 0.997
+        },
+        {
+          "word": "video",
+          "start": 16.1,
+          "end": 16.42,
+          "probability": 0.988
+        },
+        {
+          "word": "version",
+          "start": 16.42,
+          "end": 16.88,
+          "probability": 0.998
+        },
+        {
+          "word": "of",
+          "start": 16.88,
+          "end": 17.1,
+          "probability": 0.994
+        },
+        {
+          "word": "this",
+          "start": 17.1,
+          "end": 17.32,
+          "probability": 0.994
+        },
+        {
+          "word": "podcast",
+          "start": 17.32,
+          "end": 17.9,
+          "probability": 0.994
+        },
+        {
+          "word": "on",
+          "start": 17.9,
+          "end": 18.4,
+          "probability": 0.972
+        },
+        {
+          "word": "our",
+          "start": 18.4,
+          "end": 18.74,
+          "probability": 0.994
+        },
+        {
+          "word": "website",
+          "start": 18.74,
+          "end": 19.34,
+          "probability": 0.989
+        },
+        {
+          "word": "along",
+          "start": 19.34,
+          "end": 19.74,
+          "probability": 0.777
+        },
+        {
+          "word": "with",
+          "start": 19.74,
+          "end": 20.04,
+          "probability": 0.995
+        },
+        {
+          "word": "a",
+          "start": 20.04,
+          "end": 20.32,
+          "probability": 0.985
+        },
+        {
+          "word": "free",
+          "start": 20.32,
+          "end": 20.54,
+          "probability": 0.96
+        },
+        {
+          "word": "worksheet,",
+          "start": 20.54,
+          "end": 21.15,
+          "probability": 0.956
+        }
+      ]
+    },
+    {
+      "start": 21.15,
+      "end": 22.94,
+      "text": " subditals and a transcript.",
+      "words": [
+        {
+          "word": "subditals",
+          "start": 21.15,
+          "end": 22.0,
+          "probability": 0.363
+        },
+        {
+          "word": "and",
+          "start": 22.0,
+          "end": 22.32,
+          "probability": 0.81
+        },
+        {
+          "word": "a",
+          "start": 22.32,
+          "end": 22.46,
+          "probability": 0.991
+        },
+        {
+          "word": "transcript.",
+          "start": 22.46,
+          "end": 22.94,
+          "probability": 0.951
+        }
+      ]
+    },
+    {
+      "start": 23.2,
+      "end": 26.08,
+      "text": " That's at BBClearningenglish.com",
+      "words": [
+        {
+          "word": "That's",
+          "start": 23.2,
+          "end": 23.7,
+          "probability": 0.9
+        },
+        {
+          "word": "at",
+          "start": 23.7,
+          "end": 23.84,
+          "probability": 0.974
+        },
+        {
+          "word": "BBClearningenglish.com",
+          "start": 23.84,
+          "end": 26.08,
+          "probability": 0.75
+        }
+      ]
+    },
+    {
+      "start": 32.7,
+      "end": 33.88,
+      "text": " So, how are things Becker?",
+      "words": [
+        {
+          "word": "So,",
+          "start": 32.7,
+          "end": 32.72,
+          "probability": 0.744
+        },
+        {
+          "word": "how",
+          "start": 32.96,
+          "end": 33.14,
+          "probability": 0.988
+        },
+        {
+          "word": "are",
+          "start": 33.14,
+          "end": 33.26,
+          "probability": 0.986
+        },
+        {
+          "word": "things",
+          "start": 33.26,
+          "end": 33.52,
+          "probability": 0.989
+        },
+        {
+          "word": "Becker?",
+          "start": 33.52,
+          "end": 33.88,
+          "probability": 0.849
+        }
+      ]
+    },
+    {
+      "start": 34.16,
+      "end": 35.97,
+      "text": " Yeah, things are going really well.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 34.16,
+          "end": 34.74,
+          "probability": 0.902
+        },
+        {
+          "word": "things",
+          "start": 34.92,
+          "end": 35.12,
+          "probability": 0.958
+        },
+        {
+          "word": "are",
+          "start": 35.12,
+          "end": 35.26,
+          "probability": 0.996
+        },
+        {
+          "word": "going",
+          "start": 35.26,
+          "end": 35.5,
+          "probability": 0.952
+        },
+        {
+          "word": "really",
+          "start": 35.5,
+          "end": 35.78,
+          "probability": 0.88
+        },
+        {
+          "word": "well.",
+          "start": 35.78,
+          "end": 35.97,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 35.97,
+      "end": 36.63,
+      "text": " Thank you Phil.",
+      "words": [
+        {
+          "word": "Thank",
+          "start": 35.97,
+          "end": 36.3,
+          "probability": 0.985
+        },
+        {
+          "word": "you",
+          "start": 36.3,
+          "end": 36.44,
+          "probability": 0.991
+        },
+        {
+          "word": "Phil.",
+          "start": 36.44,
+          "end": 36.63,
+          "probability": 0.86
+        }
+      ]
+    },
+    {
+      "start": 36.63,
+      "end": 38.86,
+      "text": " We've just had a really lovely weekend.",
+      "words": [
+        {
+          "word": "We've",
+          "start": 36.63,
+          "end": 37.22,
+          "probability": 0.914
+        },
+        {
+          "word": "just",
+          "start": 37.22,
+          "end": 37.44,
+          "probability": 0.993
+        },
+        {
+          "word": "had",
+          "start": 37.44,
+          "end": 37.64,
+          "probability": 0.986
+        },
+        {
+          "word": "a",
+          "start": 37.64,
+          "end": 37.86,
+          "probability": 0.997
+        },
+        {
+          "word": "really",
+          "start": 37.86,
+          "end": 38.1,
+          "probability": 0.929
+        },
+        {
+          "word": "lovely",
+          "start": 38.1,
+          "end": 38.44,
+          "probability": 0.999
+        },
+        {
+          "word": "weekend.",
+          "start": 38.44,
+          "end": 38.86,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 39.6,
+      "end": 41.54,
+      "text": " It's very sunny, very nice.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 39.6,
+          "end": 40.18,
+          "probability": 0.94
+        },
+        {
+          "word": "very",
+          "start": 40.18,
+          "end": 40.44,
+          "probability": 0.983
+        },
+        {
+          "word": "sunny,",
+          "start": 40.44,
+          "end": 40.84,
+          "probability": 0.991
+        },
+        {
+          "word": "very",
+          "start": 41.0,
+          "end": 41.22,
+          "probability": 0.981
+        },
+        {
+          "word": "nice.",
+          "start": 41.22,
+          "end": 41.54,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 41.54,
+      "end": 42.76,
+      "text": " How are things for you?",
+      "words": [
+        {
+          "word": "How",
+          "start": 41.54,
+          "end": 41.96,
+          "probability": 0.997
+        },
+        {
+          "word": "are",
+          "start": 41.96,
+          "end": 42.06,
+          "probability": 0.99
+        },
+        {
+          "word": "things",
+          "start": 42.06,
+          "end": 42.24,
+          "probability": 0.996
+        },
+        {
+          "word": "for",
+          "start": 42.24,
+          "end": 42.46,
+          "probability": 0.893
+        },
+        {
+          "word": "you?",
+          "start": 42.46,
+          "end": 42.76,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 43.6,
+      "end": 44.45,
+      "text": " Well, they're very good.",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 43.6,
+          "end": 43.76,
+          "probability": 0.945
+        },
+        {
+          "word": "they're",
+          "start": 43.84,
+          "end": 43.88,
+          "probability": 0.953
+        },
+        {
+          "word": "very",
+          "start": 43.88,
+          "end": 44.1,
+          "probability": 0.998
+        },
+        {
+          "word": "good.",
+          "start": 44.1,
+          "end": 44.45,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 44.45,
+      "end": 47.24,
+      "text": " As you said, it was a very sunny weekend.",
+      "words": [
+        {
+          "word": "As",
+          "start": 44.45,
+          "end": 44.82,
+          "probability": 0.989
+        },
+        {
+          "word": "you",
+          "start": 44.82,
+          "end": 45.0,
+          "probability": 0.999
+        },
+        {
+          "word": "said,",
+          "start": 45.0,
+          "end": 45.34,
+          "probability": 0.997
+        },
+        {
+          "word": "it",
+          "start": 45.56,
+          "end": 45.58,
+          "probability": 0.99
+        },
+        {
+          "word": "was",
+          "start": 45.58,
+          "end": 45.74,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 45.74,
+          "end": 45.88,
+          "probability": 0.995
+        },
+        {
+          "word": "very",
+          "start": 45.88,
+          "end": 46.34,
+          "probability": 0.998
+        },
+        {
+          "word": "sunny",
+          "start": 46.34,
+          "end": 46.72,
+          "probability": 0.997
+        },
+        {
+          "word": "weekend.",
+          "start": 46.72,
+          "end": 47.24,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 48.34,
+      "end": 49.95,
+      "text": " And yeah, I love the sunshine.",
+      "words": [
+        {
+          "word": "And",
+          "start": 48.34,
+          "end": 48.48,
+          "probability": 0.635
+        },
+        {
+          "word": "yeah,",
+          "start": 48.48,
+          "end": 48.78,
+          "probability": 0.78
+        },
+        {
+          "word": "I",
+          "start": 48.94,
+          "end": 48.96,
+          "probability": 0.996
+        },
+        {
+          "word": "love",
+          "start": 48.96,
+          "end": 49.46,
+          "probability": 0.936
+        },
+        {
+          "word": "the",
+          "start": 49.46,
+          "end": 49.66,
+          "probability": 0.837
+        },
+        {
+          "word": "sunshine.",
+          "start": 49.66,
+          "end": 49.95,
+          "probability": 0.976
+        }
+      ]
+    },
+    {
+      "start": 49.95,
+      "end": 52.96,
+      "text": " I love it when the weather is a bit warmer.",
+      "words": [
+        {
+          "word": "I",
+          "start": 49.95,
+          "end": 50.48,
+          "probability": 0.999
+        },
+        {
+          "word": "love",
+          "start": 50.48,
+          "end": 50.76,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 50.76,
+          "end": 51.0,
+          "probability": 0.982
+        },
+        {
+          "word": "when",
+          "start": 51.0,
+          "end": 51.2,
+          "probability": 0.959
+        },
+        {
+          "word": "the",
+          "start": 51.2,
+          "end": 51.34,
+          "probability": 0.993
+        },
+        {
+          "word": "weather",
+          "start": 51.34,
+          "end": 51.6,
+          "probability": 1.0
+        },
+        {
+          "word": "is",
+          "start": 51.6,
+          "end": 52.0,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 52.0,
+          "end": 52.06,
+          "probability": 0.999
+        },
+        {
+          "word": "bit",
+          "start": 52.06,
+          "end": 52.52,
+          "probability": 0.998
+        },
+        {
+          "word": "warmer.",
+          "start": 52.52,
+          "end": 52.96,
+          "probability": 0.984
+        }
+      ]
+    },
+    {
+      "start": 53.62,
+      "end": 56.48,
+      "text": " And that's what we're going to be talking about today.",
+      "words": [
+        {
+          "word": "And",
+          "start": 53.62,
+          "end": 54.1,
+          "probability": 0.992
+        },
+        {
+          "word": "that's",
+          "start": 54.1,
+          "end": 54.62,
+          "probability": 0.994
+        },
+        {
+          "word": "what",
+          "start": 54.62,
+          "end": 54.82,
+          "probability": 0.998
+        },
+        {
+          "word": "we're",
+          "start": 54.82,
+          "end": 55.1,
+          "probability": 0.98
+        },
+        {
+          "word": "going",
+          "start": 55.1,
+          "end": 55.18,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 55.18,
+          "end": 55.28,
+          "probability": 1.0
+        },
+        {
+          "word": "be",
+          "start": 55.28,
+          "end": 55.3,
+          "probability": 0.996
+        },
+        {
+          "word": "talking",
+          "start": 55.3,
+          "end": 55.7,
+          "probability": 0.998
+        },
+        {
+          "word": "about",
+          "start": 55.7,
+          "end": 56.04,
+          "probability": 0.998
+        },
+        {
+          "word": "today.",
+          "start": 56.04,
+          "end": 56.48,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 56.82,
+      "end": 59.12,
+      "text": " We're going to be talking about hot weather.",
+      "words": [
+        {
+          "word": "We're",
+          "start": 56.82,
+          "end": 57.44,
+          "probability": 0.732
+        },
+        {
+          "word": "going",
+          "start": 57.44,
+          "end": 57.7,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 57.7,
+          "end": 57.82,
+          "probability": 1.0
+        },
+        {
+          "word": "be",
+          "start": 57.82,
+          "end": 57.9,
+          "probability": 0.999
+        },
+        {
+          "word": "talking",
+          "start": 57.9,
+          "end": 58.2,
+          "probability": 0.996
+        },
+        {
+          "word": "about",
+          "start": 58.2,
+          "end": 58.54,
+          "probability": 0.997
+        },
+        {
+          "word": "hot",
+          "start": 58.54,
+          "end": 58.8,
+          "probability": 0.98
+        },
+        {
+          "word": "weather.",
+          "start": 58.8,
+          "end": 59.12,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 59.64,
+      "end": 61.18,
+      "text": " What you do to stay cool.",
+      "words": [
+        {
+          "word": "What",
+          "start": 59.64,
+          "end": 59.8,
+          "probability": 0.916
+        },
+        {
+          "word": "you",
+          "start": 59.8,
+          "end": 59.9,
+          "probability": 0.823
+        },
+        {
+          "word": "do",
+          "start": 59.9,
+          "end": 60.14,
+          "probability": 0.988
+        },
+        {
+          "word": "to",
+          "start": 60.14,
+          "end": 60.42,
+          "probability": 0.99
+        },
+        {
+          "word": "stay",
+          "start": 60.42,
+          "end": 60.82,
+          "probability": 0.998
+        },
+        {
+          "word": "cool.",
+          "start": 60.82,
+          "end": 61.18,
+          "probability": 0.98
+        }
+      ]
+    },
+    {
+      "start": 61.4,
+      "end": 63.52,
+      "text": " Yeah, I love hot weather.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 61.4,
+          "end": 62.0,
+          "probability": 0.934
+        },
+        {
+          "word": "I",
+          "start": 62.34,
+          "end": 62.52,
+          "probability": 0.998
+        },
+        {
+          "word": "love",
+          "start": 62.52,
+          "end": 62.8,
+          "probability": 0.979
+        },
+        {
+          "word": "hot",
+          "start": 62.8,
+          "end": 63.1,
+          "probability": 0.992
+        },
+        {
+          "word": "weather.",
+          "start": 63.1,
+          "end": 63.52,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 64.12,
+      "end": 68.66,
+      "text": " I'm very excited for summer to come here soon.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 64.12,
+          "end": 65.0,
+          "probability": 0.705
+        },
+        {
+          "word": "very",
+          "start": 65.0,
+          "end": 65.26,
+          "probability": 0.996
+        },
+        {
+          "word": "excited",
+          "start": 65.26,
+          "end": 66.06,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 66.06,
+          "end": 66.86,
+          "probability": 0.996
+        },
+        {
+          "word": "summer",
+          "start": 66.86,
+          "end": 67.38,
+          "probability": 0.831
+        },
+        {
+          "word": "to",
+          "start": 67.38,
+          "end": 67.64,
+          "probability": 0.791
+        },
+        {
+          "word": "come",
+          "start": 67.64,
+          "end": 67.88,
+          "probability": 0.999
+        },
+        {
+          "word": "here",
+          "start": 67.88,
+          "end": 68.18,
+          "probability": 0.989
+        },
+        {
+          "word": "soon.",
+          "start": 68.18,
+          "end": 68.66,
+          "probability": 0.927
+        }
+      ]
+    },
+    {
+      "start": 69.58,
+      "end": 74.11,
+      "text": " I really enjoy eating ice cream when it is very hot.",
+      "words": [
+        {
+          "word": "I",
+          "start": 69.58,
+          "end": 70.36,
+          "probability": 0.999
+        },
+        {
+          "word": "really",
+          "start": 70.36,
+          "end": 70.88,
+          "probability": 0.998
+        },
+        {
+          "word": "enjoy",
+          "start": 70.88,
+          "end": 71.34,
+          "probability": 0.998
+        },
+        {
+          "word": "eating",
+          "start": 71.34,
+          "end": 71.78,
+          "probability": 0.998
+        },
+        {
+          "word": "ice",
+          "start": 71.78,
+          "end": 72.14,
+          "probability": 0.996
+        },
+        {
+          "word": "cream",
+          "start": 72.14,
+          "end": 72.64,
+          "probability": 0.993
+        },
+        {
+          "word": "when",
+          "start": 72.64,
+          "end": 73.26,
+          "probability": 0.96
+        },
+        {
+          "word": "it",
+          "start": 73.26,
+          "end": 73.46,
+          "probability": 0.998
+        },
+        {
+          "word": "is",
+          "start": 73.46,
+          "end": 73.66,
+          "probability": 0.97
+        },
+        {
+          "word": "very",
+          "start": 73.66,
+          "end": 73.98,
+          "probability": 0.986
+        },
+        {
+          "word": "hot.",
+          "start": 73.98,
+          "end": 74.11,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 74.11,
+      "end": 75.72,
+      "text": " That helps me to stay cool.",
+      "words": [
+        {
+          "word": "That",
+          "start": 74.11,
+          "end": 74.54,
+          "probability": 0.988
+        },
+        {
+          "word": "helps",
+          "start": 74.54,
+          "end": 74.82,
+          "probability": 0.998
+        },
+        {
+          "word": "me",
+          "start": 74.82,
+          "end": 75.02,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 75.02,
+          "end": 75.18,
+          "probability": 0.994
+        },
+        {
+          "word": "stay",
+          "start": 75.18,
+          "end": 75.38,
+          "probability": 0.997
+        },
+        {
+          "word": "cool.",
+          "start": 75.38,
+          "end": 75.72,
+          "probability": 0.993
+        }
+      ]
+    },
+    {
+      "start": 76.02,
+      "end": 76.6,
+      "text": " Yeah.",
+      "words": [
+        {
+          "word": "Yeah.",
+          "start": 76.02,
+          "end": 76.6,
+          "probability": 0.945
+        }
+      ]
+    },
+    {
+      "start": 76.9,
+      "end": 78.1,
+      "text": " Are there any other things?",
+      "words": [
+        {
+          "word": "Are",
+          "start": 76.9,
+          "end": 77.18,
+          "probability": 0.983
+        },
+        {
+          "word": "there",
+          "start": 77.18,
+          "end": 77.26,
+          "probability": 0.999
+        },
+        {
+          "word": "any",
+          "start": 77.26,
+          "end": 77.72,
+          "probability": 0.987
+        },
+        {
+          "word": "other",
+          "start": 77.72,
+          "end": 77.96,
+          "probability": 0.972
+        },
+        {
+          "word": "things?",
+          "start": 77.96,
+          "end": 78.1,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 78.1,
+      "end": 81.66,
+      "text": " Are there any activities that you do when the weather's hot?",
+      "words": [
+        {
+          "word": "Are",
+          "start": 78.1,
+          "end": 78.44,
+          "probability": 0.995
+        },
+        {
+          "word": "there",
+          "start": 78.44,
+          "end": 78.54,
+          "probability": 0.999
+        },
+        {
+          "word": "any",
+          "start": 78.54,
+          "end": 79.04,
+          "probability": 0.988
+        },
+        {
+          "word": "activities",
+          "start": 79.04,
+          "end": 79.92,
+          "probability": 0.993
+        },
+        {
+          "word": "that",
+          "start": 79.92,
+          "end": 80.18,
+          "probability": 0.98
+        },
+        {
+          "word": "you",
+          "start": 80.18,
+          "end": 80.24,
+          "probability": 0.998
+        },
+        {
+          "word": "do",
+          "start": 80.24,
+          "end": 80.6,
+          "probability": 0.996
+        },
+        {
+          "word": "when",
+          "start": 80.6,
+          "end": 81.02,
+          "probability": 0.979
+        },
+        {
+          "word": "the",
+          "start": 81.02,
+          "end": 81.2,
+          "probability": 0.987
+        },
+        {
+          "word": "weather's",
+          "start": 81.2,
+          "end": 81.52,
+          "probability": 0.834
+        },
+        {
+          "word": "hot?",
+          "start": 81.52,
+          "end": 81.66,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 81.7,
+      "end": 83.86,
+      "text": " You eat them apart from eating ice cream.",
+      "words": [
+        {
+          "word": "You",
+          "start": 81.7,
+          "end": 81.94,
+          "probability": 0.954
+        },
+        {
+          "word": "eat",
+          "start": 81.94,
+          "end": 82.04,
+          "probability": 0.43
+        },
+        {
+          "word": "them",
+          "start": 82.04,
+          "end": 82.2,
+          "probability": 0.505
+        },
+        {
+          "word": "apart",
+          "start": 82.2,
+          "end": 82.44,
+          "probability": 0.456
+        },
+        {
+          "word": "from",
+          "start": 82.44,
+          "end": 82.74,
+          "probability": 0.997
+        },
+        {
+          "word": "eating",
+          "start": 82.74,
+          "end": 83.04,
+          "probability": 0.985
+        },
+        {
+          "word": "ice",
+          "start": 83.04,
+          "end": 83.34,
+          "probability": 0.995
+        },
+        {
+          "word": "cream.",
+          "start": 83.34,
+          "end": 83.86,
+          "probability": 0.568
+        }
+      ]
+    },
+    {
+      "start": 85.46,
+      "end": 88.74,
+      "text": " I really don't like being hot when I'm in the city.",
+      "words": [
+        {
+          "word": "I",
+          "start": 85.46,
+          "end": 86.32,
+          "probability": 0.757
+        },
+        {
+          "word": "really",
+          "start": 86.32,
+          "end": 86.58,
+          "probability": 0.997
+        },
+        {
+          "word": "don't",
+          "start": 86.58,
+          "end": 86.9,
+          "probability": 0.995
+        },
+        {
+          "word": "like",
+          "start": 86.9,
+          "end": 86.98,
+          "probability": 0.992
+        },
+        {
+          "word": "being",
+          "start": 86.98,
+          "end": 87.24,
+          "probability": 0.983
+        },
+        {
+          "word": "hot",
+          "start": 87.24,
+          "end": 87.58,
+          "probability": 0.997
+        },
+        {
+          "word": "when",
+          "start": 87.58,
+          "end": 87.86,
+          "probability": 0.995
+        },
+        {
+          "word": "I'm",
+          "start": 87.86,
+          "end": 88.14,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 88.14,
+          "end": 88.26,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 88.26,
+          "end": 88.38,
+          "probability": 0.996
+        },
+        {
+          "word": "city.",
+          "start": 88.38,
+          "end": 88.74,
+          "probability": 0.98
+        }
+      ]
+    },
+    {
+      "start": 89.52,
+      "end": 93.49,
+      "text": " Because I feel like the heat kind of stays.",
+      "words": [
+        {
+          "word": "Because",
+          "start": 89.52,
+          "end": 89.7,
+          "probability": 0.762
+        },
+        {
+          "word": "I",
+          "start": 89.7,
+          "end": 89.74,
+          "probability": 0.995
+        },
+        {
+          "word": "feel",
+          "start": 89.74,
+          "end": 90.08,
+          "probability": 1.0
+        },
+        {
+          "word": "like",
+          "start": 90.08,
+          "end": 90.9,
+          "probability": 0.969
+        },
+        {
+          "word": "the",
+          "start": 90.9,
+          "end": 91.52,
+          "probability": 0.893
+        },
+        {
+          "word": "heat",
+          "start": 91.52,
+          "end": 92.26,
+          "probability": 0.999
+        },
+        {
+          "word": "kind",
+          "start": 92.26,
+          "end": 92.78,
+          "probability": 0.727
+        },
+        {
+          "word": "of",
+          "start": 92.78,
+          "end": 93.06,
+          "probability": 0.998
+        },
+        {
+          "word": "stays.",
+          "start": 93.06,
+          "end": 93.49,
+          "probability": 0.984
+        }
+      ]
+    },
+    {
+      "start": 93.49,
+      "end": 98.76,
+      "text": " And it's very difficult to find a swimming pool or I love to go to the beach.",
+      "words": [
+        {
+          "word": "And",
+          "start": 93.49,
+          "end": 93.72,
+          "probability": 0.997
+        },
+        {
+          "word": "it's",
+          "start": 93.72,
+          "end": 93.9,
+          "probability": 0.998
+        },
+        {
+          "word": "very",
+          "start": 93.9,
+          "end": 94.16,
+          "probability": 0.997
+        },
+        {
+          "word": "difficult",
+          "start": 94.16,
+          "end": 94.58,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 94.58,
+          "end": 94.8,
+          "probability": 0.998
+        },
+        {
+          "word": "find",
+          "start": 94.8,
+          "end": 95.7,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 95.7,
+          "end": 96.34,
+          "probability": 0.525
+        },
+        {
+          "word": "swimming",
+          "start": 96.34,
+          "end": 96.72,
+          "probability": 0.998
+        },
+        {
+          "word": "pool",
+          "start": 96.72,
+          "end": 97.2,
+          "probability": 0.983
+        },
+        {
+          "word": "or",
+          "start": 97.2,
+          "end": 97.42,
+          "probability": 0.375
+        },
+        {
+          "word": "I",
+          "start": 97.42,
+          "end": 97.46,
+          "probability": 0.846
+        },
+        {
+          "word": "love",
+          "start": 97.46,
+          "end": 97.7,
+          "probability": 0.765
+        },
+        {
+          "word": "to",
+          "start": 97.7,
+          "end": 97.86,
+          "probability": 0.562
+        },
+        {
+          "word": "go",
+          "start": 97.86,
+          "end": 98.1,
+          "probability": 0.948
+        },
+        {
+          "word": "to",
+          "start": 98.1,
+          "end": 98.3,
+          "probability": 0.877
+        },
+        {
+          "word": "the",
+          "start": 98.3,
+          "end": 98.38,
+          "probability": 0.966
+        },
+        {
+          "word": "beach.",
+          "start": 98.38,
+          "end": 98.76,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 98.76,
+      "end": 102.09,
+      "text": " I think being in water can really help you cool down.",
+      "words": [
+        {
+          "word": "I",
+          "start": 98.76,
+          "end": 98.9,
+          "probability": 0.999
+        },
+        {
+          "word": "think",
+          "start": 98.9,
+          "end": 99.1,
+          "probability": 1.0
+        },
+        {
+          "word": "being",
+          "start": 99.1,
+          "end": 99.4,
+          "probability": 0.995
+        },
+        {
+          "word": "in",
+          "start": 99.4,
+          "end": 99.72,
+          "probability": 0.994
+        },
+        {
+          "word": "water",
+          "start": 99.72,
+          "end": 100.42,
+          "probability": 0.996
+        },
+        {
+          "word": "can",
+          "start": 100.42,
+          "end": 101.04,
+          "probability": 0.996
+        },
+        {
+          "word": "really",
+          "start": 101.04,
+          "end": 101.3,
+          "probability": 0.998
+        },
+        {
+          "word": "help",
+          "start": 101.3,
+          "end": 101.48,
+          "probability": 0.992
+        },
+        {
+          "word": "you",
+          "start": 101.48,
+          "end": 101.64,
+          "probability": 0.976
+        },
+        {
+          "word": "cool",
+          "start": 101.64,
+          "end": 101.88,
+          "probability": 0.637
+        },
+        {
+          "word": "down.",
+          "start": 101.88,
+          "end": 102.09,
+          "probability": 0.962
+        }
+      ]
+    },
+    {
+      "start": 102.09,
+      "end": 103.3,
+      "text": " How about yourself?",
+      "words": [
+        {
+          "word": "How",
+          "start": 102.09,
+          "end": 102.66,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 102.66,
+          "end": 102.86,
+          "probability": 0.999
+        },
+        {
+          "word": "yourself?",
+          "start": 102.86,
+          "end": 103.3,
+          "probability": 0.989
+        }
+      ]
+    },
+    {
+      "start": 103.64,
+      "end": 109.94,
+      "text": " When it's really hot, when we get a heat wave, which is when you get a few days and it's",
+      "words": [
+        {
+          "word": "When",
+          "start": 103.64,
+          "end": 103.9,
+          "probability": 0.986
+        },
+        {
+          "word": "it's",
+          "start": 103.9,
+          "end": 104.26,
+          "probability": 0.995
+        },
+        {
+          "word": "really",
+          "start": 104.26,
+          "end": 104.74,
+          "probability": 0.999
+        },
+        {
+          "word": "hot,",
+          "start": 104.74,
+          "end": 105.12,
+          "probability": 0.999
+        },
+        {
+          "word": "when",
+          "start": 105.2,
+          "end": 105.42,
+          "probability": 0.977
+        },
+        {
+          "word": "we",
+          "start": 105.42,
+          "end": 105.52,
+          "probability": 0.989
+        },
+        {
+          "word": "get",
+          "start": 105.52,
+          "end": 105.8,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 105.8,
+          "end": 106.18,
+          "probability": 0.992
+        },
+        {
+          "word": "heat",
+          "start": 106.18,
+          "end": 106.44,
+          "probability": 0.995
+        },
+        {
+          "word": "wave,",
+          "start": 106.44,
+          "end": 106.88,
+          "probability": 0.877
+        },
+        {
+          "word": "which",
+          "start": 106.88,
+          "end": 107.22,
+          "probability": 0.656
+        },
+        {
+          "word": "is",
+          "start": 107.22,
+          "end": 107.4,
+          "probability": 0.591
+        },
+        {
+          "word": "when",
+          "start": 107.4,
+          "end": 107.52,
+          "probability": 0.804
+        },
+        {
+          "word": "you",
+          "start": 107.52,
+          "end": 107.6,
+          "probability": 0.752
+        },
+        {
+          "word": "get",
+          "start": 107.6,
+          "end": 107.84,
+          "probability": 0.93
+        },
+        {
+          "word": "a",
+          "start": 107.84,
+          "end": 108.04,
+          "probability": 0.935
+        },
+        {
+          "word": "few",
+          "start": 108.04,
+          "end": 108.28,
+          "probability": 0.992
+        },
+        {
+          "word": "days",
+          "start": 108.28,
+          "end": 108.84,
+          "probability": 0.982
+        },
+        {
+          "word": "and",
+          "start": 108.84,
+          "end": 109.06,
+          "probability": 0.29
+        },
+        {
+          "word": "it's",
+          "start": 109.06,
+          "end": 109.94,
+          "probability": 0.82
+        }
+      ]
+    },
+    {
+      "start": 110.12,
+      "end": 116.8,
+      "text": " a long way above normal temperatures, then I like to put a paddling pool in the back garden,",
+      "words": [
+        {
+          "word": "a",
+          "start": 110.12,
+          "end": 110.5,
+          "probability": 0.996
+        },
+        {
+          "word": "long",
+          "start": 110.5,
+          "end": 110.82,
+          "probability": 0.999
+        },
+        {
+          "word": "way",
+          "start": 110.82,
+          "end": 111.04,
+          "probability": 0.996
+        },
+        {
+          "word": "above",
+          "start": 111.04,
+          "end": 111.3,
+          "probability": 0.994
+        },
+        {
+          "word": "normal",
+          "start": 111.3,
+          "end": 111.66,
+          "probability": 0.998
+        },
+        {
+          "word": "temperatures,",
+          "start": 111.66,
+          "end": 112.42,
+          "probability": 0.996
+        },
+        {
+          "word": "then",
+          "start": 113.06,
+          "end": 113.3,
+          "probability": 0.87
+        },
+        {
+          "word": "I",
+          "start": 113.3,
+          "end": 113.46,
+          "probability": 0.981
+        },
+        {
+          "word": "like",
+          "start": 113.46,
+          "end": 113.68,
+          "probability": 0.898
+        },
+        {
+          "word": "to",
+          "start": 113.68,
+          "end": 113.72,
+          "probability": 0.938
+        },
+        {
+          "word": "put",
+          "start": 113.72,
+          "end": 114.2,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 114.2,
+          "end": 114.46,
+          "probability": 0.983
+        },
+        {
+          "word": "paddling",
+          "start": 114.46,
+          "end": 114.94,
+          "probability": 0.923
+        },
+        {
+          "word": "pool",
+          "start": 114.94,
+          "end": 115.44,
+          "probability": 0.883
+        },
+        {
+          "word": "in",
+          "start": 115.44,
+          "end": 115.98,
+          "probability": 0.918
+        },
+        {
+          "word": "the",
+          "start": 115.98,
+          "end": 116.16,
+          "probability": 0.959
+        },
+        {
+          "word": "back",
+          "start": 116.16,
+          "end": 116.36,
+          "probability": 0.767
+        },
+        {
+          "word": "garden,",
+          "start": 116.36,
+          "end": 116.8,
+          "probability": 0.946
+        }
+      ]
+    },
+    {
+      "start": 117.0,
+      "end": 118.64,
+      "text": " which is like a little swimming pool.",
+      "words": [
+        {
+          "word": "which",
+          "start": 117.0,
+          "end": 117.24,
+          "probability": 0.595
+        },
+        {
+          "word": "is",
+          "start": 117.24,
+          "end": 117.42,
+          "probability": 0.998
+        },
+        {
+          "word": "like",
+          "start": 117.42,
+          "end": 117.56,
+          "probability": 0.981
+        },
+        {
+          "word": "a",
+          "start": 117.56,
+          "end": 117.72,
+          "probability": 0.996
+        },
+        {
+          "word": "little",
+          "start": 117.72,
+          "end": 117.96,
+          "probability": 0.986
+        },
+        {
+          "word": "swimming",
+          "start": 117.96,
+          "end": 118.34,
+          "probability": 0.996
+        },
+        {
+          "word": "pool.",
+          "start": 118.34,
+          "end": 118.64,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 118.9,
+      "end": 121.98,
+      "text": " And you just feel it with water and then jump in.",
+      "words": [
+        {
+          "word": "And",
+          "start": 118.9,
+          "end": 119.04,
+          "probability": 0.961
+        },
+        {
+          "word": "you",
+          "start": 119.04,
+          "end": 119.12,
+          "probability": 0.991
+        },
+        {
+          "word": "just",
+          "start": 119.12,
+          "end": 119.4,
+          "probability": 0.996
+        },
+        {
+          "word": "feel",
+          "start": 119.4,
+          "end": 119.5,
+          "probability": 0.855
+        },
+        {
+          "word": "it",
+          "start": 119.5,
+          "end": 119.66,
+          "probability": 0.934
+        },
+        {
+          "word": "with",
+          "start": 119.66,
+          "end": 119.86,
+          "probability": 0.382
+        },
+        {
+          "word": "water",
+          "start": 119.86,
+          "end": 120.48,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 120.48,
+          "end": 121.22,
+          "probability": 0.794
+        },
+        {
+          "word": "then",
+          "start": 121.22,
+          "end": 121.44,
+          "probability": 0.942
+        },
+        {
+          "word": "jump",
+          "start": 121.44,
+          "end": 121.72,
+          "probability": 0.83
+        },
+        {
+          "word": "in.",
+          "start": 121.72,
+          "end": 121.98,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 122.14,
+      "end": 126.4,
+      "text": " Yeah, water can really help you cool off or cool down to become cold.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 122.14,
+          "end": 122.46,
+          "probability": 0.973
+        },
+        {
+          "word": "water",
+          "start": 122.7,
+          "end": 122.8,
+          "probability": 0.994
+        },
+        {
+          "word": "can",
+          "start": 122.8,
+          "end": 123.04,
+          "probability": 0.999
+        },
+        {
+          "word": "really",
+          "start": 123.04,
+          "end": 123.32,
+          "probability": 0.998
+        },
+        {
+          "word": "help",
+          "start": 123.32,
+          "end": 123.54,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 123.54,
+          "end": 124.14,
+          "probability": 0.994
+        },
+        {
+          "word": "cool",
+          "start": 124.14,
+          "end": 124.48,
+          "probability": 0.87
+        },
+        {
+          "word": "off",
+          "start": 124.48,
+          "end": 124.7,
+          "probability": 0.783
+        },
+        {
+          "word": "or",
+          "start": 124.7,
+          "end": 124.92,
+          "probability": 0.904
+        },
+        {
+          "word": "cool",
+          "start": 124.92,
+          "end": 125.1,
+          "probability": 0.97
+        },
+        {
+          "word": "down",
+          "start": 125.1,
+          "end": 125.46,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 125.46,
+          "end": 125.64,
+          "probability": 0.985
+        },
+        {
+          "word": "become",
+          "start": 125.64,
+          "end": 125.96,
+          "probability": 0.965
+        },
+        {
+          "word": "cold.",
+          "start": 125.96,
+          "end": 126.4,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 126.66,
+      "end": 129.56,
+      "text": " So how do you make the most of hot weather then?",
+      "words": [
+        {
+          "word": "So",
+          "start": 126.66,
+          "end": 127.58,
+          "probability": 0.989
+        },
+        {
+          "word": "how",
+          "start": 127.58,
+          "end": 127.78,
+          "probability": 0.82
+        },
+        {
+          "word": "do",
+          "start": 127.78,
+          "end": 127.94,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 127.94,
+          "end": 127.98,
+          "probability": 0.998
+        },
+        {
+          "word": "make",
+          "start": 127.98,
+          "end": 128.22,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 128.22,
+          "end": 128.38,
+          "probability": 0.999
+        },
+        {
+          "word": "most",
+          "start": 128.38,
+          "end": 128.7,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 128.7,
+          "end": 128.96,
+          "probability": 0.972
+        },
+        {
+          "word": "hot",
+          "start": 128.96,
+          "end": 129.22,
+          "probability": 0.984
+        },
+        {
+          "word": "weather",
+          "start": 129.22,
+          "end": 129.44,
+          "probability": 0.997
+        },
+        {
+          "word": "then?",
+          "start": 129.44,
+          "end": 129.56,
+          "probability": 0.823
+        }
+      ]
+    },
+    {
+      "start": 129.56,
+      "end": 135.62,
+      "text": " Because you mentioned we don't have many days of very hot weather here in the UK.",
+      "words": [
+        {
+          "word": "Because",
+          "start": 129.56,
+          "end": 130.04,
+          "probability": 0.997
+        },
+        {
+          "word": "you",
+          "start": 130.04,
+          "end": 130.2,
+          "probability": 0.973
+        },
+        {
+          "word": "mentioned",
+          "start": 130.2,
+          "end": 130.66,
+          "probability": 0.996
+        },
+        {
+          "word": "we",
+          "start": 130.66,
+          "end": 131.06,
+          "probability": 0.695
+        },
+        {
+          "word": "don't",
+          "start": 131.06,
+          "end": 131.62,
+          "probability": 0.998
+        },
+        {
+          "word": "have",
+          "start": 131.62,
+          "end": 132.64,
+          "probability": 0.998
+        },
+        {
+          "word": "many",
+          "start": 132.64,
+          "end": 133.02,
+          "probability": 0.987
+        },
+        {
+          "word": "days",
+          "start": 133.02,
+          "end": 133.52,
+          "probability": 0.993
+        },
+        {
+          "word": "of",
+          "start": 133.52,
+          "end": 134.06,
+          "probability": 0.99
+        },
+        {
+          "word": "very",
+          "start": 134.06,
+          "end": 134.36,
+          "probability": 0.986
+        },
+        {
+          "word": "hot",
+          "start": 134.36,
+          "end": 134.62,
+          "probability": 0.998
+        },
+        {
+          "word": "weather",
+          "start": 134.62,
+          "end": 134.92,
+          "probability": 0.998
+        },
+        {
+          "word": "here",
+          "start": 134.92,
+          "end": 135.24,
+          "probability": 0.978
+        },
+        {
+          "word": "in",
+          "start": 135.24,
+          "end": 135.36,
+          "probability": 0.983
+        },
+        {
+          "word": "the",
+          "start": 135.36,
+          "end": 135.52,
+          "probability": 0.996
+        },
+        {
+          "word": "UK.",
+          "start": 135.52,
+          "end": 135.62,
+          "probability": 0.933
+        }
+      ]
+    },
+    {
+      "start": 135.62,
+      "end": 142.1,
+      "text": " I spend a lot more time outside than I do during the winter, for example.",
+      "words": [
+        {
+          "word": "I",
+          "start": 135.62,
+          "end": 136.16,
+          "probability": 0.999
+        },
+        {
+          "word": "spend",
+          "start": 136.16,
+          "end": 136.74,
+          "probability": 0.96
+        },
+        {
+          "word": "a",
+          "start": 136.74,
+          "end": 136.94,
+          "probability": 0.998
+        },
+        {
+          "word": "lot",
+          "start": 136.94,
+          "end": 137.1,
+          "probability": 0.997
+        },
+        {
+          "word": "more",
+          "start": 137.1,
+          "end": 137.28,
+          "probability": 0.996
+        },
+        {
+          "word": "time",
+          "start": 137.28,
+          "end": 137.84,
+          "probability": 0.998
+        },
+        {
+          "word": "outside",
+          "start": 137.84,
+          "end": 138.78,
+          "probability": 0.995
+        },
+        {
+          "word": "than",
+          "start": 138.78,
+          "end": 139.86,
+          "probability": 0.968
+        },
+        {
+          "word": "I",
+          "start": 139.86,
+          "end": 139.96,
+          "probability": 0.988
+        },
+        {
+          "word": "do",
+          "start": 139.96,
+          "end": 140.3,
+          "probability": 0.997
+        },
+        {
+          "word": "during",
+          "start": 140.3,
+          "end": 140.58,
+          "probability": 0.973
+        },
+        {
+          "word": "the",
+          "start": 140.58,
+          "end": 140.84,
+          "probability": 0.997
+        },
+        {
+          "word": "winter,",
+          "start": 140.84,
+          "end": 141.26,
+          "probability": 0.998
+        },
+        {
+          "word": "for",
+          "start": 141.44,
+          "end": 141.54,
+          "probability": 0.983
+        },
+        {
+          "word": "example.",
+          "start": 141.54,
+          "end": 142.1,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 142.36,
+      "end": 148.26,
+      "text": " If we've got nice warm weather and it's not raining, it's nice to be outside.",
+      "words": [
+        {
+          "word": "If",
+          "start": 142.36,
+          "end": 142.7,
+          "probability": 0.602
+        },
+        {
+          "word": "we've",
+          "start": 142.7,
+          "end": 142.9,
+          "probability": 0.744
+        },
+        {
+          "word": "got",
+          "start": 142.9,
+          "end": 142.94,
+          "probability": 0.998
+        },
+        {
+          "word": "nice",
+          "start": 142.94,
+          "end": 143.28,
+          "probability": 0.839
+        },
+        {
+          "word": "warm",
+          "start": 143.28,
+          "end": 143.62,
+          "probability": 0.955
+        },
+        {
+          "word": "weather",
+          "start": 143.62,
+          "end": 143.88,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 143.88,
+          "end": 144.0,
+          "probability": 0.9
+        },
+        {
+          "word": "it's",
+          "start": 144.0,
+          "end": 144.26,
+          "probability": 0.995
+        },
+        {
+          "word": "not",
+          "start": 144.26,
+          "end": 144.58,
+          "probability": 0.999
+        },
+        {
+          "word": "raining,",
+          "start": 144.58,
+          "end": 145.18,
+          "probability": 0.996
+        },
+        {
+          "word": "it's",
+          "start": 145.28,
+          "end": 146.66,
+          "probability": 0.825
+        },
+        {
+          "word": "nice",
+          "start": 146.66,
+          "end": 147.08,
+          "probability": 0.983
+        },
+        {
+          "word": "to",
+          "start": 147.08,
+          "end": 147.34,
+          "probability": 0.993
+        },
+        {
+          "word": "be",
+          "start": 147.34,
+          "end": 147.66,
+          "probability": 0.994
+        },
+        {
+          "word": "outside.",
+          "start": 147.66,
+          "end": 148.26,
+          "probability": 0.989
+        }
+      ]
+    },
+    {
+      "start": 149.0,
+      "end": 153.42,
+      "text": " Just to spend some time reading, whatever.",
+      "words": [
+        {
+          "word": "Just",
+          "start": 149.0,
+          "end": 149.78,
+          "probability": 0.6
+        },
+        {
+          "word": "to",
+          "start": 149.78,
+          "end": 150.08,
+          "probability": 0.978
+        },
+        {
+          "word": "spend",
+          "start": 150.08,
+          "end": 150.94,
+          "probability": 0.946
+        },
+        {
+          "word": "some",
+          "start": 150.94,
+          "end": 151.24,
+          "probability": 0.984
+        },
+        {
+          "word": "time",
+          "start": 151.24,
+          "end": 151.68,
+          "probability": 0.999
+        },
+        {
+          "word": "reading,",
+          "start": 151.68,
+          "end": 152.58,
+          "probability": 0.928
+        },
+        {
+          "word": "whatever.",
+          "start": 152.96,
+          "end": 153.42,
+          "probability": 0.942
+        }
+      ]
+    },
+    {
+      "start": 153.7,
+      "end": 160.76,
+      "text": " I'm cooking outside, having a barbecue, eating outside, you can sit in the garden,",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 153.7,
+          "end": 154.06,
+          "probability": 0.733
+        },
+        {
+          "word": "cooking",
+          "start": 154.06,
+          "end": 154.46,
+          "probability": 0.998
+        },
+        {
+          "word": "outside,",
+          "start": 154.46,
+          "end": 155.26,
+          "probability": 0.997
+        },
+        {
+          "word": "having",
+          "start": 155.98,
+          "end": 156.0,
+          "probability": 0.969
+        },
+        {
+          "word": "a",
+          "start": 156.0,
+          "end": 156.22,
+          "probability": 0.997
+        },
+        {
+          "word": "barbecue,",
+          "start": 156.22,
+          "end": 156.86,
+          "probability": 0.661
+        },
+        {
+          "word": "eating",
+          "start": 157.1,
+          "end": 158.24,
+          "probability": 0.983
+        },
+        {
+          "word": "outside,",
+          "start": 158.24,
+          "end": 159.3,
+          "probability": 0.969
+        },
+        {
+          "word": "you",
+          "start": 159.48,
+          "end": 159.5,
+          "probability": 0.726
+        },
+        {
+          "word": "can",
+          "start": 159.5,
+          "end": 159.68,
+          "probability": 0.743
+        },
+        {
+          "word": "sit",
+          "start": 159.68,
+          "end": 159.86,
+          "probability": 0.988
+        },
+        {
+          "word": "in",
+          "start": 159.86,
+          "end": 160.04,
+          "probability": 0.99
+        },
+        {
+          "word": "the",
+          "start": 160.04,
+          "end": 160.18,
+          "probability": 0.988
+        },
+        {
+          "word": "garden,",
+          "start": 160.18,
+          "end": 160.76,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 161.14,
+      "end": 162.86,
+      "text": " and eat dinner outside.",
+      "words": [
+        {
+          "word": "and",
+          "start": 161.14,
+          "end": 161.4,
+          "probability": 0.686
+        },
+        {
+          "word": "eat",
+          "start": 161.4,
+          "end": 161.7,
+          "probability": 0.605
+        },
+        {
+          "word": "dinner",
+          "start": 161.7,
+          "end": 161.98,
+          "probability": 0.997
+        },
+        {
+          "word": "outside.",
+          "start": 161.98,
+          "end": 162.86,
+          "probability": 0.982
+        }
+      ]
+    },
+    {
+      "start": 163.44,
+      "end": 167.95,
+      "text": " All of those things you can do in the summer when it's warm and of course when it's",
+      "words": [
+        {
+          "word": "All",
+          "start": 163.44,
+          "end": 163.7,
+          "probability": 0.998
+        },
+        {
+          "word": "of",
+          "start": 163.7,
+          "end": 163.84,
+          "probability": 0.993
+        },
+        {
+          "word": "those",
+          "start": 163.84,
+          "end": 164.0,
+          "probability": 0.998
+        },
+        {
+          "word": "things",
+          "start": 164.0,
+          "end": 164.28,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 164.28,
+          "end": 164.42,
+          "probability": 0.979
+        },
+        {
+          "word": "can",
+          "start": 164.42,
+          "end": 164.56,
+          "probability": 0.993
+        },
+        {
+          "word": "do",
+          "start": 164.56,
+          "end": 164.78,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 164.78,
+          "end": 164.9,
+          "probability": 0.981
+        },
+        {
+          "word": "the",
+          "start": 164.9,
+          "end": 165.12,
+          "probability": 0.99
+        },
+        {
+          "word": "summer",
+          "start": 165.12,
+          "end": 165.84,
+          "probability": 0.996
+        },
+        {
+          "word": "when",
+          "start": 165.84,
+          "end": 166.32,
+          "probability": 0.795
+        },
+        {
+          "word": "it's",
+          "start": 166.32,
+          "end": 166.6,
+          "probability": 0.991
+        },
+        {
+          "word": "warm",
+          "start": 166.6,
+          "end": 167.08,
+          "probability": 0.996
+        },
+        {
+          "word": "and",
+          "start": 167.08,
+          "end": 167.5,
+          "probability": 0.482
+        },
+        {
+          "word": "of",
+          "start": 167.5,
+          "end": 167.56,
+          "probability": 0.646
+        },
+        {
+          "word": "course",
+          "start": 167.56,
+          "end": 167.76,
+          "probability": 0.993
+        },
+        {
+          "word": "when",
+          "start": 167.76,
+          "end": 167.92,
+          "probability": 0.717
+        },
+        {
+          "word": "it's",
+          "start": 167.92,
+          "end": 167.95,
+          "probability": 0.972
+        }
+      ]
+    },
+    {
+      "start": 167.95,
+      "end": 168.58,
+      "text": " not raining.",
+      "words": [
+        {
+          "word": "not",
+          "start": 167.95,
+          "end": 168.24,
+          "probability": 0.995
+        },
+        {
+          "word": "raining.",
+          "start": 168.24,
+          "end": 168.58,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 168.86,
+      "end": 173.18,
+      "text": " But that sounds lovely, really making the most of those long hot days.",
+      "words": [
+        {
+          "word": "But",
+          "start": 168.86,
+          "end": 169.08,
+          "probability": 0.911
+        },
+        {
+          "word": "that",
+          "start": 169.08,
+          "end": 169.18,
+          "probability": 0.995
+        },
+        {
+          "word": "sounds",
+          "start": 169.18,
+          "end": 169.46,
+          "probability": 0.997
+        },
+        {
+          "word": "lovely,",
+          "start": 169.46,
+          "end": 169.9,
+          "probability": 0.995
+        },
+        {
+          "word": "really",
+          "start": 169.96,
+          "end": 170.28,
+          "probability": 0.994
+        },
+        {
+          "word": "making",
+          "start": 170.28,
+          "end": 170.6,
+          "probability": 0.993
+        },
+        {
+          "word": "the",
+          "start": 170.6,
+          "end": 170.72,
+          "probability": 0.9
+        },
+        {
+          "word": "most",
+          "start": 170.72,
+          "end": 170.94,
+          "probability": 0.996
+        },
+        {
+          "word": "of",
+          "start": 170.94,
+          "end": 171.1,
+          "probability": 0.998
+        },
+        {
+          "word": "those",
+          "start": 171.1,
+          "end": 171.74,
+          "probability": 0.996
+        },
+        {
+          "word": "long",
+          "start": 171.74,
+          "end": 172.24,
+          "probability": 0.876
+        },
+        {
+          "word": "hot",
+          "start": 172.24,
+          "end": 172.54,
+          "probability": 0.904
+        },
+        {
+          "word": "days.",
+          "start": 172.54,
+          "end": 173.18,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 173.76,
+      "end": 179.22,
+      "text": " So to make the most of something is to do as much as you can within the time or the",
+      "words": [
+        {
+          "word": "So",
+          "start": 173.76,
+          "end": 174.0,
+          "probability": 0.975
+        },
+        {
+          "word": "to",
+          "start": 174.0,
+          "end": 174.08,
+          "probability": 0.949
+        },
+        {
+          "word": "make",
+          "start": 174.08,
+          "end": 174.26,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 174.26,
+          "end": 174.4,
+          "probability": 0.997
+        },
+        {
+          "word": "most",
+          "start": 174.4,
+          "end": 174.62,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 174.62,
+          "end": 174.8,
+          "probability": 0.991
+        },
+        {
+          "word": "something",
+          "start": 174.8,
+          "end": 175.18,
+          "probability": 0.996
+        },
+        {
+          "word": "is",
+          "start": 175.18,
+          "end": 175.48,
+          "probability": 0.909
+        },
+        {
+          "word": "to",
+          "start": 175.48,
+          "end": 175.66,
+          "probability": 0.988
+        },
+        {
+          "word": "do",
+          "start": 175.66,
+          "end": 176.42,
+          "probability": 0.997
+        },
+        {
+          "word": "as",
+          "start": 176.42,
+          "end": 176.84,
+          "probability": 0.931
+        },
+        {
+          "word": "much",
+          "start": 176.84,
+          "end": 177.14,
+          "probability": 0.998
+        },
+        {
+          "word": "as",
+          "start": 177.14,
+          "end": 177.38,
+          "probability": 0.992
+        },
+        {
+          "word": "you",
+          "start": 177.38,
+          "end": 177.48,
+          "probability": 0.998
+        },
+        {
+          "word": "can",
+          "start": 177.48,
+          "end": 177.9,
+          "probability": 0.999
+        },
+        {
+          "word": "within",
+          "start": 177.9,
+          "end": 178.32,
+          "probability": 0.853
+        },
+        {
+          "word": "the",
+          "start": 178.32,
+          "end": 178.6,
+          "probability": 0.98
+        },
+        {
+          "word": "time",
+          "start": 178.6,
+          "end": 178.9,
+          "probability": 0.998
+        },
+        {
+          "word": "or",
+          "start": 178.9,
+          "end": 179.08,
+          "probability": 0.907
+        },
+        {
+          "word": "the",
+          "start": 179.08,
+          "end": 179.22,
+          "probability": 0.926
+        }
+      ]
+    },
+    {
+      "start": 180.12,
+      "end": 180.81,
+      "text": " space that you're in.",
+      "words": [
+        {
+          "word": "space",
+          "start": 180.12,
+          "end": 180.14,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 180.14,
+          "end": 180.38,
+          "probability": 0.987
+        },
+        {
+          "word": "you're",
+          "start": 180.38,
+          "end": 180.64,
+          "probability": 0.956
+        },
+        {
+          "word": "in.",
+          "start": 180.64,
+          "end": 180.81,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 180.81,
+      "end": 189.52,
+      "text": " If it's a very hot day, do you prefer to be outside in the sun or to be inside near a",
+      "words": [
+        {
+          "word": "If",
+          "start": 180.81,
+          "end": 181.16,
+          "probability": 0.989
+        },
+        {
+          "word": "it's",
+          "start": 181.16,
+          "end": 181.34,
+          "probability": 0.991
+        },
+        {
+          "word": "a",
+          "start": 181.34,
+          "end": 181.44,
+          "probability": 0.994
+        },
+        {
+          "word": "very",
+          "start": 181.44,
+          "end": 181.74,
+          "probability": 1.0
+        },
+        {
+          "word": "hot",
+          "start": 181.74,
+          "end": 182.06,
+          "probability": 0.998
+        },
+        {
+          "word": "day,",
+          "start": 182.06,
+          "end": 182.8,
+          "probability": 0.998
+        },
+        {
+          "word": "do",
+          "start": 183.16,
+          "end": 183.46,
+          "probability": 0.988
+        },
+        {
+          "word": "you",
+          "start": 183.46,
+          "end": 183.74,
+          "probability": 1.0
+        },
+        {
+          "word": "prefer",
+          "start": 183.74,
+          "end": 184.14,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 184.14,
+          "end": 184.38,
+          "probability": 0.998
+        },
+        {
+          "word": "be",
+          "start": 184.38,
+          "end": 184.94,
+          "probability": 0.998
+        },
+        {
+          "word": "outside",
+          "start": 184.94,
+          "end": 185.66,
+          "probability": 0.997
+        },
+        {
+          "word": "in",
+          "start": 185.66,
+          "end": 186.12,
+          "probability": 0.983
+        },
+        {
+          "word": "the",
+          "start": 186.12,
+          "end": 186.42,
+          "probability": 0.977
+        },
+        {
+          "word": "sun",
+          "start": 186.42,
+          "end": 186.9,
+          "probability": 0.902
+        },
+        {
+          "word": "or",
+          "start": 186.9,
+          "end": 187.74,
+          "probability": 0.752
+        },
+        {
+          "word": "to",
+          "start": 187.74,
+          "end": 187.88,
+          "probability": 0.99
+        },
+        {
+          "word": "be",
+          "start": 187.88,
+          "end": 188.22,
+          "probability": 0.996
+        },
+        {
+          "word": "inside",
+          "start": 188.22,
+          "end": 188.98,
+          "probability": 0.988
+        },
+        {
+          "word": "near",
+          "start": 188.98,
+          "end": 189.34,
+          "probability": 0.968
+        },
+        {
+          "word": "a",
+          "start": 189.34,
+          "end": 189.52,
+          "probability": 0.701
+        }
+      ]
+    },
+    {
+      "start": 189.52,
+      "end": 191.42,
+      "text": " fan or near the air can listen to?",
+      "words": [
+        {
+          "word": "fan",
+          "start": 189.52,
+          "end": 190.1,
+          "probability": 0.885
+        },
+        {
+          "word": "or",
+          "start": 190.1,
+          "end": 190.36,
+          "probability": 0.896
+        },
+        {
+          "word": "near",
+          "start": 190.36,
+          "end": 190.6,
+          "probability": 0.95
+        },
+        {
+          "word": "the",
+          "start": 190.6,
+          "end": 190.74,
+          "probability": 0.986
+        },
+        {
+          "word": "air",
+          "start": 190.74,
+          "end": 190.92,
+          "probability": 0.939
+        },
+        {
+          "word": "can",
+          "start": 190.92,
+          "end": 191.02,
+          "probability": 0.159
+        },
+        {
+          "word": "listen",
+          "start": 191.02,
+          "end": 191.2,
+          "probability": 0.311
+        },
+        {
+          "word": "to?",
+          "start": 191.2,
+          "end": 191.42,
+          "probability": 0.436
+        }
+      ]
+    },
+    {
+      "start": 191.5,
+      "end": 192.92,
+      "text": " Ah, okay.",
+      "words": [
+        {
+          "word": "Ah,",
+          "start": 191.5,
+          "end": 192.44,
+          "probability": 0.572
+        },
+        {
+          "word": "okay.",
+          "start": 192.6,
+          "end": 192.92,
+          "probability": 0.505
+        }
+      ]
+    },
+    {
+      "start": 194.38,
+      "end": 197.14,
+      "text": " Yeah, I prefer to be outside.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 194.38,
+          "end": 194.4,
+          "probability": 0.76
+        },
+        {
+          "word": "I",
+          "start": 194.9,
+          "end": 195.08,
+          "probability": 0.724
+        },
+        {
+          "word": "prefer",
+          "start": 195.08,
+          "end": 195.4,
+          "probability": 0.978
+        },
+        {
+          "word": "to",
+          "start": 195.4,
+          "end": 195.7,
+          "probability": 0.999
+        },
+        {
+          "word": "be",
+          "start": 195.7,
+          "end": 196.42,
+          "probability": 0.996
+        },
+        {
+          "word": "outside.",
+          "start": 196.42,
+          "end": 197.14,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 198.78,
+      "end": 203.73,
+      "text": " I remember going on holiday with my friends and they wanted to stay inside shopping",
+      "words": [
+        {
+          "word": "I",
+          "start": 198.78,
+          "end": 199.0,
+          "probability": 0.642
+        },
+        {
+          "word": "remember",
+          "start": 199.0,
+          "end": 199.58,
+          "probability": 0.999
+        },
+        {
+          "word": "going",
+          "start": 199.58,
+          "end": 199.84,
+          "probability": 0.989
+        },
+        {
+          "word": "on",
+          "start": 199.84,
+          "end": 200.02,
+          "probability": 0.987
+        },
+        {
+          "word": "holiday",
+          "start": 200.02,
+          "end": 200.3,
+          "probability": 0.995
+        },
+        {
+          "word": "with",
+          "start": 200.3,
+          "end": 200.56,
+          "probability": 0.999
+        },
+        {
+          "word": "my",
+          "start": 200.56,
+          "end": 200.74,
+          "probability": 0.998
+        },
+        {
+          "word": "friends",
+          "start": 200.74,
+          "end": 201.26,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 201.26,
+          "end": 201.7,
+          "probability": 0.691
+        },
+        {
+          "word": "they",
+          "start": 201.7,
+          "end": 201.84,
+          "probability": 0.996
+        },
+        {
+          "word": "wanted",
+          "start": 201.84,
+          "end": 202.26,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 202.26,
+          "end": 202.52,
+          "probability": 0.999
+        },
+        {
+          "word": "stay",
+          "start": 202.52,
+          "end": 202.94,
+          "probability": 0.999
+        },
+        {
+          "word": "inside",
+          "start": 202.94,
+          "end": 203.46,
+          "probability": 0.964
+        },
+        {
+          "word": "shopping",
+          "start": 203.46,
+          "end": 203.73,
+          "probability": 0.943
+        }
+      ]
+    },
+    {
+      "start": 203.73,
+      "end": 207.8,
+      "text": " centres where there was an air con, an AC.",
+      "words": [
+        {
+          "word": "centres",
+          "start": 203.73,
+          "end": 204.48,
+          "probability": 0.484
+        },
+        {
+          "word": "where",
+          "start": 204.48,
+          "end": 205.42,
+          "probability": 0.886
+        },
+        {
+          "word": "there",
+          "start": 205.42,
+          "end": 205.6,
+          "probability": 0.981
+        },
+        {
+          "word": "was",
+          "start": 205.6,
+          "end": 205.74,
+          "probability": 0.998
+        },
+        {
+          "word": "an",
+          "start": 205.74,
+          "end": 205.92,
+          "probability": 0.997
+        },
+        {
+          "word": "air",
+          "start": 205.92,
+          "end": 206.66,
+          "probability": 0.967
+        },
+        {
+          "word": "con,",
+          "start": 206.66,
+          "end": 207.04,
+          "probability": 0.592
+        },
+        {
+          "word": "an",
+          "start": 207.1,
+          "end": 207.28,
+          "probability": 0.967
+        },
+        {
+          "word": "AC.",
+          "start": 207.28,
+          "end": 207.8,
+          "probability": 0.872
+        }
+      ]
+    },
+    {
+      "start": 208.18,
+      "end": 214.04,
+      "text": " But I wanted to be out and walking, although it's very important that if you are outside",
+      "words": [
+        {
+          "word": "But",
+          "start": 208.18,
+          "end": 208.54,
+          "probability": 0.98
+        },
+        {
+          "word": "I",
+          "start": 208.54,
+          "end": 208.64,
+          "probability": 0.997
+        },
+        {
+          "word": "wanted",
+          "start": 208.64,
+          "end": 208.82,
+          "probability": 0.808
+        },
+        {
+          "word": "to",
+          "start": 208.82,
+          "end": 208.96,
+          "probability": 0.968
+        },
+        {
+          "word": "be",
+          "start": 208.96,
+          "end": 209.18,
+          "probability": 0.998
+        },
+        {
+          "word": "out",
+          "start": 209.18,
+          "end": 209.52,
+          "probability": 0.648
+        },
+        {
+          "word": "and",
+          "start": 209.52,
+          "end": 209.7,
+          "probability": 0.976
+        },
+        {
+          "word": "walking,",
+          "start": 209.7,
+          "end": 210.16,
+          "probability": 0.992
+        },
+        {
+          "word": "although",
+          "start": 210.44,
+          "end": 210.76,
+          "probability": 0.995
+        },
+        {
+          "word": "it's",
+          "start": 210.76,
+          "end": 211.34,
+          "probability": 0.99
+        },
+        {
+          "word": "very",
+          "start": 211.34,
+          "end": 211.68,
+          "probability": 0.995
+        },
+        {
+          "word": "important",
+          "start": 211.68,
+          "end": 212.32,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 212.32,
+          "end": 212.64,
+          "probability": 0.944
+        },
+        {
+          "word": "if",
+          "start": 212.64,
+          "end": 212.82,
+          "probability": 0.963
+        },
+        {
+          "word": "you",
+          "start": 212.82,
+          "end": 213.04,
+          "probability": 0.999
+        },
+        {
+          "word": "are",
+          "start": 213.04,
+          "end": 213.36,
+          "probability": 0.993
+        },
+        {
+          "word": "outside",
+          "start": 213.36,
+          "end": 214.04,
+          "probability": 0.98
+        }
+      ]
+    },
+    {
+      "start": 214.16,
+      "end": 221.52,
+      "text": " when it's very hot that you drink water and you find places where you can call down.",
+      "words": [
+        {
+          "word": "when",
+          "start": 214.16,
+          "end": 214.44,
+          "probability": 0.996
+        },
+        {
+          "word": "it's",
+          "start": 214.44,
+          "end": 214.66,
+          "probability": 0.998
+        },
+        {
+          "word": "very",
+          "start": 214.66,
+          "end": 214.94,
+          "probability": 0.995
+        },
+        {
+          "word": "hot",
+          "start": 214.94,
+          "end": 215.28,
+          "probability": 1.0
+        },
+        {
+          "word": "that",
+          "start": 215.28,
+          "end": 215.64,
+          "probability": 0.869
+        },
+        {
+          "word": "you",
+          "start": 215.64,
+          "end": 216.16,
+          "probability": 0.998
+        },
+        {
+          "word": "drink",
+          "start": 216.16,
+          "end": 216.72,
+          "probability": 0.998
+        },
+        {
+          "word": "water",
+          "start": 216.72,
+          "end": 217.4,
+          "probability": 0.987
+        },
+        {
+          "word": "and",
+          "start": 217.4,
+          "end": 217.82,
+          "probability": 0.942
+        },
+        {
+          "word": "you",
+          "start": 217.82,
+          "end": 218.04,
+          "probability": 0.962
+        },
+        {
+          "word": "find",
+          "start": 218.04,
+          "end": 219.18,
+          "probability": 0.995
+        },
+        {
+          "word": "places",
+          "start": 219.18,
+          "end": 220.06,
+          "probability": 0.997
+        },
+        {
+          "word": "where",
+          "start": 220.06,
+          "end": 220.34,
+          "probability": 0.992
+        },
+        {
+          "word": "you",
+          "start": 220.34,
+          "end": 220.52,
+          "probability": 0.998
+        },
+        {
+          "word": "can",
+          "start": 220.52,
+          "end": 220.78,
+          "probability": 0.998
+        },
+        {
+          "word": "call",
+          "start": 220.78,
+          "end": 221.06,
+          "probability": 0.464
+        },
+        {
+          "word": "down.",
+          "start": 221.06,
+          "end": 221.52,
+          "probability": 0.989
+        }
+      ]
+    },
+    {
+      "start": 221.9,
+      "end": 226.74,
+      "text": " It depends as well on the country as well, I guess, because in England the summers are never",
+      "words": [
+        {
+          "word": "It",
+          "start": 221.9,
+          "end": 222.16,
+          "probability": 0.998
+        },
+        {
+          "word": "depends",
+          "start": 222.16,
+          "end": 222.52,
+          "probability": 0.998
+        },
+        {
+          "word": "as",
+          "start": 222.52,
+          "end": 222.7,
+          "probability": 0.936
+        },
+        {
+          "word": "well",
+          "start": 222.7,
+          "end": 222.88,
+          "probability": 0.998
+        },
+        {
+          "word": "on",
+          "start": 222.88,
+          "end": 223.16,
+          "probability": 0.983
+        },
+        {
+          "word": "the",
+          "start": 223.16,
+          "end": 223.3,
+          "probability": 0.977
+        },
+        {
+          "word": "country",
+          "start": 223.3,
+          "end": 223.6,
+          "probability": 0.994
+        },
+        {
+          "word": "as",
+          "start": 223.6,
+          "end": 223.8,
+          "probability": 0.977
+        },
+        {
+          "word": "well,",
+          "start": 223.8,
+          "end": 224.0,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 224.04,
+          "end": 224.06,
+          "probability": 0.97
+        },
+        {
+          "word": "guess,",
+          "start": 224.06,
+          "end": 224.36,
+          "probability": 0.998
+        },
+        {
+          "word": "because",
+          "start": 224.58,
+          "end": 225.08,
+          "probability": 0.991
+        },
+        {
+          "word": "in",
+          "start": 225.08,
+          "end": 225.28,
+          "probability": 0.985
+        },
+        {
+          "word": "England",
+          "start": 225.28,
+          "end": 225.6,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 225.6,
+          "end": 225.8,
+          "probability": 0.633
+        },
+        {
+          "word": "summers",
+          "start": 225.8,
+          "end": 226.08,
+          "probability": 0.773
+        },
+        {
+          "word": "are",
+          "start": 226.08,
+          "end": 226.32,
+          "probability": 0.82
+        },
+        {
+          "word": "never",
+          "start": 226.32,
+          "end": 226.74,
+          "probability": 0.788
+        }
+      ]
+    },
+    {
+      "start": 227.18,
+      "end": 232.0,
+      "text": " very, very hot, but in other parts of the world I guess it can probably be quite dangerous.",
+      "words": [
+        {
+          "word": "very,",
+          "start": 227.18,
+          "end": 227.86,
+          "probability": 0.993
+        },
+        {
+          "word": "very",
+          "start": 227.86,
+          "end": 228.36,
+          "probability": 0.998
+        },
+        {
+          "word": "hot,",
+          "start": 228.36,
+          "end": 228.78,
+          "probability": 0.997
+        },
+        {
+          "word": "but",
+          "start": 229.06,
+          "end": 229.18,
+          "probability": 0.994
+        },
+        {
+          "word": "in",
+          "start": 229.18,
+          "end": 229.32,
+          "probability": 0.966
+        },
+        {
+          "word": "other",
+          "start": 229.32,
+          "end": 229.46,
+          "probability": 0.988
+        },
+        {
+          "word": "parts",
+          "start": 229.46,
+          "end": 229.76,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 229.76,
+          "end": 229.92,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 229.92,
+          "end": 230.02,
+          "probability": 0.999
+        },
+        {
+          "word": "world",
+          "start": 230.02,
+          "end": 230.28,
+          "probability": 0.998
+        },
+        {
+          "word": "I",
+          "start": 230.28,
+          "end": 230.5,
+          "probability": 0.522
+        },
+        {
+          "word": "guess",
+          "start": 230.5,
+          "end": 230.76,
+          "probability": 0.986
+        },
+        {
+          "word": "it",
+          "start": 230.76,
+          "end": 230.94,
+          "probability": 0.975
+        },
+        {
+          "word": "can",
+          "start": 230.94,
+          "end": 231.08,
+          "probability": 0.936
+        },
+        {
+          "word": "probably",
+          "start": 231.08,
+          "end": 231.24,
+          "probability": 0.963
+        },
+        {
+          "word": "be",
+          "start": 231.24,
+          "end": 231.4,
+          "probability": 0.999
+        },
+        {
+          "word": "quite",
+          "start": 231.4,
+          "end": 231.62,
+          "probability": 0.996
+        },
+        {
+          "word": "dangerous.",
+          "start": 231.62,
+          "end": 232.0,
+          "probability": 0.961
+        }
+      ]
+    },
+    {
+      "start": 233.2,
+      "end": 233.51,
+      "text": " Yes, yeah.",
+      "words": [
+        {
+          "word": "Yes,",
+          "start": 233.2,
+          "end": 233.22,
+          "probability": 0.663
+        },
+        {
+          "word": "yeah.",
+          "start": 233.32,
+          "end": 233.51,
+          "probability": 0.692
+        }
+      ]
+    },
+    {
+      "start": 233.51,
+      "end": 242.52,
+      "text": " And also adding on to that because it isn't very hot often in the UK in England.",
+      "words": [
+        {
+          "word": "And",
+          "start": 233.51,
+          "end": 234.12,
+          "probability": 0.986
+        },
+        {
+          "word": "also",
+          "start": 234.12,
+          "end": 234.7,
+          "probability": 0.997
+        },
+        {
+          "word": "adding",
+          "start": 234.7,
+          "end": 235.02,
+          "probability": 0.916
+        },
+        {
+          "word": "on",
+          "start": 235.02,
+          "end": 235.3,
+          "probability": 0.598
+        },
+        {
+          "word": "to",
+          "start": 235.3,
+          "end": 235.44,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 235.44,
+          "end": 235.7,
+          "probability": 1.0
+        },
+        {
+          "word": "because",
+          "start": 235.7,
+          "end": 236.22,
+          "probability": 0.679
+        },
+        {
+          "word": "it",
+          "start": 236.22,
+          "end": 236.48,
+          "probability": 0.998
+        },
+        {
+          "word": "isn't",
+          "start": 236.48,
+          "end": 237.56,
+          "probability": 0.989
+        },
+        {
+          "word": "very",
+          "start": 237.56,
+          "end": 238.04,
+          "probability": 0.997
+        },
+        {
+          "word": "hot",
+          "start": 238.04,
+          "end": 238.32,
+          "probability": 0.998
+        },
+        {
+          "word": "often",
+          "start": 238.32,
+          "end": 239.1,
+          "probability": 0.993
+        },
+        {
+          "word": "in",
+          "start": 239.1,
+          "end": 240.92,
+          "probability": 0.949
+        },
+        {
+          "word": "the",
+          "start": 240.92,
+          "end": 241.18,
+          "probability": 0.997
+        },
+        {
+          "word": "UK",
+          "start": 241.18,
+          "end": 241.56,
+          "probability": 0.968
+        },
+        {
+          "word": "in",
+          "start": 241.56,
+          "end": 241.72,
+          "probability": 0.466
+        },
+        {
+          "word": "England.",
+          "start": 241.72,
+          "end": 242.52,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 243.32,
+      "end": 247.53,
+      "text": " We aren't very well prepared for the heat.",
+      "words": [
+        {
+          "word": "We",
+          "start": 243.32,
+          "end": 244.24,
+          "probability": 0.994
+        },
+        {
+          "word": "aren't",
+          "start": 244.24,
+          "end": 244.98,
+          "probability": 0.997
+        },
+        {
+          "word": "very",
+          "start": 244.98,
+          "end": 245.36,
+          "probability": 0.994
+        },
+        {
+          "word": "well",
+          "start": 245.36,
+          "end": 245.74,
+          "probability": 0.998
+        },
+        {
+          "word": "prepared",
+          "start": 245.74,
+          "end": 246.52,
+          "probability": 0.944
+        },
+        {
+          "word": "for",
+          "start": 246.52,
+          "end": 247.06,
+          "probability": 0.982
+        },
+        {
+          "word": "the",
+          "start": 247.06,
+          "end": 247.26,
+          "probability": 0.994
+        },
+        {
+          "word": "heat.",
+          "start": 247.26,
+          "end": 247.53,
+          "probability": 0.983
+        }
+      ]
+    },
+    {
+      "start": 247.53,
+      "end": 255.71,
+      "text": " So yeah, if you do come and visit the UK, just know that on a very, very hot day, it could",
+      "words": [
+        {
+          "word": "So",
+          "start": 247.53,
+          "end": 248.7,
+          "probability": 0.997
+        },
+        {
+          "word": "yeah,",
+          "start": 248.7,
+          "end": 249.72,
+          "probability": 0.811
+        },
+        {
+          "word": "if",
+          "start": 249.88,
+          "end": 249.98,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 249.98,
+          "end": 250.14,
+          "probability": 0.999
+        },
+        {
+          "word": "do",
+          "start": 250.14,
+          "end": 250.4,
+          "probability": 0.989
+        },
+        {
+          "word": "come",
+          "start": 250.4,
+          "end": 250.86,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 250.86,
+          "end": 251.26,
+          "probability": 0.998
+        },
+        {
+          "word": "visit",
+          "start": 251.26,
+          "end": 251.64,
+          "probability": 0.985
+        },
+        {
+          "word": "the",
+          "start": 251.64,
+          "end": 251.94,
+          "probability": 0.998
+        },
+        {
+          "word": "UK,",
+          "start": 251.94,
+          "end": 252.4,
+          "probability": 0.997
+        },
+        {
+          "word": "just",
+          "start": 252.76,
+          "end": 252.78,
+          "probability": 0.996
+        },
+        {
+          "word": "know",
+          "start": 252.78,
+          "end": 253.18,
+          "probability": 0.991
+        },
+        {
+          "word": "that",
+          "start": 253.18,
+          "end": 253.58,
+          "probability": 0.994
+        },
+        {
+          "word": "on",
+          "start": 253.58,
+          "end": 253.76,
+          "probability": 0.966
+        },
+        {
+          "word": "a",
+          "start": 253.76,
+          "end": 253.96,
+          "probability": 0.999
+        },
+        {
+          "word": "very,",
+          "start": 253.96,
+          "end": 254.2,
+          "probability": 1.0
+        },
+        {
+          "word": "very",
+          "start": 254.2,
+          "end": 254.46,
+          "probability": 0.999
+        },
+        {
+          "word": "hot",
+          "start": 254.46,
+          "end": 254.68,
+          "probability": 0.998
+        },
+        {
+          "word": "day,",
+          "start": 254.68,
+          "end": 255.06,
+          "probability": 0.996
+        },
+        {
+          "word": "it",
+          "start": 255.46,
+          "end": 255.48,
+          "probability": 0.957
+        },
+        {
+          "word": "could",
+          "start": 255.48,
+          "end": 255.71,
+          "probability": 0.914
+        }
+      ]
+    },
+    {
+      "start": 255.71,
+      "end": 259.98,
+      "text": " be quite difficult to find an area that does have a fan or air conditioning.",
+      "words": [
+        {
+          "word": "be",
+          "start": 255.71,
+          "end": 255.86,
+          "probability": 0.998
+        },
+        {
+          "word": "quite",
+          "start": 255.86,
+          "end": 256.1,
+          "probability": 0.996
+        },
+        {
+          "word": "difficult",
+          "start": 256.1,
+          "end": 256.76,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 256.76,
+          "end": 257.14,
+          "probability": 0.997
+        },
+        {
+          "word": "find",
+          "start": 257.14,
+          "end": 257.6,
+          "probability": 1.0
+        },
+        {
+          "word": "an",
+          "start": 257.6,
+          "end": 257.86,
+          "probability": 0.993
+        },
+        {
+          "word": "area",
+          "start": 257.86,
+          "end": 258.2,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 258.2,
+          "end": 258.28,
+          "probability": 0.998
+        },
+        {
+          "word": "does",
+          "start": 258.28,
+          "end": 258.58,
+          "probability": 0.979
+        },
+        {
+          "word": "have",
+          "start": 258.58,
+          "end": 258.8,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 258.8,
+          "end": 258.98,
+          "probability": 0.997
+        },
+        {
+          "word": "fan",
+          "start": 258.98,
+          "end": 259.24,
+          "probability": 0.984
+        },
+        {
+          "word": "or",
+          "start": 259.24,
+          "end": 259.4,
+          "probability": 0.995
+        },
+        {
+          "word": "air",
+          "start": 259.4,
+          "end": 259.62,
+          "probability": 0.998
+        },
+        {
+          "word": "conditioning.",
+          "start": 259.62,
+          "end": 259.98,
+          "probability": 0.991
+        }
+      ]
+    },
+    {
+      "start": 266.38,
+      "end": 271.74,
+      "text": " Okay, let's recap the vocabulary that we heard during the conversation.",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 266.38,
+          "end": 266.64,
+          "probability": 0.676
+        },
+        {
+          "word": "let's",
+          "start": 267.06,
+          "end": 267.64,
+          "probability": 0.994
+        },
+        {
+          "word": "recap",
+          "start": 267.64,
+          "end": 268.1,
+          "probability": 0.989
+        },
+        {
+          "word": "the",
+          "start": 268.1,
+          "end": 268.44,
+          "probability": 0.995
+        },
+        {
+          "word": "vocabulary",
+          "start": 268.44,
+          "end": 268.96,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 268.96,
+          "end": 269.36,
+          "probability": 0.984
+        },
+        {
+          "word": "we",
+          "start": 269.36,
+          "end": 269.6,
+          "probability": 1.0
+        },
+        {
+          "word": "heard",
+          "start": 269.6,
+          "end": 270.12,
+          "probability": 0.995
+        },
+        {
+          "word": "during",
+          "start": 270.12,
+          "end": 270.74,
+          "probability": 0.995
+        },
+        {
+          "word": "the",
+          "start": 270.74,
+          "end": 271.02,
+          "probability": 0.996
+        },
+        {
+          "word": "conversation.",
+          "start": 271.02,
+          "end": 271.74,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 272.26,
+      "end": 274.76,
+      "text": " Starting with heat wave.",
+      "words": [
+        {
+          "word": "Starting",
+          "start": 272.26,
+          "end": 273.0,
+          "probability": 0.983
+        },
+        {
+          "word": "with",
+          "start": 273.0,
+          "end": 273.76,
+          "probability": 0.999
+        },
+        {
+          "word": "heat",
+          "start": 273.76,
+          "end": 274.22,
+          "probability": 0.782
+        },
+        {
+          "word": "wave.",
+          "start": 274.22,
+          "end": 274.76,
+          "probability": 0.731
+        }
+      ]
+    },
+    {
+      "start": 275.16,
+      "end": 280.26,
+      "text": " Now a heat wave is a period of time with very hot weather.",
+      "words": [
+        {
+          "word": "Now",
+          "start": 275.16,
+          "end": 275.62,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 275.62,
+          "end": 275.92,
+          "probability": 0.924
+        },
+        {
+          "word": "heat",
+          "start": 275.92,
+          "end": 276.18,
+          "probability": 0.998
+        },
+        {
+          "word": "wave",
+          "start": 276.18,
+          "end": 276.58,
+          "probability": 0.99
+        },
+        {
+          "word": "is",
+          "start": 276.58,
+          "end": 277.2,
+          "probability": 0.995
+        },
+        {
+          "word": "a",
+          "start": 277.2,
+          "end": 277.54,
+          "probability": 0.997
+        },
+        {
+          "word": "period",
+          "start": 277.54,
+          "end": 277.8,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 277.8,
+          "end": 278.02,
+          "probability": 0.998
+        },
+        {
+          "word": "time",
+          "start": 278.02,
+          "end": 278.58,
+          "probability": 1.0
+        },
+        {
+          "word": "with",
+          "start": 278.58,
+          "end": 279.1,
+          "probability": 0.97
+        },
+        {
+          "word": "very",
+          "start": 279.1,
+          "end": 279.6,
+          "probability": 0.976
+        },
+        {
+          "word": "hot",
+          "start": 279.6,
+          "end": 279.9,
+          "probability": 0.999
+        },
+        {
+          "word": "weather.",
+          "start": 279.9,
+          "end": 280.26,
+          "probability": 0.991
+        }
+      ]
+    },
+    {
+      "start": 280.84,
+      "end": 285.56,
+      "text": " If you make the most of something, you enjoy it as much as you can.",
+      "words": [
+        {
+          "word": "If",
+          "start": 280.84,
+          "end": 281.06,
+          "probability": 0.944
+        },
+        {
+          "word": "you",
+          "start": 281.06,
+          "end": 281.12,
+          "probability": 0.999
+        },
+        {
+          "word": "make",
+          "start": 281.12,
+          "end": 281.4,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 281.4,
+          "end": 281.6,
+          "probability": 0.986
+        },
+        {
+          "word": "most",
+          "start": 281.6,
+          "end": 281.9,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 281.9,
+          "end": 282.06,
+          "probability": 0.993
+        },
+        {
+          "word": "something,",
+          "start": 282.06,
+          "end": 282.66,
+          "probability": 0.996
+        },
+        {
+          "word": "you",
+          "start": 283.04,
+          "end": 283.06,
+          "probability": 0.996
+        },
+        {
+          "word": "enjoy",
+          "start": 283.06,
+          "end": 283.54,
+          "probability": 0.995
+        },
+        {
+          "word": "it",
+          "start": 283.54,
+          "end": 283.78,
+          "probability": 0.995
+        },
+        {
+          "word": "as",
+          "start": 283.78,
+          "end": 283.98,
+          "probability": 0.994
+        },
+        {
+          "word": "much",
+          "start": 283.98,
+          "end": 284.42,
+          "probability": 0.999
+        },
+        {
+          "word": "as",
+          "start": 284.42,
+          "end": 284.72,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 284.72,
+          "end": 284.98,
+          "probability": 0.999
+        },
+        {
+          "word": "can.",
+          "start": 284.98,
+          "end": 285.56,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 285.84,
+      "end": 292.44,
+      "text": " For example, I make the most of hot days by going outside for walks and getting an ice cream.",
+      "words": [
+        {
+          "word": "For",
+          "start": 285.84,
+          "end": 286.2,
+          "probability": 0.999
+        },
+        {
+          "word": "example,",
+          "start": 286.2,
+          "end": 286.92,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 287.18,
+          "end": 287.32,
+          "probability": 0.998
+        },
+        {
+          "word": "make",
+          "start": 287.32,
+          "end": 287.58,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 287.58,
+          "end": 287.74,
+          "probability": 0.997
+        },
+        {
+          "word": "most",
+          "start": 287.74,
+          "end": 288.0,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 288.0,
+          "end": 288.2,
+          "probability": 0.978
+        },
+        {
+          "word": "hot",
+          "start": 288.2,
+          "end": 288.46,
+          "probability": 0.989
+        },
+        {
+          "word": "days",
+          "start": 288.46,
+          "end": 288.94,
+          "probability": 0.977
+        },
+        {
+          "word": "by",
+          "start": 288.94,
+          "end": 289.2,
+          "probability": 0.974
+        },
+        {
+          "word": "going",
+          "start": 289.2,
+          "end": 289.6,
+          "probability": 0.999
+        },
+        {
+          "word": "outside",
+          "start": 289.6,
+          "end": 290.36,
+          "probability": 0.996
+        },
+        {
+          "word": "for",
+          "start": 290.36,
+          "end": 290.74,
+          "probability": 0.98
+        },
+        {
+          "word": "walks",
+          "start": 290.74,
+          "end": 291.2,
+          "probability": 0.994
+        },
+        {
+          "word": "and",
+          "start": 291.2,
+          "end": 291.4,
+          "probability": 0.979
+        },
+        {
+          "word": "getting",
+          "start": 291.4,
+          "end": 291.64,
+          "probability": 0.998
+        },
+        {
+          "word": "an",
+          "start": 291.64,
+          "end": 291.82,
+          "probability": 0.958
+        },
+        {
+          "word": "ice",
+          "start": 291.82,
+          "end": 292.04,
+          "probability": 0.924
+        },
+        {
+          "word": "cream.",
+          "start": 292.04,
+          "end": 292.44,
+          "probability": 0.614
+        }
+      ]
+    },
+    {
+      "start": 292.94,
+      "end": 298.58,
+      "text": " We also heard cool down, which means to feel less hot.",
+      "words": [
+        {
+          "word": "We",
+          "start": 292.94,
+          "end": 293.3,
+          "probability": 0.999
+        },
+        {
+          "word": "also",
+          "start": 293.3,
+          "end": 293.64,
+          "probability": 0.995
+        },
+        {
+          "word": "heard",
+          "start": 293.64,
+          "end": 294.02,
+          "probability": 0.988
+        },
+        {
+          "word": "cool",
+          "start": 294.02,
+          "end": 294.88,
+          "probability": 0.741
+        },
+        {
+          "word": "down,",
+          "start": 294.88,
+          "end": 295.5,
+          "probability": 0.985
+        },
+        {
+          "word": "which",
+          "start": 296.02,
+          "end": 296.04,
+          "probability": 0.998
+        },
+        {
+          "word": "means",
+          "start": 296.04,
+          "end": 296.42,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 296.42,
+          "end": 296.76,
+          "probability": 0.985
+        },
+        {
+          "word": "feel",
+          "start": 296.76,
+          "end": 297.42,
+          "probability": 0.997
+        },
+        {
+          "word": "less",
+          "start": 297.42,
+          "end": 298.06,
+          "probability": 0.999
+        },
+        {
+          "word": "hot.",
+          "start": 298.06,
+          "end": 298.58,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 298.8,
+      "end": 305.6,
+      "text": " So for example, when it's really hot, I like to cool down by jumping in a paddling pool.",
+      "words": [
+        {
+          "word": "So",
+          "start": 298.8,
+          "end": 299.32,
+          "probability": 0.991
+        },
+        {
+          "word": "for",
+          "start": 299.32,
+          "end": 299.52,
+          "probability": 0.988
+        },
+        {
+          "word": "example,",
+          "start": 299.52,
+          "end": 300.32,
+          "probability": 0.999
+        },
+        {
+          "word": "when",
+          "start": 300.6,
+          "end": 300.7,
+          "probability": 0.996
+        },
+        {
+          "word": "it's",
+          "start": 300.7,
+          "end": 301.04,
+          "probability": 0.994
+        },
+        {
+          "word": "really",
+          "start": 301.04,
+          "end": 301.32,
+          "probability": 0.997
+        },
+        {
+          "word": "hot,",
+          "start": 301.32,
+          "end": 301.68,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 301.94,
+          "end": 302.06,
+          "probability": 0.998
+        },
+        {
+          "word": "like",
+          "start": 302.06,
+          "end": 302.36,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 302.36,
+          "end": 302.62,
+          "probability": 0.999
+        },
+        {
+          "word": "cool",
+          "start": 302.62,
+          "end": 303.02,
+          "probability": 0.996
+        },
+        {
+          "word": "down",
+          "start": 303.02,
+          "end": 303.54,
+          "probability": 0.999
+        },
+        {
+          "word": "by",
+          "start": 303.54,
+          "end": 303.98,
+          "probability": 0.98
+        },
+        {
+          "word": "jumping",
+          "start": 303.98,
+          "end": 304.36,
+          "probability": 0.997
+        },
+        {
+          "word": "in",
+          "start": 304.36,
+          "end": 304.62,
+          "probability": 0.984
+        },
+        {
+          "word": "a",
+          "start": 304.62,
+          "end": 304.82,
+          "probability": 0.992
+        },
+        {
+          "word": "paddling",
+          "start": 304.82,
+          "end": 305.18,
+          "probability": 0.995
+        },
+        {
+          "word": "pool.",
+          "start": 305.18,
+          "end": 305.6,
+          "probability": 0.883
+        }
+      ]
+    },
+    {
+      "start": 306.32,
+      "end": 310.16,
+      "text": " You can also say cool off, which means the same in this context.",
+      "words": [
+        {
+          "word": "You",
+          "start": 306.32,
+          "end": 306.46,
+          "probability": 0.548
+        },
+        {
+          "word": "can",
+          "start": 306.46,
+          "end": 306.6,
+          "probability": 0.99
+        },
+        {
+          "word": "also",
+          "start": 306.6,
+          "end": 306.78,
+          "probability": 0.992
+        },
+        {
+          "word": "say",
+          "start": 306.78,
+          "end": 307.18,
+          "probability": 0.996
+        },
+        {
+          "word": "cool",
+          "start": 307.18,
+          "end": 307.56,
+          "probability": 0.408
+        },
+        {
+          "word": "off,",
+          "start": 307.56,
+          "end": 307.92,
+          "probability": 0.933
+        },
+        {
+          "word": "which",
+          "start": 308.36,
+          "end": 308.38,
+          "probability": 0.996
+        },
+        {
+          "word": "means",
+          "start": 308.38,
+          "end": 308.76,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 308.76,
+          "end": 308.96,
+          "probability": 0.995
+        },
+        {
+          "word": "same",
+          "start": 308.96,
+          "end": 309.22,
+          "probability": 0.999
+        },
+        {
+          "word": "in",
+          "start": 309.22,
+          "end": 309.34,
+          "probability": 0.986
+        },
+        {
+          "word": "this",
+          "start": 309.34,
+          "end": 309.52,
+          "probability": 0.995
+        },
+        {
+          "word": "context.",
+          "start": 309.52,
+          "end": 310.16,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 310.9,
+      "end": 312.47,
+      "text": " And we had air conditioning.",
+      "words": [
+        {
+          "word": "And",
+          "start": 310.9,
+          "end": 311.28,
+          "probability": 0.996
+        },
+        {
+          "word": "we",
+          "start": 311.28,
+          "end": 311.46,
+          "probability": 0.999
+        },
+        {
+          "word": "had",
+          "start": 311.46,
+          "end": 311.76,
+          "probability": 0.693
+        },
+        {
+          "word": "air",
+          "start": 311.76,
+          "end": 312.08,
+          "probability": 0.995
+        },
+        {
+          "word": "conditioning.",
+          "start": 312.08,
+          "end": 312.47,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 312.47,
+      "end": 318.62,
+      "text": " That is a machine that helps the space that you're in so it could be your house or your",
+      "words": [
+        {
+          "word": "That",
+          "start": 312.47,
+          "end": 313.06,
+          "probability": 0.998
+        },
+        {
+          "word": "is",
+          "start": 313.06,
+          "end": 313.38,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 313.38,
+          "end": 313.6,
+          "probability": 0.989
+        },
+        {
+          "word": "machine",
+          "start": 313.6,
+          "end": 314.0,
+          "probability": 1.0
+        },
+        {
+          "word": "that",
+          "start": 314.0,
+          "end": 314.32,
+          "probability": 0.985
+        },
+        {
+          "word": "helps",
+          "start": 314.32,
+          "end": 314.86,
+          "probability": 0.996
+        },
+        {
+          "word": "the",
+          "start": 314.86,
+          "end": 315.14,
+          "probability": 0.995
+        },
+        {
+          "word": "space",
+          "start": 315.14,
+          "end": 315.5,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 315.5,
+          "end": 315.72,
+          "probability": 0.993
+        },
+        {
+          "word": "you're",
+          "start": 315.72,
+          "end": 316.0,
+          "probability": 0.988
+        },
+        {
+          "word": "in",
+          "start": 316.0,
+          "end": 316.48,
+          "probability": 0.999
+        },
+        {
+          "word": "so",
+          "start": 316.48,
+          "end": 316.84,
+          "probability": 0.465
+        },
+        {
+          "word": "it",
+          "start": 316.84,
+          "end": 317.02,
+          "probability": 0.873
+        },
+        {
+          "word": "could",
+          "start": 317.02,
+          "end": 317.26,
+          "probability": 0.997
+        },
+        {
+          "word": "be",
+          "start": 317.26,
+          "end": 317.5,
+          "probability": 0.999
+        },
+        {
+          "word": "your",
+          "start": 317.5,
+          "end": 317.74,
+          "probability": 0.994
+        },
+        {
+          "word": "house",
+          "start": 317.74,
+          "end": 318.2,
+          "probability": 0.994
+        },
+        {
+          "word": "or",
+          "start": 318.2,
+          "end": 318.46,
+          "probability": 0.918
+        },
+        {
+          "word": "your",
+          "start": 318.46,
+          "end": 318.62,
+          "probability": 0.774
+        }
+      ]
+    },
+    {
+      "start": 318.62,
+      "end": 319.54,
+      "text": " work office.",
+      "words": [
+        {
+          "word": "work",
+          "start": 318.62,
+          "end": 319.0,
+          "probability": 0.982
+        },
+        {
+          "word": "office.",
+          "start": 319.0,
+          "end": 319.54,
+          "probability": 0.979
+        }
+      ]
+    },
+    {
+      "start": 319.82,
+      "end": 322.65,
+      "text": " It helps that space feel less hot.",
+      "words": [
+        {
+          "word": "It",
+          "start": 319.82,
+          "end": 320.18,
+          "probability": 0.998
+        },
+        {
+          "word": "helps",
+          "start": 320.18,
+          "end": 320.58,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 320.58,
+          "end": 320.9,
+          "probability": 0.989
+        },
+        {
+          "word": "space",
+          "start": 320.9,
+          "end": 321.3,
+          "probability": 0.998
+        },
+        {
+          "word": "feel",
+          "start": 321.3,
+          "end": 321.82,
+          "probability": 0.922
+        },
+        {
+          "word": "less",
+          "start": 321.82,
+          "end": 322.24,
+          "probability": 0.998
+        },
+        {
+          "word": "hot.",
+          "start": 322.24,
+          "end": 322.65,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 322.65,
+      "end": 324.04,
+      "text": " It helps it feel colder.",
+      "words": [
+        {
+          "word": "It",
+          "start": 322.65,
+          "end": 322.96,
+          "probability": 0.995
+        },
+        {
+          "word": "helps",
+          "start": 322.96,
+          "end": 323.2,
+          "probability": 0.998
+        },
+        {
+          "word": "it",
+          "start": 323.2,
+          "end": 323.4,
+          "probability": 0.967
+        },
+        {
+          "word": "feel",
+          "start": 323.4,
+          "end": 323.58,
+          "probability": 0.994
+        },
+        {
+          "word": "colder.",
+          "start": 323.58,
+          "end": 324.04,
+          "probability": 0.578
+        }
+      ]
+    },
+    {
+      "start": 324.62,
+      "end": 327.4,
+      "text": " You might hear it shortened to aircon or AC.",
+      "words": [
+        {
+          "word": "You",
+          "start": 324.62,
+          "end": 324.94,
+          "probability": 0.995
+        },
+        {
+          "word": "might",
+          "start": 324.94,
+          "end": 325.14,
+          "probability": 0.998
+        },
+        {
+          "word": "hear",
+          "start": 325.14,
+          "end": 325.3,
+          "probability": 0.975
+        },
+        {
+          "word": "it",
+          "start": 325.3,
+          "end": 325.42,
+          "probability": 0.909
+        },
+        {
+          "word": "shortened",
+          "start": 325.42,
+          "end": 325.84,
+          "probability": 0.803
+        },
+        {
+          "word": "to",
+          "start": 325.84,
+          "end": 326.16,
+          "probability": 0.992
+        },
+        {
+          "word": "aircon",
+          "start": 326.16,
+          "end": 326.72,
+          "probability": 0.433
+        },
+        {
+          "word": "or",
+          "start": 326.72,
+          "end": 326.9,
+          "probability": 0.962
+        },
+        {
+          "word": "AC.",
+          "start": 326.9,
+          "end": 327.4,
+          "probability": 0.902
+        }
+      ]
+    },
+    {
+      "start": 327.68,
+      "end": 331.6,
+      "text": " That's it for this episode of Real Easy English.",
+      "words": [
+        {
+          "word": "That's",
+          "start": 327.68,
+          "end": 328.2,
+          "probability": 0.997
+        },
+        {
+          "word": "it",
+          "start": 328.2,
+          "end": 328.52,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 328.52,
+          "end": 328.86,
+          "probability": 0.985
+        },
+        {
+          "word": "this",
+          "start": 328.86,
+          "end": 329.12,
+          "probability": 0.998
+        },
+        {
+          "word": "episode",
+          "start": 329.12,
+          "end": 329.74,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 329.74,
+          "end": 330.12,
+          "probability": 0.988
+        },
+        {
+          "word": "Real",
+          "start": 330.12,
+          "end": 330.6,
+          "probability": 0.948
+        },
+        {
+          "word": "Easy",
+          "start": 330.6,
+          "end": 331.08,
+          "probability": 0.724
+        },
+        {
+          "word": "English.",
+          "start": 331.08,
+          "end": 331.6,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 332.16,
+      "end": 335.74,
+      "text": " Where the worksheet on our website to test what you've learned.",
+      "words": [
+        {
+          "word": "Where",
+          "start": 332.16,
+          "end": 332.34,
+          "probability": 0.13
+        },
+        {
+          "word": "the",
+          "start": 332.34,
+          "end": 332.56,
+          "probability": 0.79
+        },
+        {
+          "word": "worksheet",
+          "start": 332.56,
+          "end": 333.12,
+          "probability": 0.979
+        },
+        {
+          "word": "on",
+          "start": 333.12,
+          "end": 333.32,
+          "probability": 0.988
+        },
+        {
+          "word": "our",
+          "start": 333.32,
+          "end": 333.54,
+          "probability": 0.997
+        },
+        {
+          "word": "website",
+          "start": 333.54,
+          "end": 334.04,
+          "probability": 0.99
+        },
+        {
+          "word": "to",
+          "start": 334.04,
+          "end": 334.42,
+          "probability": 0.936
+        },
+        {
+          "word": "test",
+          "start": 334.42,
+          "end": 334.78,
+          "probability": 0.997
+        },
+        {
+          "word": "what",
+          "start": 334.78,
+          "end": 334.98,
+          "probability": 0.989
+        },
+        {
+          "word": "you've",
+          "start": 334.98,
+          "end": 335.3,
+          "probability": 0.989
+        },
+        {
+          "word": "learned.",
+          "start": 335.3,
+          "end": 335.74,
+          "probability": 0.582
+        }
+      ]
+    },
+    {
+      "start": 335.8,
+      "end": 339.4,
+      "text": " And that's at bbclearningenglish.com.",
+      "words": [
+        {
+          "word": "And",
+          "start": 335.8,
+          "end": 336.04,
+          "probability": 0.954
+        },
+        {
+          "word": "that's",
+          "start": 336.04,
+          "end": 336.4,
+          "probability": 0.995
+        },
+        {
+          "word": "at",
+          "start": 336.4,
+          "end": 336.66,
+          "probability": 0.488
+        },
+        {
+          "word": "bbclearningenglish.com.",
+          "start": 336.66,
+          "end": 339.4,
+          "probability": 0.757
+        }
+      ]
+    },
+    {
+      "start": 340.02,
+      "end": 345.42,
+      "text": " And we'll see you next week with another real conversation in Easy English.",
+      "words": [
+        {
+          "word": "And",
+          "start": 340.02,
+          "end": 340.3,
+          "probability": 0.976
+        },
+        {
+          "word": "we'll",
+          "start": 340.3,
+          "end": 340.6,
+          "probability": 0.994
+        },
+        {
+          "word": "see",
+          "start": 340.6,
+          "end": 340.82,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 340.82,
+          "end": 340.98,
+          "probability": 0.999
+        },
+        {
+          "word": "next",
+          "start": 340.98,
+          "end": 341.3,
+          "probability": 0.999
+        },
+        {
+          "word": "week",
+          "start": 341.3,
+          "end": 341.72,
+          "probability": 0.999
+        },
+        {
+          "word": "with",
+          "start": 341.72,
+          "end": 342.0,
+          "probability": 0.974
+        },
+        {
+          "word": "another",
+          "start": 342.0,
+          "end": 342.76,
+          "probability": 0.994
+        },
+        {
+          "word": "real",
+          "start": 342.76,
+          "end": 343.22,
+          "probability": 0.815
+        },
+        {
+          "word": "conversation",
+          "start": 343.22,
+          "end": 344.06,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 344.06,
+          "end": 344.44,
+          "probability": 0.991
+        },
+        {
+          "word": "Easy",
+          "start": 344.44,
+          "end": 344.8,
+          "probability": 0.537
+        },
+        {
+          "word": "English.",
+          "start": 344.8,
+          "end": 345.42,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 345.68,
+      "end": 346.76,
+      "text": " But for now, it's goodbye.",
+      "words": [
+        {
+          "word": "But",
+          "start": 345.68,
+          "end": 345.86,
+          "probability": 0.875
+        },
+        {
+          "word": "for",
+          "start": 345.86,
+          "end": 346.0,
+          "probability": 0.995
+        },
+        {
+          "word": "now,",
+          "start": 346.0,
+          "end": 346.22,
+          "probability": 1.0
+        },
+        {
+          "word": "it's",
+          "start": 346.34,
+          "end": 346.42,
+          "probability": 0.99
+        },
+        {
+          "word": "goodbye.",
+          "start": 346.42,
+          "end": 346.76,
+          "probability": 0.951
+        }
+      ]
+    },
+    {
+      "start": 347.16,
+      "end": 347.48,
+      "text": " Bye.",
+      "words": [
+        {
+          "word": "Bye.",
+          "start": 347.16,
+          "end": 347.48,
+          "probability": 0.937
+        }
+      ]
+    }
+  ]
+}

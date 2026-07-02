@@ -1,0 +1,6551 @@
+{
+  "engine": "whisper-timestamped",
+  "model": "tiny.en",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.16,
+      "end": 2.28,
+      "text": " 6 New English",
+      "words": [
+        {
+          "word": "6",
+          "start": 0.16,
+          "end": 1.38,
+          "probability": 0.202
+        },
+        {
+          "word": "New",
+          "start": 1.38,
+          "end": 1.74,
+          "probability": 0.206
+        },
+        {
+          "word": "English",
+          "start": 1.74,
+          "end": 2.28,
+          "probability": 0.863
+        }
+      ]
+    },
+    {
+      "start": 2.64,
+      "end": 5.3,
+      "text": " From BBC Learning English.com",
+      "words": [
+        {
+          "word": "From",
+          "start": 2.64,
+          "end": 2.92,
+          "probability": 0.497
+        },
+        {
+          "word": "BBC",
+          "start": 2.92,
+          "end": 3.56,
+          "probability": 0.88
+        },
+        {
+          "word": "Learning",
+          "start": 3.56,
+          "end": 4.06,
+          "probability": 0.286
+        },
+        {
+          "word": "English.com",
+          "start": 4.06,
+          "end": 5.3,
+          "probability": 0.802
+        }
+      ]
+    },
+    {
+      "start": 7.9,
+      "end": 11.9,
+      "text": " Hello, this is 6 Minute English from BBC Learning English. I'm Neil.",
+      "words": [
+        {
+          "word": "Hello,",
+          "start": 7.9,
+          "end": 8.22,
+          "probability": 0.997
+        },
+        {
+          "word": "this",
+          "start": 8.5,
+          "end": 8.54,
+          "probability": 0.994
+        },
+        {
+          "word": "is",
+          "start": 8.54,
+          "end": 8.76,
+          "probability": 0.998
+        },
+        {
+          "word": "6",
+          "start": 8.76,
+          "end": 9.02,
+          "probability": 0.853
+        },
+        {
+          "word": "Minute",
+          "start": 9.02,
+          "end": 9.26,
+          "probability": 0.936
+        },
+        {
+          "word": "English",
+          "start": 9.26,
+          "end": 9.64,
+          "probability": 0.994
+        },
+        {
+          "word": "from",
+          "start": 9.64,
+          "end": 9.98,
+          "probability": 0.929
+        },
+        {
+          "word": "BBC",
+          "start": 9.98,
+          "end": 10.54,
+          "probability": 0.992
+        },
+        {
+          "word": "Learning",
+          "start": 10.54,
+          "end": 10.96,
+          "probability": 0.96
+        },
+        {
+          "word": "English.",
+          "start": 10.96,
+          "end": 11.38,
+          "probability": 0.996
+        },
+        {
+          "word": "I'm",
+          "start": 11.54,
+          "end": 11.7,
+          "probability": 0.764
+        },
+        {
+          "word": "Neil.",
+          "start": 11.7,
+          "end": 11.9,
+          "probability": 0.936
+        }
+      ]
+    },
+    {
+      "start": 12.04,
+      "end": 13.24,
+      "text": " And I'm Georgie.",
+      "words": [
+        {
+          "word": "And",
+          "start": 12.04,
+          "end": 12.44,
+          "probability": 0.971
+        },
+        {
+          "word": "I'm",
+          "start": 12.44,
+          "end": 12.64,
+          "probability": 0.965
+        },
+        {
+          "word": "Georgie.",
+          "start": 12.64,
+          "end": 13.24,
+          "probability": 0.936
+        }
+      ]
+    },
+    {
+      "start": 13.5,
+      "end": 15.94,
+      "text": " Neil, I'm going to play you two sound recordings",
+      "words": [
+        {
+          "word": "Neil,",
+          "start": 13.5,
+          "end": 13.82,
+          "probability": 0.95
+        },
+        {
+          "word": "I'm",
+          "start": 13.96,
+          "end": 14.06,
+          "probability": 0.992
+        },
+        {
+          "word": "going",
+          "start": 14.06,
+          "end": 14.3,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 14.3,
+          "end": 14.34,
+          "probability": 0.999
+        },
+        {
+          "word": "play",
+          "start": 14.34,
+          "end": 14.64,
+          "probability": 0.989
+        },
+        {
+          "word": "you",
+          "start": 14.64,
+          "end": 14.86,
+          "probability": 0.981
+        },
+        {
+          "word": "two",
+          "start": 14.86,
+          "end": 15.2,
+          "probability": 0.952
+        },
+        {
+          "word": "sound",
+          "start": 15.2,
+          "end": 15.54,
+          "probability": 0.988
+        },
+        {
+          "word": "recordings",
+          "start": 15.54,
+          "end": 15.94,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 16.24,
+      "end": 19.16,
+      "text": " and I want you to tell me how you feel when you hear them.",
+      "words": [
+        {
+          "word": "and",
+          "start": 16.24,
+          "end": 16.5,
+          "probability": 0.975
+        },
+        {
+          "word": "I",
+          "start": 16.5,
+          "end": 16.68,
+          "probability": 0.995
+        },
+        {
+          "word": "want",
+          "start": 16.68,
+          "end": 16.86,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 16.86,
+          "end": 17.06,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 17.06,
+          "end": 17.22,
+          "probability": 0.999
+        },
+        {
+          "word": "tell",
+          "start": 17.22,
+          "end": 17.36,
+          "probability": 0.999
+        },
+        {
+          "word": "me",
+          "start": 17.36,
+          "end": 17.62,
+          "probability": 0.999
+        },
+        {
+          "word": "how",
+          "start": 17.62,
+          "end": 17.8,
+          "probability": 0.938
+        },
+        {
+          "word": "you",
+          "start": 17.8,
+          "end": 17.98,
+          "probability": 0.998
+        },
+        {
+          "word": "feel",
+          "start": 17.98,
+          "end": 18.4,
+          "probability": 0.998
+        },
+        {
+          "word": "when",
+          "start": 18.4,
+          "end": 18.62,
+          "probability": 0.982
+        },
+        {
+          "word": "you",
+          "start": 18.62,
+          "end": 18.68,
+          "probability": 0.999
+        },
+        {
+          "word": "hear",
+          "start": 18.68,
+          "end": 18.86,
+          "probability": 0.999
+        },
+        {
+          "word": "them.",
+          "start": 18.86,
+          "end": 19.16,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 19.16,
+      "end": 19.56,
+      "text": " OK.",
+      "words": [
+        {
+          "word": "OK.",
+          "start": 19.16,
+          "end": 19.56,
+          "probability": 0.7
+        }
+      ]
+    },
+    {
+      "start": 20.0,
+      "end": 21.24,
+      "text": " First, this...",
+      "words": [
+        {
+          "word": "First,",
+          "start": 20.0,
+          "end": 20.52,
+          "probability": 0.979
+        },
+        {
+          "word": "this...",
+          "start": 20.7,
+          "end": 21.24,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 26.12,
+      "end": 27.54,
+      "text": " And now this...",
+      "words": [
+        {
+          "word": "And",
+          "start": 26.12,
+          "end": 26.54,
+          "probability": 0.466
+        },
+        {
+          "word": "now",
+          "start": 26.54,
+          "end": 26.84,
+          "probability": 0.974
+        },
+        {
+          "word": "this...",
+          "start": 26.84,
+          "end": 27.54,
+          "probability": 0.736
+        }
+      ]
+    },
+    {
+      "start": 31.88,
+      "end": 35.64,
+      "text": " Oh, well, that first clip made me feel really relaxed.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 31.88,
+          "end": 32.24,
+          "probability": 0.77
+        },
+        {
+          "word": "well,",
+          "start": 32.46,
+          "end": 32.56,
+          "probability": 0.983
+        },
+        {
+          "word": "that",
+          "start": 32.8,
+          "end": 32.84,
+          "probability": 0.954
+        },
+        {
+          "word": "first",
+          "start": 32.84,
+          "end": 33.24,
+          "probability": 0.987
+        },
+        {
+          "word": "clip",
+          "start": 33.24,
+          "end": 33.52,
+          "probability": 0.995
+        },
+        {
+          "word": "made",
+          "start": 33.52,
+          "end": 33.8,
+          "probability": 0.916
+        },
+        {
+          "word": "me",
+          "start": 33.8,
+          "end": 34.08,
+          "probability": 0.999
+        },
+        {
+          "word": "feel",
+          "start": 34.08,
+          "end": 34.4,
+          "probability": 0.987
+        },
+        {
+          "word": "really",
+          "start": 34.4,
+          "end": 34.98,
+          "probability": 0.936
+        },
+        {
+          "word": "relaxed.",
+          "start": 34.98,
+          "end": 35.64,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 35.94,
+      "end": 37.08,
+      "text": " But the second one...",
+      "words": [
+        {
+          "word": "But",
+          "start": 35.94,
+          "end": 36.36,
+          "probability": 0.906
+        },
+        {
+          "word": "the",
+          "start": 36.36,
+          "end": 36.54,
+          "probability": 0.982
+        },
+        {
+          "word": "second",
+          "start": 36.54,
+          "end": 36.84,
+          "probability": 0.995
+        },
+        {
+          "word": "one...",
+          "start": 36.84,
+          "end": 37.08,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 37.08,
+      "end": 40.14,
+      "text": " Oh, it's horrible. I felt quite stressed out, actually.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 37.08,
+          "end": 37.3,
+          "probability": 0.91
+        },
+        {
+          "word": "it's",
+          "start": 37.46,
+          "end": 37.58,
+          "probability": 0.946
+        },
+        {
+          "word": "horrible.",
+          "start": 37.58,
+          "end": 38.18,
+          "probability": 0.99
+        },
+        {
+          "word": "I",
+          "start": 38.32,
+          "end": 38.36,
+          "probability": 0.73
+        },
+        {
+          "word": "felt",
+          "start": 38.36,
+          "end": 38.68,
+          "probability": 0.991
+        },
+        {
+          "word": "quite",
+          "start": 38.68,
+          "end": 39.14,
+          "probability": 0.997
+        },
+        {
+          "word": "stressed",
+          "start": 39.14,
+          "end": 39.54,
+          "probability": 0.985
+        },
+        {
+          "word": "out,",
+          "start": 39.54,
+          "end": 39.82,
+          "probability": 0.992
+        },
+        {
+          "word": "actually.",
+          "start": 39.84,
+          "end": 40.14,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 40.3,
+      "end": 44.12,
+      "text": " Oh, no. Well, this little experiment shows how much we are affected",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 40.3,
+          "end": 40.6,
+          "probability": 0.953
+        },
+        {
+          "word": "no.",
+          "start": 41.1,
+          "end": 41.12,
+          "probability": 0.994
+        },
+        {
+          "word": "Well,",
+          "start": 41.18,
+          "end": 41.58,
+          "probability": 0.515
+        },
+        {
+          "word": "this",
+          "start": 41.7,
+          "end": 41.84,
+          "probability": 0.988
+        },
+        {
+          "word": "little",
+          "start": 41.84,
+          "end": 42.04,
+          "probability": 0.986
+        },
+        {
+          "word": "experiment",
+          "start": 42.04,
+          "end": 42.5,
+          "probability": 0.998
+        },
+        {
+          "word": "shows",
+          "start": 42.5,
+          "end": 43.0,
+          "probability": 0.703
+        },
+        {
+          "word": "how",
+          "start": 43.0,
+          "end": 43.28,
+          "probability": 0.657
+        },
+        {
+          "word": "much",
+          "start": 43.28,
+          "end": 43.52,
+          "probability": 0.992
+        },
+        {
+          "word": "we",
+          "start": 43.52,
+          "end": 43.66,
+          "probability": 0.958
+        },
+        {
+          "word": "are",
+          "start": 43.66,
+          "end": 43.82,
+          "probability": 0.961
+        },
+        {
+          "word": "affected",
+          "start": 43.82,
+          "end": 44.12,
+          "probability": 0.933
+        }
+      ]
+    },
+    {
+      "start": 44.12,
+      "end": 45.62,
+      "text": " by the noise around us.",
+      "words": [
+        {
+          "word": "by",
+          "start": 44.12,
+          "end": 44.54,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 44.54,
+          "end": 44.68,
+          "probability": 0.998
+        },
+        {
+          "word": "noise",
+          "start": 44.68,
+          "end": 44.94,
+          "probability": 0.981
+        },
+        {
+          "word": "around",
+          "start": 44.94,
+          "end": 45.3,
+          "probability": 0.997
+        },
+        {
+          "word": "us.",
+          "start": 45.3,
+          "end": 45.62,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 45.82,
+      "end": 48.34,
+      "text": " And that's a problem if you're one of the four billion people",
+      "words": [
+        {
+          "word": "And",
+          "start": 45.82,
+          "end": 46.0,
+          "probability": 0.982
+        },
+        {
+          "word": "that's",
+          "start": 46.0,
+          "end": 46.22,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 46.22,
+          "end": 46.32,
+          "probability": 0.993
+        },
+        {
+          "word": "problem",
+          "start": 46.32,
+          "end": 46.62,
+          "probability": 0.999
+        },
+        {
+          "word": "if",
+          "start": 46.62,
+          "end": 46.84,
+          "probability": 0.738
+        },
+        {
+          "word": "you're",
+          "start": 46.84,
+          "end": 47.0,
+          "probability": 0.987
+        },
+        {
+          "word": "one",
+          "start": 47.0,
+          "end": 47.2,
+          "probability": 0.994
+        },
+        {
+          "word": "of",
+          "start": 47.2,
+          "end": 47.34,
+          "probability": 0.994
+        },
+        {
+          "word": "the",
+          "start": 47.34,
+          "end": 47.5,
+          "probability": 0.975
+        },
+        {
+          "word": "four",
+          "start": 47.5,
+          "end": 47.72,
+          "probability": 0.546
+        },
+        {
+          "word": "billion",
+          "start": 47.72,
+          "end": 48.08,
+          "probability": 0.969
+        },
+        {
+          "word": "people",
+          "start": 48.08,
+          "end": 48.34,
+          "probability": 0.981
+        }
+      ]
+    },
+    {
+      "start": 48.46,
+      "end": 50.22,
+      "text": " around the world who live in cities.",
+      "words": [
+        {
+          "word": "around",
+          "start": 48.46,
+          "end": 48.9,
+          "probability": 0.994
+        },
+        {
+          "word": "the",
+          "start": 48.9,
+          "end": 49.06,
+          "probability": 0.999
+        },
+        {
+          "word": "world",
+          "start": 49.06,
+          "end": 49.38,
+          "probability": 0.998
+        },
+        {
+          "word": "who",
+          "start": 49.38,
+          "end": 49.56,
+          "probability": 0.983
+        },
+        {
+          "word": "live",
+          "start": 49.56,
+          "end": 49.74,
+          "probability": 1.0
+        },
+        {
+          "word": "in",
+          "start": 49.74,
+          "end": 49.94,
+          "probability": 0.999
+        },
+        {
+          "word": "cities.",
+          "start": 49.94,
+          "end": 50.22,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 50.64,
+      "end": 54.48,
+      "text": " Yes, whether it's the rattle of train tracks, honking car horns",
+      "words": [
+        {
+          "word": "Yes,",
+          "start": 50.64,
+          "end": 51.06,
+          "probability": 0.993
+        },
+        {
+          "word": "whether",
+          "start": 51.2,
+          "end": 51.42,
+          "probability": 0.972
+        },
+        {
+          "word": "it's",
+          "start": 51.42,
+          "end": 51.76,
+          "probability": 0.993
+        },
+        {
+          "word": "the",
+          "start": 51.76,
+          "end": 51.92,
+          "probability": 0.987
+        },
+        {
+          "word": "rattle",
+          "start": 51.92,
+          "end": 52.22,
+          "probability": 0.767
+        },
+        {
+          "word": "of",
+          "start": 52.22,
+          "end": 52.42,
+          "probability": 0.923
+        },
+        {
+          "word": "train",
+          "start": 52.42,
+          "end": 52.68,
+          "probability": 0.955
+        },
+        {
+          "word": "tracks,",
+          "start": 52.68,
+          "end": 53.08,
+          "probability": 0.979
+        },
+        {
+          "word": "honking",
+          "start": 53.5,
+          "end": 54.0,
+          "probability": 0.718
+        },
+        {
+          "word": "car",
+          "start": 54.0,
+          "end": 54.36,
+          "probability": 0.978
+        },
+        {
+          "word": "horns",
+          "start": 54.36,
+          "end": 54.48,
+          "probability": 0.845
+        }
+      ]
+    },
+    {
+      "start": 54.86,
+      "end": 56.88,
+      "text": " or the roar of airplanes overhead,",
+      "words": [
+        {
+          "word": "or",
+          "start": 54.86,
+          "end": 55.14,
+          "probability": 0.965
+        },
+        {
+          "word": "the",
+          "start": 55.14,
+          "end": 55.38,
+          "probability": 0.996
+        },
+        {
+          "word": "roar",
+          "start": 55.38,
+          "end": 55.7,
+          "probability": 0.986
+        },
+        {
+          "word": "of",
+          "start": 55.7,
+          "end": 55.88,
+          "probability": 0.993
+        },
+        {
+          "word": "airplanes",
+          "start": 55.88,
+          "end": 56.32,
+          "probability": 0.975
+        },
+        {
+          "word": "overhead,",
+          "start": 56.32,
+          "end": 56.88,
+          "probability": 0.63
+        }
+      ]
+    },
+    {
+      "start": 57.24,
+      "end": 59.22,
+      "text": " modern cities are full of noise.",
+      "words": [
+        {
+          "word": "modern",
+          "start": 57.24,
+          "end": 57.7,
+          "probability": 0.771
+        },
+        {
+          "word": "cities",
+          "start": 57.7,
+          "end": 58.24,
+          "probability": 0.999
+        },
+        {
+          "word": "are",
+          "start": 58.24,
+          "end": 58.52,
+          "probability": 0.984
+        },
+        {
+          "word": "full",
+          "start": 58.52,
+          "end": 58.74,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 58.74,
+          "end": 58.88,
+          "probability": 0.999
+        },
+        {
+          "word": "noise.",
+          "start": 58.88,
+          "end": 59.22,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 59.62,
+      "end": 61.28,
+      "text": " And this can have serious effects.",
+      "words": [
+        {
+          "word": "And",
+          "start": 59.62,
+          "end": 59.74,
+          "probability": 0.983
+        },
+        {
+          "word": "this",
+          "start": 59.74,
+          "end": 59.94,
+          "probability": 0.997
+        },
+        {
+          "word": "can",
+          "start": 59.94,
+          "end": 60.14,
+          "probability": 0.998
+        },
+        {
+          "word": "have",
+          "start": 60.14,
+          "end": 60.44,
+          "probability": 0.999
+        },
+        {
+          "word": "serious",
+          "start": 60.44,
+          "end": 60.88,
+          "probability": 0.996
+        },
+        {
+          "word": "effects.",
+          "start": 60.88,
+          "end": 61.28,
+          "probability": 0.957
+        }
+      ]
+    },
+    {
+      "start": 61.5,
+      "end": 64.48,
+      "text": " The World Health Organization reports that by 2050,",
+      "words": [
+        {
+          "word": "The",
+          "start": 61.5,
+          "end": 61.8,
+          "probability": 0.996
+        },
+        {
+          "word": "World",
+          "start": 61.8,
+          "end": 62.1,
+          "probability": 0.956
+        },
+        {
+          "word": "Health",
+          "start": 62.1,
+          "end": 62.38,
+          "probability": 0.992
+        },
+        {
+          "word": "Organization",
+          "start": 62.38,
+          "end": 63.04,
+          "probability": 0.672
+        },
+        {
+          "word": "reports",
+          "start": 63.04,
+          "end": 63.66,
+          "probability": 0.95
+        },
+        {
+          "word": "that",
+          "start": 63.66,
+          "end": 63.86,
+          "probability": 0.892
+        },
+        {
+          "word": "by",
+          "start": 63.86,
+          "end": 64.04,
+          "probability": 0.891
+        },
+        {
+          "word": "2050,",
+          "start": 64.04,
+          "end": 64.48,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 64.92,
+      "end": 68.36,
+      "text": " around two and a half billion people will experience hearing loss.",
+      "words": [
+        {
+          "word": "around",
+          "start": 64.92,
+          "end": 65.36,
+          "probability": 0.995
+        },
+        {
+          "word": "two",
+          "start": 65.36,
+          "end": 65.6,
+          "probability": 0.494
+        },
+        {
+          "word": "and",
+          "start": 65.6,
+          "end": 65.74,
+          "probability": 0.883
+        },
+        {
+          "word": "a",
+          "start": 65.74,
+          "end": 65.84,
+          "probability": 0.974
+        },
+        {
+          "word": "half",
+          "start": 65.84,
+          "end": 66.04,
+          "probability": 0.998
+        },
+        {
+          "word": "billion",
+          "start": 66.04,
+          "end": 66.46,
+          "probability": 0.995
+        },
+        {
+          "word": "people",
+          "start": 66.46,
+          "end": 66.9,
+          "probability": 0.998
+        },
+        {
+          "word": "will",
+          "start": 66.9,
+          "end": 67.08,
+          "probability": 0.744
+        },
+        {
+          "word": "experience",
+          "start": 67.08,
+          "end": 67.72,
+          "probability": 0.996
+        },
+        {
+          "word": "hearing",
+          "start": 67.72,
+          "end": 68.14,
+          "probability": 0.987
+        },
+        {
+          "word": "loss.",
+          "start": 68.14,
+          "end": 68.36,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 68.36,
+      "end": 72.48,
+      "text": " An exposure to loud noise has been linked to stress and anxiety.",
+      "words": [
+        {
+          "word": "An",
+          "start": 68.36,
+          "end": 69.2,
+          "probability": 0.571
+        },
+        {
+          "word": "exposure",
+          "start": 69.2,
+          "end": 69.66,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 69.66,
+          "end": 69.88,
+          "probability": 0.999
+        },
+        {
+          "word": "loud",
+          "start": 69.88,
+          "end": 70.16,
+          "probability": 0.998
+        },
+        {
+          "word": "noise",
+          "start": 70.16,
+          "end": 70.6,
+          "probability": 0.998
+        },
+        {
+          "word": "has",
+          "start": 70.6,
+          "end": 70.82,
+          "probability": 0.896
+        },
+        {
+          "word": "been",
+          "start": 70.82,
+          "end": 70.98,
+          "probability": 0.998
+        },
+        {
+          "word": "linked",
+          "start": 70.98,
+          "end": 71.22,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 71.22,
+          "end": 71.46,
+          "probability": 0.906
+        },
+        {
+          "word": "stress",
+          "start": 71.46,
+          "end": 71.88,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 71.88,
+          "end": 72.08,
+          "probability": 0.981
+        },
+        {
+          "word": "anxiety.",
+          "start": 72.08,
+          "end": 72.48,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 73.04,
+      "end": 76.48,
+      "text": " In this episode, we'll be hearing about ways to make our cities quieter,",
+      "words": [
+        {
+          "word": "In",
+          "start": 73.04,
+          "end": 73.26,
+          "probability": 0.992
+        },
+        {
+          "word": "this",
+          "start": 73.26,
+          "end": 73.46,
+          "probability": 0.999
+        },
+        {
+          "word": "episode,",
+          "start": 73.46,
+          "end": 73.8,
+          "probability": 0.999
+        },
+        {
+          "word": "we'll",
+          "start": 73.92,
+          "end": 74.12,
+          "probability": 0.956
+        },
+        {
+          "word": "be",
+          "start": 74.12,
+          "end": 74.32,
+          "probability": 0.997
+        },
+        {
+          "word": "hearing",
+          "start": 74.32,
+          "end": 74.76,
+          "probability": 0.997
+        },
+        {
+          "word": "about",
+          "start": 74.76,
+          "end": 75.08,
+          "probability": 0.928
+        },
+        {
+          "word": "ways",
+          "start": 75.08,
+          "end": 75.42,
+          "probability": 0.979
+        },
+        {
+          "word": "to",
+          "start": 75.42,
+          "end": 75.56,
+          "probability": 0.878
+        },
+        {
+          "word": "make",
+          "start": 75.56,
+          "end": 75.8,
+          "probability": 0.975
+        },
+        {
+          "word": "our",
+          "start": 75.8,
+          "end": 75.94,
+          "probability": 0.974
+        },
+        {
+          "word": "cities",
+          "start": 75.94,
+          "end": 76.3,
+          "probability": 0.851
+        },
+        {
+          "word": "quieter,",
+          "start": 76.3,
+          "end": 76.48,
+          "probability": 0.967
+        }
+      ]
+    },
+    {
+      "start": 77.12,
+      "end": 80.9,
+      "text": " more relaxing places, using some useful new words and phrases.",
+      "words": [
+        {
+          "word": "more",
+          "start": 77.12,
+          "end": 77.4,
+          "probability": 0.996
+        },
+        {
+          "word": "relaxing",
+          "start": 77.4,
+          "end": 77.86,
+          "probability": 0.996
+        },
+        {
+          "word": "places,",
+          "start": 77.86,
+          "end": 78.52,
+          "probability": 0.998
+        },
+        {
+          "word": "using",
+          "start": 78.78,
+          "end": 79.12,
+          "probability": 0.658
+        },
+        {
+          "word": "some",
+          "start": 79.12,
+          "end": 79.42,
+          "probability": 0.999
+        },
+        {
+          "word": "useful",
+          "start": 79.42,
+          "end": 79.74,
+          "probability": 0.985
+        },
+        {
+          "word": "new",
+          "start": 79.74,
+          "end": 80.1,
+          "probability": 0.986
+        },
+        {
+          "word": "words",
+          "start": 80.1,
+          "end": 80.38,
+          "probability": 0.997
+        },
+        {
+          "word": "and",
+          "start": 80.38,
+          "end": 80.56,
+          "probability": 0.997
+        },
+        {
+          "word": "phrases.",
+          "start": 80.56,
+          "end": 80.9,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 81.14,
+      "end": 84.29,
+      "text": " And remember, you'll find all the vocabulary along with a quiz",
+      "words": [
+        {
+          "word": "And",
+          "start": 81.14,
+          "end": 81.54,
+          "probability": 0.962
+        },
+        {
+          "word": "remember,",
+          "start": 81.54,
+          "end": 81.92,
+          "probability": 0.899
+        },
+        {
+          "word": "you'll",
+          "start": 82.0,
+          "end": 82.26,
+          "probability": 0.991
+        },
+        {
+          "word": "find",
+          "start": 82.26,
+          "end": 82.52,
+          "probability": 0.999
+        },
+        {
+          "word": "all",
+          "start": 82.52,
+          "end": 82.8,
+          "probability": 0.993
+        },
+        {
+          "word": "the",
+          "start": 82.8,
+          "end": 82.94,
+          "probability": 0.963
+        },
+        {
+          "word": "vocabulary",
+          "start": 82.94,
+          "end": 83.52,
+          "probability": 0.975
+        },
+        {
+          "word": "along",
+          "start": 83.52,
+          "end": 83.94,
+          "probability": 0.589
+        },
+        {
+          "word": "with",
+          "start": 83.94,
+          "end": 84.14,
+          "probability": 0.966
+        },
+        {
+          "word": "a",
+          "start": 84.14,
+          "end": 84.26,
+          "probability": 0.705
+        },
+        {
+          "word": "quiz",
+          "start": 84.26,
+          "end": 84.29,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 84.29,
+      "end": 88.16,
+      "text": " and worksheet on our website, BBCLearningEnglish.com.",
+      "words": [
+        {
+          "word": "and",
+          "start": 84.29,
+          "end": 84.9,
+          "probability": 0.956
+        },
+        {
+          "word": "worksheet",
+          "start": 84.9,
+          "end": 85.48,
+          "probability": 0.962
+        },
+        {
+          "word": "on",
+          "start": 85.48,
+          "end": 85.72,
+          "probability": 0.993
+        },
+        {
+          "word": "our",
+          "start": 85.72,
+          "end": 85.84,
+          "probability": 0.999
+        },
+        {
+          "word": "website,",
+          "start": 85.84,
+          "end": 86.36,
+          "probability": 0.995
+        },
+        {
+          "word": "BBCLearningEnglish.com.",
+          "start": 86.56,
+          "end": 88.16,
+          "probability": 0.677
+        }
+      ]
+    },
+    {
+      "start": 88.6,
+      "end": 91.12,
+      "text": " But now, I have a question for you, Georgie.",
+      "words": [
+        {
+          "word": "But",
+          "start": 88.6,
+          "end": 88.96,
+          "probability": 0.991
+        },
+        {
+          "word": "now,",
+          "start": 88.96,
+          "end": 89.32,
+          "probability": 0.977
+        },
+        {
+          "word": "I",
+          "start": 89.4,
+          "end": 89.56,
+          "probability": 0.989
+        },
+        {
+          "word": "have",
+          "start": 89.56,
+          "end": 89.68,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 89.68,
+          "end": 89.9,
+          "probability": 0.998
+        },
+        {
+          "word": "question",
+          "start": 89.9,
+          "end": 90.26,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 90.26,
+          "end": 90.56,
+          "probability": 0.994
+        },
+        {
+          "word": "you,",
+          "start": 90.56,
+          "end": 90.7,
+          "probability": 0.997
+        },
+        {
+          "word": "Georgie.",
+          "start": 90.82,
+          "end": 91.12,
+          "probability": 0.931
+        }
+      ]
+    },
+    {
+      "start": 91.54,
+      "end": 94.04,
+      "text": " Sound is measured in units called decibels.",
+      "words": [
+        {
+          "word": "Sound",
+          "start": 91.54,
+          "end": 91.94,
+          "probability": 0.985
+        },
+        {
+          "word": "is",
+          "start": 91.94,
+          "end": 92.2,
+          "probability": 0.999
+        },
+        {
+          "word": "measured",
+          "start": 92.2,
+          "end": 92.6,
+          "probability": 0.999
+        },
+        {
+          "word": "in",
+          "start": 92.6,
+          "end": 92.86,
+          "probability": 0.997
+        },
+        {
+          "word": "units",
+          "start": 92.86,
+          "end": 93.1,
+          "probability": 0.947
+        },
+        {
+          "word": "called",
+          "start": 93.1,
+          "end": 93.44,
+          "probability": 0.9
+        },
+        {
+          "word": "decibels.",
+          "start": 93.44,
+          "end": 94.04,
+          "probability": 0.942
+        }
+      ]
+    },
+    {
+      "start": 94.22,
+      "end": 97.8,
+      "text": " But how many decibels would it be if I whispered,",
+      "words": [
+        {
+          "word": "But",
+          "start": 94.22,
+          "end": 94.64,
+          "probability": 0.993
+        },
+        {
+          "word": "how",
+          "start": 94.64,
+          "end": 94.84,
+          "probability": 0.991
+        },
+        {
+          "word": "many",
+          "start": 94.84,
+          "end": 95.12,
+          "probability": 0.999
+        },
+        {
+          "word": "decibels",
+          "start": 95.12,
+          "end": 95.84,
+          "probability": 0.998
+        },
+        {
+          "word": "would",
+          "start": 95.84,
+          "end": 96.04,
+          "probability": 0.981
+        },
+        {
+          "word": "it",
+          "start": 96.04,
+          "end": 96.2,
+          "probability": 0.999
+        },
+        {
+          "word": "be",
+          "start": 96.2,
+          "end": 96.62,
+          "probability": 1.0
+        },
+        {
+          "word": "if",
+          "start": 96.62,
+          "end": 96.96,
+          "probability": 0.87
+        },
+        {
+          "word": "I",
+          "start": 96.96,
+          "end": 97.28,
+          "probability": 0.991
+        },
+        {
+          "word": "whispered,",
+          "start": 97.28,
+          "end": 97.8,
+          "probability": 0.696
+        }
+      ]
+    },
+    {
+      "start": 97.96,
+      "end": 100.22,
+      "text": " Oh, whisper is speaking like this.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 97.96,
+          "end": 98.26,
+          "probability": 0.346
+        },
+        {
+          "word": "whisper",
+          "start": 98.48,
+          "end": 98.74,
+          "probability": 0.911
+        },
+        {
+          "word": "is",
+          "start": 98.74,
+          "end": 99.14,
+          "probability": 0.427
+        },
+        {
+          "word": "speaking",
+          "start": 99.14,
+          "end": 99.42,
+          "probability": 0.996
+        },
+        {
+          "word": "like",
+          "start": 99.42,
+          "end": 99.88,
+          "probability": 0.987
+        },
+        {
+          "word": "this.",
+          "start": 99.88,
+          "end": 100.22,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 100.68,
+      "end": 102.78,
+      "text": " Is it A, three decibels?",
+      "words": [
+        {
+          "word": "Is",
+          "start": 100.68,
+          "end": 100.98,
+          "probability": 0.994
+        },
+        {
+          "word": "it",
+          "start": 100.98,
+          "end": 101.26,
+          "probability": 0.997
+        },
+        {
+          "word": "A,",
+          "start": 101.26,
+          "end": 101.68,
+          "probability": 0.824
+        },
+        {
+          "word": "three",
+          "start": 101.92,
+          "end": 102.16,
+          "probability": 0.823
+        },
+        {
+          "word": "decibels?",
+          "start": 102.16,
+          "end": 102.78,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 103.24,
+      "end": 106.86,
+      "text": " B, 13 decibels, or C, 30 decibels?",
+      "words": [
+        {
+          "word": "B,",
+          "start": 103.24,
+          "end": 103.86,
+          "probability": 0.99
+        },
+        {
+          "word": "13",
+          "start": 103.98,
+          "end": 104.46,
+          "probability": 0.559
+        },
+        {
+          "word": "decibels,",
+          "start": 104.46,
+          "end": 105.1,
+          "probability": 0.999
+        },
+        {
+          "word": "or",
+          "start": 105.24,
+          "end": 105.56,
+          "probability": 0.858
+        },
+        {
+          "word": "C,",
+          "start": 105.56,
+          "end": 105.9,
+          "probability": 0.943
+        },
+        {
+          "word": "30",
+          "start": 105.98,
+          "end": 106.3,
+          "probability": 0.962
+        },
+        {
+          "word": "decibels?",
+          "start": 106.3,
+          "end": 106.86,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 107.08,
+      "end": 108.26,
+      "text": " Oh, that's really hard.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 107.08,
+          "end": 107.36,
+          "probability": 0.934
+        },
+        {
+          "word": "that's",
+          "start": 107.4,
+          "end": 107.82,
+          "probability": 0.998
+        },
+        {
+          "word": "really",
+          "start": 107.82,
+          "end": 108.1,
+          "probability": 0.99
+        },
+        {
+          "word": "hard.",
+          "start": 108.1,
+          "end": 108.26,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 108.4,
+      "end": 111.08,
+      "text": " Er, I'll go for B, 13 decibels.",
+      "words": [
+        {
+          "word": "Er,",
+          "start": 108.4,
+          "end": 108.82,
+          "probability": 0.43
+        },
+        {
+          "word": "I'll",
+          "start": 108.82,
+          "end": 109.0,
+          "probability": 0.996
+        },
+        {
+          "word": "go",
+          "start": 109.0,
+          "end": 109.2,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 109.2,
+          "end": 109.4,
+          "probability": 0.998
+        },
+        {
+          "word": "B,",
+          "start": 109.4,
+          "end": 109.72,
+          "probability": 0.956
+        },
+        {
+          "word": "13",
+          "start": 109.98,
+          "end": 110.52,
+          "probability": 0.981
+        },
+        {
+          "word": "decibels.",
+          "start": 110.52,
+          "end": 111.08,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 111.3,
+      "end": 114.54,
+      "text": " Well, we'll find out the answer at the end of the program.",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 111.3,
+          "end": 112.0,
+          "probability": 0.975
+        },
+        {
+          "word": "we'll",
+          "start": 112.18,
+          "end": 112.42,
+          "probability": 0.99
+        },
+        {
+          "word": "find",
+          "start": 112.42,
+          "end": 112.68,
+          "probability": 0.998
+        },
+        {
+          "word": "out",
+          "start": 112.68,
+          "end": 112.84,
+          "probability": 0.994
+        },
+        {
+          "word": "the",
+          "start": 112.84,
+          "end": 113.02,
+          "probability": 0.998
+        },
+        {
+          "word": "answer",
+          "start": 113.02,
+          "end": 113.34,
+          "probability": 0.998
+        },
+        {
+          "word": "at",
+          "start": 113.34,
+          "end": 113.58,
+          "probability": 0.98
+        },
+        {
+          "word": "the",
+          "start": 113.58,
+          "end": 113.76,
+          "probability": 0.999
+        },
+        {
+          "word": "end",
+          "start": 113.76,
+          "end": 113.96,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 113.96,
+          "end": 114.12,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 114.12,
+          "end": 114.3,
+          "probability": 0.998
+        },
+        {
+          "word": "program.",
+          "start": 114.3,
+          "end": 114.54,
+          "probability": 0.737
+        }
+      ]
+    },
+    {
+      "start": 115.3,
+      "end": 118.36,
+      "text": " Let's start in one of the noisiest cities in the world,",
+      "words": [
+        {
+          "word": "Let's",
+          "start": 115.3,
+          "end": 115.9,
+          "probability": 0.994
+        },
+        {
+          "word": "start",
+          "start": 115.9,
+          "end": 116.36,
+          "probability": 1.0
+        },
+        {
+          "word": "in",
+          "start": 116.36,
+          "end": 116.6,
+          "probability": 0.988
+        },
+        {
+          "word": "one",
+          "start": 116.6,
+          "end": 116.76,
+          "probability": 0.996
+        },
+        {
+          "word": "of",
+          "start": 116.76,
+          "end": 116.86,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 116.86,
+          "end": 116.96,
+          "probability": 0.994
+        },
+        {
+          "word": "noisiest",
+          "start": 116.96,
+          "end": 117.46,
+          "probability": 0.839
+        },
+        {
+          "word": "cities",
+          "start": 117.46,
+          "end": 117.8,
+          "probability": 0.992
+        },
+        {
+          "word": "in",
+          "start": 117.8,
+          "end": 118.0,
+          "probability": 0.983
+        },
+        {
+          "word": "the",
+          "start": 118.0,
+          "end": 118.14,
+          "probability": 0.998
+        },
+        {
+          "word": "world,",
+          "start": 118.14,
+          "end": 118.36,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 118.5,
+      "end": 123.72,
+      "text": " Mumbai in India, where daytime noise levels regularly hit 80 decibels,",
+      "words": [
+        {
+          "word": "Mumbai",
+          "start": 118.5,
+          "end": 119.0,
+          "probability": 0.949
+        },
+        {
+          "word": "in",
+          "start": 119.0,
+          "end": 119.42,
+          "probability": 0.465
+        },
+        {
+          "word": "India,",
+          "start": 119.42,
+          "end": 119.78,
+          "probability": 0.999
+        },
+        {
+          "word": "where",
+          "start": 120.12,
+          "end": 120.28,
+          "probability": 0.885
+        },
+        {
+          "word": "daytime",
+          "start": 120.28,
+          "end": 120.8,
+          "probability": 0.927
+        },
+        {
+          "word": "noise",
+          "start": 120.8,
+          "end": 121.18,
+          "probability": 0.953
+        },
+        {
+          "word": "levels",
+          "start": 121.18,
+          "end": 121.68,
+          "probability": 0.991
+        },
+        {
+          "word": "regularly",
+          "start": 121.68,
+          "end": 122.22,
+          "probability": 0.952
+        },
+        {
+          "word": "hit",
+          "start": 122.22,
+          "end": 122.7,
+          "probability": 0.893
+        },
+        {
+          "word": "80",
+          "start": 122.7,
+          "end": 123.1,
+          "probability": 0.939
+        },
+        {
+          "word": "decibels,",
+          "start": 123.1,
+          "end": 123.72,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 124.02,
+      "end": 128.8,
+      "text": " which is over 20 decibels higher than World Health Organization recommendations.",
+      "words": [
+        {
+          "word": "which",
+          "start": 124.02,
+          "end": 124.36,
+          "probability": 0.996
+        },
+        {
+          "word": "is",
+          "start": 124.36,
+          "end": 124.6,
+          "probability": 0.998
+        },
+        {
+          "word": "over",
+          "start": 124.6,
+          "end": 124.9,
+          "probability": 0.996
+        },
+        {
+          "word": "20",
+          "start": 124.9,
+          "end": 125.32,
+          "probability": 0.996
+        },
+        {
+          "word": "decibels",
+          "start": 125.32,
+          "end": 125.88,
+          "probability": 1.0
+        },
+        {
+          "word": "higher",
+          "start": 125.88,
+          "end": 126.22,
+          "probability": 0.954
+        },
+        {
+          "word": "than",
+          "start": 126.22,
+          "end": 126.64,
+          "probability": 0.962
+        },
+        {
+          "word": "World",
+          "start": 126.64,
+          "end": 127.0,
+          "probability": 0.822
+        },
+        {
+          "word": "Health",
+          "start": 127.0,
+          "end": 127.3,
+          "probability": 0.996
+        },
+        {
+          "word": "Organization",
+          "start": 127.3,
+          "end": 127.96,
+          "probability": 0.932
+        },
+        {
+          "word": "recommendations.",
+          "start": 127.96,
+          "end": 128.8,
+          "probability": 0.915
+        }
+      ]
+    },
+    {
+      "start": 129.6,
+      "end": 132.02,
+      "text": " Listen to Mumbai native Chavi Satchdev,",
+      "words": [
+        {
+          "word": "Listen",
+          "start": 129.6,
+          "end": 129.94,
+          "probability": 0.987
+        },
+        {
+          "word": "to",
+          "start": 129.94,
+          "end": 130.12,
+          "probability": 0.998
+        },
+        {
+          "word": "Mumbai",
+          "start": 130.12,
+          "end": 130.52,
+          "probability": 0.987
+        },
+        {
+          "word": "native",
+          "start": 130.52,
+          "end": 131.02,
+          "probability": 0.831
+        },
+        {
+          "word": "Chavi",
+          "start": 131.02,
+          "end": 131.4,
+          "probability": 0.745
+        },
+        {
+          "word": "Satchdev,",
+          "start": 131.4,
+          "end": 132.02,
+          "probability": 0.636
+        }
+      ]
+    },
+    {
+      "start": 132.12,
+      "end": 135.1,
+      "text": " share her experiences of living in this noisy city",
+      "words": [
+        {
+          "word": "share",
+          "start": 132.12,
+          "end": 132.46,
+          "probability": 0.925
+        },
+        {
+          "word": "her",
+          "start": 132.46,
+          "end": 132.76,
+          "probability": 0.997
+        },
+        {
+          "word": "experiences",
+          "start": 132.76,
+          "end": 133.5,
+          "probability": 0.992
+        },
+        {
+          "word": "of",
+          "start": 133.5,
+          "end": 133.78,
+          "probability": 0.994
+        },
+        {
+          "word": "living",
+          "start": 133.78,
+          "end": 134.06,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 134.06,
+          "end": 134.24,
+          "probability": 0.996
+        },
+        {
+          "word": "this",
+          "start": 134.24,
+          "end": 134.44,
+          "probability": 0.997
+        },
+        {
+          "word": "noisy",
+          "start": 134.44,
+          "end": 134.78,
+          "probability": 0.969
+        },
+        {
+          "word": "city",
+          "start": 134.78,
+          "end": 135.1,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 135.4,
+      "end": 138.7,
+      "text": " with BBC World Service Program people fixing the world.",
+      "words": [
+        {
+          "word": "with",
+          "start": 135.4,
+          "end": 135.68,
+          "probability": 0.992
+        },
+        {
+          "word": "BBC",
+          "start": 135.68,
+          "end": 136.14,
+          "probability": 0.971
+        },
+        {
+          "word": "World",
+          "start": 136.14,
+          "end": 136.5,
+          "probability": 0.979
+        },
+        {
+          "word": "Service",
+          "start": 136.5,
+          "end": 136.86,
+          "probability": 0.969
+        },
+        {
+          "word": "Program",
+          "start": 136.86,
+          "end": 137.42,
+          "probability": 0.502
+        },
+        {
+          "word": "people",
+          "start": 137.42,
+          "end": 137.88,
+          "probability": 0.575
+        },
+        {
+          "word": "fixing",
+          "start": 137.88,
+          "end": 138.22,
+          "probability": 0.994
+        },
+        {
+          "word": "the",
+          "start": 138.22,
+          "end": 138.42,
+          "probability": 1.0
+        },
+        {
+          "word": "world.",
+          "start": 138.42,
+          "end": 138.7,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 139.14,
+      "end": 141.99,
+      "text": " I mean, India in general is just really loud.",
+      "words": [
+        {
+          "word": "I",
+          "start": 139.14,
+          "end": 139.2,
+          "probability": 0.952
+        },
+        {
+          "word": "mean,",
+          "start": 139.2,
+          "end": 139.44,
+          "probability": 0.999
+        },
+        {
+          "word": "India",
+          "start": 139.62,
+          "end": 139.86,
+          "probability": 0.979
+        },
+        {
+          "word": "in",
+          "start": 139.86,
+          "end": 140.08,
+          "probability": 0.88
+        },
+        {
+          "word": "general",
+          "start": 140.08,
+          "end": 140.44,
+          "probability": 0.998
+        },
+        {
+          "word": "is",
+          "start": 140.44,
+          "end": 140.68,
+          "probability": 0.965
+        },
+        {
+          "word": "just",
+          "start": 140.68,
+          "end": 141.3,
+          "probability": 0.999
+        },
+        {
+          "word": "really",
+          "start": 141.3,
+          "end": 141.68,
+          "probability": 0.983
+        },
+        {
+          "word": "loud.",
+          "start": 141.68,
+          "end": 141.99,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 141.99,
+      "end": 143.12,
+      "text": " We are allowed people.",
+      "words": [
+        {
+          "word": "We",
+          "start": 141.99,
+          "end": 142.22,
+          "probability": 0.998
+        },
+        {
+          "word": "are",
+          "start": 142.22,
+          "end": 142.4,
+          "probability": 0.996
+        },
+        {
+          "word": "allowed",
+          "start": 142.4,
+          "end": 142.74,
+          "probability": 0.848
+        },
+        {
+          "word": "people.",
+          "start": 142.74,
+          "end": 143.12,
+          "probability": 0.974
+        }
+      ]
+    },
+    {
+      "start": 143.42,
+      "end": 144.97,
+      "text": " We dress loud, we talk loud.",
+      "words": [
+        {
+          "word": "We",
+          "start": 143.42,
+          "end": 143.7,
+          "probability": 0.994
+        },
+        {
+          "word": "dress",
+          "start": 143.7,
+          "end": 144.02,
+          "probability": 0.683
+        },
+        {
+          "word": "loud,",
+          "start": 144.02,
+          "end": 144.32,
+          "probability": 0.955
+        },
+        {
+          "word": "we",
+          "start": 144.46,
+          "end": 144.5,
+          "probability": 0.97
+        },
+        {
+          "word": "talk",
+          "start": 144.5,
+          "end": 144.74,
+          "probability": 0.965
+        },
+        {
+          "word": "loud.",
+          "start": 144.74,
+          "end": 144.97,
+          "probability": 0.993
+        }
+      ]
+    },
+    {
+      "start": 144.97,
+      "end": 146.07,
+      "text": " We celebrate loud.",
+      "words": [
+        {
+          "word": "We",
+          "start": 144.97,
+          "end": 145.26,
+          "probability": 0.997
+        },
+        {
+          "word": "celebrate",
+          "start": 145.26,
+          "end": 145.8,
+          "probability": 0.999
+        },
+        {
+          "word": "loud.",
+          "start": 145.8,
+          "end": 146.07,
+          "probability": 0.966
+        }
+      ]
+    },
+    {
+      "start": 146.07,
+      "end": 147.3,
+      "text": " We watch movies loud.",
+      "words": [
+        {
+          "word": "We",
+          "start": 146.07,
+          "end": 146.3,
+          "probability": 0.998
+        },
+        {
+          "word": "watch",
+          "start": 146.3,
+          "end": 146.6,
+          "probability": 0.998
+        },
+        {
+          "word": "movies",
+          "start": 146.6,
+          "end": 147.02,
+          "probability": 0.985
+        },
+        {
+          "word": "loud.",
+          "start": 147.02,
+          "end": 147.3,
+          "probability": 0.904
+        }
+      ]
+    },
+    {
+      "start": 147.58,
+      "end": 150.2,
+      "text": " When people ask me what I miss about living abroad,",
+      "words": [
+        {
+          "word": "When",
+          "start": 147.58,
+          "end": 147.84,
+          "probability": 0.994
+        },
+        {
+          "word": "people",
+          "start": 147.84,
+          "end": 148.02,
+          "probability": 0.999
+        },
+        {
+          "word": "ask",
+          "start": 148.02,
+          "end": 148.28,
+          "probability": 0.978
+        },
+        {
+          "word": "me",
+          "start": 148.28,
+          "end": 148.44,
+          "probability": 0.995
+        },
+        {
+          "word": "what",
+          "start": 148.44,
+          "end": 148.62,
+          "probability": 0.993
+        },
+        {
+          "word": "I",
+          "start": 148.62,
+          "end": 148.76,
+          "probability": 0.996
+        },
+        {
+          "word": "miss",
+          "start": 148.76,
+          "end": 149.22,
+          "probability": 0.987
+        },
+        {
+          "word": "about",
+          "start": 149.22,
+          "end": 149.6,
+          "probability": 0.978
+        },
+        {
+          "word": "living",
+          "start": 149.6,
+          "end": 149.88,
+          "probability": 0.923
+        },
+        {
+          "word": "abroad,",
+          "start": 149.88,
+          "end": 150.2,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 150.54,
+      "end": 154.66,
+      "text": " I tell them it's the quiet because after 12 years of living in the US and Europe,",
+      "words": [
+        {
+          "word": "I",
+          "start": 150.54,
+          "end": 150.7,
+          "probability": 0.999
+        },
+        {
+          "word": "tell",
+          "start": 150.7,
+          "end": 150.86,
+          "probability": 0.999
+        },
+        {
+          "word": "them",
+          "start": 150.86,
+          "end": 151.0,
+          "probability": 0.999
+        },
+        {
+          "word": "it's",
+          "start": 151.0,
+          "end": 151.22,
+          "probability": 0.994
+        },
+        {
+          "word": "the",
+          "start": 151.22,
+          "end": 151.4,
+          "probability": 0.991
+        },
+        {
+          "word": "quiet",
+          "start": 151.4,
+          "end": 151.76,
+          "probability": 0.996
+        },
+        {
+          "word": "because",
+          "start": 151.76,
+          "end": 152.12,
+          "probability": 0.557
+        },
+        {
+          "word": "after",
+          "start": 152.12,
+          "end": 152.44,
+          "probability": 0.892
+        },
+        {
+          "word": "12",
+          "start": 152.44,
+          "end": 152.84,
+          "probability": 0.868
+        },
+        {
+          "word": "years",
+          "start": 152.84,
+          "end": 153.24,
+          "probability": 0.994
+        },
+        {
+          "word": "of",
+          "start": 153.24,
+          "end": 153.44,
+          "probability": 0.77
+        },
+        {
+          "word": "living",
+          "start": 153.44,
+          "end": 153.66,
+          "probability": 0.987
+        },
+        {
+          "word": "in",
+          "start": 153.66,
+          "end": 153.82,
+          "probability": 0.924
+        },
+        {
+          "word": "the",
+          "start": 153.82,
+          "end": 153.94,
+          "probability": 0.982
+        },
+        {
+          "word": "US",
+          "start": 153.94,
+          "end": 154.18,
+          "probability": 0.775
+        },
+        {
+          "word": "and",
+          "start": 154.18,
+          "end": 154.34,
+          "probability": 0.741
+        },
+        {
+          "word": "Europe,",
+          "start": 154.34,
+          "end": 154.66,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 155.12,
+      "end": 157.57,
+      "text": " when I got back, I realized I couldn't handle it anymore.",
+      "words": [
+        {
+          "word": "when",
+          "start": 155.12,
+          "end": 155.38,
+          "probability": 0.88
+        },
+        {
+          "word": "I",
+          "start": 155.38,
+          "end": 155.5,
+          "probability": 0.999
+        },
+        {
+          "word": "got",
+          "start": 155.5,
+          "end": 155.72,
+          "probability": 0.999
+        },
+        {
+          "word": "back,",
+          "start": 155.72,
+          "end": 156.06,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 156.12,
+          "end": 156.24,
+          "probability": 0.86
+        },
+        {
+          "word": "realized",
+          "start": 156.24,
+          "end": 156.62,
+          "probability": 0.846
+        },
+        {
+          "word": "I",
+          "start": 156.62,
+          "end": 156.86,
+          "probability": 0.946
+        },
+        {
+          "word": "couldn't",
+          "start": 156.86,
+          "end": 157.02,
+          "probability": 0.996
+        },
+        {
+          "word": "handle",
+          "start": 157.02,
+          "end": 157.22,
+          "probability": 0.989
+        },
+        {
+          "word": "it",
+          "start": 157.22,
+          "end": 157.4,
+          "probability": 0.998
+        },
+        {
+          "word": "anymore.",
+          "start": 157.4,
+          "end": 157.57,
+          "probability": 0.868
+        }
+      ]
+    },
+    {
+      "start": 157.57,
+      "end": 159.88,
+      "text": " I'd gotten used to lower levels of noise.",
+      "words": [
+        {
+          "word": "I'd",
+          "start": 157.57,
+          "end": 158.2,
+          "probability": 0.762
+        },
+        {
+          "word": "gotten",
+          "start": 158.2,
+          "end": 158.38,
+          "probability": 0.929
+        },
+        {
+          "word": "used",
+          "start": 158.38,
+          "end": 158.68,
+          "probability": 0.989
+        },
+        {
+          "word": "to",
+          "start": 158.68,
+          "end": 158.88,
+          "probability": 0.999
+        },
+        {
+          "word": "lower",
+          "start": 158.88,
+          "end": 159.18,
+          "probability": 0.993
+        },
+        {
+          "word": "levels",
+          "start": 159.18,
+          "end": 159.52,
+          "probability": 0.998
+        },
+        {
+          "word": "of",
+          "start": 159.52,
+          "end": 159.64,
+          "probability": 0.996
+        },
+        {
+          "word": "noise.",
+          "start": 159.64,
+          "end": 159.88,
+          "probability": 0.984
+        }
+      ]
+    },
+    {
+      "start": 160.22,
+      "end": 163.18,
+      "text": " Chavi says Indians talk loud, celebrate loud,",
+      "words": [
+        {
+          "word": "Chavi",
+          "start": 160.22,
+          "end": 160.66,
+          "probability": 0.976
+        },
+        {
+          "word": "says",
+          "start": 160.66,
+          "end": 161.0,
+          "probability": 0.976
+        },
+        {
+          "word": "Indians",
+          "start": 161.0,
+          "end": 161.56,
+          "probability": 0.872
+        },
+        {
+          "word": "talk",
+          "start": 161.56,
+          "end": 161.88,
+          "probability": 0.931
+        },
+        {
+          "word": "loud,",
+          "start": 161.88,
+          "end": 162.24,
+          "probability": 0.997
+        },
+        {
+          "word": "celebrate",
+          "start": 162.42,
+          "end": 162.8,
+          "probability": 0.95
+        },
+        {
+          "word": "loud,",
+          "start": 162.8,
+          "end": 163.18,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 163.44,
+      "end": 164.36,
+      "text": " and dress loud.",
+      "words": [
+        {
+          "word": "and",
+          "start": 163.44,
+          "end": 163.76,
+          "probability": 0.932
+        },
+        {
+          "word": "dress",
+          "start": 163.76,
+          "end": 164.12,
+          "probability": 0.947
+        },
+        {
+          "word": "loud.",
+          "start": 164.12,
+          "end": 164.36,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 164.58,
+      "end": 167.14,
+      "text": " To dress loud means to wear clothes with bright colors",
+      "words": [
+        {
+          "word": "To",
+          "start": 164.58,
+          "end": 164.78,
+          "probability": 0.663
+        },
+        {
+          "word": "dress",
+          "start": 164.78,
+          "end": 165.04,
+          "probability": 0.99
+        },
+        {
+          "word": "loud",
+          "start": 165.04,
+          "end": 165.36,
+          "probability": 0.995
+        },
+        {
+          "word": "means",
+          "start": 165.36,
+          "end": 165.64,
+          "probability": 0.917
+        },
+        {
+          "word": "to",
+          "start": 165.64,
+          "end": 165.9,
+          "probability": 0.989
+        },
+        {
+          "word": "wear",
+          "start": 165.9,
+          "end": 166.12,
+          "probability": 0.994
+        },
+        {
+          "word": "clothes",
+          "start": 166.12,
+          "end": 166.46,
+          "probability": 0.995
+        },
+        {
+          "word": "with",
+          "start": 166.46,
+          "end": 166.74,
+          "probability": 0.766
+        },
+        {
+          "word": "bright",
+          "start": 166.74,
+          "end": 167.04,
+          "probability": 0.994
+        },
+        {
+          "word": "colors",
+          "start": 167.04,
+          "end": 167.14,
+          "probability": 0.621
+        }
+      ]
+    },
+    {
+      "start": 167.14,
+      "end": 168.9,
+      "text": " and large bold patterns.",
+      "words": [
+        {
+          "word": "and",
+          "start": 167.14,
+          "end": 167.68,
+          "probability": 0.993
+        },
+        {
+          "word": "large",
+          "start": 167.68,
+          "end": 168.12,
+          "probability": 0.995
+        },
+        {
+          "word": "bold",
+          "start": 168.12,
+          "end": 168.44,
+          "probability": 0.715
+        },
+        {
+          "word": "patterns.",
+          "start": 168.44,
+          "end": 168.9,
+          "probability": 0.927
+        }
+      ]
+    },
+    {
+      "start": 169.24,
+      "end": 172.02,
+      "text": " When Chavi returned to India after living overseas,",
+      "words": [
+        {
+          "word": "When",
+          "start": 169.24,
+          "end": 169.58,
+          "probability": 0.997
+        },
+        {
+          "word": "Chavi",
+          "start": 169.58,
+          "end": 169.92,
+          "probability": 0.996
+        },
+        {
+          "word": "returned",
+          "start": 169.92,
+          "end": 170.38,
+          "probability": 0.936
+        },
+        {
+          "word": "to",
+          "start": 170.38,
+          "end": 170.64,
+          "probability": 1.0
+        },
+        {
+          "word": "India",
+          "start": 170.64,
+          "end": 170.98,
+          "probability": 0.999
+        },
+        {
+          "word": "after",
+          "start": 170.98,
+          "end": 171.28,
+          "probability": 0.952
+        },
+        {
+          "word": "living",
+          "start": 171.28,
+          "end": 171.6,
+          "probability": 0.99
+        },
+        {
+          "word": "overseas,",
+          "start": 171.6,
+          "end": 172.02,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 172.42,
+      "end": 174.34,
+      "text": " she says she couldn't handle the noise.",
+      "words": [
+        {
+          "word": "she",
+          "start": 172.42,
+          "end": 172.7,
+          "probability": 0.994
+        },
+        {
+          "word": "says",
+          "start": 172.7,
+          "end": 172.94,
+          "probability": 0.89
+        },
+        {
+          "word": "she",
+          "start": 172.94,
+          "end": 173.22,
+          "probability": 0.99
+        },
+        {
+          "word": "couldn't",
+          "start": 173.22,
+          "end": 173.56,
+          "probability": 0.997
+        },
+        {
+          "word": "handle",
+          "start": 173.56,
+          "end": 173.88,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 173.88,
+          "end": 174.1,
+          "probability": 0.998
+        },
+        {
+          "word": "noise.",
+          "start": 174.1,
+          "end": 174.34,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 174.78,
+      "end": 178.88,
+      "text": " If you can't handle something, you find it difficult to deal or cope with.",
+      "words": [
+        {
+          "word": "If",
+          "start": 174.78,
+          "end": 175.08,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 175.08,
+          "end": 175.24,
+          "probability": 0.999
+        },
+        {
+          "word": "can't",
+          "start": 175.24,
+          "end": 175.52,
+          "probability": 0.998
+        },
+        {
+          "word": "handle",
+          "start": 175.52,
+          "end": 175.86,
+          "probability": 0.999
+        },
+        {
+          "word": "something,",
+          "start": 175.86,
+          "end": 176.34,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 176.66,
+          "end": 176.72,
+          "probability": 0.582
+        },
+        {
+          "word": "find",
+          "start": 176.72,
+          "end": 176.98,
+          "probability": 0.975
+        },
+        {
+          "word": "it",
+          "start": 176.98,
+          "end": 177.18,
+          "probability": 0.998
+        },
+        {
+          "word": "difficult",
+          "start": 177.18,
+          "end": 177.64,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 177.64,
+          "end": 177.8,
+          "probability": 0.943
+        },
+        {
+          "word": "deal",
+          "start": 177.8,
+          "end": 178.2,
+          "probability": 0.993
+        },
+        {
+          "word": "or",
+          "start": 178.2,
+          "end": 178.38,
+          "probability": 0.958
+        },
+        {
+          "word": "cope",
+          "start": 178.38,
+          "end": 178.64,
+          "probability": 0.998
+        },
+        {
+          "word": "with.",
+          "start": 178.64,
+          "end": 178.88,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 179.18,
+      "end": 182.52,
+      "text": " So what can be done to tackle noise in cities like Mumbai?",
+      "words": [
+        {
+          "word": "So",
+          "start": 179.18,
+          "end": 179.58,
+          "probability": 0.967
+        },
+        {
+          "word": "what",
+          "start": 179.58,
+          "end": 179.76,
+          "probability": 0.607
+        },
+        {
+          "word": "can",
+          "start": 179.76,
+          "end": 179.92,
+          "probability": 0.995
+        },
+        {
+          "word": "be",
+          "start": 179.92,
+          "end": 180.02,
+          "probability": 0.998
+        },
+        {
+          "word": "done",
+          "start": 180.02,
+          "end": 180.32,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 180.32,
+          "end": 180.46,
+          "probability": 0.997
+        },
+        {
+          "word": "tackle",
+          "start": 180.46,
+          "end": 180.82,
+          "probability": 0.997
+        },
+        {
+          "word": "noise",
+          "start": 180.82,
+          "end": 181.26,
+          "probability": 0.884
+        },
+        {
+          "word": "in",
+          "start": 181.26,
+          "end": 181.56,
+          "probability": 0.953
+        },
+        {
+          "word": "cities",
+          "start": 181.56,
+          "end": 181.86,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 181.86,
+          "end": 182.14,
+          "probability": 0.993
+        },
+        {
+          "word": "Mumbai?",
+          "start": 182.14,
+          "end": 182.52,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 182.92,
+      "end": 187.58,
+      "text": " One interesting approach involves using sound itself to make things feel quieter.",
+      "words": [
+        {
+          "word": "One",
+          "start": 182.92,
+          "end": 183.26,
+          "probability": 0.997
+        },
+        {
+          "word": "interesting",
+          "start": 183.26,
+          "end": 183.72,
+          "probability": 0.998
+        },
+        {
+          "word": "approach",
+          "start": 183.72,
+          "end": 184.2,
+          "probability": 0.999
+        },
+        {
+          "word": "involves",
+          "start": 184.2,
+          "end": 184.64,
+          "probability": 0.975
+        },
+        {
+          "word": "using",
+          "start": 184.64,
+          "end": 185.1,
+          "probability": 0.986
+        },
+        {
+          "word": "sound",
+          "start": 185.1,
+          "end": 185.44,
+          "probability": 0.985
+        },
+        {
+          "word": "itself",
+          "start": 185.44,
+          "end": 185.96,
+          "probability": 0.99
+        },
+        {
+          "word": "to",
+          "start": 185.96,
+          "end": 186.22,
+          "probability": 0.614
+        },
+        {
+          "word": "make",
+          "start": 186.22,
+          "end": 186.52,
+          "probability": 0.996
+        },
+        {
+          "word": "things",
+          "start": 186.52,
+          "end": 186.86,
+          "probability": 0.998
+        },
+        {
+          "word": "feel",
+          "start": 186.86,
+          "end": 187.14,
+          "probability": 0.996
+        },
+        {
+          "word": "quieter.",
+          "start": 187.14,
+          "end": 187.58,
+          "probability": 0.985
+        }
+      ]
+    },
+    {
+      "start": 188.04,
+      "end": 192.19,
+      "text": " Soundscaping is the idea of adding certain sounds to busy public spaces",
+      "words": [
+        {
+          "word": "Soundscaping",
+          "start": 188.04,
+          "end": 188.8,
+          "probability": 0.947
+        },
+        {
+          "word": "is",
+          "start": 188.8,
+          "end": 188.96,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 188.96,
+          "end": 189.16,
+          "probability": 0.999
+        },
+        {
+          "word": "idea",
+          "start": 189.16,
+          "end": 189.54,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 189.54,
+          "end": 189.76,
+          "probability": 0.998
+        },
+        {
+          "word": "adding",
+          "start": 189.76,
+          "end": 190.08,
+          "probability": 0.998
+        },
+        {
+          "word": "certain",
+          "start": 190.08,
+          "end": 190.52,
+          "probability": 0.992
+        },
+        {
+          "word": "sounds",
+          "start": 190.52,
+          "end": 190.92,
+          "probability": 0.967
+        },
+        {
+          "word": "to",
+          "start": 190.92,
+          "end": 191.14,
+          "probability": 0.765
+        },
+        {
+          "word": "busy",
+          "start": 191.14,
+          "end": 191.44,
+          "probability": 0.995
+        },
+        {
+          "word": "public",
+          "start": 191.44,
+          "end": 191.88,
+          "probability": 0.989
+        },
+        {
+          "word": "spaces",
+          "start": 191.88,
+          "end": 192.19,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 192.19,
+      "end": 194.8,
+      "text": " so that they sound and feel more relaxing.",
+      "words": [
+        {
+          "word": "so",
+          "start": 192.19,
+          "end": 192.9,
+          "probability": 0.989
+        },
+        {
+          "word": "that",
+          "start": 192.9,
+          "end": 193.0,
+          "probability": 0.984
+        },
+        {
+          "word": "they",
+          "start": 193.0,
+          "end": 193.2,
+          "probability": 0.999
+        },
+        {
+          "word": "sound",
+          "start": 193.2,
+          "end": 193.54,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 193.54,
+          "end": 193.78,
+          "probability": 0.988
+        },
+        {
+          "word": "feel",
+          "start": 193.78,
+          "end": 194.12,
+          "probability": 0.999
+        },
+        {
+          "word": "more",
+          "start": 194.12,
+          "end": 194.4,
+          "probability": 0.999
+        },
+        {
+          "word": "relaxing.",
+          "start": 194.4,
+          "end": 194.8,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 195.48,
+      "end": 199.36,
+      "text": " Sound artist Charles Montambo lives near the park to Madalyn O,",
+      "words": [
+        {
+          "word": "Sound",
+          "start": 195.48,
+          "end": 195.9,
+          "probability": 0.988
+        },
+        {
+          "word": "artist",
+          "start": 195.9,
+          "end": 196.32,
+          "probability": 0.868
+        },
+        {
+          "word": "Charles",
+          "start": 196.32,
+          "end": 196.74,
+          "probability": 0.97
+        },
+        {
+          "word": "Montambo",
+          "start": 196.74,
+          "end": 197.52,
+          "probability": 0.646
+        },
+        {
+          "word": "lives",
+          "start": 197.52,
+          "end": 197.88,
+          "probability": 0.81
+        },
+        {
+          "word": "near",
+          "start": 197.88,
+          "end": 198.12,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 198.12,
+          "end": 198.28,
+          "probability": 0.994
+        },
+        {
+          "word": "park",
+          "start": 198.28,
+          "end": 198.56,
+          "probability": 0.89
+        },
+        {
+          "word": "to",
+          "start": 198.56,
+          "end": 198.7,
+          "probability": 0.945
+        },
+        {
+          "word": "Madalyn",
+          "start": 198.7,
+          "end": 199.2,
+          "probability": 0.441
+        },
+        {
+          "word": "O,",
+          "start": 199.2,
+          "end": 199.36,
+          "probability": 0.408
+        }
+      ]
+    },
+    {
+      "start": 199.7,
+      "end": 202.04,
+      "text": " a busy city park in Montreal, Canada.",
+      "words": [
+        {
+          "word": "a",
+          "start": 199.7,
+          "end": 200.02,
+          "probability": 0.979
+        },
+        {
+          "word": "busy",
+          "start": 200.02,
+          "end": 200.3,
+          "probability": 0.998
+        },
+        {
+          "word": "city",
+          "start": 200.3,
+          "end": 200.68,
+          "probability": 0.956
+        },
+        {
+          "word": "park",
+          "start": 200.68,
+          "end": 201.0,
+          "probability": 0.992
+        },
+        {
+          "word": "in",
+          "start": 201.0,
+          "end": 201.12,
+          "probability": 0.996
+        },
+        {
+          "word": "Montreal,",
+          "start": 201.12,
+          "end": 201.56,
+          "probability": 0.983
+        },
+        {
+          "word": "Canada.",
+          "start": 201.74,
+          "end": 202.04,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 202.6,
+      "end": 206.1,
+      "text": " Charles was inspired to recreate the ocean sounds he heard on holiday",
+      "words": [
+        {
+          "word": "Charles",
+          "start": 202.6,
+          "end": 202.86,
+          "probability": 0.994
+        },
+        {
+          "word": "was",
+          "start": 202.86,
+          "end": 203.08,
+          "probability": 0.996
+        },
+        {
+          "word": "inspired",
+          "start": 203.08,
+          "end": 203.6,
+          "probability": 0.989
+        },
+        {
+          "word": "to",
+          "start": 203.6,
+          "end": 203.9,
+          "probability": 0.998
+        },
+        {
+          "word": "recreate",
+          "start": 203.9,
+          "end": 204.32,
+          "probability": 0.947
+        },
+        {
+          "word": "the",
+          "start": 204.32,
+          "end": 204.56,
+          "probability": 0.957
+        },
+        {
+          "word": "ocean",
+          "start": 204.56,
+          "end": 204.9,
+          "probability": 0.986
+        },
+        {
+          "word": "sounds",
+          "start": 204.9,
+          "end": 205.3,
+          "probability": 0.984
+        },
+        {
+          "word": "he",
+          "start": 205.3,
+          "end": 205.42,
+          "probability": 0.739
+        },
+        {
+          "word": "heard",
+          "start": 205.42,
+          "end": 205.64,
+          "probability": 0.955
+        },
+        {
+          "word": "on",
+          "start": 205.64,
+          "end": 205.86,
+          "probability": 0.937
+        },
+        {
+          "word": "holiday",
+          "start": 205.86,
+          "end": 206.1,
+          "probability": 0.866
+        }
+      ]
+    },
+    {
+      "start": 206.1,
+      "end": 209.68,
+      "text": " in the Magdalene Islands in his city park back home.",
+      "words": [
+        {
+          "word": "in",
+          "start": 206.1,
+          "end": 206.66,
+          "probability": 0.995
+        },
+        {
+          "word": "the",
+          "start": 206.66,
+          "end": 206.78,
+          "probability": 0.978
+        },
+        {
+          "word": "Magdalene",
+          "start": 206.78,
+          "end": 207.2,
+          "probability": 0.803
+        },
+        {
+          "word": "Islands",
+          "start": 207.2,
+          "end": 207.62,
+          "probability": 0.907
+        },
+        {
+          "word": "in",
+          "start": 207.62,
+          "end": 208.1,
+          "probability": 0.629
+        },
+        {
+          "word": "his",
+          "start": 208.1,
+          "end": 208.42,
+          "probability": 0.993
+        },
+        {
+          "word": "city",
+          "start": 208.42,
+          "end": 208.72,
+          "probability": 0.943
+        },
+        {
+          "word": "park",
+          "start": 208.72,
+          "end": 209.04,
+          "probability": 0.996
+        },
+        {
+          "word": "back",
+          "start": 209.04,
+          "end": 209.34,
+          "probability": 0.986
+        },
+        {
+          "word": "home.",
+          "start": 209.34,
+          "end": 209.68,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 210.22,
+      "end": 213.08,
+      "text": " On BBC World Service program People Fixing the World,",
+      "words": [
+        {
+          "word": "On",
+          "start": 210.22,
+          "end": 210.48,
+          "probability": 0.994
+        },
+        {
+          "word": "BBC",
+          "start": 210.48,
+          "end": 210.86,
+          "probability": 0.996
+        },
+        {
+          "word": "World",
+          "start": 210.86,
+          "end": 211.18,
+          "probability": 0.956
+        },
+        {
+          "word": "Service",
+          "start": 211.18,
+          "end": 211.54,
+          "probability": 0.875
+        },
+        {
+          "word": "program",
+          "start": 211.54,
+          "end": 211.94,
+          "probability": 0.5
+        },
+        {
+          "word": "People",
+          "start": 211.94,
+          "end": 212.28,
+          "probability": 0.871
+        },
+        {
+          "word": "Fixing",
+          "start": 212.28,
+          "end": 212.68,
+          "probability": 0.925
+        },
+        {
+          "word": "the",
+          "start": 212.68,
+          "end": 212.8,
+          "probability": 0.862
+        },
+        {
+          "word": "World,",
+          "start": 212.8,
+          "end": 213.08,
+          "probability": 0.959
+        }
+      ]
+    },
+    {
+      "start": 213.3,
+      "end": 214.92,
+      "text": " he tells reports and Natasha Fernandez",
+      "words": [
+        {
+          "word": "he",
+          "start": 213.3,
+          "end": 213.46,
+          "probability": 0.993
+        },
+        {
+          "word": "tells",
+          "start": 213.46,
+          "end": 213.7,
+          "probability": 0.996
+        },
+        {
+          "word": "reports",
+          "start": 213.7,
+          "end": 214.1,
+          "probability": 0.889
+        },
+        {
+          "word": "and",
+          "start": 214.1,
+          "end": 214.3,
+          "probability": 0.414
+        },
+        {
+          "word": "Natasha",
+          "start": 214.3,
+          "end": 214.68,
+          "probability": 0.825
+        },
+        {
+          "word": "Fernandez",
+          "start": 214.68,
+          "end": 214.92,
+          "probability": 0.622
+        }
+      ]
+    },
+    {
+      "start": 214.92,
+      "end": 220.12,
+      "text": " that these sounds included ocean waves and some unusual sounding sand.",
+      "words": [
+        {
+          "word": "that",
+          "start": 214.92,
+          "end": 215.76,
+          "probability": 0.995
+        },
+        {
+          "word": "these",
+          "start": 215.76,
+          "end": 216.0,
+          "probability": 0.989
+        },
+        {
+          "word": "sounds",
+          "start": 216.0,
+          "end": 216.46,
+          "probability": 0.997
+        },
+        {
+          "word": "included",
+          "start": 216.46,
+          "end": 216.98,
+          "probability": 0.931
+        },
+        {
+          "word": "ocean",
+          "start": 216.98,
+          "end": 217.4,
+          "probability": 0.995
+        },
+        {
+          "word": "waves",
+          "start": 217.4,
+          "end": 217.8,
+          "probability": 0.997
+        },
+        {
+          "word": "and",
+          "start": 217.8,
+          "end": 218.26,
+          "probability": 0.624
+        },
+        {
+          "word": "some",
+          "start": 218.26,
+          "end": 218.5,
+          "probability": 0.983
+        },
+        {
+          "word": "unusual",
+          "start": 218.5,
+          "end": 219.12,
+          "probability": 0.768
+        },
+        {
+          "word": "sounding",
+          "start": 219.12,
+          "end": 219.7,
+          "probability": 0.966
+        },
+        {
+          "word": "sand.",
+          "start": 219.7,
+          "end": 220.12,
+          "probability": 0.894
+        }
+      ]
+    },
+    {
+      "start": 220.62,
+      "end": 223.15,
+      "text": " The sound and the Magdalene Island can sing",
+      "words": [
+        {
+          "word": "The",
+          "start": 220.62,
+          "end": 220.92,
+          "probability": 0.651
+        },
+        {
+          "word": "sound",
+          "start": 220.92,
+          "end": 221.38,
+          "probability": 0.548
+        },
+        {
+          "word": "and",
+          "start": 221.38,
+          "end": 221.68,
+          "probability": 0.973
+        },
+        {
+          "word": "the",
+          "start": 221.68,
+          "end": 221.8,
+          "probability": 0.983
+        },
+        {
+          "word": "Magdalene",
+          "start": 221.8,
+          "end": 222.24,
+          "probability": 0.973
+        },
+        {
+          "word": "Island",
+          "start": 222.24,
+          "end": 222.7,
+          "probability": 0.612
+        },
+        {
+          "word": "can",
+          "start": 222.7,
+          "end": 223.1,
+          "probability": 0.964
+        },
+        {
+          "word": "sing",
+          "start": 223.1,
+          "end": 223.15,
+          "probability": 0.961
+        }
+      ]
+    },
+    {
+      "start": 223.15,
+      "end": 226.08,
+      "text": " when you walk into the sounds firmly.",
+      "words": [
+        {
+          "word": "when",
+          "start": 223.15,
+          "end": 223.9,
+          "probability": 0.94
+        },
+        {
+          "word": "you",
+          "start": 223.9,
+          "end": 224.26,
+          "probability": 0.993
+        },
+        {
+          "word": "walk",
+          "start": 224.26,
+          "end": 224.62,
+          "probability": 0.993
+        },
+        {
+          "word": "into",
+          "start": 224.62,
+          "end": 224.86,
+          "probability": 0.986
+        },
+        {
+          "word": "the",
+          "start": 224.86,
+          "end": 225.1,
+          "probability": 0.979
+        },
+        {
+          "word": "sounds",
+          "start": 225.1,
+          "end": 225.52,
+          "probability": 0.624
+        },
+        {
+          "word": "firmly.",
+          "start": 225.52,
+          "end": 226.08,
+          "probability": 0.949
+        }
+      ]
+    },
+    {
+      "start": 226.24,
+      "end": 228.1,
+      "text": " The sound makes some squeaky sounds.",
+      "words": [
+        {
+          "word": "The",
+          "start": 226.24,
+          "end": 226.5,
+          "probability": 0.989
+        },
+        {
+          "word": "sound",
+          "start": 226.5,
+          "end": 226.78,
+          "probability": 0.993
+        },
+        {
+          "word": "makes",
+          "start": 226.78,
+          "end": 227.14,
+          "probability": 0.962
+        },
+        {
+          "word": "some",
+          "start": 227.14,
+          "end": 227.4,
+          "probability": 0.978
+        },
+        {
+          "word": "squeaky",
+          "start": 227.4,
+          "end": 227.8,
+          "probability": 0.965
+        },
+        {
+          "word": "sounds.",
+          "start": 227.8,
+          "end": 228.1,
+          "probability": 0.971
+        }
+      ]
+    },
+    {
+      "start": 228.34,
+      "end": 231.72,
+      "text": " So that's when sound that is kind of funny, kind of special.",
+      "words": [
+        {
+          "word": "So",
+          "start": 228.34,
+          "end": 228.6,
+          "probability": 0.886
+        },
+        {
+          "word": "that's",
+          "start": 228.6,
+          "end": 228.92,
+          "probability": 0.975
+        },
+        {
+          "word": "when",
+          "start": 228.92,
+          "end": 229.18,
+          "probability": 0.68
+        },
+        {
+          "word": "sound",
+          "start": 229.18,
+          "end": 229.46,
+          "probability": 0.921
+        },
+        {
+          "word": "that",
+          "start": 229.46,
+          "end": 229.86,
+          "probability": 0.535
+        },
+        {
+          "word": "is",
+          "start": 229.86,
+          "end": 230.08,
+          "probability": 0.945
+        },
+        {
+          "word": "kind",
+          "start": 230.08,
+          "end": 230.5,
+          "probability": 0.93
+        },
+        {
+          "word": "of",
+          "start": 230.5,
+          "end": 230.52,
+          "probability": 0.998
+        },
+        {
+          "word": "funny,",
+          "start": 230.52,
+          "end": 230.88,
+          "probability": 0.993
+        },
+        {
+          "word": "kind",
+          "start": 230.98,
+          "end": 231.12,
+          "probability": 0.898
+        },
+        {
+          "word": "of",
+          "start": 231.12,
+          "end": 231.28,
+          "probability": 0.994
+        },
+        {
+          "word": "special.",
+          "start": 231.28,
+          "end": 231.72,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 232.16,
+      "end": 235.08,
+      "text": " Inside the small park surrounded by busy roads,",
+      "words": [
+        {
+          "word": "Inside",
+          "start": 232.16,
+          "end": 232.66,
+          "probability": 0.968
+        },
+        {
+          "word": "the",
+          "start": 232.66,
+          "end": 232.94,
+          "probability": 0.975
+        },
+        {
+          "word": "small",
+          "start": 232.94,
+          "end": 233.22,
+          "probability": 0.898
+        },
+        {
+          "word": "park",
+          "start": 233.22,
+          "end": 233.6,
+          "probability": 0.961
+        },
+        {
+          "word": "surrounded",
+          "start": 233.6,
+          "end": 234.12,
+          "probability": 0.801
+        },
+        {
+          "word": "by",
+          "start": 234.12,
+          "end": 234.4,
+          "probability": 0.996
+        },
+        {
+          "word": "busy",
+          "start": 234.4,
+          "end": 234.72,
+          "probability": 0.995
+        },
+        {
+          "word": "roads,",
+          "start": 234.72,
+          "end": 235.08,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 235.46,
+      "end": 238.2,
+      "text": " Sha'ul and his team sets up an immersive sound insulation",
+      "words": [
+        {
+          "word": "Sha'ul",
+          "start": 235.46,
+          "end": 235.82,
+          "probability": 0.222
+        },
+        {
+          "word": "and",
+          "start": 235.82,
+          "end": 235.96,
+          "probability": 0.976
+        },
+        {
+          "word": "his",
+          "start": 235.96,
+          "end": 236.12,
+          "probability": 0.997
+        },
+        {
+          "word": "team",
+          "start": 236.12,
+          "end": 236.48,
+          "probability": 0.947
+        },
+        {
+          "word": "sets",
+          "start": 236.48,
+          "end": 236.74,
+          "probability": 0.569
+        },
+        {
+          "word": "up",
+          "start": 236.74,
+          "end": 236.92,
+          "probability": 0.998
+        },
+        {
+          "word": "an",
+          "start": 236.92,
+          "end": 237.06,
+          "probability": 0.954
+        },
+        {
+          "word": "immersive",
+          "start": 237.06,
+          "end": 237.54,
+          "probability": 0.997
+        },
+        {
+          "word": "sound",
+          "start": 237.54,
+          "end": 237.88,
+          "probability": 0.976
+        },
+        {
+          "word": "insulation",
+          "start": 237.88,
+          "end": 238.2,
+          "probability": 0.396
+        }
+      ]
+    },
+    {
+      "start": 238.82,
+      "end": 241.3,
+      "text": " in the form of speakers planted in flower beds.",
+      "words": [
+        {
+          "word": "in",
+          "start": 238.82,
+          "end": 239.08,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 239.08,
+          "end": 239.16,
+          "probability": 0.997
+        },
+        {
+          "word": "form",
+          "start": 239.16,
+          "end": 239.36,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 239.36,
+          "end": 239.5,
+          "probability": 1.0
+        },
+        {
+          "word": "speakers",
+          "start": 239.5,
+          "end": 240.08,
+          "probability": 0.995
+        },
+        {
+          "word": "planted",
+          "start": 240.08,
+          "end": 240.5,
+          "probability": 0.99
+        },
+        {
+          "word": "in",
+          "start": 240.5,
+          "end": 240.72,
+          "probability": 0.998
+        },
+        {
+          "word": "flower",
+          "start": 240.72,
+          "end": 241.04,
+          "probability": 0.98
+        },
+        {
+          "word": "beds.",
+          "start": 241.04,
+          "end": 241.3,
+          "probability": 0.678
+        }
+      ]
+    },
+    {
+      "start": 241.6,
+      "end": 245.24,
+      "text": " So the de-installation was really to make this park a little quieter",
+      "words": [
+        {
+          "word": "So",
+          "start": 241.6,
+          "end": 241.96,
+          "probability": 0.961
+        },
+        {
+          "word": "the",
+          "start": 241.96,
+          "end": 242.16,
+          "probability": 0.959
+        },
+        {
+          "word": "de-installation",
+          "start": 242.16,
+          "end": 242.98,
+          "probability": 0.762
+        },
+        {
+          "word": "was",
+          "start": 242.98,
+          "end": 243.24,
+          "probability": 0.975
+        },
+        {
+          "word": "really",
+          "start": 243.24,
+          "end": 243.58,
+          "probability": 0.954
+        },
+        {
+          "word": "to",
+          "start": 243.58,
+          "end": 243.76,
+          "probability": 0.941
+        },
+        {
+          "word": "make",
+          "start": 243.76,
+          "end": 243.98,
+          "probability": 0.991
+        },
+        {
+          "word": "this",
+          "start": 243.98,
+          "end": 244.2,
+          "probability": 0.955
+        },
+        {
+          "word": "park",
+          "start": 244.2,
+          "end": 244.46,
+          "probability": 0.996
+        },
+        {
+          "word": "a",
+          "start": 244.46,
+          "end": 244.6,
+          "probability": 0.927
+        },
+        {
+          "word": "little",
+          "start": 244.6,
+          "end": 244.86,
+          "probability": 0.999
+        },
+        {
+          "word": "quieter",
+          "start": 244.86,
+          "end": 245.24,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 245.74,
+      "end": 248.26,
+      "text": " by adding some quiet noises.",
+      "words": [
+        {
+          "word": "by",
+          "start": 245.74,
+          "end": 246.28,
+          "probability": 0.973
+        },
+        {
+          "word": "adding",
+          "start": 246.28,
+          "end": 246.62,
+          "probability": 0.998
+        },
+        {
+          "word": "some",
+          "start": 246.62,
+          "end": 247.48,
+          "probability": 0.989
+        },
+        {
+          "word": "quiet",
+          "start": 247.48,
+          "end": 247.8,
+          "probability": 0.998
+        },
+        {
+          "word": "noises.",
+          "start": 247.8,
+          "end": 248.26,
+          "probability": 0.976
+        }
+      ]
+    },
+    {
+      "start": 249.64,
+      "end": 251.07,
+      "text": " So it's counter-intuitive,",
+      "words": [
+        {
+          "word": "So",
+          "start": 249.64,
+          "end": 249.66,
+          "probability": 0.523
+        },
+        {
+          "word": "it's",
+          "start": 249.66,
+          "end": 250.3,
+          "probability": 0.895
+        },
+        {
+          "word": "counter-intuitive,",
+          "start": 250.3,
+          "end": 251.07,
+          "probability": 0.748
+        }
+      ]
+    },
+    {
+      "start": 251.07,
+      "end": 257.84,
+      "text": " but you can make a park this noisy by adding some calmer sounds.",
+      "words": [
+        {
+          "word": "but",
+          "start": 251.07,
+          "end": 252.04,
+          "probability": 0.993
+        },
+        {
+          "word": "you",
+          "start": 252.04,
+          "end": 252.3,
+          "probability": 0.998
+        },
+        {
+          "word": "can",
+          "start": 252.3,
+          "end": 252.56,
+          "probability": 1.0
+        },
+        {
+          "word": "make",
+          "start": 252.56,
+          "end": 253.24,
+          "probability": 0.988
+        },
+        {
+          "word": "a",
+          "start": 253.24,
+          "end": 253.7,
+          "probability": 0.971
+        },
+        {
+          "word": "park",
+          "start": 253.7,
+          "end": 254.36,
+          "probability": 0.994
+        },
+        {
+          "word": "this",
+          "start": 254.36,
+          "end": 254.74,
+          "probability": 0.46
+        },
+        {
+          "word": "noisy",
+          "start": 254.74,
+          "end": 255.26,
+          "probability": 0.975
+        },
+        {
+          "word": "by",
+          "start": 255.26,
+          "end": 255.68,
+          "probability": 0.802
+        },
+        {
+          "word": "adding",
+          "start": 255.68,
+          "end": 256.44,
+          "probability": 0.994
+        },
+        {
+          "word": "some",
+          "start": 256.44,
+          "end": 256.94,
+          "probability": 0.967
+        },
+        {
+          "word": "calmer",
+          "start": 256.94,
+          "end": 257.38,
+          "probability": 0.804
+        },
+        {
+          "word": "sounds.",
+          "start": 257.38,
+          "end": 257.84,
+          "probability": 0.976
+        }
+      ]
+    },
+    {
+      "start": 258.58,
+      "end": 261.1,
+      "text": " The sound on the Magdalene Islands is squeaky.",
+      "words": [
+        {
+          "word": "The",
+          "start": 258.58,
+          "end": 258.8,
+          "probability": 0.997
+        },
+        {
+          "word": "sound",
+          "start": 258.8,
+          "end": 259.02,
+          "probability": 0.998
+        },
+        {
+          "word": "on",
+          "start": 259.02,
+          "end": 259.18,
+          "probability": 0.992
+        },
+        {
+          "word": "the",
+          "start": 259.18,
+          "end": 259.32,
+          "probability": 0.986
+        },
+        {
+          "word": "Magdalene",
+          "start": 259.32,
+          "end": 259.74,
+          "probability": 0.995
+        },
+        {
+          "word": "Islands",
+          "start": 259.74,
+          "end": 260.14,
+          "probability": 0.949
+        },
+        {
+          "word": "is",
+          "start": 260.14,
+          "end": 260.62,
+          "probability": 0.981
+        },
+        {
+          "word": "squeaky.",
+          "start": 260.62,
+          "end": 261.1,
+          "probability": 0.985
+        }
+      ]
+    },
+    {
+      "start": 261.28,
+      "end": 264.76,
+      "text": " It makes a high-pitched sound called a squeak when stepped on.",
+      "words": [
+        {
+          "word": "It",
+          "start": 261.28,
+          "end": 261.52,
+          "probability": 0.997
+        },
+        {
+          "word": "makes",
+          "start": 261.52,
+          "end": 261.86,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 261.86,
+          "end": 262.04,
+          "probability": 0.999
+        },
+        {
+          "word": "high-pitched",
+          "start": 262.04,
+          "end": 262.52,
+          "probability": 0.736
+        },
+        {
+          "word": "sound",
+          "start": 262.52,
+          "end": 262.92,
+          "probability": 0.999
+        },
+        {
+          "word": "called",
+          "start": 262.92,
+          "end": 263.22,
+          "probability": 0.917
+        },
+        {
+          "word": "a",
+          "start": 263.22,
+          "end": 263.48,
+          "probability": 0.981
+        },
+        {
+          "word": "squeak",
+          "start": 263.48,
+          "end": 263.92,
+          "probability": 0.973
+        },
+        {
+          "word": "when",
+          "start": 263.92,
+          "end": 264.22,
+          "probability": 0.882
+        },
+        {
+          "word": "stepped",
+          "start": 264.22,
+          "end": 264.46,
+          "probability": 0.964
+        },
+        {
+          "word": "on.",
+          "start": 264.46,
+          "end": 264.76,
+          "probability": 0.803
+        }
+      ]
+    },
+    {
+      "start": 265.06,
+      "end": 267.95,
+      "text": " Charles played recordings of this sound, ocean waves,",
+      "words": [
+        {
+          "word": "Charles",
+          "start": 265.06,
+          "end": 265.4,
+          "probability": 0.997
+        },
+        {
+          "word": "played",
+          "start": 265.4,
+          "end": 265.66,
+          "probability": 0.997
+        },
+        {
+          "word": "recordings",
+          "start": 265.66,
+          "end": 266.18,
+          "probability": 0.995
+        },
+        {
+          "word": "of",
+          "start": 266.18,
+          "end": 266.42,
+          "probability": 0.999
+        },
+        {
+          "word": "this",
+          "start": 266.42,
+          "end": 266.7,
+          "probability": 0.97
+        },
+        {
+          "word": "sound,",
+          "start": 266.7,
+          "end": 267.06,
+          "probability": 0.555
+        },
+        {
+          "word": "ocean",
+          "start": 267.26,
+          "end": 267.58,
+          "probability": 0.944
+        },
+        {
+          "word": "waves,",
+          "start": 267.58,
+          "end": 267.95,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 267.95,
+      "end": 271.36,
+      "text": " and other relaxing sounds through speakers hidden in the park.",
+      "words": [
+        {
+          "word": "and",
+          "start": 267.95,
+          "end": 268.34,
+          "probability": 0.999
+        },
+        {
+          "word": "other",
+          "start": 268.34,
+          "end": 268.62,
+          "probability": 0.998
+        },
+        {
+          "word": "relaxing",
+          "start": 268.62,
+          "end": 269.16,
+          "probability": 0.998
+        },
+        {
+          "word": "sounds",
+          "start": 269.16,
+          "end": 269.6,
+          "probability": 0.994
+        },
+        {
+          "word": "through",
+          "start": 269.6,
+          "end": 269.9,
+          "probability": 0.949
+        },
+        {
+          "word": "speakers",
+          "start": 269.9,
+          "end": 270.32,
+          "probability": 0.995
+        },
+        {
+          "word": "hidden",
+          "start": 270.32,
+          "end": 270.68,
+          "probability": 0.96
+        },
+        {
+          "word": "in",
+          "start": 270.68,
+          "end": 270.94,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 270.94,
+          "end": 271.12,
+          "probability": 0.999
+        },
+        {
+          "word": "park.",
+          "start": 271.12,
+          "end": 271.36,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 271.72,
+      "end": 273.76,
+      "text": " He created an art installation,",
+      "words": [
+        {
+          "word": "He",
+          "start": 271.72,
+          "end": 271.92,
+          "probability": 0.994
+        },
+        {
+          "word": "created",
+          "start": 271.92,
+          "end": 272.46,
+          "probability": 0.998
+        },
+        {
+          "word": "an",
+          "start": 272.46,
+          "end": 272.78,
+          "probability": 0.995
+        },
+        {
+          "word": "art",
+          "start": 272.78,
+          "end": 273.06,
+          "probability": 0.972
+        },
+        {
+          "word": "installation,",
+          "start": 273.06,
+          "end": 273.76,
+          "probability": 0.97
+        }
+      ]
+    },
+    {
+      "start": 273.98,
+      "end": 277.76,
+      "text": " a work of art designed to give people an interactive experience.",
+      "words": [
+        {
+          "word": "a",
+          "start": 273.98,
+          "end": 274.24,
+          "probability": 0.995
+        },
+        {
+          "word": "work",
+          "start": 274.24,
+          "end": 274.4,
+          "probability": 0.995
+        },
+        {
+          "word": "of",
+          "start": 274.4,
+          "end": 274.52,
+          "probability": 0.935
+        },
+        {
+          "word": "art",
+          "start": 274.52,
+          "end": 274.74,
+          "probability": 0.997
+        },
+        {
+          "word": "designed",
+          "start": 274.74,
+          "end": 275.16,
+          "probability": 0.976
+        },
+        {
+          "word": "to",
+          "start": 275.16,
+          "end": 275.3,
+          "probability": 0.999
+        },
+        {
+          "word": "give",
+          "start": 275.3,
+          "end": 275.5,
+          "probability": 0.999
+        },
+        {
+          "word": "people",
+          "start": 275.5,
+          "end": 275.92,
+          "probability": 0.999
+        },
+        {
+          "word": "an",
+          "start": 275.92,
+          "end": 276.26,
+          "probability": 0.96
+        },
+        {
+          "word": "interactive",
+          "start": 276.26,
+          "end": 276.92,
+          "probability": 0.994
+        },
+        {
+          "word": "experience.",
+          "start": 276.92,
+          "end": 277.76,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 278.1,
+      "end": 279.96,
+      "text": " By adding more relaxing sounds,",
+      "words": [
+        {
+          "word": "By",
+          "start": 278.1,
+          "end": 278.36,
+          "probability": 0.527
+        },
+        {
+          "word": "adding",
+          "start": 278.36,
+          "end": 278.72,
+          "probability": 0.999
+        },
+        {
+          "word": "more",
+          "start": 278.72,
+          "end": 278.98,
+          "probability": 0.998
+        },
+        {
+          "word": "relaxing",
+          "start": 278.98,
+          "end": 279.46,
+          "probability": 0.998
+        },
+        {
+          "word": "sounds,",
+          "start": 279.46,
+          "end": 279.96,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 280.04,
+      "end": 283.46,
+      "text": " Charles' installation actually made the park feel quieter.",
+      "words": [
+        {
+          "word": "Charles'",
+          "start": 280.04,
+          "end": 280.66,
+          "probability": 0.764
+        },
+        {
+          "word": "installation",
+          "start": 280.66,
+          "end": 281.36,
+          "probability": 0.953
+        },
+        {
+          "word": "actually",
+          "start": 281.36,
+          "end": 281.94,
+          "probability": 0.989
+        },
+        {
+          "word": "made",
+          "start": 281.94,
+          "end": 282.18,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 282.18,
+          "end": 282.32,
+          "probability": 0.997
+        },
+        {
+          "word": "park",
+          "start": 282.32,
+          "end": 282.62,
+          "probability": 0.981
+        },
+        {
+          "word": "feel",
+          "start": 282.62,
+          "end": 282.92,
+          "probability": 0.999
+        },
+        {
+          "word": "quieter.",
+          "start": 282.92,
+          "end": 283.46,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 283.9,
+      "end": 286.94,
+      "text": " It's an example of something that's counter-intuitive,",
+      "words": [
+        {
+          "word": "It's",
+          "start": 283.9,
+          "end": 284.28,
+          "probability": 0.994
+        },
+        {
+          "word": "an",
+          "start": 284.28,
+          "end": 284.36,
+          "probability": 0.999
+        },
+        {
+          "word": "example",
+          "start": 284.36,
+          "end": 284.78,
+          "probability": 1.0
+        },
+        {
+          "word": "of",
+          "start": 284.78,
+          "end": 284.96,
+          "probability": 0.993
+        },
+        {
+          "word": "something",
+          "start": 284.96,
+          "end": 285.4,
+          "probability": 0.988
+        },
+        {
+          "word": "that's",
+          "start": 285.4,
+          "end": 286.08,
+          "probability": 0.911
+        },
+        {
+          "word": "counter-intuitive,",
+          "start": 286.08,
+          "end": 286.94,
+          "probability": 0.967
+        }
+      ]
+    },
+    {
+      "start": 287.18,
+      "end": 290.06,
+      "text": " meaning it happens differently from how you would expect.",
+      "words": [
+        {
+          "word": "meaning",
+          "start": 287.18,
+          "end": 287.56,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 287.56,
+          "end": 287.74,
+          "probability": 0.991
+        },
+        {
+          "word": "happens",
+          "start": 287.74,
+          "end": 288.22,
+          "probability": 0.998
+        },
+        {
+          "word": "differently",
+          "start": 288.22,
+          "end": 288.7,
+          "probability": 0.991
+        },
+        {
+          "word": "from",
+          "start": 288.7,
+          "end": 289.1,
+          "probability": 0.981
+        },
+        {
+          "word": "how",
+          "start": 289.1,
+          "end": 289.36,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 289.36,
+          "end": 289.5,
+          "probability": 0.999
+        },
+        {
+          "word": "would",
+          "start": 289.5,
+          "end": 289.72,
+          "probability": 0.983
+        },
+        {
+          "word": "expect.",
+          "start": 289.72,
+          "end": 290.06,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 290.28,
+      "end": 291.34,
+      "text": " What a great idea!",
+      "words": [
+        {
+          "word": "What",
+          "start": 290.28,
+          "end": 290.54,
+          "probability": 0.989
+        },
+        {
+          "word": "a",
+          "start": 290.54,
+          "end": 290.7,
+          "probability": 0.998
+        },
+        {
+          "word": "great",
+          "start": 290.7,
+          "end": 290.96,
+          "probability": 0.998
+        },
+        {
+          "word": "idea!",
+          "start": 290.96,
+          "end": 291.34,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 291.8,
+      "end": 296.26,
+      "text": " And similar soundscapes are now helping city dwellers relax in other cities too,",
+      "words": [
+        {
+          "word": "And",
+          "start": 291.8,
+          "end": 292.1,
+          "probability": 0.95
+        },
+        {
+          "word": "similar",
+          "start": 292.1,
+          "end": 292.36,
+          "probability": 0.991
+        },
+        {
+          "word": "soundscapes",
+          "start": 292.36,
+          "end": 293.0,
+          "probability": 0.981
+        },
+        {
+          "word": "are",
+          "start": 293.0,
+          "end": 293.24,
+          "probability": 0.992
+        },
+        {
+          "word": "now",
+          "start": 293.24,
+          "end": 293.44,
+          "probability": 0.998
+        },
+        {
+          "word": "helping",
+          "start": 293.44,
+          "end": 293.82,
+          "probability": 0.985
+        },
+        {
+          "word": "city",
+          "start": 293.82,
+          "end": 294.18,
+          "probability": 0.889
+        },
+        {
+          "word": "dwellers",
+          "start": 294.18,
+          "end": 294.6,
+          "probability": 0.973
+        },
+        {
+          "word": "relax",
+          "start": 294.6,
+          "end": 295.0,
+          "probability": 0.653
+        },
+        {
+          "word": "in",
+          "start": 295.0,
+          "end": 295.26,
+          "probability": 0.859
+        },
+        {
+          "word": "other",
+          "start": 295.26,
+          "end": 295.48,
+          "probability": 0.99
+        },
+        {
+          "word": "cities",
+          "start": 295.48,
+          "end": 295.88,
+          "probability": 0.992
+        },
+        {
+          "word": "too,",
+          "start": 295.88,
+          "end": 296.26,
+          "probability": 0.787
+        }
+      ]
+    },
+    {
+      "start": 296.6,
+      "end": 298.28,
+      "text": " including Tokyo and Barcelona.",
+      "words": [
+        {
+          "word": "including",
+          "start": 296.6,
+          "end": 297.0,
+          "probability": 0.999
+        },
+        {
+          "word": "Tokyo",
+          "start": 297.0,
+          "end": 297.5,
+          "probability": 0.981
+        },
+        {
+          "word": "and",
+          "start": 297.5,
+          "end": 297.74,
+          "probability": 0.988
+        },
+        {
+          "word": "Barcelona.",
+          "start": 297.74,
+          "end": 298.28,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 298.74,
+      "end": 302.66,
+      "text": " Now, Neil, you asked me a question about a very quiet sound.",
+      "words": [
+        {
+          "word": "Now,",
+          "start": 298.74,
+          "end": 299.3,
+          "probability": 0.994
+        },
+        {
+          "word": "Neil,",
+          "start": 299.32,
+          "end": 299.7,
+          "probability": 0.907
+        },
+        {
+          "word": "you",
+          "start": 299.94,
+          "end": 300.02,
+          "probability": 0.992
+        },
+        {
+          "word": "asked",
+          "start": 300.02,
+          "end": 300.24,
+          "probability": 0.959
+        },
+        {
+          "word": "me",
+          "start": 300.24,
+          "end": 300.4,
+          "probability": 0.996
+        },
+        {
+          "word": "a",
+          "start": 300.4,
+          "end": 300.6,
+          "probability": 0.996
+        },
+        {
+          "word": "question",
+          "start": 300.6,
+          "end": 300.94,
+          "probability": 1.0
+        },
+        {
+          "word": "about",
+          "start": 300.94,
+          "end": 301.3,
+          "probability": 0.941
+        },
+        {
+          "word": "a",
+          "start": 301.3,
+          "end": 301.52,
+          "probability": 0.994
+        },
+        {
+          "word": "very",
+          "start": 301.52,
+          "end": 301.84,
+          "probability": 0.998
+        },
+        {
+          "word": "quiet",
+          "start": 301.84,
+          "end": 302.22,
+          "probability": 0.999
+        },
+        {
+          "word": "sound.",
+          "start": 302.22,
+          "end": 302.66,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 303.0,
+      "end": 303.56,
+      "text": " Oh, whisper.",
+      "words": [
+        {
+          "word": "Oh,",
+          "start": 303.0,
+          "end": 303.28,
+          "probability": 0.664
+        },
+        {
+          "word": "whisper.",
+          "start": 303.48,
+          "end": 303.56,
+          "probability": 0.524
+        }
+      ]
+    },
+    {
+      "start": 303.56,
+      "end": 306.3,
+      "text": " So, are you going to reveal the correct answer?",
+      "words": [
+        {
+          "word": "So,",
+          "start": 303.56,
+          "end": 304.52,
+          "probability": 0.987
+        },
+        {
+          "word": "are",
+          "start": 304.7,
+          "end": 304.86,
+          "probability": 0.984
+        },
+        {
+          "word": "you",
+          "start": 304.86,
+          "end": 304.9,
+          "probability": 0.998
+        },
+        {
+          "word": "going",
+          "start": 304.9,
+          "end": 305.06,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 305.06,
+          "end": 305.2,
+          "probability": 0.999
+        },
+        {
+          "word": "reveal",
+          "start": 305.2,
+          "end": 305.5,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 305.5,
+          "end": 305.72,
+          "probability": 0.998
+        },
+        {
+          "word": "correct",
+          "start": 305.72,
+          "end": 306.02,
+          "probability": 1.0
+        },
+        {
+          "word": "answer?",
+          "start": 306.02,
+          "end": 306.3,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 307.0,
+      "end": 310.3,
+      "text": " I asked you, how loud a whisper is?",
+      "words": [
+        {
+          "word": "I",
+          "start": 307.0,
+          "end": 307.1,
+          "probability": 0.28
+        },
+        {
+          "word": "asked",
+          "start": 307.1,
+          "end": 307.34,
+          "probability": 0.562
+        },
+        {
+          "word": "you,",
+          "start": 307.34,
+          "end": 307.96,
+          "probability": 0.996
+        },
+        {
+          "word": "how",
+          "start": 308.12,
+          "end": 308.32,
+          "probability": 0.905
+        },
+        {
+          "word": "loud",
+          "start": 308.32,
+          "end": 308.84,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 308.84,
+          "end": 309.4,
+          "probability": 0.985
+        },
+        {
+          "word": "whisper",
+          "start": 309.4,
+          "end": 309.78,
+          "probability": 0.985
+        },
+        {
+          "word": "is?",
+          "start": 309.78,
+          "end": 310.3,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 310.52,
+      "end": 313.08,
+      "text": " Yes, and I said 13 decibels.",
+      "words": [
+        {
+          "word": "Yes,",
+          "start": 310.52,
+          "end": 310.96,
+          "probability": 0.995
+        },
+        {
+          "word": "and",
+          "start": 311.12,
+          "end": 311.22,
+          "probability": 0.973
+        },
+        {
+          "word": "I",
+          "start": 311.22,
+          "end": 311.38,
+          "probability": 0.992
+        },
+        {
+          "word": "said",
+          "start": 311.38,
+          "end": 311.68,
+          "probability": 0.997
+        },
+        {
+          "word": "13",
+          "start": 311.68,
+          "end": 312.42,
+          "probability": 0.63
+        },
+        {
+          "word": "decibels.",
+          "start": 312.42,
+          "end": 313.08,
+          "probability": 0.901
+        }
+      ]
+    },
+    {
+      "start": 313.22,
+      "end": 316.0,
+      "text": " Well, 13 is an unlucky number, and you are wrong.",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 313.22,
+          "end": 313.58,
+          "probability": 0.884
+        },
+        {
+          "word": "13",
+          "start": 313.7,
+          "end": 313.9,
+          "probability": 0.98
+        },
+        {
+          "word": "is",
+          "start": 313.9,
+          "end": 314.1,
+          "probability": 0.993
+        },
+        {
+          "word": "an",
+          "start": 314.1,
+          "end": 314.28,
+          "probability": 0.996
+        },
+        {
+          "word": "unlucky",
+          "start": 314.28,
+          "end": 314.58,
+          "probability": 0.94
+        },
+        {
+          "word": "number,",
+          "start": 314.58,
+          "end": 315.04,
+          "probability": 0.997
+        },
+        {
+          "word": "and",
+          "start": 315.24,
+          "end": 315.34,
+          "probability": 0.772
+        },
+        {
+          "word": "you",
+          "start": 315.34,
+          "end": 315.52,
+          "probability": 0.998
+        },
+        {
+          "word": "are",
+          "start": 315.52,
+          "end": 315.68,
+          "probability": 0.992
+        },
+        {
+          "word": "wrong.",
+          "start": 315.68,
+          "end": 316.0,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 316.06,
+      "end": 319.0,
+      "text": " Ah! It was actually 30.",
+      "words": [
+        {
+          "word": "Ah!",
+          "start": 316.06,
+          "end": 316.52,
+          "probability": 0.345
+        },
+        {
+          "word": "It",
+          "start": 317.42,
+          "end": 317.58,
+          "probability": 0.54
+        },
+        {
+          "word": "was",
+          "start": 317.58,
+          "end": 317.86,
+          "probability": 0.947
+        },
+        {
+          "word": "actually",
+          "start": 317.86,
+          "end": 318.62,
+          "probability": 0.998
+        },
+        {
+          "word": "30.",
+          "start": 318.62,
+          "end": 319.0,
+          "probability": 0.922
+        }
+      ]
+    },
+    {
+      "start": 319.94,
+      "end": 322.32,
+      "text": " Okay, let's recap the vocabulary we've learned,",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 319.94,
+          "end": 320.28,
+          "probability": 0.484
+        },
+        {
+          "word": "let's",
+          "start": 320.44,
+          "end": 320.68,
+          "probability": 0.994
+        },
+        {
+          "word": "recap",
+          "start": 320.68,
+          "end": 320.94,
+          "probability": 0.99
+        },
+        {
+          "word": "the",
+          "start": 320.94,
+          "end": 321.12,
+          "probability": 0.99
+        },
+        {
+          "word": "vocabulary",
+          "start": 321.12,
+          "end": 321.72,
+          "probability": 0.997
+        },
+        {
+          "word": "we've",
+          "start": 321.72,
+          "end": 322.16,
+          "probability": 0.985
+        },
+        {
+          "word": "learned,",
+          "start": 322.16,
+          "end": 322.32,
+          "probability": 0.967
+        }
+      ]
+    },
+    {
+      "start": 322.58,
+      "end": 325.4,
+      "text": " starting with decibel, the unit for measuring sound.",
+      "words": [
+        {
+          "word": "starting",
+          "start": 322.58,
+          "end": 322.9,
+          "probability": 0.994
+        },
+        {
+          "word": "with",
+          "start": 322.9,
+          "end": 323.14,
+          "probability": 1.0
+        },
+        {
+          "word": "decibel,",
+          "start": 323.14,
+          "end": 323.74,
+          "probability": 0.785
+        },
+        {
+          "word": "the",
+          "start": 324.04,
+          "end": 324.18,
+          "probability": 0.911
+        },
+        {
+          "word": "unit",
+          "start": 324.18,
+          "end": 324.48,
+          "probability": 0.958
+        },
+        {
+          "word": "for",
+          "start": 324.48,
+          "end": 324.74,
+          "probability": 0.998
+        },
+        {
+          "word": "measuring",
+          "start": 324.74,
+          "end": 325.1,
+          "probability": 0.995
+        },
+        {
+          "word": "sound.",
+          "start": 325.1,
+          "end": 325.4,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 325.82,
+      "end": 330.22,
+      "text": " Someone who dresses loud likes to wear clothes with bright colours and bold designs.",
+      "words": [
+        {
+          "word": "Someone",
+          "start": 325.82,
+          "end": 326.18,
+          "probability": 0.995
+        },
+        {
+          "word": "who",
+          "start": 326.18,
+          "end": 326.38,
+          "probability": 0.998
+        },
+        {
+          "word": "dresses",
+          "start": 326.38,
+          "end": 326.86,
+          "probability": 0.965
+        },
+        {
+          "word": "loud",
+          "start": 326.86,
+          "end": 327.36,
+          "probability": 0.991
+        },
+        {
+          "word": "likes",
+          "start": 327.36,
+          "end": 327.7,
+          "probability": 0.641
+        },
+        {
+          "word": "to",
+          "start": 327.7,
+          "end": 327.88,
+          "probability": 0.995
+        },
+        {
+          "word": "wear",
+          "start": 327.88,
+          "end": 328.04,
+          "probability": 0.998
+        },
+        {
+          "word": "clothes",
+          "start": 328.04,
+          "end": 328.38,
+          "probability": 0.998
+        },
+        {
+          "word": "with",
+          "start": 328.38,
+          "end": 328.64,
+          "probability": 0.69
+        },
+        {
+          "word": "bright",
+          "start": 328.64,
+          "end": 328.94,
+          "probability": 0.996
+        },
+        {
+          "word": "colours",
+          "start": 328.94,
+          "end": 329.28,
+          "probability": 0.709
+        },
+        {
+          "word": "and",
+          "start": 329.28,
+          "end": 329.5,
+          "probability": 0.954
+        },
+        {
+          "word": "bold",
+          "start": 329.5,
+          "end": 329.78,
+          "probability": 0.962
+        },
+        {
+          "word": "designs.",
+          "start": 329.78,
+          "end": 330.22,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 330.66,
+      "end": 334.18,
+      "text": " If you can't handle something, you find it difficult to deal with.",
+      "words": [
+        {
+          "word": "If",
+          "start": 330.66,
+          "end": 331.0,
+          "probability": 0.991
+        },
+        {
+          "word": "you",
+          "start": 331.0,
+          "end": 331.16,
+          "probability": 1.0
+        },
+        {
+          "word": "can't",
+          "start": 331.16,
+          "end": 331.54,
+          "probability": 0.999
+        },
+        {
+          "word": "handle",
+          "start": 331.54,
+          "end": 331.9,
+          "probability": 0.997
+        },
+        {
+          "word": "something,",
+          "start": 331.9,
+          "end": 332.36,
+          "probability": 0.997
+        },
+        {
+          "word": "you",
+          "start": 332.56,
+          "end": 332.6,
+          "probability": 0.831
+        },
+        {
+          "word": "find",
+          "start": 332.6,
+          "end": 332.86,
+          "probability": 0.973
+        },
+        {
+          "word": "it",
+          "start": 332.86,
+          "end": 333.06,
+          "probability": 0.999
+        },
+        {
+          "word": "difficult",
+          "start": 333.06,
+          "end": 333.52,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 333.52,
+          "end": 333.72,
+          "probability": 0.989
+        },
+        {
+          "word": "deal",
+          "start": 333.72,
+          "end": 334.02,
+          "probability": 0.999
+        },
+        {
+          "word": "with.",
+          "start": 334.02,
+          "end": 334.18,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 334.36,
+      "end": 339.92,
+      "text": " An art installation is an artwork designed to create an interactive experience in a certain space.",
+      "words": [
+        {
+          "word": "An",
+          "start": 334.36,
+          "end": 334.6,
+          "probability": 0.91
+        },
+        {
+          "word": "art",
+          "start": 334.6,
+          "end": 334.86,
+          "probability": 0.98
+        },
+        {
+          "word": "installation",
+          "start": 334.86,
+          "end": 335.48,
+          "probability": 0.989
+        },
+        {
+          "word": "is",
+          "start": 335.48,
+          "end": 335.72,
+          "probability": 0.994
+        },
+        {
+          "word": "an",
+          "start": 335.72,
+          "end": 335.94,
+          "probability": 0.996
+        },
+        {
+          "word": "artwork",
+          "start": 335.94,
+          "end": 336.32,
+          "probability": 0.955
+        },
+        {
+          "word": "designed",
+          "start": 336.32,
+          "end": 336.76,
+          "probability": 0.974
+        },
+        {
+          "word": "to",
+          "start": 336.76,
+          "end": 336.92,
+          "probability": 0.968
+        },
+        {
+          "word": "create",
+          "start": 336.92,
+          "end": 337.26,
+          "probability": 0.998
+        },
+        {
+          "word": "an",
+          "start": 337.26,
+          "end": 337.58,
+          "probability": 0.877
+        },
+        {
+          "word": "interactive",
+          "start": 337.58,
+          "end": 338.14,
+          "probability": 0.988
+        },
+        {
+          "word": "experience",
+          "start": 338.14,
+          "end": 338.88,
+          "probability": 0.961
+        },
+        {
+          "word": "in",
+          "start": 338.88,
+          "end": 339.1,
+          "probability": 0.859
+        },
+        {
+          "word": "a",
+          "start": 339.1,
+          "end": 339.22,
+          "probability": 0.994
+        },
+        {
+          "word": "certain",
+          "start": 339.22,
+          "end": 339.54,
+          "probability": 0.979
+        },
+        {
+          "word": "space.",
+          "start": 339.54,
+          "end": 339.92,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 340.26,
+      "end": 345.8,
+      "text": " The adjective squeaky describes things which make a high-pitched sound, like a mouse.",
+      "words": [
+        {
+          "word": "The",
+          "start": 340.26,
+          "end": 340.56,
+          "probability": 0.994
+        },
+        {
+          "word": "adjective",
+          "start": 340.56,
+          "end": 341.1,
+          "probability": 0.939
+        },
+        {
+          "word": "squeaky",
+          "start": 341.1,
+          "end": 341.82,
+          "probability": 0.671
+        },
+        {
+          "word": "describes",
+          "start": 341.82,
+          "end": 342.42,
+          "probability": 0.985
+        },
+        {
+          "word": "things",
+          "start": 342.42,
+          "end": 342.82,
+          "probability": 0.997
+        },
+        {
+          "word": "which",
+          "start": 342.82,
+          "end": 343.06,
+          "probability": 0.877
+        },
+        {
+          "word": "make",
+          "start": 343.06,
+          "end": 343.48,
+          "probability": 0.993
+        },
+        {
+          "word": "a",
+          "start": 343.48,
+          "end": 343.76,
+          "probability": 0.997
+        },
+        {
+          "word": "high-pitched",
+          "start": 343.76,
+          "end": 344.5,
+          "probability": 0.839
+        },
+        {
+          "word": "sound,",
+          "start": 344.5,
+          "end": 344.96,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 345.3,
+          "end": 345.42,
+          "probability": 0.905
+        },
+        {
+          "word": "a",
+          "start": 345.42,
+          "end": 345.54,
+          "probability": 0.997
+        },
+        {
+          "word": "mouse.",
+          "start": 345.54,
+          "end": 345.8,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 345.96,
+      "end": 346.76,
+      "text": " Squeak squeak!",
+      "words": [
+        {
+          "word": "Squeak",
+          "start": 345.96,
+          "end": 346.4,
+          "probability": 0.55
+        },
+        {
+          "word": "squeak!",
+          "start": 346.4,
+          "end": 346.76,
+          "probability": 0.97
+        }
+      ]
+    },
+    {
+      "start": 347.44,
+      "end": 349.98,
+      "text": " And finally, if you call something counter-intuitive,",
+      "words": [
+        {
+          "word": "And",
+          "start": 347.44,
+          "end": 347.8,
+          "probability": 0.986
+        },
+        {
+          "word": "finally,",
+          "start": 347.8,
+          "end": 348.12,
+          "probability": 0.725
+        },
+        {
+          "word": "if",
+          "start": 348.32,
+          "end": 348.38,
+          "probability": 0.992
+        },
+        {
+          "word": "you",
+          "start": 348.38,
+          "end": 348.5,
+          "probability": 0.999
+        },
+        {
+          "word": "call",
+          "start": 348.5,
+          "end": 348.72,
+          "probability": 0.84
+        },
+        {
+          "word": "something",
+          "start": 348.72,
+          "end": 349.06,
+          "probability": 0.998
+        },
+        {
+          "word": "counter-intuitive,",
+          "start": 349.06,
+          "end": 349.98,
+          "probability": 0.956
+        }
+      ]
+    },
+    {
+      "start": 350.1,
+      "end": 352.9,
+      "text": " you mean it happens differently from how you would expect.",
+      "words": [
+        {
+          "word": "you",
+          "start": 350.1,
+          "end": 350.38,
+          "probability": 0.997
+        },
+        {
+          "word": "mean",
+          "start": 350.38,
+          "end": 350.62,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 350.62,
+          "end": 350.84,
+          "probability": 0.976
+        },
+        {
+          "word": "happens",
+          "start": 350.84,
+          "end": 351.22,
+          "probability": 0.997
+        },
+        {
+          "word": "differently",
+          "start": 351.22,
+          "end": 351.7,
+          "probability": 0.995
+        },
+        {
+          "word": "from",
+          "start": 351.7,
+          "end": 352.02,
+          "probability": 0.994
+        },
+        {
+          "word": "how",
+          "start": 352.02,
+          "end": 352.2,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 352.2,
+          "end": 352.34,
+          "probability": 0.999
+        },
+        {
+          "word": "would",
+          "start": 352.34,
+          "end": 352.52,
+          "probability": 0.996
+        },
+        {
+          "word": "expect.",
+          "start": 352.52,
+          "end": 352.9,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 353.3,
+      "end": 354.88,
+      "text": " Once again, our six minutes are up,",
+      "words": [
+        {
+          "word": "Once",
+          "start": 353.3,
+          "end": 353.6,
+          "probability": 0.993
+        },
+        {
+          "word": "again,",
+          "start": 353.6,
+          "end": 353.86,
+          "probability": 0.997
+        },
+        {
+          "word": "our",
+          "start": 353.96,
+          "end": 354.08,
+          "probability": 0.921
+        },
+        {
+          "word": "six",
+          "start": 354.08,
+          "end": 354.36,
+          "probability": 0.755
+        },
+        {
+          "word": "minutes",
+          "start": 354.36,
+          "end": 354.6,
+          "probability": 0.932
+        },
+        {
+          "word": "are",
+          "start": 354.6,
+          "end": 354.8,
+          "probability": 0.996
+        },
+        {
+          "word": "up,",
+          "start": 354.8,
+          "end": 354.88,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 354.88,
+      "end": 357.01,
+      "text": " but if you'd like to hear more about this,",
+      "words": [
+        {
+          "word": "but",
+          "start": 354.88,
+          "end": 355.32,
+          "probability": 0.997
+        },
+        {
+          "word": "if",
+          "start": 355.32,
+          "end": 355.5,
+          "probability": 0.989
+        },
+        {
+          "word": "you'd",
+          "start": 355.5,
+          "end": 355.72,
+          "probability": 0.99
+        },
+        {
+          "word": "like",
+          "start": 355.72,
+          "end": 355.9,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 355.9,
+          "end": 356.04,
+          "probability": 0.999
+        },
+        {
+          "word": "hear",
+          "start": 356.04,
+          "end": 356.18,
+          "probability": 0.989
+        },
+        {
+          "word": "more",
+          "start": 356.18,
+          "end": 356.44,
+          "probability": 0.997
+        },
+        {
+          "word": "about",
+          "start": 356.44,
+          "end": 356.7,
+          "probability": 0.999
+        },
+        {
+          "word": "this,",
+          "start": 356.7,
+          "end": 357.01,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 357.01,
+      "end": 358.77,
+      "text": " and many other trending topics,",
+      "words": [
+        {
+          "word": "and",
+          "start": 357.01,
+          "end": 357.48,
+          "probability": 0.983
+        },
+        {
+          "word": "many",
+          "start": 357.48,
+          "end": 357.68,
+          "probability": 0.988
+        },
+        {
+          "word": "other",
+          "start": 357.68,
+          "end": 357.98,
+          "probability": 0.999
+        },
+        {
+          "word": "trending",
+          "start": 357.98,
+          "end": 358.34,
+          "probability": 0.992
+        },
+        {
+          "word": "topics,",
+          "start": 358.34,
+          "end": 358.77,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 358.77,
+      "end": 362.06,
+      "text": " you'll find more episodes and learning activities on our website,",
+      "words": [
+        {
+          "word": "you'll",
+          "start": 358.77,
+          "end": 359.16,
+          "probability": 0.896
+        },
+        {
+          "word": "find",
+          "start": 359.16,
+          "end": 359.34,
+          "probability": 0.999
+        },
+        {
+          "word": "more",
+          "start": 359.34,
+          "end": 359.62,
+          "probability": 0.999
+        },
+        {
+          "word": "episodes",
+          "start": 359.62,
+          "end": 360.18,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 360.18,
+          "end": 360.48,
+          "probability": 0.94
+        },
+        {
+          "word": "learning",
+          "start": 360.48,
+          "end": 360.76,
+          "probability": 0.997
+        },
+        {
+          "word": "activities",
+          "start": 360.76,
+          "end": 361.36,
+          "probability": 0.996
+        },
+        {
+          "word": "on",
+          "start": 361.36,
+          "end": 361.58,
+          "probability": 0.98
+        },
+        {
+          "word": "our",
+          "start": 361.58,
+          "end": 361.72,
+          "probability": 0.999
+        },
+        {
+          "word": "website,",
+          "start": 361.72,
+          "end": 362.06,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 362.36,
+      "end": 364.22,
+      "text": " bbclearningenglish.com.",
+      "words": [
+        {
+          "word": "bbclearningenglish.com.",
+          "start": 362.36,
+          "end": 364.22,
+          "probability": 0.584
+        }
+      ]
+    },
+    {
+      "start": 364.44,
+      "end": 366.76,
+      "text": " See you again soon, but for now, it's goodbye.",
+      "words": [
+        {
+          "word": "See",
+          "start": 364.44,
+          "end": 364.64,
+          "probability": 0.988
+        },
+        {
+          "word": "you",
+          "start": 364.64,
+          "end": 364.76,
+          "probability": 0.996
+        },
+        {
+          "word": "again",
+          "start": 364.76,
+          "end": 365.02,
+          "probability": 0.995
+        },
+        {
+          "word": "soon,",
+          "start": 365.02,
+          "end": 365.38,
+          "probability": 0.996
+        },
+        {
+          "word": "but",
+          "start": 365.46,
+          "end": 365.66,
+          "probability": 0.946
+        },
+        {
+          "word": "for",
+          "start": 365.66,
+          "end": 365.84,
+          "probability": 0.985
+        },
+        {
+          "word": "now,",
+          "start": 365.84,
+          "end": 366.22,
+          "probability": 1.0
+        },
+        {
+          "word": "it's",
+          "start": 366.44,
+          "end": 366.52,
+          "probability": 0.978
+        },
+        {
+          "word": "goodbye.",
+          "start": 366.52,
+          "end": 366.76,
+          "probability": 0.905
+        }
+      ]
+    },
+    {
+      "start": 367.16,
+      "end": 367.54,
+      "text": " Goodbye.",
+      "words": [
+        {
+          "word": "Goodbye.",
+          "start": 367.16,
+          "end": 367.54,
+          "probability": 0.8
+        }
+      ]
+    },
+    {
+      "start": 367.86,
+      "end": 369.86,
+      "text": " 6 New English",
+      "words": [
+        {
+          "word": "6",
+          "start": 367.86,
+          "end": 369.16,
+          "probability": 0.347
+        },
+        {
+          "word": "New",
+          "start": 369.16,
+          "end": 369.46,
+          "probability": 0.08
+        },
+        {
+          "word": "English",
+          "start": 369.46,
+          "end": 369.86,
+          "probability": 0.854
+        }
+      ]
+    },
+    {
+      "start": 370.3,
+      "end": 373.1,
+      "text": " From bbclearningenglish.com",
+      "words": [
+        {
+          "word": "From",
+          "start": 370.3,
+          "end": 370.68,
+          "probability": 0.846
+        },
+        {
+          "word": "bbclearningenglish.com",
+          "start": 370.68,
+          "end": 373.1,
+          "probability": 0.855
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5066 @@
+{
+  "engine": "whisper-timestamped",
+  "model": "tiny.en",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.18,
+      "end": 3.82,
+      "text": " Hello and welcome to Real Easy English.",
+      "words": [
+        {
+          "word": "Hello",
+          "start": 0.18,
+          "end": 0.7,
+          "probability": 0.899
+        },
+        {
+          "word": "and",
+          "start": 0.7,
+          "end": 1.16,
+          "probability": 0.683
+        },
+        {
+          "word": "welcome",
+          "start": 1.16,
+          "end": 1.78,
+          "probability": 0.913
+        },
+        {
+          "word": "to",
+          "start": 1.78,
+          "end": 2.36,
+          "probability": 0.992
+        },
+        {
+          "word": "Real",
+          "start": 2.36,
+          "end": 2.84,
+          "probability": 0.852
+        },
+        {
+          "word": "Easy",
+          "start": 2.84,
+          "end": 3.3,
+          "probability": 0.796
+        },
+        {
+          "word": "English.",
+          "start": 3.3,
+          "end": 3.82,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 4.12,
+      "end": 8.94,
+      "text": " We're back with another conversation in Easy English to help you learn.",
+      "words": [
+        {
+          "word": "We're",
+          "start": 4.12,
+          "end": 4.56,
+          "probability": 0.929
+        },
+        {
+          "word": "back",
+          "start": 4.56,
+          "end": 4.9,
+          "probability": 0.995
+        },
+        {
+          "word": "with",
+          "start": 4.9,
+          "end": 5.2,
+          "probability": 0.995
+        },
+        {
+          "word": "another",
+          "start": 5.2,
+          "end": 5.72,
+          "probability": 0.99
+        },
+        {
+          "word": "conversation",
+          "start": 5.72,
+          "end": 6.5,
+          "probability": 0.937
+        },
+        {
+          "word": "in",
+          "start": 6.5,
+          "end": 7.08,
+          "probability": 0.886
+        },
+        {
+          "word": "Easy",
+          "start": 7.08,
+          "end": 7.44,
+          "probability": 0.78
+        },
+        {
+          "word": "English",
+          "start": 7.44,
+          "end": 7.88,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 7.88,
+          "end": 8.2,
+          "probability": 0.907
+        },
+        {
+          "word": "help",
+          "start": 8.2,
+          "end": 8.44,
+          "probability": 0.988
+        },
+        {
+          "word": "you",
+          "start": 8.44,
+          "end": 8.62,
+          "probability": 0.995
+        },
+        {
+          "word": "learn.",
+          "start": 8.62,
+          "end": 8.94,
+          "probability": 0.989
+        }
+      ]
+    },
+    {
+      "start": 9.28,
+      "end": 9.94,
+      "text": " I'm Phil.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 9.28,
+          "end": 9.66,
+          "probability": 0.988
+        },
+        {
+          "word": "Phil.",
+          "start": 9.66,
+          "end": 9.94,
+          "probability": 0.988
+        }
+      ]
+    },
+    {
+      "start": 10.2,
+      "end": 11.04,
+      "text": " And I'm Georgie.",
+      "words": [
+        {
+          "word": "And",
+          "start": 10.2,
+          "end": 10.34,
+          "probability": 0.89
+        },
+        {
+          "word": "I'm",
+          "start": 10.34,
+          "end": 10.5,
+          "probability": 0.988
+        },
+        {
+          "word": "Georgie.",
+          "start": 10.5,
+          "end": 11.04,
+          "probability": 0.7
+        }
+      ]
+    },
+    {
+      "start": 11.22,
+      "end": 16.68,
+      "text": " You can find a video version of this podcast with subtitles so you can read along.",
+      "words": [
+        {
+          "word": "You",
+          "start": 11.22,
+          "end": 11.52,
+          "probability": 0.993
+        },
+        {
+          "word": "can",
+          "start": 11.52,
+          "end": 11.78,
+          "probability": 0.901
+        },
+        {
+          "word": "find",
+          "start": 11.78,
+          "end": 12.16,
+          "probability": 0.993
+        },
+        {
+          "word": "a",
+          "start": 12.16,
+          "end": 12.48,
+          "probability": 0.992
+        },
+        {
+          "word": "video",
+          "start": 12.48,
+          "end": 12.82,
+          "probability": 0.986
+        },
+        {
+          "word": "version",
+          "start": 12.82,
+          "end": 13.38,
+          "probability": 0.997
+        },
+        {
+          "word": "of",
+          "start": 13.38,
+          "end": 13.68,
+          "probability": 0.984
+        },
+        {
+          "word": "this",
+          "start": 13.68,
+          "end": 13.9,
+          "probability": 0.993
+        },
+        {
+          "word": "podcast",
+          "start": 13.9,
+          "end": 14.4,
+          "probability": 0.995
+        },
+        {
+          "word": "with",
+          "start": 14.4,
+          "end": 14.72,
+          "probability": 0.944
+        },
+        {
+          "word": "subtitles",
+          "start": 14.72,
+          "end": 15.3,
+          "probability": 0.916
+        },
+        {
+          "word": "so",
+          "start": 15.3,
+          "end": 15.7,
+          "probability": 0.569
+        },
+        {
+          "word": "you",
+          "start": 15.7,
+          "end": 15.82,
+          "probability": 0.989
+        },
+        {
+          "word": "can",
+          "start": 15.82,
+          "end": 16.1,
+          "probability": 0.993
+        },
+        {
+          "word": "read",
+          "start": 16.1,
+          "end": 16.32,
+          "probability": 0.998
+        },
+        {
+          "word": "along.",
+          "start": 16.32,
+          "end": 16.68,
+          "probability": 0.981
+        }
+      ]
+    },
+    {
+      "start": 17.06,
+      "end": 20.96,
+      "text": " It's all on our website, that's BVC, learningenglish.com.",
+      "words": [
+        {
+          "word": "It's",
+          "start": 17.06,
+          "end": 17.38,
+          "probability": 0.989
+        },
+        {
+          "word": "all",
+          "start": 17.38,
+          "end": 17.58,
+          "probability": 0.993
+        },
+        {
+          "word": "on",
+          "start": 17.58,
+          "end": 17.7,
+          "probability": 0.954
+        },
+        {
+          "word": "our",
+          "start": 17.7,
+          "end": 17.88,
+          "probability": 0.998
+        },
+        {
+          "word": "website,",
+          "start": 17.88,
+          "end": 18.34,
+          "probability": 0.994
+        },
+        {
+          "word": "that's",
+          "start": 18.56,
+          "end": 18.82,
+          "probability": 0.938
+        },
+        {
+          "word": "BVC,",
+          "start": 18.82,
+          "end": 19.48,
+          "probability": 0.564
+        },
+        {
+          "word": "learningenglish.com.",
+          "start": 19.66,
+          "end": 20.96,
+          "probability": 0.944
+        }
+      ]
+    },
+    {
+      "start": 28.02,
+      "end": 29.42,
+      "text": " Hi, how are you, Georgie?",
+      "words": [
+        {
+          "word": "Hi,",
+          "start": 28.02,
+          "end": 28.48,
+          "probability": 0.828
+        },
+        {
+          "word": "how",
+          "start": 28.66,
+          "end": 28.82,
+          "probability": 0.985
+        },
+        {
+          "word": "are",
+          "start": 28.82,
+          "end": 28.92,
+          "probability": 0.975
+        },
+        {
+          "word": "you,",
+          "start": 28.92,
+          "end": 29.06,
+          "probability": 0.998
+        },
+        {
+          "word": "Georgie?",
+          "start": 29.18,
+          "end": 29.42,
+          "probability": 0.947
+        }
+      ]
+    },
+    {
+      "start": 29.58,
+      "end": 31.88,
+      "text": " I'm very well, thank you Phil, how are you?",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 29.58,
+          "end": 29.96,
+          "probability": 0.972
+        },
+        {
+          "word": "very",
+          "start": 29.96,
+          "end": 30.18,
+          "probability": 0.991
+        },
+        {
+          "word": "well,",
+          "start": 30.18,
+          "end": 30.48,
+          "probability": 0.995
+        },
+        {
+          "word": "thank",
+          "start": 30.72,
+          "end": 30.76,
+          "probability": 0.981
+        },
+        {
+          "word": "you",
+          "start": 30.76,
+          "end": 30.98,
+          "probability": 0.994
+        },
+        {
+          "word": "Phil,",
+          "start": 30.98,
+          "end": 31.28,
+          "probability": 0.753
+        },
+        {
+          "word": "how",
+          "start": 31.36,
+          "end": 31.5,
+          "probability": 0.995
+        },
+        {
+          "word": "are",
+          "start": 31.5,
+          "end": 31.66,
+          "probability": 0.996
+        },
+        {
+          "word": "you?",
+          "start": 31.66,
+          "end": 31.88,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 31.98,
+      "end": 33.38,
+      "text": " I'm good, I'm very good.",
+      "words": [
+        {
+          "word": "I'm",
+          "start": 31.98,
+          "end": 32.34,
+          "probability": 0.997
+        },
+        {
+          "word": "good,",
+          "start": 32.34,
+          "end": 32.6,
+          "probability": 0.994
+        },
+        {
+          "word": "I'm",
+          "start": 32.7,
+          "end": 32.96,
+          "probability": 0.994
+        },
+        {
+          "word": "very",
+          "start": 32.96,
+          "end": 33.16,
+          "probability": 0.999
+        },
+        {
+          "word": "good.",
+          "start": 33.16,
+          "end": 33.38,
+          "probability": 1.0
+        }
+      ]
+    },
+    {
+      "start": 34.48,
+      "end": 38.21,
+      "text": " Today we're going to talk all about names.",
+      "words": [
+        {
+          "word": "Today",
+          "start": 34.48,
+          "end": 35.16,
+          "probability": 0.997
+        },
+        {
+          "word": "we're",
+          "start": 35.16,
+          "end": 36.16,
+          "probability": 0.747
+        },
+        {
+          "word": "going",
+          "start": 36.16,
+          "end": 36.22,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 36.22,
+          "end": 36.36,
+          "probability": 0.999
+        },
+        {
+          "word": "talk",
+          "start": 36.36,
+          "end": 36.84,
+          "probability": 0.998
+        },
+        {
+          "word": "all",
+          "start": 36.84,
+          "end": 37.1,
+          "probability": 0.943
+        },
+        {
+          "word": "about",
+          "start": 37.1,
+          "end": 37.44,
+          "probability": 0.997
+        },
+        {
+          "word": "names.",
+          "start": 37.44,
+          "end": 38.21,
+          "probability": 0.982
+        }
+      ]
+    },
+    {
+      "start": 38.21,
+      "end": 42.42,
+      "text": " We're going to talk about our names and where they come from.",
+      "words": [
+        {
+          "word": "We're",
+          "start": 38.21,
+          "end": 39.12,
+          "probability": 0.987
+        },
+        {
+          "word": "going",
+          "start": 39.12,
+          "end": 39.14,
+          "probability": 0.881
+        },
+        {
+          "word": "to",
+          "start": 39.14,
+          "end": 39.24,
+          "probability": 0.999
+        },
+        {
+          "word": "talk",
+          "start": 39.24,
+          "end": 39.4,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 39.4,
+          "end": 39.98,
+          "probability": 0.999
+        },
+        {
+          "word": "our",
+          "start": 39.98,
+          "end": 40.22,
+          "probability": 0.989
+        },
+        {
+          "word": "names",
+          "start": 40.22,
+          "end": 40.74,
+          "probability": 0.994
+        },
+        {
+          "word": "and",
+          "start": 40.74,
+          "end": 41.44,
+          "probability": 0.733
+        },
+        {
+          "word": "where",
+          "start": 41.44,
+          "end": 41.66,
+          "probability": 0.991
+        },
+        {
+          "word": "they",
+          "start": 41.66,
+          "end": 41.86,
+          "probability": 0.996
+        },
+        {
+          "word": "come",
+          "start": 41.86,
+          "end": 42.18,
+          "probability": 0.998
+        },
+        {
+          "word": "from.",
+          "start": 42.18,
+          "end": 42.42,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 42.54,
+      "end": 44.42,
+      "text": " Ooh, it's an interesting topic.",
+      "words": [
+        {
+          "word": "Ooh,",
+          "start": 42.54,
+          "end": 43.3,
+          "probability": 0.626
+        },
+        {
+          "word": "it's",
+          "start": 43.4,
+          "end": 43.56,
+          "probability": 0.996
+        },
+        {
+          "word": "an",
+          "start": 43.56,
+          "end": 43.66,
+          "probability": 0.999
+        },
+        {
+          "word": "interesting",
+          "start": 43.66,
+          "end": 44.12,
+          "probability": 0.999
+        },
+        {
+          "word": "topic.",
+          "start": 44.12,
+          "end": 44.42,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 45.36,
+      "end": 50.48,
+      "text": " Phil, what's the story behind your name? Were you named after anyone or anything?",
+      "words": [
+        {
+          "word": "Phil,",
+          "start": 45.36,
+          "end": 45.64,
+          "probability": 0.986
+        },
+        {
+          "word": "what's",
+          "start": 45.88,
+          "end": 46.0,
+          "probability": 0.994
+        },
+        {
+          "word": "the",
+          "start": 46.0,
+          "end": 46.16,
+          "probability": 0.993
+        },
+        {
+          "word": "story",
+          "start": 46.16,
+          "end": 46.7,
+          "probability": 0.999
+        },
+        {
+          "word": "behind",
+          "start": 46.7,
+          "end": 47.54,
+          "probability": 0.995
+        },
+        {
+          "word": "your",
+          "start": 47.54,
+          "end": 47.9,
+          "probability": 0.994
+        },
+        {
+          "word": "name?",
+          "start": 47.9,
+          "end": 48.36,
+          "probability": 0.998
+        },
+        {
+          "word": "Were",
+          "start": 48.36,
+          "end": 48.58,
+          "probability": 0.529
+        },
+        {
+          "word": "you",
+          "start": 48.58,
+          "end": 48.74,
+          "probability": 0.999
+        },
+        {
+          "word": "named",
+          "start": 48.74,
+          "end": 49.12,
+          "probability": 0.985
+        },
+        {
+          "word": "after",
+          "start": 49.12,
+          "end": 49.52,
+          "probability": 0.992
+        },
+        {
+          "word": "anyone",
+          "start": 49.52,
+          "end": 49.94,
+          "probability": 0.96
+        },
+        {
+          "word": "or",
+          "start": 49.94,
+          "end": 50.18,
+          "probability": 0.959
+        },
+        {
+          "word": "anything?",
+          "start": 50.18,
+          "end": 50.48,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 51.16,
+      "end": 54.96,
+      "text": " I don't know if I'm honest. I don't know why I have my name.",
+      "words": [
+        {
+          "word": "I",
+          "start": 51.16,
+          "end": 51.34,
+          "probability": 0.995
+        },
+        {
+          "word": "don't",
+          "start": 51.34,
+          "end": 51.7,
+          "probability": 0.999
+        },
+        {
+          "word": "know",
+          "start": 51.7,
+          "end": 52.26,
+          "probability": 0.998
+        },
+        {
+          "word": "if",
+          "start": 52.26,
+          "end": 52.48,
+          "probability": 0.732
+        },
+        {
+          "word": "I'm",
+          "start": 52.48,
+          "end": 52.64,
+          "probability": 0.991
+        },
+        {
+          "word": "honest.",
+          "start": 52.64,
+          "end": 52.92,
+          "probability": 0.849
+        },
+        {
+          "word": "I",
+          "start": 53.02,
+          "end": 53.14,
+          "probability": 0.585
+        },
+        {
+          "word": "don't",
+          "start": 53.14,
+          "end": 53.38,
+          "probability": 1.0
+        },
+        {
+          "word": "know",
+          "start": 53.38,
+          "end": 53.82,
+          "probability": 0.999
+        },
+        {
+          "word": "why",
+          "start": 53.82,
+          "end": 54.1,
+          "probability": 0.996
+        },
+        {
+          "word": "I",
+          "start": 54.1,
+          "end": 54.32,
+          "probability": 0.996
+        },
+        {
+          "word": "have",
+          "start": 54.32,
+          "end": 54.58,
+          "probability": 0.998
+        },
+        {
+          "word": "my",
+          "start": 54.58,
+          "end": 54.7,
+          "probability": 0.999
+        },
+        {
+          "word": "name.",
+          "start": 54.7,
+          "end": 54.96,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 55.18,
+      "end": 64.62,
+      "text": " Okay, yeah, I wish I had a better story for my name, but my parents had friends that had a dog",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 55.18,
+          "end": 55.8,
+          "probability": 0.688
+        },
+        {
+          "word": "yeah,",
+          "start": 56.74,
+          "end": 56.94,
+          "probability": 0.541
+        },
+        {
+          "word": "I",
+          "start": 57.26,
+          "end": 57.28,
+          "probability": 0.997
+        },
+        {
+          "word": "wish",
+          "start": 57.28,
+          "end": 57.56,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 57.56,
+          "end": 57.76,
+          "probability": 0.996
+        },
+        {
+          "word": "had",
+          "start": 57.76,
+          "end": 57.96,
+          "probability": 0.993
+        },
+        {
+          "word": "a",
+          "start": 57.96,
+          "end": 58.08,
+          "probability": 0.998
+        },
+        {
+          "word": "better",
+          "start": 58.08,
+          "end": 58.44,
+          "probability": 0.996
+        },
+        {
+          "word": "story",
+          "start": 58.44,
+          "end": 59.16,
+          "probability": 0.998
+        },
+        {
+          "word": "for",
+          "start": 59.16,
+          "end": 60.02,
+          "probability": 0.981
+        },
+        {
+          "word": "my",
+          "start": 60.02,
+          "end": 60.44,
+          "probability": 0.946
+        },
+        {
+          "word": "name,",
+          "start": 60.44,
+          "end": 60.78,
+          "probability": 0.987
+        },
+        {
+          "word": "but",
+          "start": 61.02,
+          "end": 61.18,
+          "probability": 0.748
+        },
+        {
+          "word": "my",
+          "start": 61.18,
+          "end": 61.44,
+          "probability": 0.985
+        },
+        {
+          "word": "parents",
+          "start": 61.44,
+          "end": 62.26,
+          "probability": 0.997
+        },
+        {
+          "word": "had",
+          "start": 62.26,
+          "end": 62.98,
+          "probability": 0.79
+        },
+        {
+          "word": "friends",
+          "start": 62.98,
+          "end": 63.6,
+          "probability": 0.983
+        },
+        {
+          "word": "that",
+          "start": 63.6,
+          "end": 63.84,
+          "probability": 0.611
+        },
+        {
+          "word": "had",
+          "start": 63.84,
+          "end": 64.02,
+          "probability": 0.645
+        },
+        {
+          "word": "a",
+          "start": 64.02,
+          "end": 64.16,
+          "probability": 0.716
+        },
+        {
+          "word": "dog",
+          "start": 64.16,
+          "end": 64.62,
+          "probability": 0.571
+        }
+      ]
+    },
+    {
+      "start": 64.88,
+      "end": 71.64,
+      "text": " called Georgia and they liked that name and so they decided to call me Georgia, which",
+      "words": [
+        {
+          "word": "called",
+          "start": 64.88,
+          "end": 65.58,
+          "probability": 0.999
+        },
+        {
+          "word": "Georgia",
+          "start": 65.58,
+          "end": 66.16,
+          "probability": 0.976
+        },
+        {
+          "word": "and",
+          "start": 66.16,
+          "end": 66.7,
+          "probability": 0.589
+        },
+        {
+          "word": "they",
+          "start": 66.7,
+          "end": 66.9,
+          "probability": 0.998
+        },
+        {
+          "word": "liked",
+          "start": 66.9,
+          "end": 67.28,
+          "probability": 0.995
+        },
+        {
+          "word": "that",
+          "start": 67.28,
+          "end": 67.5,
+          "probability": 0.994
+        },
+        {
+          "word": "name",
+          "start": 67.5,
+          "end": 68.0,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 68.0,
+          "end": 68.68,
+          "probability": 0.503
+        },
+        {
+          "word": "so",
+          "start": 68.68,
+          "end": 68.96,
+          "probability": 0.989
+        },
+        {
+          "word": "they",
+          "start": 68.96,
+          "end": 69.06,
+          "probability": 0.99
+        },
+        {
+          "word": "decided",
+          "start": 69.06,
+          "end": 69.76,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 69.76,
+          "end": 70.14,
+          "probability": 0.989
+        },
+        {
+          "word": "call",
+          "start": 70.14,
+          "end": 70.4,
+          "probability": 0.993
+        },
+        {
+          "word": "me",
+          "start": 70.4,
+          "end": 70.62,
+          "probability": 0.984
+        },
+        {
+          "word": "Georgia,",
+          "start": 70.62,
+          "end": 70.98,
+          "probability": 0.981
+        },
+        {
+          "word": "which",
+          "start": 71.32,
+          "end": 71.64,
+          "probability": 0.599
+        }
+      ]
+    },
+    {
+      "start": 71.7,
+      "end": 77.78,
+      "text": " might be the first time people are hearing that my name, my real name is Georgia, not Georgie.",
+      "words": [
+        {
+          "word": "might",
+          "start": 71.7,
+          "end": 71.98,
+          "probability": 0.997
+        },
+        {
+          "word": "be",
+          "start": 71.98,
+          "end": 72.18,
+          "probability": 1.0
+        },
+        {
+          "word": "the",
+          "start": 72.18,
+          "end": 72.3,
+          "probability": 0.998
+        },
+        {
+          "word": "first",
+          "start": 72.3,
+          "end": 72.62,
+          "probability": 0.999
+        },
+        {
+          "word": "time",
+          "start": 72.62,
+          "end": 72.9,
+          "probability": 0.992
+        },
+        {
+          "word": "people",
+          "start": 72.9,
+          "end": 73.48,
+          "probability": 0.998
+        },
+        {
+          "word": "are",
+          "start": 73.48,
+          "end": 73.92,
+          "probability": 0.998
+        },
+        {
+          "word": "hearing",
+          "start": 73.92,
+          "end": 74.18,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 74.18,
+          "end": 74.44,
+          "probability": 0.992
+        },
+        {
+          "word": "my",
+          "start": 74.44,
+          "end": 75.18,
+          "probability": 0.993
+        },
+        {
+          "word": "name,",
+          "start": 75.18,
+          "end": 75.2,
+          "probability": 0.939
+        },
+        {
+          "word": "my",
+          "start": 75.32,
+          "end": 75.6,
+          "probability": 0.859
+        },
+        {
+          "word": "real",
+          "start": 75.6,
+          "end": 75.86,
+          "probability": 0.996
+        },
+        {
+          "word": "name",
+          "start": 75.86,
+          "end": 76.22,
+          "probability": 0.999
+        },
+        {
+          "word": "is",
+          "start": 76.22,
+          "end": 76.48,
+          "probability": 0.934
+        },
+        {
+          "word": "Georgia,",
+          "start": 76.48,
+          "end": 76.92,
+          "probability": 0.994
+        },
+        {
+          "word": "not",
+          "start": 77.08,
+          "end": 77.28,
+          "probability": 0.943
+        },
+        {
+          "word": "Georgie.",
+          "start": 77.28,
+          "end": 77.78,
+          "probability": 0.945
+        }
+      ]
+    },
+    {
+      "start": 79.54,
+      "end": 82.22,
+      "text": " I guess I was named after a dog.",
+      "words": [
+        {
+          "word": "I",
+          "start": 79.54,
+          "end": 79.92,
+          "probability": 0.34
+        },
+        {
+          "word": "guess",
+          "start": 79.92,
+          "end": 80.36,
+          "probability": 0.962
+        },
+        {
+          "word": "I",
+          "start": 80.36,
+          "end": 80.5,
+          "probability": 0.983
+        },
+        {
+          "word": "was",
+          "start": 80.5,
+          "end": 80.72,
+          "probability": 0.999
+        },
+        {
+          "word": "named",
+          "start": 80.72,
+          "end": 81.3,
+          "probability": 0.993
+        },
+        {
+          "word": "after",
+          "start": 81.3,
+          "end": 81.72,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 81.72,
+          "end": 81.96,
+          "probability": 0.998
+        },
+        {
+          "word": "dog.",
+          "start": 81.96,
+          "end": 82.22,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 83.88,
+      "end": 89.36,
+      "text": " So your name is Philip, but lots of people call you Phil, which is a nickname.",
+      "words": [
+        {
+          "word": "So",
+          "start": 83.88,
+          "end": 84.02,
+          "probability": 0.513
+        },
+        {
+          "word": "your",
+          "start": 84.02,
+          "end": 84.16,
+          "probability": 0.714
+        },
+        {
+          "word": "name",
+          "start": 84.16,
+          "end": 84.46,
+          "probability": 0.998
+        },
+        {
+          "word": "is",
+          "start": 84.46,
+          "end": 84.7,
+          "probability": 0.998
+        },
+        {
+          "word": "Philip,",
+          "start": 84.7,
+          "end": 85.2,
+          "probability": 0.551
+        },
+        {
+          "word": "but",
+          "start": 85.64,
+          "end": 85.74,
+          "probability": 0.966
+        },
+        {
+          "word": "lots",
+          "start": 85.74,
+          "end": 86.06,
+          "probability": 0.996
+        },
+        {
+          "word": "of",
+          "start": 86.06,
+          "end": 86.22,
+          "probability": 0.998
+        },
+        {
+          "word": "people",
+          "start": 86.22,
+          "end": 86.48,
+          "probability": 0.999
+        },
+        {
+          "word": "call",
+          "start": 86.48,
+          "end": 86.84,
+          "probability": 0.988
+        },
+        {
+          "word": "you",
+          "start": 86.84,
+          "end": 87.3,
+          "probability": 0.997
+        },
+        {
+          "word": "Phil,",
+          "start": 87.3,
+          "end": 87.9,
+          "probability": 0.95
+        },
+        {
+          "word": "which",
+          "start": 88.26,
+          "end": 88.4,
+          "probability": 0.954
+        },
+        {
+          "word": "is",
+          "start": 88.4,
+          "end": 88.88,
+          "probability": 0.996
+        },
+        {
+          "word": "a",
+          "start": 88.88,
+          "end": 89.04,
+          "probability": 0.982
+        },
+        {
+          "word": "nickname.",
+          "start": 89.04,
+          "end": 89.36,
+          "probability": 0.966
+        }
+      ]
+    },
+    {
+      "start": 89.98,
+      "end": 94.22,
+      "text": " So a nickname is an informal name given to you by friends and family,",
+      "words": [
+        {
+          "word": "So",
+          "start": 89.98,
+          "end": 90.2,
+          "probability": 0.881
+        },
+        {
+          "word": "a",
+          "start": 90.2,
+          "end": 90.3,
+          "probability": 0.965
+        },
+        {
+          "word": "nickname",
+          "start": 90.3,
+          "end": 90.7,
+          "probability": 0.999
+        },
+        {
+          "word": "is",
+          "start": 90.7,
+          "end": 91.16,
+          "probability": 0.996
+        },
+        {
+          "word": "an",
+          "start": 91.16,
+          "end": 91.28,
+          "probability": 0.984
+        },
+        {
+          "word": "informal",
+          "start": 91.28,
+          "end": 91.84,
+          "probability": 0.996
+        },
+        {
+          "word": "name",
+          "start": 91.84,
+          "end": 92.28,
+          "probability": 0.996
+        },
+        {
+          "word": "given",
+          "start": 92.28,
+          "end": 92.62,
+          "probability": 0.961
+        },
+        {
+          "word": "to",
+          "start": 92.62,
+          "end": 92.88,
+          "probability": 0.994
+        },
+        {
+          "word": "you",
+          "start": 92.88,
+          "end": 93.04,
+          "probability": 0.992
+        },
+        {
+          "word": "by",
+          "start": 93.04,
+          "end": 93.38,
+          "probability": 0.998
+        },
+        {
+          "word": "friends",
+          "start": 93.38,
+          "end": 93.66,
+          "probability": 0.879
+        },
+        {
+          "word": "and",
+          "start": 93.66,
+          "end": 93.84,
+          "probability": 0.992
+        },
+        {
+          "word": "family,",
+          "start": 93.84,
+          "end": 94.22,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 95.04,
+      "end": 97.82,
+      "text": " which is often a shortened version like Phil.",
+      "words": [
+        {
+          "word": "which",
+          "start": 95.04,
+          "end": 95.26,
+          "probability": 0.997
+        },
+        {
+          "word": "is",
+          "start": 95.26,
+          "end": 95.5,
+          "probability": 0.995
+        },
+        {
+          "word": "often",
+          "start": 95.5,
+          "end": 96.14,
+          "probability": 0.996
+        },
+        {
+          "word": "a",
+          "start": 96.14,
+          "end": 96.22,
+          "probability": 0.995
+        },
+        {
+          "word": "shortened",
+          "start": 96.22,
+          "end": 96.64,
+          "probability": 0.956
+        },
+        {
+          "word": "version",
+          "start": 96.64,
+          "end": 97.28,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 97.28,
+          "end": 97.6,
+          "probability": 0.579
+        },
+        {
+          "word": "Phil.",
+          "start": 97.6,
+          "end": 97.82,
+          "probability": 0.993
+        }
+      ]
+    },
+    {
+      "start": 98.9,
+      "end": 104.8,
+      "text": " Yes, yeah, often it's a shortened name, in my case, that's the only one that's ever stuck",
+      "words": [
+        {
+          "word": "Yes,",
+          "start": 98.9,
+          "end": 99.38,
+          "probability": 0.926
+        },
+        {
+          "word": "yeah,",
+          "start": 99.58,
+          "end": 99.68,
+          "probability": 0.498
+        },
+        {
+          "word": "often",
+          "start": 99.86,
+          "end": 99.96,
+          "probability": 0.985
+        },
+        {
+          "word": "it's",
+          "start": 99.96,
+          "end": 100.2,
+          "probability": 0.931
+        },
+        {
+          "word": "a",
+          "start": 100.2,
+          "end": 100.36,
+          "probability": 0.998
+        },
+        {
+          "word": "shortened",
+          "start": 100.36,
+          "end": 100.74,
+          "probability": 0.916
+        },
+        {
+          "word": "name,",
+          "start": 100.74,
+          "end": 101.2,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 101.28,
+          "end": 101.42,
+          "probability": 0.982
+        },
+        {
+          "word": "my",
+          "start": 101.42,
+          "end": 101.66,
+          "probability": 0.999
+        },
+        {
+          "word": "case,",
+          "start": 101.66,
+          "end": 102.12,
+          "probability": 1.0
+        },
+        {
+          "word": "that's",
+          "start": 102.36,
+          "end": 102.78,
+          "probability": 0.865
+        },
+        {
+          "word": "the",
+          "start": 102.78,
+          "end": 102.84,
+          "probability": 0.998
+        },
+        {
+          "word": "only",
+          "start": 102.84,
+          "end": 103.04,
+          "probability": 0.997
+        },
+        {
+          "word": "one",
+          "start": 103.04,
+          "end": 103.52,
+          "probability": 0.992
+        },
+        {
+          "word": "that's",
+          "start": 103.52,
+          "end": 103.76,
+          "probability": 0.781
+        },
+        {
+          "word": "ever",
+          "start": 103.76,
+          "end": 104.32,
+          "probability": 0.981
+        },
+        {
+          "word": "stuck",
+          "start": 104.32,
+          "end": 104.8,
+          "probability": 0.834
+        }
+      ]
+    },
+    {
+      "start": 104.94,
+      "end": 110.72,
+      "text": " that people have ever called me, but you can also sometimes have like a jokey",
+      "words": [
+        {
+          "word": "that",
+          "start": 104.94,
+          "end": 105.2,
+          "probability": 0.992
+        },
+        {
+          "word": "people",
+          "start": 105.2,
+          "end": 105.44,
+          "probability": 0.997
+        },
+        {
+          "word": "have",
+          "start": 105.44,
+          "end": 105.78,
+          "probability": 0.997
+        },
+        {
+          "word": "ever",
+          "start": 105.78,
+          "end": 106.28,
+          "probability": 0.989
+        },
+        {
+          "word": "called",
+          "start": 106.28,
+          "end": 106.58,
+          "probability": 0.978
+        },
+        {
+          "word": "me,",
+          "start": 106.58,
+          "end": 107.28,
+          "probability": 0.998
+        },
+        {
+          "word": "but",
+          "start": 107.8,
+          "end": 107.92,
+          "probability": 0.992
+        },
+        {
+          "word": "you",
+          "start": 107.92,
+          "end": 108.06,
+          "probability": 0.998
+        },
+        {
+          "word": "can",
+          "start": 108.06,
+          "end": 108.26,
+          "probability": 0.99
+        },
+        {
+          "word": "also",
+          "start": 108.26,
+          "end": 108.6,
+          "probability": 0.996
+        },
+        {
+          "word": "sometimes",
+          "start": 108.6,
+          "end": 109.22,
+          "probability": 0.978
+        },
+        {
+          "word": "have",
+          "start": 109.22,
+          "end": 109.7,
+          "probability": 0.997
+        },
+        {
+          "word": "like",
+          "start": 109.7,
+          "end": 109.88,
+          "probability": 0.75
+        },
+        {
+          "word": "a",
+          "start": 109.88,
+          "end": 110.1,
+          "probability": 0.974
+        },
+        {
+          "word": "jokey",
+          "start": 110.1,
+          "end": 110.72,
+          "probability": 0.88
+        }
+      ]
+    },
+    {
+      "start": 111.22,
+      "end": 118.28,
+      "text": " fun name that might not be anything to do with your real name, but your friends call you that.",
+      "words": [
+        {
+          "word": "fun",
+          "start": 111.22,
+          "end": 111.7,
+          "probability": 0.761
+        },
+        {
+          "word": "name",
+          "start": 111.7,
+          "end": 112.42,
+          "probability": 0.989
+        },
+        {
+          "word": "that",
+          "start": 112.42,
+          "end": 113.08,
+          "probability": 0.979
+        },
+        {
+          "word": "might",
+          "start": 113.08,
+          "end": 113.36,
+          "probability": 0.996
+        },
+        {
+          "word": "not",
+          "start": 113.36,
+          "end": 113.6,
+          "probability": 0.999
+        },
+        {
+          "word": "be",
+          "start": 113.6,
+          "end": 114.3,
+          "probability": 0.999
+        },
+        {
+          "word": "anything",
+          "start": 114.3,
+          "end": 114.62,
+          "probability": 0.992
+        },
+        {
+          "word": "to",
+          "start": 114.62,
+          "end": 114.92,
+          "probability": 0.999
+        },
+        {
+          "word": "do",
+          "start": 114.92,
+          "end": 115.12,
+          "probability": 0.999
+        },
+        {
+          "word": "with",
+          "start": 115.12,
+          "end": 115.3,
+          "probability": 0.999
+        },
+        {
+          "word": "your",
+          "start": 115.3,
+          "end": 115.5,
+          "probability": 0.999
+        },
+        {
+          "word": "real",
+          "start": 115.5,
+          "end": 115.72,
+          "probability": 0.997
+        },
+        {
+          "word": "name,",
+          "start": 115.72,
+          "end": 116.18,
+          "probability": 0.999
+        },
+        {
+          "word": "but",
+          "start": 116.36,
+          "end": 116.72,
+          "probability": 0.711
+        },
+        {
+          "word": "your",
+          "start": 116.72,
+          "end": 116.9,
+          "probability": 0.977
+        },
+        {
+          "word": "friends",
+          "start": 116.9,
+          "end": 117.44,
+          "probability": 0.988
+        },
+        {
+          "word": "call",
+          "start": 117.44,
+          "end": 117.74,
+          "probability": 0.94
+        },
+        {
+          "word": "you",
+          "start": 117.74,
+          "end": 117.88,
+          "probability": 0.884
+        },
+        {
+          "word": "that.",
+          "start": 117.88,
+          "end": 118.28,
+          "probability": 0.809
+        }
+      ]
+    },
+    {
+      "start": 118.52,
+      "end": 123.54,
+      "text": " Lots of people have them at school or in your family. Do you have any nickname is Georgia?",
+      "words": [
+        {
+          "word": "Lots",
+          "start": 118.52,
+          "end": 118.76,
+          "probability": 0.957
+        },
+        {
+          "word": "of",
+          "start": 118.76,
+          "end": 118.9,
+          "probability": 1.0
+        },
+        {
+          "word": "people",
+          "start": 118.9,
+          "end": 119.04,
+          "probability": 0.999
+        },
+        {
+          "word": "have",
+          "start": 119.04,
+          "end": 119.24,
+          "probability": 0.997
+        },
+        {
+          "word": "them",
+          "start": 119.24,
+          "end": 119.34,
+          "probability": 0.999
+        },
+        {
+          "word": "at",
+          "start": 119.34,
+          "end": 119.56,
+          "probability": 0.996
+        },
+        {
+          "word": "school",
+          "start": 119.56,
+          "end": 119.86,
+          "probability": 0.999
+        },
+        {
+          "word": "or",
+          "start": 119.86,
+          "end": 120.04,
+          "probability": 0.976
+        },
+        {
+          "word": "in",
+          "start": 120.04,
+          "end": 120.12,
+          "probability": 0.983
+        },
+        {
+          "word": "your",
+          "start": 120.12,
+          "end": 120.3,
+          "probability": 1.0
+        },
+        {
+          "word": "family.",
+          "start": 120.3,
+          "end": 120.94,
+          "probability": 0.999
+        },
+        {
+          "word": "Do",
+          "start": 121.96,
+          "end": 122.36,
+          "probability": 0.585
+        },
+        {
+          "word": "you",
+          "start": 122.36,
+          "end": 122.48,
+          "probability": 0.999
+        },
+        {
+          "word": "have",
+          "start": 122.48,
+          "end": 122.64,
+          "probability": 0.999
+        },
+        {
+          "word": "any",
+          "start": 122.64,
+          "end": 122.8,
+          "probability": 0.972
+        },
+        {
+          "word": "nickname",
+          "start": 122.8,
+          "end": 123.08,
+          "probability": 0.723
+        },
+        {
+          "word": "is",
+          "start": 123.08,
+          "end": 123.24,
+          "probability": 0.469
+        },
+        {
+          "word": "Georgia?",
+          "start": 123.24,
+          "end": 123.54,
+          "probability": 0.704
+        }
+      ]
+    },
+    {
+      "start": 124.2,
+      "end": 132.54,
+      "text": " Yes, I have a nickname that my dad calls me, which is Billy, short for silly Billy, because I do",
+      "words": [
+        {
+          "word": "Yes,",
+          "start": 124.2,
+          "end": 124.84,
+          "probability": 0.982
+        },
+        {
+          "word": "I",
+          "start": 125.12,
+          "end": 125.32,
+          "probability": 0.997
+        },
+        {
+          "word": "have",
+          "start": 125.32,
+          "end": 125.56,
+          "probability": 1.0
+        },
+        {
+          "word": "a",
+          "start": 125.56,
+          "end": 125.7,
+          "probability": 0.981
+        },
+        {
+          "word": "nickname",
+          "start": 125.7,
+          "end": 126.16,
+          "probability": 0.996
+        },
+        {
+          "word": "that",
+          "start": 126.16,
+          "end": 126.6,
+          "probability": 0.989
+        },
+        {
+          "word": "my",
+          "start": 126.6,
+          "end": 126.82,
+          "probability": 0.998
+        },
+        {
+          "word": "dad",
+          "start": 126.82,
+          "end": 127.44,
+          "probability": 0.98
+        },
+        {
+          "word": "calls",
+          "start": 127.44,
+          "end": 127.8,
+          "probability": 0.992
+        },
+        {
+          "word": "me,",
+          "start": 127.8,
+          "end": 128.3,
+          "probability": 0.999
+        },
+        {
+          "word": "which",
+          "start": 128.56,
+          "end": 128.66,
+          "probability": 0.987
+        },
+        {
+          "word": "is",
+          "start": 128.66,
+          "end": 129.28,
+          "probability": 0.999
+        },
+        {
+          "word": "Billy,",
+          "start": 129.28,
+          "end": 130.08,
+          "probability": 0.773
+        },
+        {
+          "word": "short",
+          "start": 130.5,
+          "end": 130.72,
+          "probability": 0.884
+        },
+        {
+          "word": "for",
+          "start": 130.72,
+          "end": 130.98,
+          "probability": 0.977
+        },
+        {
+          "word": "silly",
+          "start": 130.98,
+          "end": 131.32,
+          "probability": 0.847
+        },
+        {
+          "word": "Billy,",
+          "start": 131.32,
+          "end": 131.8,
+          "probability": 0.975
+        },
+        {
+          "word": "because",
+          "start": 131.84,
+          "end": 132.18,
+          "probability": 0.587
+        },
+        {
+          "word": "I",
+          "start": 132.18,
+          "end": 132.36,
+          "probability": 0.809
+        },
+        {
+          "word": "do",
+          "start": 132.36,
+          "end": 132.54,
+          "probability": 0.815
+        }
+      ]
+    },
+    {
+      "start": 132.54,
+      "end": 137.58,
+      "text": " lots of stupid things. I've gained a feeling, do you like that nickname?",
+      "words": [
+        {
+          "word": "lots",
+          "start": 132.54,
+          "end": 132.92,
+          "probability": 0.997
+        },
+        {
+          "word": "of",
+          "start": 132.92,
+          "end": 133.8,
+          "probability": 1.0
+        },
+        {
+          "word": "stupid",
+          "start": 133.8,
+          "end": 134.16,
+          "probability": 0.999
+        },
+        {
+          "word": "things.",
+          "start": 134.16,
+          "end": 134.82,
+          "probability": 0.996
+        },
+        {
+          "word": "I've",
+          "start": 135.32,
+          "end": 135.38,
+          "probability": 0.777
+        },
+        {
+          "word": "gained",
+          "start": 135.38,
+          "end": 135.56,
+          "probability": 0.776
+        },
+        {
+          "word": "a",
+          "start": 135.56,
+          "end": 135.76,
+          "probability": 0.609
+        },
+        {
+          "word": "feeling,",
+          "start": 135.76,
+          "end": 136.0,
+          "probability": 0.997
+        },
+        {
+          "word": "do",
+          "start": 136.3,
+          "end": 136.36,
+          "probability": 0.83
+        },
+        {
+          "word": "you",
+          "start": 136.36,
+          "end": 136.5,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 136.5,
+          "end": 136.84,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 136.84,
+          "end": 137.14,
+          "probability": 0.996
+        },
+        {
+          "word": "nickname?",
+          "start": 137.14,
+          "end": 137.58,
+          "probability": 0.986
+        }
+      ]
+    },
+    {
+      "start": 139.48,
+      "end": 146.28,
+      "text": " I think it's quite funny. It's quite sweet. I don't mind it that much. As long as it's only my",
+      "words": [
+        {
+          "word": "I",
+          "start": 139.48,
+          "end": 139.96,
+          "probability": 0.995
+        },
+        {
+          "word": "think",
+          "start": 139.96,
+          "end": 140.26,
+          "probability": 0.997
+        },
+        {
+          "word": "it's",
+          "start": 140.26,
+          "end": 141.24,
+          "probability": 0.988
+        },
+        {
+          "word": "quite",
+          "start": 141.24,
+          "end": 141.42,
+          "probability": 0.955
+        },
+        {
+          "word": "funny.",
+          "start": 141.42,
+          "end": 141.82,
+          "probability": 0.418
+        },
+        {
+          "word": "It's",
+          "start": 142.22,
+          "end": 142.26,
+          "probability": 0.988
+        },
+        {
+          "word": "quite",
+          "start": 142.26,
+          "end": 142.5,
+          "probability": 0.997
+        },
+        {
+          "word": "sweet.",
+          "start": 142.5,
+          "end": 142.96,
+          "probability": 0.998
+        },
+        {
+          "word": "I",
+          "start": 142.96,
+          "end": 143.16,
+          "probability": 0.973
+        },
+        {
+          "word": "don't",
+          "start": 143.16,
+          "end": 143.36,
+          "probability": 1.0
+        },
+        {
+          "word": "mind",
+          "start": 143.36,
+          "end": 143.64,
+          "probability": 0.988
+        },
+        {
+          "word": "it",
+          "start": 143.64,
+          "end": 143.82,
+          "probability": 0.987
+        },
+        {
+          "word": "that",
+          "start": 143.82,
+          "end": 144.0,
+          "probability": 0.991
+        },
+        {
+          "word": "much.",
+          "start": 144.0,
+          "end": 144.4,
+          "probability": 0.984
+        },
+        {
+          "word": "As",
+          "start": 144.44,
+          "end": 144.64,
+          "probability": 0.81
+        },
+        {
+          "word": "long",
+          "start": 144.64,
+          "end": 144.88,
+          "probability": 0.993
+        },
+        {
+          "word": "as",
+          "start": 144.88,
+          "end": 145.06,
+          "probability": 0.989
+        },
+        {
+          "word": "it's",
+          "start": 145.06,
+          "end": 145.76,
+          "probability": 0.973
+        },
+        {
+          "word": "only",
+          "start": 145.76,
+          "end": 146.04,
+          "probability": 0.514
+        },
+        {
+          "word": "my",
+          "start": 146.04,
+          "end": 146.28,
+          "probability": 0.754
+        }
+      ]
+    },
+    {
+      "start": 146.28,
+      "end": 154.98,
+      "text": " dad, that calls me Billy, it's okay. Do you like your name? I've never thought about it a lot.",
+      "words": [
+        {
+          "word": "dad,",
+          "start": 146.28,
+          "end": 146.92,
+          "probability": 0.978
+        },
+        {
+          "word": "that",
+          "start": 147.18,
+          "end": 147.2,
+          "probability": 0.997
+        },
+        {
+          "word": "calls",
+          "start": 147.2,
+          "end": 147.42,
+          "probability": 0.977
+        },
+        {
+          "word": "me",
+          "start": 147.42,
+          "end": 147.64,
+          "probability": 1.0
+        },
+        {
+          "word": "Billy,",
+          "start": 147.64,
+          "end": 147.98,
+          "probability": 0.765
+        },
+        {
+          "word": "it's",
+          "start": 148.16,
+          "end": 148.32,
+          "probability": 0.997
+        },
+        {
+          "word": "okay.",
+          "start": 148.32,
+          "end": 149.02,
+          "probability": 0.891
+        },
+        {
+          "word": "Do",
+          "start": 149.8,
+          "end": 150.0,
+          "probability": 0.975
+        },
+        {
+          "word": "you",
+          "start": 150.0,
+          "end": 150.1,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 150.1,
+          "end": 150.32,
+          "probability": 0.998
+        },
+        {
+          "word": "your",
+          "start": 150.32,
+          "end": 150.5,
+          "probability": 0.997
+        },
+        {
+          "word": "name?",
+          "start": 150.5,
+          "end": 151.16,
+          "probability": 0.999
+        },
+        {
+          "word": "I've",
+          "start": 151.16,
+          "end": 153.02,
+          "probability": 0.777
+        },
+        {
+          "word": "never",
+          "start": 153.02,
+          "end": 153.64,
+          "probability": 0.999
+        },
+        {
+          "word": "thought",
+          "start": 153.64,
+          "end": 153.96,
+          "probability": 0.943
+        },
+        {
+          "word": "about",
+          "start": 153.96,
+          "end": 154.32,
+          "probability": 0.997
+        },
+        {
+          "word": "it",
+          "start": 154.32,
+          "end": 154.56,
+          "probability": 0.951
+        },
+        {
+          "word": "a",
+          "start": 154.56,
+          "end": 154.72,
+          "probability": 0.987
+        },
+        {
+          "word": "lot.",
+          "start": 154.72,
+          "end": 154.98,
+          "probability": 0.981
+        }
+      ]
+    },
+    {
+      "start": 155.36,
+      "end": 164.26,
+      "text": " So I think I do. It's not an unusual name. It might be, I don't know, it might be difficult to",
+      "words": [
+        {
+          "word": "So",
+          "start": 155.36,
+          "end": 155.92,
+          "probability": 0.991
+        },
+        {
+          "word": "I",
+          "start": 155.92,
+          "end": 156.02,
+          "probability": 0.903
+        },
+        {
+          "word": "think",
+          "start": 156.02,
+          "end": 156.28,
+          "probability": 1.0
+        },
+        {
+          "word": "I",
+          "start": 156.28,
+          "end": 156.5,
+          "probability": 0.979
+        },
+        {
+          "word": "do.",
+          "start": 156.5,
+          "end": 157.3,
+          "probability": 0.996
+        },
+        {
+          "word": "It's",
+          "start": 158.6,
+          "end": 159.62,
+          "probability": 0.953
+        },
+        {
+          "word": "not",
+          "start": 159.62,
+          "end": 159.84,
+          "probability": 0.551
+        },
+        {
+          "word": "an",
+          "start": 159.84,
+          "end": 160.1,
+          "probability": 0.992
+        },
+        {
+          "word": "unusual",
+          "start": 160.1,
+          "end": 160.7,
+          "probability": 0.996
+        },
+        {
+          "word": "name.",
+          "start": 160.7,
+          "end": 161.5,
+          "probability": 0.998
+        },
+        {
+          "word": "It",
+          "start": 161.72,
+          "end": 161.74,
+          "probability": 0.634
+        },
+        {
+          "word": "might",
+          "start": 161.74,
+          "end": 161.98,
+          "probability": 0.991
+        },
+        {
+          "word": "be,",
+          "start": 161.98,
+          "end": 162.54,
+          "probability": 0.994
+        },
+        {
+          "word": "I",
+          "start": 162.54,
+          "end": 162.72,
+          "probability": 0.895
+        },
+        {
+          "word": "don't",
+          "start": 162.72,
+          "end": 162.92,
+          "probability": 0.994
+        },
+        {
+          "word": "know,",
+          "start": 162.92,
+          "end": 163.24,
+          "probability": 0.982
+        },
+        {
+          "word": "it",
+          "start": 163.32,
+          "end": 163.38,
+          "probability": 0.854
+        },
+        {
+          "word": "might",
+          "start": 163.38,
+          "end": 163.64,
+          "probability": 0.991
+        },
+        {
+          "word": "be",
+          "start": 163.64,
+          "end": 163.78,
+          "probability": 0.985
+        },
+        {
+          "word": "difficult",
+          "start": 163.78,
+          "end": 164.2,
+          "probability": 0.945
+        },
+        {
+          "word": "to",
+          "start": 164.2,
+          "end": 164.26,
+          "probability": 0.791
+        }
+      ]
+    },
+    {
+      "start": 164.26,
+      "end": 171.84,
+      "text": " have an unusual name, but I don't think it's too common either. It's not like everyone has it.",
+      "words": [
+        {
+          "word": "have",
+          "start": 164.26,
+          "end": 164.72,
+          "probability": 0.999
+        },
+        {
+          "word": "an",
+          "start": 164.72,
+          "end": 164.94,
+          "probability": 0.999
+        },
+        {
+          "word": "unusual",
+          "start": 164.94,
+          "end": 165.5,
+          "probability": 0.999
+        },
+        {
+          "word": "name,",
+          "start": 165.5,
+          "end": 166.38,
+          "probability": 0.999
+        },
+        {
+          "word": "but",
+          "start": 166.96,
+          "end": 167.04,
+          "probability": 0.998
+        },
+        {
+          "word": "I",
+          "start": 167.04,
+          "end": 167.14,
+          "probability": 0.996
+        },
+        {
+          "word": "don't",
+          "start": 167.14,
+          "end": 167.32,
+          "probability": 0.993
+        },
+        {
+          "word": "think",
+          "start": 167.32,
+          "end": 167.58,
+          "probability": 0.989
+        },
+        {
+          "word": "it's",
+          "start": 167.58,
+          "end": 167.94,
+          "probability": 0.999
+        },
+        {
+          "word": "too",
+          "start": 167.94,
+          "end": 168.44,
+          "probability": 0.991
+        },
+        {
+          "word": "common",
+          "start": 168.44,
+          "end": 169.2,
+          "probability": 0.998
+        },
+        {
+          "word": "either.",
+          "start": 169.2,
+          "end": 170.04,
+          "probability": 0.902
+        },
+        {
+          "word": "It's",
+          "start": 170.08,
+          "end": 170.42,
+          "probability": 0.925
+        },
+        {
+          "word": "not",
+          "start": 170.42,
+          "end": 170.54,
+          "probability": 0.984
+        },
+        {
+          "word": "like",
+          "start": 170.54,
+          "end": 170.78,
+          "probability": 0.995
+        },
+        {
+          "word": "everyone",
+          "start": 170.78,
+          "end": 171.16,
+          "probability": 0.987
+        },
+        {
+          "word": "has",
+          "start": 171.16,
+          "end": 171.54,
+          "probability": 0.982
+        },
+        {
+          "word": "it.",
+          "start": 171.54,
+          "end": 171.84,
+          "probability": 0.951
+        }
+      ]
+    },
+    {
+      "start": 173.1,
+      "end": 175.7,
+      "text": " I think that's perfect for a name. I like that.",
+      "words": [
+        {
+          "word": "I",
+          "start": 173.1,
+          "end": 173.22,
+          "probability": 0.995
+        },
+        {
+          "word": "think",
+          "start": 173.22,
+          "end": 173.38,
+          "probability": 0.999
+        },
+        {
+          "word": "that's",
+          "start": 173.38,
+          "end": 173.54,
+          "probability": 0.995
+        },
+        {
+          "word": "perfect",
+          "start": 173.54,
+          "end": 174.1,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 174.1,
+          "end": 174.36,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 174.36,
+          "end": 174.5,
+          "probability": 0.997
+        },
+        {
+          "word": "name.",
+          "start": 174.5,
+          "end": 175.02,
+          "probability": 0.998
+        },
+        {
+          "word": "I",
+          "start": 175.24,
+          "end": 175.3,
+          "probability": 0.898
+        },
+        {
+          "word": "like",
+          "start": 175.3,
+          "end": 175.44,
+          "probability": 0.953
+        },
+        {
+          "word": "that.",
+          "start": 175.44,
+          "end": 175.7,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 175.92,
+      "end": 182.0,
+      "text": " So Phil, have you ever had to name something like a child or a pet and was it difficult?",
+      "words": [
+        {
+          "word": "So",
+          "start": 175.92,
+          "end": 176.42,
+          "probability": 0.877
+        },
+        {
+          "word": "Phil,",
+          "start": 176.42,
+          "end": 176.74,
+          "probability": 0.919
+        },
+        {
+          "word": "have",
+          "start": 176.96,
+          "end": 176.98,
+          "probability": 0.983
+        },
+        {
+          "word": "you",
+          "start": 176.98,
+          "end": 177.26,
+          "probability": 1.0
+        },
+        {
+          "word": "ever",
+          "start": 177.26,
+          "end": 177.68,
+          "probability": 0.996
+        },
+        {
+          "word": "had",
+          "start": 177.68,
+          "end": 177.98,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 177.98,
+          "end": 178.36,
+          "probability": 0.999
+        },
+        {
+          "word": "name",
+          "start": 178.36,
+          "end": 178.8,
+          "probability": 0.996
+        },
+        {
+          "word": "something",
+          "start": 178.8,
+          "end": 179.46,
+          "probability": 0.999
+        },
+        {
+          "word": "like",
+          "start": 179.46,
+          "end": 179.86,
+          "probability": 0.919
+        },
+        {
+          "word": "a",
+          "start": 179.86,
+          "end": 180.0,
+          "probability": 0.995
+        },
+        {
+          "word": "child",
+          "start": 180.0,
+          "end": 180.34,
+          "probability": 0.994
+        },
+        {
+          "word": "or",
+          "start": 180.34,
+          "end": 180.52,
+          "probability": 0.971
+        },
+        {
+          "word": "a",
+          "start": 180.52,
+          "end": 180.7,
+          "probability": 0.997
+        },
+        {
+          "word": "pet",
+          "start": 180.7,
+          "end": 181.02,
+          "probability": 0.994
+        },
+        {
+          "word": "and",
+          "start": 181.02,
+          "end": 181.4,
+          "probability": 0.557
+        },
+        {
+          "word": "was",
+          "start": 181.4,
+          "end": 181.54,
+          "probability": 0.994
+        },
+        {
+          "word": "it",
+          "start": 181.54,
+          "end": 181.7,
+          "probability": 0.994
+        },
+        {
+          "word": "difficult?",
+          "start": 181.7,
+          "end": 182.0,
+          "probability": 0.994
+        }
+      ]
+    },
+    {
+      "start": 185.12,
+      "end": 190.92,
+      "text": " I had to name two people and two children. For my daughter, my wife was very keen on the name",
+      "words": [
+        {
+          "word": "I",
+          "start": 185.12,
+          "end": 185.2,
+          "probability": 0.986
+        },
+        {
+          "word": "had",
+          "start": 185.2,
+          "end": 185.38,
+          "probability": 0.983
+        },
+        {
+          "word": "to",
+          "start": 185.38,
+          "end": 185.48,
+          "probability": 1.0
+        },
+        {
+          "word": "name",
+          "start": 185.48,
+          "end": 185.64,
+          "probability": 0.999
+        },
+        {
+          "word": "two",
+          "start": 185.64,
+          "end": 185.96,
+          "probability": 0.979
+        },
+        {
+          "word": "people",
+          "start": 185.96,
+          "end": 186.36,
+          "probability": 0.778
+        },
+        {
+          "word": "and",
+          "start": 186.36,
+          "end": 186.94,
+          "probability": 0.645
+        },
+        {
+          "word": "two",
+          "start": 186.94,
+          "end": 187.14,
+          "probability": 0.995
+        },
+        {
+          "word": "children.",
+          "start": 187.14,
+          "end": 187.6,
+          "probability": 0.998
+        },
+        {
+          "word": "For",
+          "start": 188.2,
+          "end": 188.32,
+          "probability": 0.939
+        },
+        {
+          "word": "my",
+          "start": 188.32,
+          "end": 188.54,
+          "probability": 0.994
+        },
+        {
+          "word": "daughter,",
+          "start": 188.54,
+          "end": 188.86,
+          "probability": 0.977
+        },
+        {
+          "word": "my",
+          "start": 188.98,
+          "end": 189.16,
+          "probability": 0.933
+        },
+        {
+          "word": "wife",
+          "start": 189.16,
+          "end": 189.4,
+          "probability": 1.0
+        },
+        {
+          "word": "was",
+          "start": 189.4,
+          "end": 189.58,
+          "probability": 0.993
+        },
+        {
+          "word": "very",
+          "start": 189.58,
+          "end": 189.84,
+          "probability": 0.997
+        },
+        {
+          "word": "keen",
+          "start": 189.84,
+          "end": 190.22,
+          "probability": 0.995
+        },
+        {
+          "word": "on",
+          "start": 190.22,
+          "end": 190.68,
+          "probability": 0.904
+        },
+        {
+          "word": "the",
+          "start": 190.68,
+          "end": 190.84,
+          "probability": 0.876
+        },
+        {
+          "word": "name",
+          "start": 190.84,
+          "end": 190.92,
+          "probability": 0.9
+        }
+      ]
+    },
+    {
+      "start": 190.92,
+      "end": 197.24,
+      "text": " that we gave my daughter. So she said, that was easy for me. That's fine. For my son,",
+      "words": [
+        {
+          "word": "that",
+          "start": 190.92,
+          "end": 191.38,
+          "probability": 0.999
+        },
+        {
+          "word": "we",
+          "start": 191.38,
+          "end": 191.48,
+          "probability": 0.998
+        },
+        {
+          "word": "gave",
+          "start": 191.48,
+          "end": 191.66,
+          "probability": 1.0
+        },
+        {
+          "word": "my",
+          "start": 191.66,
+          "end": 191.82,
+          "probability": 0.978
+        },
+        {
+          "word": "daughter.",
+          "start": 191.82,
+          "end": 192.16,
+          "probability": 0.999
+        },
+        {
+          "word": "So",
+          "start": 192.78,
+          "end": 192.8,
+          "probability": 0.821
+        },
+        {
+          "word": "she",
+          "start": 192.8,
+          "end": 192.92,
+          "probability": 0.738
+        },
+        {
+          "word": "said,",
+          "start": 192.92,
+          "end": 193.16,
+          "probability": 0.949
+        },
+        {
+          "word": "that",
+          "start": 193.3,
+          "end": 193.32,
+          "probability": 0.971
+        },
+        {
+          "word": "was",
+          "start": 193.32,
+          "end": 193.44,
+          "probability": 0.998
+        },
+        {
+          "word": "easy",
+          "start": 193.44,
+          "end": 193.78,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 193.78,
+          "end": 193.98,
+          "probability": 0.972
+        },
+        {
+          "word": "me.",
+          "start": 193.98,
+          "end": 194.44,
+          "probability": 0.999
+        },
+        {
+          "word": "That's",
+          "start": 194.8,
+          "end": 194.94,
+          "probability": 0.886
+        },
+        {
+          "word": "fine.",
+          "start": 194.94,
+          "end": 195.3,
+          "probability": 0.985
+        },
+        {
+          "word": "For",
+          "start": 195.58,
+          "end": 196.44,
+          "probability": 0.831
+        },
+        {
+          "word": "my",
+          "start": 196.44,
+          "end": 196.84,
+          "probability": 0.998
+        },
+        {
+          "word": "son,",
+          "start": 196.84,
+          "end": 197.24,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 197.94,
+      "end": 203.24,
+      "text": " I really wanted a name that worked in English and in Spanish and wasn't too different.",
+      "words": [
+        {
+          "word": "I",
+          "start": 197.94,
+          "end": 198.32,
+          "probability": 0.998
+        },
+        {
+          "word": "really",
+          "start": 198.32,
+          "end": 198.58,
+          "probability": 0.997
+        },
+        {
+          "word": "wanted",
+          "start": 198.58,
+          "end": 198.9,
+          "probability": 0.993
+        },
+        {
+          "word": "a",
+          "start": 198.9,
+          "end": 199.1,
+          "probability": 0.998
+        },
+        {
+          "word": "name",
+          "start": 199.1,
+          "end": 199.5,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 199.5,
+          "end": 199.78,
+          "probability": 0.998
+        },
+        {
+          "word": "worked",
+          "start": 199.78,
+          "end": 200.28,
+          "probability": 0.996
+        },
+        {
+          "word": "in",
+          "start": 200.28,
+          "end": 200.52,
+          "probability": 0.999
+        },
+        {
+          "word": "English",
+          "start": 200.52,
+          "end": 201.02,
+          "probability": 0.994
+        },
+        {
+          "word": "and",
+          "start": 201.02,
+          "end": 201.64,
+          "probability": 0.886
+        },
+        {
+          "word": "in",
+          "start": 201.64,
+          "end": 201.86,
+          "probability": 0.986
+        },
+        {
+          "word": "Spanish",
+          "start": 201.86,
+          "end": 202.28,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 202.28,
+          "end": 202.48,
+          "probability": 0.77
+        },
+        {
+          "word": "wasn't",
+          "start": 202.48,
+          "end": 202.74,
+          "probability": 0.997
+        },
+        {
+          "word": "too",
+          "start": 202.74,
+          "end": 202.96,
+          "probability": 0.957
+        },
+        {
+          "word": "different.",
+          "start": 202.96,
+          "end": 203.24,
+          "probability": 0.992
+        }
+      ]
+    },
+    {
+      "start": 204.08,
+      "end": 210.55,
+      "text": " And that's not actually that many boys' names that work easily in both languages or that I could",
+      "words": [
+        {
+          "word": "And",
+          "start": 204.08,
+          "end": 204.3,
+          "probability": 0.952
+        },
+        {
+          "word": "that's",
+          "start": 204.3,
+          "end": 204.44,
+          "probability": 0.944
+        },
+        {
+          "word": "not",
+          "start": 204.44,
+          "end": 204.7,
+          "probability": 0.997
+        },
+        {
+          "word": "actually",
+          "start": 204.7,
+          "end": 205.12,
+          "probability": 0.977
+        },
+        {
+          "word": "that",
+          "start": 205.12,
+          "end": 205.44,
+          "probability": 0.996
+        },
+        {
+          "word": "many",
+          "start": 205.44,
+          "end": 205.78,
+          "probability": 0.999
+        },
+        {
+          "word": "boys'",
+          "start": 205.78,
+          "end": 206.64,
+          "probability": 0.726
+        },
+        {
+          "word": "names",
+          "start": 206.64,
+          "end": 206.84,
+          "probability": 0.996
+        },
+        {
+          "word": "that",
+          "start": 206.84,
+          "end": 207.4,
+          "probability": 0.95
+        },
+        {
+          "word": "work",
+          "start": 207.4,
+          "end": 208.0,
+          "probability": 0.988
+        },
+        {
+          "word": "easily",
+          "start": 208.0,
+          "end": 208.7,
+          "probability": 0.935
+        },
+        {
+          "word": "in",
+          "start": 208.7,
+          "end": 209.06,
+          "probability": 0.988
+        },
+        {
+          "word": "both",
+          "start": 209.06,
+          "end": 209.26,
+          "probability": 0.998
+        },
+        {
+          "word": "languages",
+          "start": 209.26,
+          "end": 209.76,
+          "probability": 0.996
+        },
+        {
+          "word": "or",
+          "start": 209.76,
+          "end": 210.26,
+          "probability": 0.454
+        },
+        {
+          "word": "that",
+          "start": 210.26,
+          "end": 210.36,
+          "probability": 0.863
+        },
+        {
+          "word": "I",
+          "start": 210.36,
+          "end": 210.48,
+          "probability": 0.853
+        },
+        {
+          "word": "could",
+          "start": 210.48,
+          "end": 210.55,
+          "probability": 0.615
+        }
+      ]
+    },
+    {
+      "start": 210.55,
+      "end": 216.9,
+      "text": " think of. Yeah, because your wife is from Argentina. So you needed a name that that worked in both.",
+      "words": [
+        {
+          "word": "think",
+          "start": 210.55,
+          "end": 210.9,
+          "probability": 0.999
+        },
+        {
+          "word": "of.",
+          "start": 210.9,
+          "end": 211.22,
+          "probability": 0.999
+        },
+        {
+          "word": "Yeah,",
+          "start": 211.3,
+          "end": 211.44,
+          "probability": 0.823
+        },
+        {
+          "word": "because",
+          "start": 211.64,
+          "end": 211.76,
+          "probability": 0.994
+        },
+        {
+          "word": "your",
+          "start": 211.76,
+          "end": 211.9,
+          "probability": 0.992
+        },
+        {
+          "word": "wife",
+          "start": 211.9,
+          "end": 212.2,
+          "probability": 0.997
+        },
+        {
+          "word": "is",
+          "start": 212.2,
+          "end": 212.42,
+          "probability": 0.996
+        },
+        {
+          "word": "from",
+          "start": 212.42,
+          "end": 212.6,
+          "probability": 0.997
+        },
+        {
+          "word": "Argentina.",
+          "start": 212.6,
+          "end": 213.16,
+          "probability": 0.997
+        },
+        {
+          "word": "So",
+          "start": 213.52,
+          "end": 213.54,
+          "probability": 0.984
+        },
+        {
+          "word": "you",
+          "start": 213.54,
+          "end": 213.6,
+          "probability": 0.982
+        },
+        {
+          "word": "needed",
+          "start": 213.6,
+          "end": 214.14,
+          "probability": 0.982
+        },
+        {
+          "word": "a",
+          "start": 214.14,
+          "end": 214.94,
+          "probability": 0.994
+        },
+        {
+          "word": "name",
+          "start": 214.94,
+          "end": 215.26,
+          "probability": 0.994
+        },
+        {
+          "word": "that",
+          "start": 215.26,
+          "end": 215.78,
+          "probability": 0.996
+        },
+        {
+          "word": "that",
+          "start": 215.78,
+          "end": 215.98,
+          "probability": 0.586
+        },
+        {
+          "word": "worked",
+          "start": 215.98,
+          "end": 216.26,
+          "probability": 0.992
+        },
+        {
+          "word": "in",
+          "start": 216.26,
+          "end": 216.46,
+          "probability": 0.974
+        },
+        {
+          "word": "both.",
+          "start": 216.46,
+          "end": 216.9,
+          "probability": 0.939
+        }
+      ]
+    },
+    {
+      "start": 217.28,
+      "end": 221.72,
+      "text": " Okay, Georgie, have you ever had to name something like a pet or someone?",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 217.28,
+          "end": 217.62,
+          "probability": 0.803
+        },
+        {
+          "word": "Georgie,",
+          "start": 217.8,
+          "end": 218.3,
+          "probability": 0.937
+        },
+        {
+          "word": "have",
+          "start": 218.66,
+          "end": 218.92,
+          "probability": 0.974
+        },
+        {
+          "word": "you",
+          "start": 218.92,
+          "end": 219.38,
+          "probability": 0.998
+        },
+        {
+          "word": "ever",
+          "start": 219.38,
+          "end": 219.66,
+          "probability": 0.998
+        },
+        {
+          "word": "had",
+          "start": 219.66,
+          "end": 219.88,
+          "probability": 0.996
+        },
+        {
+          "word": "to",
+          "start": 219.88,
+          "end": 220.0,
+          "probability": 1.0
+        },
+        {
+          "word": "name",
+          "start": 220.0,
+          "end": 220.42,
+          "probability": 0.997
+        },
+        {
+          "word": "something",
+          "start": 220.42,
+          "end": 220.7,
+          "probability": 0.997
+        },
+        {
+          "word": "like",
+          "start": 220.7,
+          "end": 220.9,
+          "probability": 0.989
+        },
+        {
+          "word": "a",
+          "start": 220.9,
+          "end": 221.06,
+          "probability": 0.997
+        },
+        {
+          "word": "pet",
+          "start": 221.06,
+          "end": 221.32,
+          "probability": 0.845
+        },
+        {
+          "word": "or",
+          "start": 221.32,
+          "end": 221.46,
+          "probability": 0.989
+        },
+        {
+          "word": "someone?",
+          "start": 221.46,
+          "end": 221.72,
+          "probability": 0.967
+        }
+      ]
+    },
+    {
+      "start": 222.16,
+      "end": 229.02,
+      "text": " Well, actually, my parents are getting a dog in a couple of weeks and we're thinking about names",
+      "words": [
+        {
+          "word": "Well,",
+          "start": 222.16,
+          "end": 222.52,
+          "probability": 0.996
+        },
+        {
+          "word": "actually,",
+          "start": 222.6,
+          "end": 223.3,
+          "probability": 0.999
+        },
+        {
+          "word": "my",
+          "start": 224.04,
+          "end": 224.14,
+          "probability": 0.952
+        },
+        {
+          "word": "parents",
+          "start": 224.14,
+          "end": 224.84,
+          "probability": 1.0
+        },
+        {
+          "word": "are",
+          "start": 224.84,
+          "end": 225.12,
+          "probability": 0.999
+        },
+        {
+          "word": "getting",
+          "start": 225.12,
+          "end": 225.4,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 225.4,
+          "end": 225.6,
+          "probability": 0.999
+        },
+        {
+          "word": "dog",
+          "start": 225.6,
+          "end": 226.14,
+          "probability": 0.997
+        },
+        {
+          "word": "in",
+          "start": 226.14,
+          "end": 226.56,
+          "probability": 0.986
+        },
+        {
+          "word": "a",
+          "start": 226.56,
+          "end": 226.66,
+          "probability": 0.952
+        },
+        {
+          "word": "couple",
+          "start": 226.66,
+          "end": 226.92,
+          "probability": 0.818
+        },
+        {
+          "word": "of",
+          "start": 226.92,
+          "end": 227.14,
+          "probability": 0.997
+        },
+        {
+          "word": "weeks",
+          "start": 227.14,
+          "end": 227.52,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 227.52,
+          "end": 227.88,
+          "probability": 0.735
+        },
+        {
+          "word": "we're",
+          "start": 227.88,
+          "end": 228.04,
+          "probability": 0.969
+        },
+        {
+          "word": "thinking",
+          "start": 228.04,
+          "end": 228.36,
+          "probability": 0.98
+        },
+        {
+          "word": "about",
+          "start": 228.36,
+          "end": 228.66,
+          "probability": 0.88
+        },
+        {
+          "word": "names",
+          "start": 228.66,
+          "end": 229.02,
+          "probability": 0.815
+        }
+      ]
+    },
+    {
+      "start": 229.08,
+      "end": 234.99,
+      "text": " right now. So it's quite a relevant question. It is difficult, isn't it, because you have to",
+      "words": [
+        {
+          "word": "right",
+          "start": 229.08,
+          "end": 229.42,
+          "probability": 1.0
+        },
+        {
+          "word": "now.",
+          "start": 229.42,
+          "end": 229.74,
+          "probability": 1.0
+        },
+        {
+          "word": "So",
+          "start": 229.98,
+          "end": 230.0,
+          "probability": 0.995
+        },
+        {
+          "word": "it's",
+          "start": 230.0,
+          "end": 230.08,
+          "probability": 0.991
+        },
+        {
+          "word": "quite",
+          "start": 230.08,
+          "end": 230.36,
+          "probability": 0.992
+        },
+        {
+          "word": "a",
+          "start": 230.36,
+          "end": 230.52,
+          "probability": 0.976
+        },
+        {
+          "word": "relevant",
+          "start": 230.52,
+          "end": 230.76,
+          "probability": 0.998
+        },
+        {
+          "word": "question.",
+          "start": 230.76,
+          "end": 231.52,
+          "probability": 1.0
+        },
+        {
+          "word": "It",
+          "start": 231.9,
+          "end": 232.6,
+          "probability": 0.989
+        },
+        {
+          "word": "is",
+          "start": 232.6,
+          "end": 232.78,
+          "probability": 0.998
+        },
+        {
+          "word": "difficult,",
+          "start": 232.78,
+          "end": 233.18,
+          "probability": 0.998
+        },
+        {
+          "word": "isn't",
+          "start": 233.24,
+          "end": 233.56,
+          "probability": 0.998
+        },
+        {
+          "word": "it,",
+          "start": 233.56,
+          "end": 233.72,
+          "probability": 0.999
+        },
+        {
+          "word": "because",
+          "start": 233.72,
+          "end": 233.96,
+          "probability": 0.963
+        },
+        {
+          "word": "you",
+          "start": 233.96,
+          "end": 234.12,
+          "probability": 0.99
+        },
+        {
+          "word": "have",
+          "start": 234.12,
+          "end": 234.46,
+          "probability": 0.985
+        },
+        {
+          "word": "to",
+          "start": 234.46,
+          "end": 234.99,
+          "probability": 0.91
+        }
+      ]
+    },
+    {
+      "start": 234.99,
+      "end": 240.1,
+      "text": " think of a name that you're going to like for a long time that you're not going to get",
+      "words": [
+        {
+          "word": "think",
+          "start": 234.99,
+          "end": 235.26,
+          "probability": 0.661
+        },
+        {
+          "word": "of",
+          "start": 235.26,
+          "end": 235.42,
+          "probability": 1.0
+        },
+        {
+          "word": "a",
+          "start": 235.42,
+          "end": 235.52,
+          "probability": 0.987
+        },
+        {
+          "word": "name",
+          "start": 235.52,
+          "end": 235.92,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 235.92,
+          "end": 236.1,
+          "probability": 0.997
+        },
+        {
+          "word": "you're",
+          "start": 236.1,
+          "end": 236.28,
+          "probability": 0.999
+        },
+        {
+          "word": "going",
+          "start": 236.28,
+          "end": 236.6,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 236.6,
+          "end": 237.0,
+          "probability": 1.0
+        },
+        {
+          "word": "like",
+          "start": 237.0,
+          "end": 237.38,
+          "probability": 0.994
+        },
+        {
+          "word": "for",
+          "start": 237.38,
+          "end": 237.54,
+          "probability": 0.981
+        },
+        {
+          "word": "a",
+          "start": 237.54,
+          "end": 237.64,
+          "probability": 1.0
+        },
+        {
+          "word": "long",
+          "start": 237.64,
+          "end": 237.88,
+          "probability": 0.997
+        },
+        {
+          "word": "time",
+          "start": 237.88,
+          "end": 238.52,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 238.52,
+          "end": 239.24,
+          "probability": 0.576
+        },
+        {
+          "word": "you're",
+          "start": 239.24,
+          "end": 239.42,
+          "probability": 0.999
+        },
+        {
+          "word": "not",
+          "start": 239.42,
+          "end": 239.62,
+          "probability": 0.998
+        },
+        {
+          "word": "going",
+          "start": 239.62,
+          "end": 239.74,
+          "probability": 0.865
+        },
+        {
+          "word": "to",
+          "start": 239.74,
+          "end": 239.82,
+          "probability": 0.978
+        },
+        {
+          "word": "get",
+          "start": 239.82,
+          "end": 240.1,
+          "probability": 0.968
+        }
+      ]
+    },
+    {
+      "start": 240.18,
+      "end": 246.4,
+      "text": " bored of because you use it so much. Yeah, I guess with dogs' names, you don't want to have",
+      "words": [
+        {
+          "word": "bored",
+          "start": 240.18,
+          "end": 240.56,
+          "probability": 0.988
+        },
+        {
+          "word": "of",
+          "start": 240.56,
+          "end": 240.9,
+          "probability": 0.997
+        },
+        {
+          "word": "because",
+          "start": 240.9,
+          "end": 241.2,
+          "probability": 0.675
+        },
+        {
+          "word": "you",
+          "start": 241.2,
+          "end": 241.38,
+          "probability": 0.994
+        },
+        {
+          "word": "use",
+          "start": 241.38,
+          "end": 241.68,
+          "probability": 0.994
+        },
+        {
+          "word": "it",
+          "start": 241.68,
+          "end": 241.86,
+          "probability": 0.996
+        },
+        {
+          "word": "so",
+          "start": 241.86,
+          "end": 242.04,
+          "probability": 0.994
+        },
+        {
+          "word": "much.",
+          "start": 242.04,
+          "end": 242.52,
+          "probability": 1.0
+        },
+        {
+          "word": "Yeah,",
+          "start": 242.74,
+          "end": 243.0,
+          "probability": 0.979
+        },
+        {
+          "word": "I",
+          "start": 243.12,
+          "end": 243.16,
+          "probability": 0.997
+        },
+        {
+          "word": "guess",
+          "start": 243.16,
+          "end": 243.7,
+          "probability": 1.0
+        },
+        {
+          "word": "with",
+          "start": 243.7,
+          "end": 244.16,
+          "probability": 0.915
+        },
+        {
+          "word": "dogs'",
+          "start": 244.16,
+          "end": 244.68,
+          "probability": 0.65
+        },
+        {
+          "word": "names,",
+          "start": 244.68,
+          "end": 245.04,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 245.06,
+          "end": 245.38,
+          "probability": 0.974
+        },
+        {
+          "word": "don't",
+          "start": 245.38,
+          "end": 245.78,
+          "probability": 0.999
+        },
+        {
+          "word": "want",
+          "start": 245.78,
+          "end": 246.06,
+          "probability": 0.975
+        },
+        {
+          "word": "to",
+          "start": 246.06,
+          "end": 246.22,
+          "probability": 0.964
+        },
+        {
+          "word": "have",
+          "start": 246.22,
+          "end": 246.4,
+          "probability": 0.917
+        }
+      ]
+    },
+    {
+      "start": 246.4,
+      "end": 252.1,
+      "text": " something that's too common because when you call your dog, the whole park will come running.",
+      "words": [
+        {
+          "word": "something",
+          "start": 246.4,
+          "end": 246.88,
+          "probability": 1.0
+        },
+        {
+          "word": "that's",
+          "start": 246.88,
+          "end": 247.24,
+          "probability": 0.994
+        },
+        {
+          "word": "too",
+          "start": 247.24,
+          "end": 247.6,
+          "probability": 0.997
+        },
+        {
+          "word": "common",
+          "start": 247.6,
+          "end": 248.18,
+          "probability": 0.998
+        },
+        {
+          "word": "because",
+          "start": 248.18,
+          "end": 248.84,
+          "probability": 0.465
+        },
+        {
+          "word": "when",
+          "start": 248.84,
+          "end": 249.28,
+          "probability": 0.979
+        },
+        {
+          "word": "you",
+          "start": 249.28,
+          "end": 249.4,
+          "probability": 0.999
+        },
+        {
+          "word": "call",
+          "start": 249.4,
+          "end": 249.58,
+          "probability": 0.998
+        },
+        {
+          "word": "your",
+          "start": 249.58,
+          "end": 249.72,
+          "probability": 0.991
+        },
+        {
+          "word": "dog,",
+          "start": 249.72,
+          "end": 250.16,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 250.46,
+          "end": 250.58,
+          "probability": 0.997
+        },
+        {
+          "word": "whole",
+          "start": 250.58,
+          "end": 250.92,
+          "probability": 1.0
+        },
+        {
+          "word": "park",
+          "start": 250.92,
+          "end": 251.28,
+          "probability": 0.724
+        },
+        {
+          "word": "will",
+          "start": 251.28,
+          "end": 251.5,
+          "probability": 0.504
+        },
+        {
+          "word": "come",
+          "start": 251.5,
+          "end": 251.68,
+          "probability": 0.991
+        },
+        {
+          "word": "running.",
+          "start": 251.68,
+          "end": 252.1,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 252.22,
+      "end": 257.86,
+      "text": " Yeah, yeah, exactly. We're trying to think of something a little bit more unusual and fun.",
+      "words": [
+        {
+          "word": "Yeah,",
+          "start": 252.22,
+          "end": 252.68,
+          "probability": 0.854
+        },
+        {
+          "word": "yeah,",
+          "start": 253.3,
+          "end": 253.32,
+          "probability": 0.756
+        },
+        {
+          "word": "exactly.",
+          "start": 253.42,
+          "end": 254.02,
+          "probability": 0.994
+        },
+        {
+          "word": "We're",
+          "start": 254.42,
+          "end": 254.6,
+          "probability": 0.992
+        },
+        {
+          "word": "trying",
+          "start": 254.6,
+          "end": 254.9,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 254.9,
+          "end": 255.02,
+          "probability": 1.0
+        },
+        {
+          "word": "think",
+          "start": 255.02,
+          "end": 255.18,
+          "probability": 0.98
+        },
+        {
+          "word": "of",
+          "start": 255.18,
+          "end": 255.38,
+          "probability": 0.999
+        },
+        {
+          "word": "something",
+          "start": 255.38,
+          "end": 255.62,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 255.62,
+          "end": 255.82,
+          "probability": 0.989
+        },
+        {
+          "word": "little",
+          "start": 255.82,
+          "end": 256.08,
+          "probability": 0.994
+        },
+        {
+          "word": "bit",
+          "start": 256.08,
+          "end": 256.32,
+          "probability": 0.983
+        },
+        {
+          "word": "more",
+          "start": 256.32,
+          "end": 256.84,
+          "probability": 0.997
+        },
+        {
+          "word": "unusual",
+          "start": 256.84,
+          "end": 257.4,
+          "probability": 0.972
+        },
+        {
+          "word": "and",
+          "start": 257.4,
+          "end": 257.66,
+          "probability": 0.952
+        },
+        {
+          "word": "fun.",
+          "start": 257.66,
+          "end": 257.86,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 264.24,
+      "end": 268.54,
+      "text": " Okay, let's recap the vocabulary we heard during the conversation.",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 264.24,
+          "end": 264.76,
+          "probability": 0.58
+        },
+        {
+          "word": "let's",
+          "start": 265.04,
+          "end": 265.6,
+          "probability": 0.996
+        },
+        {
+          "word": "recap",
+          "start": 265.6,
+          "end": 266.08,
+          "probability": 0.99
+        },
+        {
+          "word": "the",
+          "start": 266.08,
+          "end": 266.34,
+          "probability": 0.993
+        },
+        {
+          "word": "vocabulary",
+          "start": 266.34,
+          "end": 266.74,
+          "probability": 0.97
+        },
+        {
+          "word": "we",
+          "start": 266.74,
+          "end": 267.1,
+          "probability": 0.988
+        },
+        {
+          "word": "heard",
+          "start": 267.1,
+          "end": 267.52,
+          "probability": 0.99
+        },
+        {
+          "word": "during",
+          "start": 267.52,
+          "end": 267.9,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 267.9,
+          "end": 268.12,
+          "probability": 0.993
+        },
+        {
+          "word": "conversation.",
+          "start": 268.12,
+          "end": 268.54,
+          "probability": 0.993
+        }
+      ]
+    },
+    {
+      "start": 269.44,
+      "end": 275.32,
+      "text": " Starting with nickname, which is an informal name used by family and friends.",
+      "words": [
+        {
+          "word": "Starting",
+          "start": 269.44,
+          "end": 269.94,
+          "probability": 0.955
+        },
+        {
+          "word": "with",
+          "start": 269.94,
+          "end": 270.56,
+          "probability": 0.999
+        },
+        {
+          "word": "nickname,",
+          "start": 270.56,
+          "end": 271.2,
+          "probability": 0.643
+        },
+        {
+          "word": "which",
+          "start": 271.7,
+          "end": 271.74,
+          "probability": 0.99
+        },
+        {
+          "word": "is",
+          "start": 271.74,
+          "end": 272.12,
+          "probability": 0.999
+        },
+        {
+          "word": "an",
+          "start": 272.12,
+          "end": 272.26,
+          "probability": 0.992
+        },
+        {
+          "word": "informal",
+          "start": 272.26,
+          "end": 272.78,
+          "probability": 0.997
+        },
+        {
+          "word": "name",
+          "start": 272.78,
+          "end": 273.38,
+          "probability": 0.994
+        },
+        {
+          "word": "used",
+          "start": 273.38,
+          "end": 273.68,
+          "probability": 0.93
+        },
+        {
+          "word": "by",
+          "start": 273.68,
+          "end": 274.02,
+          "probability": 0.998
+        },
+        {
+          "word": "family",
+          "start": 274.02,
+          "end": 274.58,
+          "probability": 0.984
+        },
+        {
+          "word": "and",
+          "start": 274.58,
+          "end": 274.82,
+          "probability": 0.996
+        },
+        {
+          "word": "friends.",
+          "start": 274.82,
+          "end": 275.32,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 275.54,
+      "end": 283.46,
+      "text": " We can use name as a verb, which means to give someone a name. For example, my parents named me Georgie.",
+      "words": [
+        {
+          "word": "We",
+          "start": 275.54,
+          "end": 275.9,
+          "probability": 0.99
+        },
+        {
+          "word": "can",
+          "start": 275.9,
+          "end": 276.12,
+          "probability": 1.0
+        },
+        {
+          "word": "use",
+          "start": 276.12,
+          "end": 276.52,
+          "probability": 0.995
+        },
+        {
+          "word": "name",
+          "start": 276.52,
+          "end": 277.08,
+          "probability": 0.984
+        },
+        {
+          "word": "as",
+          "start": 277.08,
+          "end": 277.36,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 277.36,
+          "end": 277.58,
+          "probability": 0.997
+        },
+        {
+          "word": "verb,",
+          "start": 277.58,
+          "end": 277.84,
+          "probability": 0.998
+        },
+        {
+          "word": "which",
+          "start": 278.14,
+          "end": 278.16,
+          "probability": 0.992
+        },
+        {
+          "word": "means",
+          "start": 278.16,
+          "end": 278.54,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 278.54,
+          "end": 278.78,
+          "probability": 0.992
+        },
+        {
+          "word": "give",
+          "start": 278.78,
+          "end": 279.06,
+          "probability": 0.999
+        },
+        {
+          "word": "someone",
+          "start": 279.06,
+          "end": 279.48,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 279.48,
+          "end": 279.82,
+          "probability": 0.997
+        },
+        {
+          "word": "name.",
+          "start": 279.82,
+          "end": 280.24,
+          "probability": 0.999
+        },
+        {
+          "word": "For",
+          "start": 280.34,
+          "end": 280.58,
+          "probability": 0.932
+        },
+        {
+          "word": "example,",
+          "start": 280.58,
+          "end": 281.06,
+          "probability": 0.998
+        },
+        {
+          "word": "my",
+          "start": 281.14,
+          "end": 281.52,
+          "probability": 0.532
+        },
+        {
+          "word": "parents",
+          "start": 281.52,
+          "end": 282.1,
+          "probability": 0.946
+        },
+        {
+          "word": "named",
+          "start": 282.1,
+          "end": 282.6,
+          "probability": 0.913
+        },
+        {
+          "word": "me",
+          "start": 282.6,
+          "end": 282.98,
+          "probability": 0.863
+        },
+        {
+          "word": "Georgie.",
+          "start": 282.98,
+          "end": 283.46,
+          "probability": 0.801
+        }
+      ]
+    },
+    {
+      "start": 284.08,
+      "end": 290.88,
+      "text": " If you're named after something or someone, you're given the same name as them because of them.",
+      "words": [
+        {
+          "word": "If",
+          "start": 284.08,
+          "end": 284.48,
+          "probability": 0.996
+        },
+        {
+          "word": "you're",
+          "start": 284.48,
+          "end": 284.86,
+          "probability": 0.986
+        },
+        {
+          "word": "named",
+          "start": 284.86,
+          "end": 285.28,
+          "probability": 0.995
+        },
+        {
+          "word": "after",
+          "start": 285.28,
+          "end": 285.64,
+          "probability": 0.999
+        },
+        {
+          "word": "something",
+          "start": 285.64,
+          "end": 286.24,
+          "probability": 0.997
+        },
+        {
+          "word": "or",
+          "start": 286.24,
+          "end": 286.84,
+          "probability": 0.917
+        },
+        {
+          "word": "someone,",
+          "start": 286.84,
+          "end": 287.5,
+          "probability": 0.997
+        },
+        {
+          "word": "you're",
+          "start": 287.82,
+          "end": 288.22,
+          "probability": 0.946
+        },
+        {
+          "word": "given",
+          "start": 288.22,
+          "end": 288.56,
+          "probability": 0.96
+        },
+        {
+          "word": "the",
+          "start": 288.56,
+          "end": 288.9,
+          "probability": 0.999
+        },
+        {
+          "word": "same",
+          "start": 288.9,
+          "end": 289.22,
+          "probability": 0.999
+        },
+        {
+          "word": "name",
+          "start": 289.22,
+          "end": 289.54,
+          "probability": 0.993
+        },
+        {
+          "word": "as",
+          "start": 289.54,
+          "end": 289.68,
+          "probability": 0.996
+        },
+        {
+          "word": "them",
+          "start": 289.68,
+          "end": 290.1,
+          "probability": 0.979
+        },
+        {
+          "word": "because",
+          "start": 290.1,
+          "end": 290.48,
+          "probability": 0.84
+        },
+        {
+          "word": "of",
+          "start": 290.48,
+          "end": 290.66,
+          "probability": 0.972
+        },
+        {
+          "word": "them.",
+          "start": 290.66,
+          "end": 290.88,
+          "probability": 0.657
+        }
+      ]
+    },
+    {
+      "start": 291.48,
+      "end": 295.8,
+      "text": " For example, Georgie was named after a dog called Georgia.",
+      "words": [
+        {
+          "word": "For",
+          "start": 291.48,
+          "end": 291.68,
+          "probability": 0.745
+        },
+        {
+          "word": "example,",
+          "start": 291.68,
+          "end": 292.26,
+          "probability": 0.999
+        },
+        {
+          "word": "Georgie",
+          "start": 292.4,
+          "end": 293.04,
+          "probability": 0.987
+        },
+        {
+          "word": "was",
+          "start": 293.04,
+          "end": 293.4,
+          "probability": 0.968
+        },
+        {
+          "word": "named",
+          "start": 293.4,
+          "end": 293.76,
+          "probability": 0.999
+        },
+        {
+          "word": "after",
+          "start": 293.76,
+          "end": 294.06,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 294.06,
+          "end": 294.4,
+          "probability": 0.999
+        },
+        {
+          "word": "dog",
+          "start": 294.4,
+          "end": 294.84,
+          "probability": 0.999
+        },
+        {
+          "word": "called",
+          "start": 294.84,
+          "end": 295.26,
+          "probability": 0.994
+        },
+        {
+          "word": "Georgia.",
+          "start": 295.26,
+          "end": 295.8,
+          "probability": 0.767
+        }
+      ]
+    },
+    {
+      "start": 296.0,
+      "end": 302.02,
+      "text": " I was. Your name might be common, which means lots of people have the same name.",
+      "words": [
+        {
+          "word": "I",
+          "start": 296.0,
+          "end": 296.34,
+          "probability": 0.886
+        },
+        {
+          "word": "was.",
+          "start": 296.34,
+          "end": 296.94,
+          "probability": 0.998
+        },
+        {
+          "word": "Your",
+          "start": 297.36,
+          "end": 297.52,
+          "probability": 0.983
+        },
+        {
+          "word": "name",
+          "start": 297.52,
+          "end": 297.88,
+          "probability": 1.0
+        },
+        {
+          "word": "might",
+          "start": 297.88,
+          "end": 298.2,
+          "probability": 0.997
+        },
+        {
+          "word": "be",
+          "start": 298.2,
+          "end": 298.46,
+          "probability": 0.995
+        },
+        {
+          "word": "common,",
+          "start": 298.46,
+          "end": 298.86,
+          "probability": 0.97
+        },
+        {
+          "word": "which",
+          "start": 299.18,
+          "end": 299.2,
+          "probability": 0.979
+        },
+        {
+          "word": "means",
+          "start": 299.2,
+          "end": 299.72,
+          "probability": 0.999
+        },
+        {
+          "word": "lots",
+          "start": 299.72,
+          "end": 300.06,
+          "probability": 0.987
+        },
+        {
+          "word": "of",
+          "start": 300.06,
+          "end": 300.24,
+          "probability": 0.997
+        },
+        {
+          "word": "people",
+          "start": 300.24,
+          "end": 300.68,
+          "probability": 0.997
+        },
+        {
+          "word": "have",
+          "start": 300.68,
+          "end": 301.04,
+          "probability": 0.986
+        },
+        {
+          "word": "the",
+          "start": 301.04,
+          "end": 301.26,
+          "probability": 0.996
+        },
+        {
+          "word": "same",
+          "start": 301.26,
+          "end": 301.58,
+          "probability": 0.999
+        },
+        {
+          "word": "name.",
+          "start": 301.58,
+          "end": 302.02,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 302.24,
+      "end": 308.08,
+      "text": " All your name might be unusual, and that means that not many people have the same name.",
+      "words": [
+        {
+          "word": "All",
+          "start": 302.24,
+          "end": 302.6,
+          "probability": 0.678
+        },
+        {
+          "word": "your",
+          "start": 302.6,
+          "end": 302.76,
+          "probability": 0.984
+        },
+        {
+          "word": "name",
+          "start": 302.76,
+          "end": 303.28,
+          "probability": 0.985
+        },
+        {
+          "word": "might",
+          "start": 303.28,
+          "end": 303.72,
+          "probability": 0.996
+        },
+        {
+          "word": "be",
+          "start": 303.72,
+          "end": 304.1,
+          "probability": 1.0
+        },
+        {
+          "word": "unusual,",
+          "start": 304.1,
+          "end": 304.76,
+          "probability": 0.996
+        },
+        {
+          "word": "and",
+          "start": 305.04,
+          "end": 305.26,
+          "probability": 0.986
+        },
+        {
+          "word": "that",
+          "start": 305.26,
+          "end": 305.34,
+          "probability": 0.999
+        },
+        {
+          "word": "means",
+          "start": 305.34,
+          "end": 305.66,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 305.66,
+          "end": 306.12,
+          "probability": 0.967
+        },
+        {
+          "word": "not",
+          "start": 306.12,
+          "end": 306.38,
+          "probability": 0.997
+        },
+        {
+          "word": "many",
+          "start": 306.38,
+          "end": 306.56,
+          "probability": 0.997
+        },
+        {
+          "word": "people",
+          "start": 306.56,
+          "end": 307.12,
+          "probability": 0.995
+        },
+        {
+          "word": "have",
+          "start": 307.12,
+          "end": 307.46,
+          "probability": 0.986
+        },
+        {
+          "word": "the",
+          "start": 307.46,
+          "end": 307.62,
+          "probability": 0.999
+        },
+        {
+          "word": "same",
+          "start": 307.62,
+          "end": 307.88,
+          "probability": 0.998
+        },
+        {
+          "word": "name.",
+          "start": 307.88,
+          "end": 308.08,
+          "probability": 0.996
+        }
+      ]
+    },
+    {
+      "start": 309.5,
+      "end": 316.0,
+      "text": " That's it for this episode of Real Easy English. Test what you've learnt with the worksheet",
+      "words": [
+        {
+          "word": "That's",
+          "start": 309.5,
+          "end": 309.96,
+          "probability": 0.999
+        },
+        {
+          "word": "it",
+          "start": 309.96,
+          "end": 310.26,
+          "probability": 1.0
+        },
+        {
+          "word": "for",
+          "start": 310.26,
+          "end": 310.6,
+          "probability": 0.994
+        },
+        {
+          "word": "this",
+          "start": 310.6,
+          "end": 310.84,
+          "probability": 0.999
+        },
+        {
+          "word": "episode",
+          "start": 310.84,
+          "end": 311.38,
+          "probability": 0.998
+        },
+        {
+          "word": "of",
+          "start": 311.38,
+          "end": 311.84,
+          "probability": 0.988
+        },
+        {
+          "word": "Real",
+          "start": 311.84,
+          "end": 312.28,
+          "probability": 0.896
+        },
+        {
+          "word": "Easy",
+          "start": 312.28,
+          "end": 312.78,
+          "probability": 0.812
+        },
+        {
+          "word": "English.",
+          "start": 312.78,
+          "end": 313.36,
+          "probability": 0.995
+        },
+        {
+          "word": "Test",
+          "start": 313.68,
+          "end": 314.2,
+          "probability": 0.89
+        },
+        {
+          "word": "what",
+          "start": 314.2,
+          "end": 314.58,
+          "probability": 0.988
+        },
+        {
+          "word": "you've",
+          "start": 314.58,
+          "end": 314.84,
+          "probability": 0.993
+        },
+        {
+          "word": "learnt",
+          "start": 314.84,
+          "end": 315.06,
+          "probability": 0.57
+        },
+        {
+          "word": "with",
+          "start": 315.06,
+          "end": 315.28,
+          "probability": 0.941
+        },
+        {
+          "word": "the",
+          "start": 315.28,
+          "end": 315.46,
+          "probability": 0.889
+        },
+        {
+          "word": "worksheet",
+          "start": 315.46,
+          "end": 316.0,
+          "probability": 0.935
+        }
+      ]
+    },
+    {
+      "start": 316.16,
+      "end": 322.51,
+      "text": " on our website, and that's bbclearningenglish.com. We'll be back next week with more",
+      "words": [
+        {
+          "word": "on",
+          "start": 316.16,
+          "end": 316.48,
+          "probability": 0.99
+        },
+        {
+          "word": "our",
+          "start": 316.48,
+          "end": 316.72,
+          "probability": 0.999
+        },
+        {
+          "word": "website,",
+          "start": 316.72,
+          "end": 317.26,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 317.38,
+          "end": 317.46,
+          "probability": 0.99
+        },
+        {
+          "word": "that's",
+          "start": 317.46,
+          "end": 317.88,
+          "probability": 0.998
+        },
+        {
+          "word": "bbclearningenglish.com.",
+          "start": 317.88,
+          "end": 320.34,
+          "probability": 0.745
+        },
+        {
+          "word": "We'll",
+          "start": 320.6,
+          "end": 320.72,
+          "probability": 0.859
+        },
+        {
+          "word": "be",
+          "start": 320.72,
+          "end": 320.88,
+          "probability": 0.992
+        },
+        {
+          "word": "back",
+          "start": 320.88,
+          "end": 321.12,
+          "probability": 0.997
+        },
+        {
+          "word": "next",
+          "start": 321.12,
+          "end": 321.5,
+          "probability": 0.993
+        },
+        {
+          "word": "week",
+          "start": 321.5,
+          "end": 321.78,
+          "probability": 0.989
+        },
+        {
+          "word": "with",
+          "start": 321.78,
+          "end": 322.1,
+          "probability": 0.963
+        },
+        {
+          "word": "more",
+          "start": 322.1,
+          "end": 322.51,
+          "probability": 0.884
+        }
+      ]
+    },
+    {
+      "start": 322.51,
+      "end": 325.04,
+      "text": " easy English. Goodbye for now. Bye.",
+      "words": [
+        {
+          "word": "easy",
+          "start": 322.51,
+          "end": 322.96,
+          "probability": 0.647
+        },
+        {
+          "word": "English.",
+          "start": 322.96,
+          "end": 323.6,
+          "probability": 0.992
+        },
+        {
+          "word": "Goodbye",
+          "start": 323.78,
+          "end": 323.96,
+          "probability": 0.865
+        },
+        {
+          "word": "for",
+          "start": 323.96,
+          "end": 324.24,
+          "probability": 0.9
+        },
+        {
+          "word": "now.",
+          "start": 324.24,
+          "end": 324.5,
+          "probability": 0.999
+        },
+        {
+          "word": "Bye.",
+          "start": 324.64,
+          "end": 325.04,
+          "probability": 0.962
+        }
+      ]
+    }
+  ]
+}

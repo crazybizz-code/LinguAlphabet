@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LinguAlphabet</string>
+    <string name="title_activity_main">LinguAlphabet</string>
+    <string name="package_name">com.lingualphabet.app</string>
+    <string name="custom_url_scheme">com.lingualphabet.app</string>
+</resources>

@@ -1,0 +1,6574 @@
+{
+  "engine": "whisper-timestamped",
+  "model": "tiny.en",
+  "language": "en",
+  "segments": [
+    {
+      "start": 0.18,
+      "end": 2.28,
+      "text": " 6 New English",
+      "words": [
+        {
+          "word": "6",
+          "start": 0.18,
+          "end": 1.38,
+          "probability": 0.236
+        },
+        {
+          "word": "New",
+          "start": 1.38,
+          "end": 1.72,
+          "probability": 0.211
+        },
+        {
+          "word": "English",
+          "start": 1.72,
+          "end": 2.28,
+          "probability": 0.853
+        }
+      ]
+    },
+    {
+      "start": 2.64,
+      "end": 5.34,
+      "text": " from BBCLearningEnglish.com",
+      "words": [
+        {
+          "word": "from",
+          "start": 2.64,
+          "end": 2.92,
+          "probability": 0.469
+        },
+        {
+          "word": "BBCLearningEnglish.com",
+          "start": 2.92,
+          "end": 5.34,
+          "probability": 0.686
+        }
+      ]
+    },
+    {
+      "start": 8.12,
+      "end": 12.76,
+      "text": " Hello, this is 6 Minute English from BBC Learning English. I'm Pippa",
+      "words": [
+        {
+          "word": "Hello,",
+          "start": 8.12,
+          "end": 8.56,
+          "probability": 0.985
+        },
+        {
+          "word": "this",
+          "start": 8.94,
+          "end": 9.06,
+          "probability": 0.988
+        },
+        {
+          "word": "is",
+          "start": 9.06,
+          "end": 9.3,
+          "probability": 0.997
+        },
+        {
+          "word": "6",
+          "start": 9.3,
+          "end": 9.56,
+          "probability": 0.755
+        },
+        {
+          "word": "Minute",
+          "start": 9.56,
+          "end": 9.84,
+          "probability": 0.612
+        },
+        {
+          "word": "English",
+          "start": 9.84,
+          "end": 10.24,
+          "probability": 0.992
+        },
+        {
+          "word": "from",
+          "start": 10.24,
+          "end": 10.56,
+          "probability": 0.852
+        },
+        {
+          "word": "BBC",
+          "start": 10.56,
+          "end": 11.08,
+          "probability": 0.993
+        },
+        {
+          "word": "Learning",
+          "start": 11.08,
+          "end": 11.46,
+          "probability": 0.242
+        },
+        {
+          "word": "English.",
+          "start": 11.46,
+          "end": 11.94,
+          "probability": 0.994
+        },
+        {
+          "word": "I'm",
+          "start": 12.22,
+          "end": 12.3,
+          "probability": 0.774
+        },
+        {
+          "word": "Pippa",
+          "start": 12.3,
+          "end": 12.76,
+          "probability": 0.756
+        }
+      ]
+    },
+    {
+      "start": 12.98,
+      "end": 17.8,
+      "text": " and I'm Phil. What's the last thing you bought and why did you buy it?",
+      "words": [
+        {
+          "word": "and",
+          "start": 12.98,
+          "end": 13.18,
+          "probability": 0.569
+        },
+        {
+          "word": "I'm",
+          "start": 13.18,
+          "end": 13.56,
+          "probability": 0.994
+        },
+        {
+          "word": "Phil.",
+          "start": 13.56,
+          "end": 14.0,
+          "probability": 0.976
+        },
+        {
+          "word": "What's",
+          "start": 14.46,
+          "end": 14.8,
+          "probability": 0.893
+        },
+        {
+          "word": "the",
+          "start": 14.8,
+          "end": 14.92,
+          "probability": 0.997
+        },
+        {
+          "word": "last",
+          "start": 14.92,
+          "end": 15.26,
+          "probability": 0.997
+        },
+        {
+          "word": "thing",
+          "start": 15.26,
+          "end": 15.46,
+          "probability": 0.997
+        },
+        {
+          "word": "you",
+          "start": 15.46,
+          "end": 15.62,
+          "probability": 0.996
+        },
+        {
+          "word": "bought",
+          "start": 15.62,
+          "end": 16.06,
+          "probability": 0.94
+        },
+        {
+          "word": "and",
+          "start": 16.06,
+          "end": 16.74,
+          "probability": 0.484
+        },
+        {
+          "word": "why",
+          "start": 16.74,
+          "end": 17.02,
+          "probability": 0.977
+        },
+        {
+          "word": "did",
+          "start": 17.02,
+          "end": 17.16,
+          "probability": 0.991
+        },
+        {
+          "word": "you",
+          "start": 17.16,
+          "end": 17.28,
+          "probability": 0.996
+        },
+        {
+          "word": "buy",
+          "start": 17.28,
+          "end": 17.58,
+          "probability": 0.994
+        },
+        {
+          "word": "it?",
+          "start": 17.58,
+          "end": 17.8,
+          "probability": 0.998
+        }
+      ]
+    },
+    {
+      "start": 18.32,
+      "end": 25.28,
+      "text": " Er, I bought a new pair of headphones recently because my old ones broke and I did lots of research",
+      "words": [
+        {
+          "word": "Er,",
+          "start": 18.32,
+          "end": 18.94,
+          "probability": 0.306
+        },
+        {
+          "word": "I",
+          "start": 19.18,
+          "end": 19.26,
+          "probability": 0.992
+        },
+        {
+          "word": "bought",
+          "start": 19.26,
+          "end": 19.66,
+          "probability": 0.996
+        },
+        {
+          "word": "a",
+          "start": 19.66,
+          "end": 20.08,
+          "probability": 0.992
+        },
+        {
+          "word": "new",
+          "start": 20.08,
+          "end": 20.52,
+          "probability": 0.992
+        },
+        {
+          "word": "pair",
+          "start": 20.52,
+          "end": 20.82,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 20.82,
+          "end": 20.98,
+          "probability": 0.997
+        },
+        {
+          "word": "headphones",
+          "start": 20.98,
+          "end": 21.46,
+          "probability": 0.994
+        },
+        {
+          "word": "recently",
+          "start": 21.46,
+          "end": 21.92,
+          "probability": 0.964
+        },
+        {
+          "word": "because",
+          "start": 21.92,
+          "end": 22.38,
+          "probability": 0.875
+        },
+        {
+          "word": "my",
+          "start": 22.38,
+          "end": 22.72,
+          "probability": 0.972
+        },
+        {
+          "word": "old",
+          "start": 22.72,
+          "end": 22.98,
+          "probability": 0.973
+        },
+        {
+          "word": "ones",
+          "start": 22.98,
+          "end": 23.26,
+          "probability": 0.798
+        },
+        {
+          "word": "broke",
+          "start": 23.26,
+          "end": 23.62,
+          "probability": 0.979
+        },
+        {
+          "word": "and",
+          "start": 23.62,
+          "end": 23.86,
+          "probability": 0.656
+        },
+        {
+          "word": "I",
+          "start": 23.86,
+          "end": 23.94,
+          "probability": 0.955
+        },
+        {
+          "word": "did",
+          "start": 23.94,
+          "end": 24.38,
+          "probability": 0.97
+        },
+        {
+          "word": "lots",
+          "start": 24.38,
+          "end": 24.72,
+          "probability": 0.839
+        },
+        {
+          "word": "of",
+          "start": 24.72,
+          "end": 24.9,
+          "probability": 0.875
+        },
+        {
+          "word": "research",
+          "start": 24.9,
+          "end": 25.28,
+          "probability": 0.572
+        }
+      ]
+    },
+    {
+      "start": 25.28,
+      "end": 30.45,
+      "text": " to try and find a good pair. How about you? Erm, I bought a soft drink on the way to work",
+      "words": [
+        {
+          "word": "to",
+          "start": 25.28,
+          "end": 25.5,
+          "probability": 0.872
+        },
+        {
+          "word": "try",
+          "start": 25.5,
+          "end": 25.78,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 25.78,
+          "end": 25.9,
+          "probability": 0.942
+        },
+        {
+          "word": "find",
+          "start": 25.9,
+          "end": 26.12,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 26.12,
+          "end": 26.26,
+          "probability": 0.995
+        },
+        {
+          "word": "good",
+          "start": 26.26,
+          "end": 26.46,
+          "probability": 0.997
+        },
+        {
+          "word": "pair.",
+          "start": 26.46,
+          "end": 26.88,
+          "probability": 0.999
+        },
+        {
+          "word": "How",
+          "start": 27.14,
+          "end": 27.32,
+          "probability": 0.977
+        },
+        {
+          "word": "about",
+          "start": 27.32,
+          "end": 27.5,
+          "probability": 0.988
+        },
+        {
+          "word": "you?",
+          "start": 27.5,
+          "end": 27.86,
+          "probability": 0.995
+        },
+        {
+          "word": "Erm,",
+          "start": 28.14,
+          "end": 28.62,
+          "probability": 0.495
+        },
+        {
+          "word": "I",
+          "start": 28.66,
+          "end": 28.72,
+          "probability": 0.988
+        },
+        {
+          "word": "bought",
+          "start": 28.72,
+          "end": 28.9,
+          "probability": 0.989
+        },
+        {
+          "word": "a",
+          "start": 28.9,
+          "end": 29.1,
+          "probability": 0.997
+        },
+        {
+          "word": "soft",
+          "start": 29.1,
+          "end": 29.3,
+          "probability": 0.993
+        },
+        {
+          "word": "drink",
+          "start": 29.3,
+          "end": 29.6,
+          "probability": 0.989
+        },
+        {
+          "word": "on",
+          "start": 29.6,
+          "end": 29.8,
+          "probability": 0.966
+        },
+        {
+          "word": "the",
+          "start": 29.8,
+          "end": 29.92,
+          "probability": 0.979
+        },
+        {
+          "word": "way",
+          "start": 29.92,
+          "end": 30.1,
+          "probability": 0.981
+        },
+        {
+          "word": "to",
+          "start": 30.1,
+          "end": 30.22,
+          "probability": 0.832
+        },
+        {
+          "word": "work",
+          "start": 30.22,
+          "end": 30.45,
+          "probability": 0.839
+        }
+      ]
+    },
+    {
+      "start": 30.45,
+      "end": 36.28,
+      "text": " this morning. It might be because I saw someone I like promoting it in an advert. We call this",
+      "words": [
+        {
+          "word": "this",
+          "start": 30.45,
+          "end": 30.72,
+          "probability": 0.997
+        },
+        {
+          "word": "morning.",
+          "start": 30.72,
+          "end": 31.08,
+          "probability": 0.999
+        },
+        {
+          "word": "It",
+          "start": 32.0,
+          "end": 32.02,
+          "probability": 0.756
+        },
+        {
+          "word": "might",
+          "start": 32.02,
+          "end": 32.38,
+          "probability": 0.996
+        },
+        {
+          "word": "be",
+          "start": 32.38,
+          "end": 32.62,
+          "probability": 0.998
+        },
+        {
+          "word": "because",
+          "start": 32.62,
+          "end": 33.0,
+          "probability": 0.997
+        },
+        {
+          "word": "I",
+          "start": 33.0,
+          "end": 33.14,
+          "probability": 0.981
+        },
+        {
+          "word": "saw",
+          "start": 33.14,
+          "end": 33.44,
+          "probability": 0.997
+        },
+        {
+          "word": "someone",
+          "start": 33.44,
+          "end": 33.68,
+          "probability": 0.997
+        },
+        {
+          "word": "I",
+          "start": 33.68,
+          "end": 33.84,
+          "probability": 0.974
+        },
+        {
+          "word": "like",
+          "start": 33.84,
+          "end": 34.06,
+          "probability": 0.52
+        },
+        {
+          "word": "promoting",
+          "start": 34.06,
+          "end": 34.5,
+          "probability": 0.992
+        },
+        {
+          "word": "it",
+          "start": 34.5,
+          "end": 34.78,
+          "probability": 0.994
+        },
+        {
+          "word": "in",
+          "start": 34.78,
+          "end": 34.9,
+          "probability": 0.927
+        },
+        {
+          "word": "an",
+          "start": 34.9,
+          "end": 35.1,
+          "probability": 0.992
+        },
+        {
+          "word": "advert.",
+          "start": 35.1,
+          "end": 35.48,
+          "probability": 0.968
+        },
+        {
+          "word": "We",
+          "start": 35.9,
+          "end": 35.94,
+          "probability": 0.606
+        },
+        {
+          "word": "call",
+          "start": 35.94,
+          "end": 36.24,
+          "probability": 0.939
+        },
+        {
+          "word": "this",
+          "start": 36.24,
+          "end": 36.28,
+          "probability": 0.865
+        }
+      ]
+    },
+    {
+      "start": 36.28,
+      "end": 42.32,
+      "text": " a celebrity endorsement but why do they work? Let's start by hearing from Ben Jones, a",
+      "words": [
+        {
+          "word": "a",
+          "start": 36.28,
+          "end": 36.98,
+          "probability": 0.998
+        },
+        {
+          "word": "celebrity",
+          "start": 36.98,
+          "end": 37.62,
+          "probability": 0.919
+        },
+        {
+          "word": "endorsement",
+          "start": 37.62,
+          "end": 38.12,
+          "probability": 0.995
+        },
+        {
+          "word": "but",
+          "start": 38.12,
+          "end": 38.72,
+          "probability": 0.383
+        },
+        {
+          "word": "why",
+          "start": 38.72,
+          "end": 39.0,
+          "probability": 0.97
+        },
+        {
+          "word": "do",
+          "start": 39.0,
+          "end": 39.2,
+          "probability": 0.953
+        },
+        {
+          "word": "they",
+          "start": 39.2,
+          "end": 39.44,
+          "probability": 0.999
+        },
+        {
+          "word": "work?",
+          "start": 39.44,
+          "end": 40.0,
+          "probability": 0.997
+        },
+        {
+          "word": "Let's",
+          "start": 40.24,
+          "end": 40.58,
+          "probability": 0.984
+        },
+        {
+          "word": "start",
+          "start": 40.58,
+          "end": 40.8,
+          "probability": 0.994
+        },
+        {
+          "word": "by",
+          "start": 40.8,
+          "end": 40.96,
+          "probability": 0.976
+        },
+        {
+          "word": "hearing",
+          "start": 40.96,
+          "end": 41.2,
+          "probability": 0.996
+        },
+        {
+          "word": "from",
+          "start": 41.2,
+          "end": 41.44,
+          "probability": 0.995
+        },
+        {
+          "word": "Ben",
+          "start": 41.44,
+          "end": 41.78,
+          "probability": 0.942
+        },
+        {
+          "word": "Jones,",
+          "start": 41.78,
+          "end": 42.1,
+          "probability": 0.977
+        },
+        {
+          "word": "a",
+          "start": 42.26,
+          "end": 42.32,
+          "probability": 0.639
+        }
+      ]
+    },
+    {
+      "start": 42.32,
+      "end": 48.29,
+      "text": " behavioral research expert speaking to BBC World Service program business daily. When we're",
+      "words": [
+        {
+          "word": "behavioral",
+          "start": 42.32,
+          "end": 42.78,
+          "probability": 0.516
+        },
+        {
+          "word": "research",
+          "start": 42.78,
+          "end": 43.24,
+          "probability": 0.966
+        },
+        {
+          "word": "expert",
+          "start": 43.24,
+          "end": 43.62,
+          "probability": 0.999
+        },
+        {
+          "word": "speaking",
+          "start": 43.62,
+          "end": 44.26,
+          "probability": 0.798
+        },
+        {
+          "word": "to",
+          "start": 44.26,
+          "end": 44.6,
+          "probability": 0.998
+        },
+        {
+          "word": "BBC",
+          "start": 44.6,
+          "end": 45.18,
+          "probability": 0.995
+        },
+        {
+          "word": "World",
+          "start": 45.18,
+          "end": 45.54,
+          "probability": 0.934
+        },
+        {
+          "word": "Service",
+          "start": 45.54,
+          "end": 45.92,
+          "probability": 0.944
+        },
+        {
+          "word": "program",
+          "start": 45.92,
+          "end": 46.5,
+          "probability": 0.379
+        },
+        {
+          "word": "business",
+          "start": 46.5,
+          "end": 47.06,
+          "probability": 0.897
+        },
+        {
+          "word": "daily.",
+          "start": 47.06,
+          "end": 47.54,
+          "probability": 0.989
+        },
+        {
+          "word": "When",
+          "start": 47.86,
+          "end": 48.12,
+          "probability": 0.514
+        },
+        {
+          "word": "we're",
+          "start": 48.12,
+          "end": 48.29,
+          "probability": 0.934
+        }
+      ]
+    },
+    {
+      "start": 48.29,
+      "end": 52.55,
+      "text": " unsure we don't know what to do, it's kind of easy to follow the lead of those who we think are",
+      "words": [
+        {
+          "word": "unsure",
+          "start": 48.29,
+          "end": 48.78,
+          "probability": 0.994
+        },
+        {
+          "word": "we",
+          "start": 48.78,
+          "end": 48.9,
+          "probability": 0.55
+        },
+        {
+          "word": "don't",
+          "start": 48.9,
+          "end": 49.06,
+          "probability": 0.999
+        },
+        {
+          "word": "know",
+          "start": 49.06,
+          "end": 49.16,
+          "probability": 0.937
+        },
+        {
+          "word": "what",
+          "start": 49.16,
+          "end": 49.32,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 49.32,
+          "end": 49.44,
+          "probability": 0.996
+        },
+        {
+          "word": "do,",
+          "start": 49.44,
+          "end": 49.62,
+          "probability": 1.0
+        },
+        {
+          "word": "it's",
+          "start": 49.78,
+          "end": 49.86,
+          "probability": 0.995
+        },
+        {
+          "word": "kind",
+          "start": 49.86,
+          "end": 50.02,
+          "probability": 0.986
+        },
+        {
+          "word": "of",
+          "start": 50.02,
+          "end": 50.14,
+          "probability": 0.999
+        },
+        {
+          "word": "easy",
+          "start": 50.14,
+          "end": 50.38,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 50.38,
+          "end": 50.7,
+          "probability": 0.998
+        },
+        {
+          "word": "follow",
+          "start": 50.7,
+          "end": 50.9,
+          "probability": 1.0
+        },
+        {
+          "word": "the",
+          "start": 50.9,
+          "end": 51.04,
+          "probability": 0.999
+        },
+        {
+          "word": "lead",
+          "start": 51.04,
+          "end": 51.3,
+          "probability": 0.987
+        },
+        {
+          "word": "of",
+          "start": 51.3,
+          "end": 51.5,
+          "probability": 0.998
+        },
+        {
+          "word": "those",
+          "start": 51.5,
+          "end": 51.78,
+          "probability": 0.997
+        },
+        {
+          "word": "who",
+          "start": 51.78,
+          "end": 51.94,
+          "probability": 0.983
+        },
+        {
+          "word": "we",
+          "start": 51.94,
+          "end": 52.06,
+          "probability": 0.947
+        },
+        {
+          "word": "think",
+          "start": 52.06,
+          "end": 52.36,
+          "probability": 0.956
+        },
+        {
+          "word": "are",
+          "start": 52.36,
+          "end": 52.55,
+          "probability": 0.672
+        }
+      ]
+    },
+    {
+      "start": 52.55,
+      "end": 56.76,
+      "text": " credible or knowledgeable. It's a mental shortcut, it's something that helps us navigate",
+      "words": [
+        {
+          "word": "credible",
+          "start": 52.55,
+          "end": 53.08,
+          "probability": 0.963
+        },
+        {
+          "word": "or",
+          "start": 53.08,
+          "end": 53.3,
+          "probability": 0.863
+        },
+        {
+          "word": "knowledgeable.",
+          "start": 53.3,
+          "end": 54.06,
+          "probability": 0.974
+        },
+        {
+          "word": "It's",
+          "start": 54.4,
+          "end": 54.56,
+          "probability": 0.991
+        },
+        {
+          "word": "a",
+          "start": 54.56,
+          "end": 54.66,
+          "probability": 0.995
+        },
+        {
+          "word": "mental",
+          "start": 54.66,
+          "end": 54.96,
+          "probability": 0.998
+        },
+        {
+          "word": "shortcut,",
+          "start": 54.96,
+          "end": 55.38,
+          "probability": 0.901
+        },
+        {
+          "word": "it's",
+          "start": 55.52,
+          "end": 55.6,
+          "probability": 0.916
+        },
+        {
+          "word": "something",
+          "start": 55.6,
+          "end": 55.8,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 55.8,
+          "end": 55.96,
+          "probability": 0.999
+        },
+        {
+          "word": "helps",
+          "start": 55.96,
+          "end": 56.28,
+          "probability": 0.998
+        },
+        {
+          "word": "us",
+          "start": 56.28,
+          "end": 56.48,
+          "probability": 0.989
+        },
+        {
+          "word": "navigate",
+          "start": 56.48,
+          "end": 56.76,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 56.76,
+      "end": 62.79,
+      "text": " uncertain times or make quick choices. We start doing that from an early age but our parents,",
+      "words": [
+        {
+          "word": "uncertain",
+          "start": 56.76,
+          "end": 57.86,
+          "probability": 0.908
+        },
+        {
+          "word": "times",
+          "start": 57.86,
+          "end": 58.36,
+          "probability": 0.998
+        },
+        {
+          "word": "or",
+          "start": 58.36,
+          "end": 58.58,
+          "probability": 0.965
+        },
+        {
+          "word": "make",
+          "start": 58.58,
+          "end": 58.88,
+          "probability": 0.792
+        },
+        {
+          "word": "quick",
+          "start": 58.88,
+          "end": 59.18,
+          "probability": 0.993
+        },
+        {
+          "word": "choices.",
+          "start": 59.18,
+          "end": 59.74,
+          "probability": 1.0
+        },
+        {
+          "word": "We",
+          "start": 60.34,
+          "end": 60.6,
+          "probability": 0.988
+        },
+        {
+          "word": "start",
+          "start": 60.6,
+          "end": 60.84,
+          "probability": 0.873
+        },
+        {
+          "word": "doing",
+          "start": 60.84,
+          "end": 61.02,
+          "probability": 0.998
+        },
+        {
+          "word": "that",
+          "start": 61.02,
+          "end": 61.2,
+          "probability": 0.998
+        },
+        {
+          "word": "from",
+          "start": 61.2,
+          "end": 61.32,
+          "probability": 0.991
+        },
+        {
+          "word": "an",
+          "start": 61.32,
+          "end": 61.46,
+          "probability": 0.993
+        },
+        {
+          "word": "early",
+          "start": 61.46,
+          "end": 61.72,
+          "probability": 0.961
+        },
+        {
+          "word": "age",
+          "start": 61.72,
+          "end": 62.08,
+          "probability": 0.994
+        },
+        {
+          "word": "but",
+          "start": 62.08,
+          "end": 62.28,
+          "probability": 0.456
+        },
+        {
+          "word": "our",
+          "start": 62.28,
+          "end": 62.42,
+          "probability": 0.946
+        },
+        {
+          "word": "parents,",
+          "start": 62.42,
+          "end": 62.79,
+          "probability": 0.889
+        }
+      ]
+    },
+    {
+      "start": 62.79,
+      "end": 66.68,
+      "text": " for some people, it's about our teachers. You know, these people will help us learn and make sense",
+      "words": [
+        {
+          "word": "for",
+          "start": 62.79,
+          "end": 63.04,
+          "probability": 0.997
+        },
+        {
+          "word": "some",
+          "start": 63.04,
+          "end": 63.18,
+          "probability": 0.999
+        },
+        {
+          "word": "people,",
+          "start": 63.18,
+          "end": 63.58,
+          "probability": 0.997
+        },
+        {
+          "word": "it's",
+          "start": 63.68,
+          "end": 63.76,
+          "probability": 0.927
+        },
+        {
+          "word": "about",
+          "start": 63.76,
+          "end": 63.9,
+          "probability": 0.764
+        },
+        {
+          "word": "our",
+          "start": 63.9,
+          "end": 64.16,
+          "probability": 0.974
+        },
+        {
+          "word": "teachers.",
+          "start": 64.16,
+          "end": 64.54,
+          "probability": 0.998
+        },
+        {
+          "word": "You",
+          "start": 64.9,
+          "end": 64.92,
+          "probability": 0.637
+        },
+        {
+          "word": "know,",
+          "start": 64.92,
+          "end": 65.0,
+          "probability": 0.999
+        },
+        {
+          "word": "these",
+          "start": 65.18,
+          "end": 65.22,
+          "probability": 0.995
+        },
+        {
+          "word": "people",
+          "start": 65.22,
+          "end": 65.46,
+          "probability": 0.998
+        },
+        {
+          "word": "will",
+          "start": 65.46,
+          "end": 65.62,
+          "probability": 0.492
+        },
+        {
+          "word": "help",
+          "start": 65.62,
+          "end": 65.74,
+          "probability": 0.996
+        },
+        {
+          "word": "us",
+          "start": 65.74,
+          "end": 65.92,
+          "probability": 0.997
+        },
+        {
+          "word": "learn",
+          "start": 65.92,
+          "end": 66.18,
+          "probability": 0.992
+        },
+        {
+          "word": "and",
+          "start": 66.18,
+          "end": 66.3,
+          "probability": 0.958
+        },
+        {
+          "word": "make",
+          "start": 66.3,
+          "end": 66.42,
+          "probability": 0.874
+        },
+        {
+          "word": "sense",
+          "start": 66.42,
+          "end": 66.68,
+          "probability": 0.685
+        }
+      ]
+    },
+    {
+      "start": 66.68,
+      "end": 72.18,
+      "text": " of the world and some businesses can draw on this through things like endorsements, you know, dentists",
+      "words": [
+        {
+          "word": "of",
+          "start": 66.68,
+          "end": 66.82,
+          "probability": 0.988
+        },
+        {
+          "word": "the",
+          "start": 66.82,
+          "end": 66.92,
+          "probability": 0.999
+        },
+        {
+          "word": "world",
+          "start": 66.92,
+          "end": 67.4,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 67.4,
+          "end": 68.16,
+          "probability": 0.777
+        },
+        {
+          "word": "some",
+          "start": 68.16,
+          "end": 68.44,
+          "probability": 0.998
+        },
+        {
+          "word": "businesses",
+          "start": 68.44,
+          "end": 68.86,
+          "probability": 0.96
+        },
+        {
+          "word": "can",
+          "start": 68.86,
+          "end": 69.06,
+          "probability": 0.862
+        },
+        {
+          "word": "draw",
+          "start": 69.06,
+          "end": 69.26,
+          "probability": 0.99
+        },
+        {
+          "word": "on",
+          "start": 69.26,
+          "end": 69.4,
+          "probability": 0.996
+        },
+        {
+          "word": "this",
+          "start": 69.4,
+          "end": 69.6,
+          "probability": 0.978
+        },
+        {
+          "word": "through",
+          "start": 69.6,
+          "end": 69.82,
+          "probability": 0.976
+        },
+        {
+          "word": "things",
+          "start": 69.82,
+          "end": 69.98,
+          "probability": 0.998
+        },
+        {
+          "word": "like",
+          "start": 69.98,
+          "end": 70.24,
+          "probability": 0.998
+        },
+        {
+          "word": "endorsements,",
+          "start": 70.24,
+          "end": 71.12,
+          "probability": 0.981
+        },
+        {
+          "word": "you",
+          "start": 71.56,
+          "end": 71.58,
+          "probability": 0.35
+        },
+        {
+          "word": "know,",
+          "start": 71.58,
+          "end": 71.76,
+          "probability": 0.983
+        },
+        {
+          "word": "dentists",
+          "start": 72.02,
+          "end": 72.18,
+          "probability": 0.556
+        }
+      ]
+    },
+    {
+      "start": 72.18,
+      "end": 78.5,
+      "text": " recommending toothpaste, athletes endorsing sports wear. Ben says that endorsements work as a mental",
+      "words": [
+        {
+          "word": "recommending",
+          "start": 72.18,
+          "end": 72.76,
+          "probability": 0.989
+        },
+        {
+          "word": "toothpaste,",
+          "start": 72.76,
+          "end": 73.56,
+          "probability": 0.93
+        },
+        {
+          "word": "athletes",
+          "start": 73.74,
+          "end": 74.02,
+          "probability": 0.982
+        },
+        {
+          "word": "endorsing",
+          "start": 74.02,
+          "end": 74.48,
+          "probability": 0.809
+        },
+        {
+          "word": "sports",
+          "start": 74.48,
+          "end": 74.98,
+          "probability": 0.981
+        },
+        {
+          "word": "wear.",
+          "start": 74.98,
+          "end": 75.4,
+          "probability": 0.341
+        },
+        {
+          "word": "Ben",
+          "start": 75.74,
+          "end": 76.06,
+          "probability": 0.942
+        },
+        {
+          "word": "says",
+          "start": 76.06,
+          "end": 76.38,
+          "probability": 0.993
+        },
+        {
+          "word": "that",
+          "start": 76.38,
+          "end": 76.64,
+          "probability": 0.942
+        },
+        {
+          "word": "endorsements",
+          "start": 76.64,
+          "end": 77.26,
+          "probability": 0.985
+        },
+        {
+          "word": "work",
+          "start": 77.26,
+          "end": 77.76,
+          "probability": 0.948
+        },
+        {
+          "word": "as",
+          "start": 77.76,
+          "end": 77.96,
+          "probability": 0.779
+        },
+        {
+          "word": "a",
+          "start": 77.96,
+          "end": 78.1,
+          "probability": 0.866
+        },
+        {
+          "word": "mental",
+          "start": 78.1,
+          "end": 78.5,
+          "probability": 0.581
+        }
+      ]
+    },
+    {
+      "start": 78.5,
+      "end": 83.38,
+      "text": " shortcut. This is something that helps us make a decision quickly. If we trust the endorsement,",
+      "words": [
+        {
+          "word": "shortcut.",
+          "start": 78.5,
+          "end": 79.04,
+          "probability": 0.982
+        },
+        {
+          "word": "This",
+          "start": 79.46,
+          "end": 79.62,
+          "probability": 0.994
+        },
+        {
+          "word": "is",
+          "start": 79.62,
+          "end": 79.78,
+          "probability": 0.998
+        },
+        {
+          "word": "something",
+          "start": 79.78,
+          "end": 80.1,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 80.1,
+          "end": 80.26,
+          "probability": 0.999
+        },
+        {
+          "word": "helps",
+          "start": 80.26,
+          "end": 80.46,
+          "probability": 0.99
+        },
+        {
+          "word": "us",
+          "start": 80.46,
+          "end": 80.64,
+          "probability": 0.997
+        },
+        {
+          "word": "make",
+          "start": 80.64,
+          "end": 80.82,
+          "probability": 0.957
+        },
+        {
+          "word": "a",
+          "start": 80.82,
+          "end": 80.96,
+          "probability": 0.993
+        },
+        {
+          "word": "decision",
+          "start": 80.96,
+          "end": 81.32,
+          "probability": 0.999
+        },
+        {
+          "word": "quickly.",
+          "start": 81.32,
+          "end": 81.86,
+          "probability": 0.996
+        },
+        {
+          "word": "If",
+          "start": 82.24,
+          "end": 82.4,
+          "probability": 0.997
+        },
+        {
+          "word": "we",
+          "start": 82.4,
+          "end": 82.58,
+          "probability": 0.999
+        },
+        {
+          "word": "trust",
+          "start": 82.58,
+          "end": 82.84,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 82.84,
+          "end": 83.04,
+          "probability": 0.997
+        },
+        {
+          "word": "endorsement,",
+          "start": 83.04,
+          "end": 83.38,
+          "probability": 0.98
+        }
+      ]
+    },
+    {
+      "start": 83.38,
+      "end": 88.26,
+      "text": " then we don't need to think about it that much. In this episode we're going to look at the way",
+      "words": [
+        {
+          "word": "then",
+          "start": 83.38,
+          "end": 83.82,
+          "probability": 0.997
+        },
+        {
+          "word": "we",
+          "start": 83.82,
+          "end": 83.92,
+          "probability": 0.997
+        },
+        {
+          "word": "don't",
+          "start": 83.92,
+          "end": 84.1,
+          "probability": 0.998
+        },
+        {
+          "word": "need",
+          "start": 84.1,
+          "end": 84.32,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 84.32,
+          "end": 84.44,
+          "probability": 0.999
+        },
+        {
+          "word": "think",
+          "start": 84.44,
+          "end": 84.66,
+          "probability": 0.998
+        },
+        {
+          "word": "about",
+          "start": 84.66,
+          "end": 84.92,
+          "probability": 0.998
+        },
+        {
+          "word": "it",
+          "start": 84.92,
+          "end": 85.04,
+          "probability": 0.995
+        },
+        {
+          "word": "that",
+          "start": 85.04,
+          "end": 85.24,
+          "probability": 0.994
+        },
+        {
+          "word": "much.",
+          "start": 85.24,
+          "end": 85.54,
+          "probability": 0.999
+        },
+        {
+          "word": "In",
+          "start": 86.0,
+          "end": 86.18,
+          "probability": 0.967
+        },
+        {
+          "word": "this",
+          "start": 86.18,
+          "end": 86.4,
+          "probability": 0.999
+        },
+        {
+          "word": "episode",
+          "start": 86.4,
+          "end": 86.88,
+          "probability": 0.999
+        },
+        {
+          "word": "we're",
+          "start": 86.88,
+          "end": 87.32,
+          "probability": 0.733
+        },
+        {
+          "word": "going",
+          "start": 87.32,
+          "end": 87.58,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 87.58,
+          "end": 87.72,
+          "probability": 0.996
+        },
+        {
+          "word": "look",
+          "start": 87.72,
+          "end": 87.88,
+          "probability": 0.973
+        },
+        {
+          "word": "at",
+          "start": 87.88,
+          "end": 88.0,
+          "probability": 0.927
+        },
+        {
+          "word": "the",
+          "start": 88.0,
+          "end": 88.12,
+          "probability": 0.84
+        },
+        {
+          "word": "way",
+          "start": 88.12,
+          "end": 88.26,
+          "probability": 0.757
+        }
+      ]
+    },
+    {
+      "start": 88.26,
+      "end": 94.4,
+      "text": " that people can be convinced to do things. And as usual we'll learn some useful new words and phrases",
+      "words": [
+        {
+          "word": "that",
+          "start": 88.26,
+          "end": 88.58,
+          "probability": 0.975
+        },
+        {
+          "word": "people",
+          "start": 88.58,
+          "end": 88.9,
+          "probability": 0.998
+        },
+        {
+          "word": "can",
+          "start": 88.9,
+          "end": 89.14,
+          "probability": 0.998
+        },
+        {
+          "word": "be",
+          "start": 89.14,
+          "end": 89.32,
+          "probability": 0.997
+        },
+        {
+          "word": "convinced",
+          "start": 89.32,
+          "end": 89.92,
+          "probability": 1.0
+        },
+        {
+          "word": "to",
+          "start": 89.92,
+          "end": 90.16,
+          "probability": 0.998
+        },
+        {
+          "word": "do",
+          "start": 90.16,
+          "end": 90.34,
+          "probability": 0.999
+        },
+        {
+          "word": "things.",
+          "start": 90.34,
+          "end": 90.78,
+          "probability": 0.999
+        },
+        {
+          "word": "And",
+          "start": 91.0,
+          "end": 91.34,
+          "probability": 0.961
+        },
+        {
+          "word": "as",
+          "start": 91.34,
+          "end": 91.62,
+          "probability": 0.86
+        },
+        {
+          "word": "usual",
+          "start": 91.62,
+          "end": 92.06,
+          "probability": 0.999
+        },
+        {
+          "word": "we'll",
+          "start": 92.06,
+          "end": 92.38,
+          "probability": 0.692
+        },
+        {
+          "word": "learn",
+          "start": 92.38,
+          "end": 92.56,
+          "probability": 0.605
+        },
+        {
+          "word": "some",
+          "start": 92.56,
+          "end": 92.8,
+          "probability": 0.999
+        },
+        {
+          "word": "useful",
+          "start": 92.8,
+          "end": 93.12,
+          "probability": 0.995
+        },
+        {
+          "word": "new",
+          "start": 93.12,
+          "end": 93.46,
+          "probability": 0.967
+        },
+        {
+          "word": "words",
+          "start": 93.46,
+          "end": 93.74,
+          "probability": 0.984
+        },
+        {
+          "word": "and",
+          "start": 93.74,
+          "end": 93.96,
+          "probability": 0.876
+        },
+        {
+          "word": "phrases",
+          "start": 93.96,
+          "end": 94.4,
+          "probability": 0.788
+        }
+      ]
+    },
+    {
+      "start": 94.76,
+      "end": 100.76,
+      "text": " and remember you'll find all the vocabulary and a quiz on our website, bbclanningenglish.com.",
+      "words": [
+        {
+          "word": "and",
+          "start": 94.76,
+          "end": 95.04,
+          "probability": 0.998
+        },
+        {
+          "word": "remember",
+          "start": 95.04,
+          "end": 95.46,
+          "probability": 0.997
+        },
+        {
+          "word": "you'll",
+          "start": 95.46,
+          "end": 95.86,
+          "probability": 0.955
+        },
+        {
+          "word": "find",
+          "start": 95.86,
+          "end": 96.06,
+          "probability": 0.999
+        },
+        {
+          "word": "all",
+          "start": 96.06,
+          "end": 96.34,
+          "probability": 0.993
+        },
+        {
+          "word": "the",
+          "start": 96.34,
+          "end": 96.46,
+          "probability": 0.962
+        },
+        {
+          "word": "vocabulary",
+          "start": 96.46,
+          "end": 97.02,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 97.02,
+          "end": 97.48,
+          "probability": 0.994
+        },
+        {
+          "word": "a",
+          "start": 97.48,
+          "end": 97.66,
+          "probability": 0.393
+        },
+        {
+          "word": "quiz",
+          "start": 97.66,
+          "end": 97.96,
+          "probability": 0.998
+        },
+        {
+          "word": "on",
+          "start": 97.96,
+          "end": 98.2,
+          "probability": 0.996
+        },
+        {
+          "word": "our",
+          "start": 98.2,
+          "end": 98.36,
+          "probability": 0.999
+        },
+        {
+          "word": "website,",
+          "start": 98.36,
+          "end": 98.88,
+          "probability": 0.912
+        },
+        {
+          "word": "bbclanningenglish.com.",
+          "start": 99.08,
+          "end": 100.76,
+          "probability": 0.517
+        }
+      ]
+    },
+    {
+      "start": 101.02,
+      "end": 107.84,
+      "text": " Okay, but first I have a question for you, Pippa. Today we're talking about behavioral science.",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 101.02,
+          "end": 101.46,
+          "probability": 0.545
+        },
+        {
+          "word": "but",
+          "start": 101.8,
+          "end": 101.92,
+          "probability": 0.976
+        },
+        {
+          "word": "first",
+          "start": 101.92,
+          "end": 102.42,
+          "probability": 0.991
+        },
+        {
+          "word": "I",
+          "start": 102.42,
+          "end": 102.72,
+          "probability": 0.887
+        },
+        {
+          "word": "have",
+          "start": 102.72,
+          "end": 102.94,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 102.94,
+          "end": 103.16,
+          "probability": 0.998
+        },
+        {
+          "word": "question",
+          "start": 103.16,
+          "end": 103.52,
+          "probability": 0.999
+        },
+        {
+          "word": "for",
+          "start": 103.52,
+          "end": 103.8,
+          "probability": 0.999
+        },
+        {
+          "word": "you,",
+          "start": 103.8,
+          "end": 103.92,
+          "probability": 0.999
+        },
+        {
+          "word": "Pippa.",
+          "start": 103.98,
+          "end": 104.5,
+          "probability": 0.715
+        },
+        {
+          "word": "Today",
+          "start": 104.78,
+          "end": 105.18,
+          "probability": 0.946
+        },
+        {
+          "word": "we're",
+          "start": 105.18,
+          "end": 105.74,
+          "probability": 0.9
+        },
+        {
+          "word": "talking",
+          "start": 105.74,
+          "end": 106.14,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 106.14,
+          "end": 106.58,
+          "probability": 0.979
+        },
+        {
+          "word": "behavioral",
+          "start": 106.58,
+          "end": 107.2,
+          "probability": 0.648
+        },
+        {
+          "word": "science.",
+          "start": 107.2,
+          "end": 107.84,
+          "probability": 0.957
+        }
+      ]
+    },
+    {
+      "start": 108.48,
+      "end": 115.24,
+      "text": " What's the name of the theory that says people respond to small prompts? Is it A, push theory,",
+      "words": [
+        {
+          "word": "What's",
+          "start": 108.48,
+          "end": 108.78,
+          "probability": 0.987
+        },
+        {
+          "word": "the",
+          "start": 108.78,
+          "end": 108.92,
+          "probability": 0.997
+        },
+        {
+          "word": "name",
+          "start": 108.92,
+          "end": 109.1,
+          "probability": 0.997
+        },
+        {
+          "word": "of",
+          "start": 109.1,
+          "end": 109.26,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 109.26,
+          "end": 109.46,
+          "probability": 0.99
+        },
+        {
+          "word": "theory",
+          "start": 109.46,
+          "end": 109.86,
+          "probability": 0.989
+        },
+        {
+          "word": "that",
+          "start": 109.86,
+          "end": 110.06,
+          "probability": 0.997
+        },
+        {
+          "word": "says",
+          "start": 110.06,
+          "end": 110.4,
+          "probability": 0.998
+        },
+        {
+          "word": "people",
+          "start": 110.4,
+          "end": 110.8,
+          "probability": 0.97
+        },
+        {
+          "word": "respond",
+          "start": 110.8,
+          "end": 111.32,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 111.32,
+          "end": 111.72,
+          "probability": 0.999
+        },
+        {
+          "word": "small",
+          "start": 111.72,
+          "end": 112.26,
+          "probability": 0.995
+        },
+        {
+          "word": "prompts?",
+          "start": 112.26,
+          "end": 112.86,
+          "probability": 0.931
+        },
+        {
+          "word": "Is",
+          "start": 113.22,
+          "end": 113.44,
+          "probability": 0.738
+        },
+        {
+          "word": "it",
+          "start": 113.44,
+          "end": 113.8,
+          "probability": 0.995
+        },
+        {
+          "word": "A,",
+          "start": 113.8,
+          "end": 114.26,
+          "probability": 0.708
+        },
+        {
+          "word": "push",
+          "start": 114.48,
+          "end": 114.78,
+          "probability": 0.472
+        },
+        {
+          "word": "theory,",
+          "start": 114.78,
+          "end": 115.24,
+          "probability": 0.984
+        }
+      ]
+    },
+    {
+      "start": 115.56,
+      "end": 123.12,
+      "text": " B, pull theory or C, nudge theory? Oh, I'm not sure. I'm going to say B, pull theory.",
+      "words": [
+        {
+          "word": "B,",
+          "start": 115.56,
+          "end": 116.1,
+          "probability": 0.95
+        },
+        {
+          "word": "pull",
+          "start": 116.24,
+          "end": 116.58,
+          "probability": 0.697
+        },
+        {
+          "word": "theory",
+          "start": 116.58,
+          "end": 117.04,
+          "probability": 0.998
+        },
+        {
+          "word": "or",
+          "start": 117.04,
+          "end": 117.56,
+          "probability": 0.551
+        },
+        {
+          "word": "C,",
+          "start": 117.56,
+          "end": 118.1,
+          "probability": 0.977
+        },
+        {
+          "word": "nudge",
+          "start": 118.38,
+          "end": 118.94,
+          "probability": 0.988
+        },
+        {
+          "word": "theory?",
+          "start": 118.94,
+          "end": 119.48,
+          "probability": 0.998
+        },
+        {
+          "word": "Oh,",
+          "start": 120.0,
+          "end": 120.4,
+          "probability": 0.606
+        },
+        {
+          "word": "I'm",
+          "start": 120.48,
+          "end": 120.62,
+          "probability": 0.994
+        },
+        {
+          "word": "not",
+          "start": 120.62,
+          "end": 120.78,
+          "probability": 0.998
+        },
+        {
+          "word": "sure.",
+          "start": 120.78,
+          "end": 121.0,
+          "probability": 0.999
+        },
+        {
+          "word": "I'm",
+          "start": 121.14,
+          "end": 121.24,
+          "probability": 0.998
+        },
+        {
+          "word": "going",
+          "start": 121.24,
+          "end": 121.4,
+          "probability": 0.885
+        },
+        {
+          "word": "to",
+          "start": 121.4,
+          "end": 121.66,
+          "probability": 0.996
+        },
+        {
+          "word": "say",
+          "start": 121.66,
+          "end": 122.02,
+          "probability": 0.999
+        },
+        {
+          "word": "B,",
+          "start": 122.02,
+          "end": 122.44,
+          "probability": 0.808
+        },
+        {
+          "word": "pull",
+          "start": 122.48,
+          "end": 122.78,
+          "probability": 0.991
+        },
+        {
+          "word": "theory.",
+          "start": 122.78,
+          "end": 123.12,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 123.82,
+      "end": 130.33,
+      "text": " Okay, well we'll find out the answer at the end of the program. In recent years, many fast food chains",
+      "words": [
+        {
+          "word": "Okay,",
+          "start": 123.82,
+          "end": 124.14,
+          "probability": 0.985
+        },
+        {
+          "word": "well",
+          "start": 124.3,
+          "end": 124.4,
+          "probability": 0.972
+        },
+        {
+          "word": "we'll",
+          "start": 124.4,
+          "end": 124.64,
+          "probability": 0.76
+        },
+        {
+          "word": "find",
+          "start": 124.64,
+          "end": 124.88,
+          "probability": 0.968
+        },
+        {
+          "word": "out",
+          "start": 124.88,
+          "end": 125.02,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 125.02,
+          "end": 125.18,
+          "probability": 0.999
+        },
+        {
+          "word": "answer",
+          "start": 125.18,
+          "end": 125.48,
+          "probability": 0.999
+        },
+        {
+          "word": "at",
+          "start": 125.48,
+          "end": 125.84,
+          "probability": 0.879
+        },
+        {
+          "word": "the",
+          "start": 125.84,
+          "end": 126.02,
+          "probability": 0.999
+        },
+        {
+          "word": "end",
+          "start": 126.02,
+          "end": 126.16,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 126.16,
+          "end": 126.36,
+          "probability": 0.994
+        },
+        {
+          "word": "the",
+          "start": 126.36,
+          "end": 126.54,
+          "probability": 0.999
+        },
+        {
+          "word": "program.",
+          "start": 126.54,
+          "end": 127.02,
+          "probability": 0.791
+        },
+        {
+          "word": "In",
+          "start": 127.7,
+          "end": 127.94,
+          "probability": 0.865
+        },
+        {
+          "word": "recent",
+          "start": 127.94,
+          "end": 128.36,
+          "probability": 0.998
+        },
+        {
+          "word": "years,",
+          "start": 128.36,
+          "end": 128.84,
+          "probability": 0.995
+        },
+        {
+          "word": "many",
+          "start": 129.04,
+          "end": 129.34,
+          "probability": 0.652
+        },
+        {
+          "word": "fast",
+          "start": 129.34,
+          "end": 129.76,
+          "probability": 0.589
+        },
+        {
+          "word": "food",
+          "start": 129.76,
+          "end": 130.06,
+          "probability": 0.626
+        },
+        {
+          "word": "chains",
+          "start": 130.06,
+          "end": 130.33,
+          "probability": 0.535
+        }
+      ]
+    },
+    {
+      "start": 130.33,
+      "end": 136.07,
+      "text": " have installed touchscreen machines for people to order their food. They've reported taking more",
+      "words": [
+        {
+          "word": "have",
+          "start": 130.33,
+          "end": 130.58,
+          "probability": 0.98
+        },
+        {
+          "word": "installed",
+          "start": 130.58,
+          "end": 131.0,
+          "probability": 0.988
+        },
+        {
+          "word": "touchscreen",
+          "start": 131.0,
+          "end": 131.54,
+          "probability": 0.694
+        },
+        {
+          "word": "machines",
+          "start": 131.54,
+          "end": 132.12,
+          "probability": 1.0
+        },
+        {
+          "word": "for",
+          "start": 132.12,
+          "end": 132.34,
+          "probability": 0.996
+        },
+        {
+          "word": "people",
+          "start": 132.34,
+          "end": 132.68,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 132.68,
+          "end": 132.94,
+          "probability": 1.0
+        },
+        {
+          "word": "order",
+          "start": 132.94,
+          "end": 133.2,
+          "probability": 0.996
+        },
+        {
+          "word": "their",
+          "start": 133.2,
+          "end": 133.46,
+          "probability": 1.0
+        },
+        {
+          "word": "food.",
+          "start": 133.46,
+          "end": 133.98,
+          "probability": 0.999
+        },
+        {
+          "word": "They've",
+          "start": 134.38,
+          "end": 134.66,
+          "probability": 0.988
+        },
+        {
+          "word": "reported",
+          "start": 134.66,
+          "end": 135.22,
+          "probability": 0.995
+        },
+        {
+          "word": "taking",
+          "start": 135.22,
+          "end": 135.72,
+          "probability": 0.935
+        },
+        {
+          "word": "more",
+          "start": 135.72,
+          "end": 136.07,
+          "probability": 0.676
+        }
+      ]
+    },
+    {
+      "start": 136.07,
+      "end": 142.92,
+      "text": " money as a result. Could behavioral science tell us why this happens? Here's product designer",
+      "words": [
+        {
+          "word": "money",
+          "start": 136.07,
+          "end": 136.54,
+          "probability": 0.986
+        },
+        {
+          "word": "as",
+          "start": 136.54,
+          "end": 136.8,
+          "probability": 0.994
+        },
+        {
+          "word": "a",
+          "start": 136.8,
+          "end": 136.96,
+          "probability": 0.998
+        },
+        {
+          "word": "result.",
+          "start": 136.96,
+          "end": 137.5,
+          "probability": 1.0
+        },
+        {
+          "word": "Could",
+          "start": 138.1,
+          "end": 138.38,
+          "probability": 0.711
+        },
+        {
+          "word": "behavioral",
+          "start": 138.38,
+          "end": 139.1,
+          "probability": 0.868
+        },
+        {
+          "word": "science",
+          "start": 139.1,
+          "end": 139.82,
+          "probability": 0.999
+        },
+        {
+          "word": "tell",
+          "start": 139.82,
+          "end": 140.08,
+          "probability": 0.999
+        },
+        {
+          "word": "us",
+          "start": 140.08,
+          "end": 140.3,
+          "probability": 1.0
+        },
+        {
+          "word": "why",
+          "start": 140.3,
+          "end": 140.6,
+          "probability": 0.997
+        },
+        {
+          "word": "this",
+          "start": 140.6,
+          "end": 140.88,
+          "probability": 0.998
+        },
+        {
+          "word": "happens?",
+          "start": 140.88,
+          "end": 141.28,
+          "probability": 0.998
+        },
+        {
+          "word": "Here's",
+          "start": 141.74,
+          "end": 142.08,
+          "probability": 0.712
+        },
+        {
+          "word": "product",
+          "start": 142.08,
+          "end": 142.48,
+          "probability": 0.816
+        },
+        {
+          "word": "designer",
+          "start": 142.48,
+          "end": 142.92,
+          "probability": 0.573
+        }
+      ]
+    },
+    {
+      "start": 143.06,
+      "end": 150.03,
+      "text": " Dean Ward speaking to BBC World Services business daily. Firstly, the psychology of speaking to",
+      "words": [
+        {
+          "word": "Dean",
+          "start": 143.06,
+          "end": 143.52,
+          "probability": 0.826
+        },
+        {
+          "word": "Ward",
+          "start": 143.52,
+          "end": 143.9,
+          "probability": 0.937
+        },
+        {
+          "word": "speaking",
+          "start": 143.9,
+          "end": 144.32,
+          "probability": 0.896
+        },
+        {
+          "word": "to",
+          "start": 144.32,
+          "end": 144.68,
+          "probability": 0.998
+        },
+        {
+          "word": "BBC",
+          "start": 144.68,
+          "end": 145.04,
+          "probability": 0.988
+        },
+        {
+          "word": "World",
+          "start": 145.04,
+          "end": 145.32,
+          "probability": 0.958
+        },
+        {
+          "word": "Services",
+          "start": 145.32,
+          "end": 145.88,
+          "probability": 0.926
+        },
+        {
+          "word": "business",
+          "start": 145.88,
+          "end": 146.56,
+          "probability": 0.611
+        },
+        {
+          "word": "daily.",
+          "start": 146.56,
+          "end": 147.02,
+          "probability": 0.989
+        },
+        {
+          "word": "Firstly,",
+          "start": 147.46,
+          "end": 147.92,
+          "probability": 0.914
+        },
+        {
+          "word": "the",
+          "start": 148.24,
+          "end": 148.34,
+          "probability": 0.948
+        },
+        {
+          "word": "psychology",
+          "start": 148.34,
+          "end": 148.82,
+          "probability": 0.993
+        },
+        {
+          "word": "of",
+          "start": 148.82,
+          "end": 149.48,
+          "probability": 0.932
+        },
+        {
+          "word": "speaking",
+          "start": 149.48,
+          "end": 149.82,
+          "probability": 0.955
+        },
+        {
+          "word": "to",
+          "start": 149.82,
+          "end": 150.03,
+          "probability": 0.835
+        }
+      ]
+    },
+    {
+      "start": 150.03,
+      "end": 154.82,
+      "text": " someone and feeling judged within as a key factor. So would you like extra fraud? Would you like",
+      "words": [
+        {
+          "word": "someone",
+          "start": 150.03,
+          "end": 150.36,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 150.36,
+          "end": 150.54,
+          "probability": 0.993
+        },
+        {
+          "word": "feeling",
+          "start": 150.54,
+          "end": 150.82,
+          "probability": 0.967
+        },
+        {
+          "word": "judged",
+          "start": 150.82,
+          "end": 151.28,
+          "probability": 0.991
+        },
+        {
+          "word": "within",
+          "start": 151.28,
+          "end": 151.62,
+          "probability": 0.823
+        },
+        {
+          "word": "as",
+          "start": 151.62,
+          "end": 151.82,
+          "probability": 0.328
+        },
+        {
+          "word": "a",
+          "start": 151.82,
+          "end": 151.94,
+          "probability": 0.993
+        },
+        {
+          "word": "key",
+          "start": 151.94,
+          "end": 152.1,
+          "probability": 0.974
+        },
+        {
+          "word": "factor.",
+          "start": 152.1,
+          "end": 152.5,
+          "probability": 0.993
+        },
+        {
+          "word": "So",
+          "start": 153.1,
+          "end": 153.14,
+          "probability": 0.888
+        },
+        {
+          "word": "would",
+          "start": 153.14,
+          "end": 153.26,
+          "probability": 0.901
+        },
+        {
+          "word": "you",
+          "start": 153.26,
+          "end": 153.42,
+          "probability": 0.996
+        },
+        {
+          "word": "like",
+          "start": 153.42,
+          "end": 153.6,
+          "probability": 0.997
+        },
+        {
+          "word": "extra",
+          "start": 153.6,
+          "end": 154.0,
+          "probability": 0.875
+        },
+        {
+          "word": "fraud?",
+          "start": 154.0,
+          "end": 154.3,
+          "probability": 0.188
+        },
+        {
+          "word": "Would",
+          "start": 154.32,
+          "end": 154.5,
+          "probability": 0.983
+        },
+        {
+          "word": "you",
+          "start": 154.5,
+          "end": 154.62,
+          "probability": 0.984
+        },
+        {
+          "word": "like",
+          "start": 154.62,
+          "end": 154.82,
+          "probability": 0.741
+        }
+      ]
+    },
+    {
+      "start": 154.82,
+      "end": 160.02,
+      "text": " to go large? Not all people, but I think there's definitely a large proportion of people who",
+      "words": [
+        {
+          "word": "to",
+          "start": 154.82,
+          "end": 155.02,
+          "probability": 0.999
+        },
+        {
+          "word": "go",
+          "start": 155.02,
+          "end": 155.16,
+          "probability": 0.998
+        },
+        {
+          "word": "large?",
+          "start": 155.16,
+          "end": 155.82,
+          "probability": 0.981
+        },
+        {
+          "word": "Not",
+          "start": 156.14,
+          "end": 156.3,
+          "probability": 0.991
+        },
+        {
+          "word": "all",
+          "start": 156.3,
+          "end": 156.48,
+          "probability": 0.997
+        },
+        {
+          "word": "people,",
+          "start": 156.48,
+          "end": 156.88,
+          "probability": 0.999
+        },
+        {
+          "word": "but",
+          "start": 157.12,
+          "end": 157.14,
+          "probability": 0.996
+        },
+        {
+          "word": "I",
+          "start": 157.14,
+          "end": 157.16,
+          "probability": 0.978
+        },
+        {
+          "word": "think",
+          "start": 157.16,
+          "end": 157.54,
+          "probability": 0.999
+        },
+        {
+          "word": "there's",
+          "start": 157.54,
+          "end": 157.84,
+          "probability": 0.956
+        },
+        {
+          "word": "definitely",
+          "start": 157.84,
+          "end": 158.28,
+          "probability": 0.995
+        },
+        {
+          "word": "a",
+          "start": 158.28,
+          "end": 158.52,
+          "probability": 0.997
+        },
+        {
+          "word": "large",
+          "start": 158.52,
+          "end": 158.78,
+          "probability": 0.968
+        },
+        {
+          "word": "proportion",
+          "start": 158.78,
+          "end": 159.1,
+          "probability": 0.792
+        },
+        {
+          "word": "of",
+          "start": 159.1,
+          "end": 159.24,
+          "probability": 0.961
+        },
+        {
+          "word": "people",
+          "start": 159.24,
+          "end": 159.46,
+          "probability": 0.992
+        },
+        {
+          "word": "who",
+          "start": 159.46,
+          "end": 160.02,
+          "probability": 0.918
+        }
+      ]
+    },
+    {
+      "start": 160.06,
+      "end": 164.78,
+      "text": " may feel judged in those instances and may say no. There's the fact that you've got more time to look,",
+      "words": [
+        {
+          "word": "may",
+          "start": 160.06,
+          "end": 160.38,
+          "probability": 0.983
+        },
+        {
+          "word": "feel",
+          "start": 160.38,
+          "end": 160.58,
+          "probability": 0.978
+        },
+        {
+          "word": "judged",
+          "start": 160.58,
+          "end": 160.86,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 160.86,
+          "end": 161.0,
+          "probability": 0.984
+        },
+        {
+          "word": "those",
+          "start": 161.0,
+          "end": 161.24,
+          "probability": 0.998
+        },
+        {
+          "word": "instances",
+          "start": 161.24,
+          "end": 161.6,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 161.6,
+          "end": 161.8,
+          "probability": 0.933
+        },
+        {
+          "word": "may",
+          "start": 161.8,
+          "end": 162.0,
+          "probability": 0.996
+        },
+        {
+          "word": "say",
+          "start": 162.0,
+          "end": 162.18,
+          "probability": 0.997
+        },
+        {
+          "word": "no.",
+          "start": 162.18,
+          "end": 162.72,
+          "probability": 0.863
+        },
+        {
+          "word": "There's",
+          "start": 162.9,
+          "end": 163.12,
+          "probability": 0.871
+        },
+        {
+          "word": "the",
+          "start": 163.12,
+          "end": 163.22,
+          "probability": 0.987
+        },
+        {
+          "word": "fact",
+          "start": 163.22,
+          "end": 163.42,
+          "probability": 0.924
+        },
+        {
+          "word": "that",
+          "start": 163.42,
+          "end": 163.58,
+          "probability": 0.988
+        },
+        {
+          "word": "you've",
+          "start": 163.58,
+          "end": 163.74,
+          "probability": 0.996
+        },
+        {
+          "word": "got",
+          "start": 163.74,
+          "end": 163.86,
+          "probability": 0.988
+        },
+        {
+          "word": "more",
+          "start": 163.86,
+          "end": 164.06,
+          "probability": 0.942
+        },
+        {
+          "word": "time",
+          "start": 164.06,
+          "end": 164.34,
+          "probability": 0.944
+        },
+        {
+          "word": "to",
+          "start": 164.34,
+          "end": 164.5,
+          "probability": 0.859
+        },
+        {
+          "word": "look,",
+          "start": 164.5,
+          "end": 164.78,
+          "probability": 0.765
+        }
+      ]
+    },
+    {
+      "start": 165.48,
+      "end": 169.42,
+      "text": " you can see the product, you can see what's in it, you can see all the products linked to it as",
+      "words": [
+        {
+          "word": "you",
+          "start": 165.48,
+          "end": 165.74,
+          "probability": 0.785
+        },
+        {
+          "word": "can",
+          "start": 165.74,
+          "end": 166.0,
+          "probability": 0.998
+        },
+        {
+          "word": "see",
+          "start": 166.0,
+          "end": 166.16,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 166.16,
+          "end": 166.3,
+          "probability": 0.994
+        },
+        {
+          "word": "product,",
+          "start": 166.3,
+          "end": 166.64,
+          "probability": 0.979
+        },
+        {
+          "word": "you",
+          "start": 166.8,
+          "end": 166.84,
+          "probability": 0.902
+        },
+        {
+          "word": "can",
+          "start": 166.84,
+          "end": 167.02,
+          "probability": 0.998
+        },
+        {
+          "word": "see",
+          "start": 167.02,
+          "end": 167.16,
+          "probability": 0.999
+        },
+        {
+          "word": "what's",
+          "start": 167.16,
+          "end": 167.42,
+          "probability": 0.975
+        },
+        {
+          "word": "in",
+          "start": 167.42,
+          "end": 167.54,
+          "probability": 0.996
+        },
+        {
+          "word": "it,",
+          "start": 167.54,
+          "end": 167.64,
+          "probability": 0.984
+        },
+        {
+          "word": "you",
+          "start": 167.76,
+          "end": 167.78,
+          "probability": 0.99
+        },
+        {
+          "word": "can",
+          "start": 167.78,
+          "end": 167.92,
+          "probability": 0.999
+        },
+        {
+          "word": "see",
+          "start": 167.92,
+          "end": 168.04,
+          "probability": 0.991
+        },
+        {
+          "word": "all",
+          "start": 168.04,
+          "end": 168.2,
+          "probability": 0.973
+        },
+        {
+          "word": "the",
+          "start": 168.2,
+          "end": 168.34,
+          "probability": 0.991
+        },
+        {
+          "word": "products",
+          "start": 168.34,
+          "end": 168.66,
+          "probability": 0.932
+        },
+        {
+          "word": "linked",
+          "start": 168.66,
+          "end": 168.94,
+          "probability": 0.979
+        },
+        {
+          "word": "to",
+          "start": 168.94,
+          "end": 169.18,
+          "probability": 0.975
+        },
+        {
+          "word": "it",
+          "start": 169.18,
+          "end": 169.28,
+          "probability": 0.948
+        },
+        {
+          "word": "as",
+          "start": 169.28,
+          "end": 169.42,
+          "probability": 0.769
+        }
+      ]
+    },
+    {
+      "start": 169.42,
+      "end": 174.2,
+      "text": " well, and also around upsell as well. Would you like to add this? Would you like to do that? Because",
+      "words": [
+        {
+          "word": "well,",
+          "start": 169.42,
+          "end": 169.96,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 170.08,
+          "end": 170.22,
+          "probability": 0.997
+        },
+        {
+          "word": "also",
+          "start": 170.22,
+          "end": 170.44,
+          "probability": 0.999
+        },
+        {
+          "word": "around",
+          "start": 170.44,
+          "end": 170.66,
+          "probability": 0.807
+        },
+        {
+          "word": "upsell",
+          "start": 170.66,
+          "end": 171.04,
+          "probability": 0.526
+        },
+        {
+          "word": "as",
+          "start": 171.04,
+          "end": 171.24,
+          "probability": 0.979
+        },
+        {
+          "word": "well.",
+          "start": 171.24,
+          "end": 171.62,
+          "probability": 0.999
+        },
+        {
+          "word": "Would",
+          "start": 171.74,
+          "end": 171.86,
+          "probability": 0.995
+        },
+        {
+          "word": "you",
+          "start": 171.86,
+          "end": 172.04,
+          "probability": 0.996
+        },
+        {
+          "word": "like",
+          "start": 172.04,
+          "end": 172.22,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 172.22,
+          "end": 172.34,
+          "probability": 0.999
+        },
+        {
+          "word": "add",
+          "start": 172.34,
+          "end": 172.52,
+          "probability": 0.989
+        },
+        {
+          "word": "this?",
+          "start": 172.52,
+          "end": 172.76,
+          "probability": 0.956
+        },
+        {
+          "word": "Would",
+          "start": 172.84,
+          "end": 172.92,
+          "probability": 0.992
+        },
+        {
+          "word": "you",
+          "start": 172.92,
+          "end": 173.08,
+          "probability": 0.998
+        },
+        {
+          "word": "like",
+          "start": 173.08,
+          "end": 173.26,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 173.26,
+          "end": 173.36,
+          "probability": 0.999
+        },
+        {
+          "word": "do",
+          "start": 173.36,
+          "end": 173.5,
+          "probability": 0.997
+        },
+        {
+          "word": "that?",
+          "start": 173.5,
+          "end": 173.88,
+          "probability": 0.981
+        },
+        {
+          "word": "Because",
+          "start": 173.98,
+          "end": 174.2,
+          "probability": 0.657
+        }
+      ]
+    },
+    {
+      "start": 174.2,
+      "end": 178.59,
+      "text": " you've got more time and you're not being judged. You're very much more inclined to actually say",
+      "words": [
+        {
+          "word": "you've",
+          "start": 174.2,
+          "end": 174.58,
+          "probability": 0.997
+        },
+        {
+          "word": "got",
+          "start": 174.58,
+          "end": 174.7,
+          "probability": 0.999
+        },
+        {
+          "word": "more",
+          "start": 174.7,
+          "end": 174.94,
+          "probability": 0.997
+        },
+        {
+          "word": "time",
+          "start": 174.94,
+          "end": 175.22,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 175.22,
+          "end": 175.68,
+          "probability": 0.784
+        },
+        {
+          "word": "you're",
+          "start": 175.68,
+          "end": 175.84,
+          "probability": 0.996
+        },
+        {
+          "word": "not",
+          "start": 175.84,
+          "end": 175.88,
+          "probability": 0.992
+        },
+        {
+          "word": "being",
+          "start": 175.88,
+          "end": 176.1,
+          "probability": 0.994
+        },
+        {
+          "word": "judged.",
+          "start": 176.1,
+          "end": 176.58,
+          "probability": 0.999
+        },
+        {
+          "word": "You're",
+          "start": 176.84,
+          "end": 177.06,
+          "probability": 0.933
+        },
+        {
+          "word": "very",
+          "start": 177.06,
+          "end": 177.12,
+          "probability": 0.996
+        },
+        {
+          "word": "much",
+          "start": 177.12,
+          "end": 177.36,
+          "probability": 1.0
+        },
+        {
+          "word": "more",
+          "start": 177.36,
+          "end": 177.56,
+          "probability": 0.994
+        },
+        {
+          "word": "inclined",
+          "start": 177.56,
+          "end": 177.94,
+          "probability": 0.982
+        },
+        {
+          "word": "to",
+          "start": 177.94,
+          "end": 178.2,
+          "probability": 0.99
+        },
+        {
+          "word": "actually",
+          "start": 178.2,
+          "end": 178.42,
+          "probability": 0.923
+        },
+        {
+          "word": "say",
+          "start": 178.42,
+          "end": 178.59,
+          "probability": 0.871
+        }
+      ]
+    },
+    {
+      "start": 178.59,
+      "end": 182.84,
+      "text": " yes to these things. And that's typically what we're seeing. It increased basket spend of typically",
+      "words": [
+        {
+          "word": "yes",
+          "start": 178.59,
+          "end": 178.9,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 178.9,
+          "end": 179.04,
+          "probability": 0.978
+        },
+        {
+          "word": "these",
+          "start": 179.04,
+          "end": 179.2,
+          "probability": 0.997
+        },
+        {
+          "word": "things.",
+          "start": 179.2,
+          "end": 179.56,
+          "probability": 1.0
+        },
+        {
+          "word": "And",
+          "start": 180.02,
+          "end": 180.12,
+          "probability": 0.928
+        },
+        {
+          "word": "that's",
+          "start": 180.12,
+          "end": 180.32,
+          "probability": 0.998
+        },
+        {
+          "word": "typically",
+          "start": 180.32,
+          "end": 180.62,
+          "probability": 0.997
+        },
+        {
+          "word": "what",
+          "start": 180.62,
+          "end": 180.8,
+          "probability": 0.999
+        },
+        {
+          "word": "we're",
+          "start": 180.8,
+          "end": 180.94,
+          "probability": 0.995
+        },
+        {
+          "word": "seeing.",
+          "start": 180.94,
+          "end": 181.36,
+          "probability": 0.891
+        },
+        {
+          "word": "It",
+          "start": 181.54,
+          "end": 181.7,
+          "probability": 0.323
+        },
+        {
+          "word": "increased",
+          "start": 181.7,
+          "end": 182.02,
+          "probability": 0.493
+        },
+        {
+          "word": "basket",
+          "start": 182.02,
+          "end": 182.36,
+          "probability": 0.538
+        },
+        {
+          "word": "spend",
+          "start": 182.36,
+          "end": 182.62,
+          "probability": 0.621
+        },
+        {
+          "word": "of",
+          "start": 182.62,
+          "end": 182.76,
+          "probability": 0.844
+        },
+        {
+          "word": "typically",
+          "start": 182.76,
+          "end": 182.84,
+          "probability": 0.699
+        }
+      ]
+    },
+    {
+      "start": 182.84,
+      "end": 188.91,
+      "text": " 25-30%. If people feel judged, then it means that they worry what other people will think of them.",
+      "words": [
+        {
+          "word": "25-30%.",
+          "start": 182.84,
+          "end": 184.58,
+          "probability": 0.67
+        },
+        {
+          "word": "If",
+          "start": 184.58,
+          "end": 185.1,
+          "probability": 0.993
+        },
+        {
+          "word": "people",
+          "start": 185.1,
+          "end": 185.48,
+          "probability": 0.998
+        },
+        {
+          "word": "feel",
+          "start": 185.48,
+          "end": 185.78,
+          "probability": 0.995
+        },
+        {
+          "word": "judged,",
+          "start": 185.78,
+          "end": 186.16,
+          "probability": 1.0
+        },
+        {
+          "word": "then",
+          "start": 186.32,
+          "end": 186.42,
+          "probability": 0.996
+        },
+        {
+          "word": "it",
+          "start": 186.42,
+          "end": 186.46,
+          "probability": 0.996
+        },
+        {
+          "word": "means",
+          "start": 186.46,
+          "end": 186.76,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 186.76,
+          "end": 186.94,
+          "probability": 0.991
+        },
+        {
+          "word": "they",
+          "start": 186.94,
+          "end": 187.16,
+          "probability": 0.999
+        },
+        {
+          "word": "worry",
+          "start": 187.16,
+          "end": 187.44,
+          "probability": 0.994
+        },
+        {
+          "word": "what",
+          "start": 187.44,
+          "end": 187.72,
+          "probability": 0.977
+        },
+        {
+          "word": "other",
+          "start": 187.72,
+          "end": 187.92,
+          "probability": 0.998
+        },
+        {
+          "word": "people",
+          "start": 187.92,
+          "end": 188.22,
+          "probability": 0.998
+        },
+        {
+          "word": "will",
+          "start": 188.22,
+          "end": 188.38,
+          "probability": 0.961
+        },
+        {
+          "word": "think",
+          "start": 188.38,
+          "end": 188.62,
+          "probability": 0.983
+        },
+        {
+          "word": "of",
+          "start": 188.62,
+          "end": 188.76,
+          "probability": 0.872
+        },
+        {
+          "word": "them.",
+          "start": 188.76,
+          "end": 188.91,
+          "probability": 0.558
+        }
+      ]
+    },
+    {
+      "start": 188.91,
+      "end": 194.52,
+      "text": " If we have to ask a human for extra fries, we might worry what they think of us. But no one feels",
+      "words": [
+        {
+          "word": "If",
+          "start": 188.91,
+          "end": 189.56,
+          "probability": 0.591
+        },
+        {
+          "word": "we",
+          "start": 189.56,
+          "end": 189.68,
+          "probability": 0.999
+        },
+        {
+          "word": "have",
+          "start": 189.68,
+          "end": 189.88,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 189.88,
+          "end": 189.98,
+          "probability": 1.0
+        },
+        {
+          "word": "ask",
+          "start": 189.98,
+          "end": 190.2,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 190.2,
+          "end": 190.4,
+          "probability": 0.999
+        },
+        {
+          "word": "human",
+          "start": 190.4,
+          "end": 190.7,
+          "probability": 0.996
+        },
+        {
+          "word": "for",
+          "start": 190.7,
+          "end": 190.9,
+          "probability": 0.995
+        },
+        {
+          "word": "extra",
+          "start": 190.9,
+          "end": 191.28,
+          "probability": 0.928
+        },
+        {
+          "word": "fries,",
+          "start": 191.28,
+          "end": 191.62,
+          "probability": 0.906
+        },
+        {
+          "word": "we",
+          "start": 191.76,
+          "end": 191.82,
+          "probability": 0.997
+        },
+        {
+          "word": "might",
+          "start": 191.82,
+          "end": 192.08,
+          "probability": 0.999
+        },
+        {
+          "word": "worry",
+          "start": 192.08,
+          "end": 192.36,
+          "probability": 0.997
+        },
+        {
+          "word": "what",
+          "start": 192.36,
+          "end": 192.54,
+          "probability": 0.995
+        },
+        {
+          "word": "they",
+          "start": 192.54,
+          "end": 192.74,
+          "probability": 0.999
+        },
+        {
+          "word": "think",
+          "start": 192.74,
+          "end": 192.96,
+          "probability": 0.999
+        },
+        {
+          "word": "of",
+          "start": 192.96,
+          "end": 193.1,
+          "probability": 0.996
+        },
+        {
+          "word": "us.",
+          "start": 193.1,
+          "end": 193.42,
+          "probability": 0.947
+        },
+        {
+          "word": "But",
+          "start": 193.6,
+          "end": 193.84,
+          "probability": 0.544
+        },
+        {
+          "word": "no",
+          "start": 193.84,
+          "end": 194.14,
+          "probability": 0.967
+        },
+        {
+          "word": "one",
+          "start": 194.14,
+          "end": 194.32,
+          "probability": 0.931
+        },
+        {
+          "word": "feels",
+          "start": 194.32,
+          "end": 194.52,
+          "probability": 0.661
+        }
+      ]
+    },
+    {
+      "start": 194.58,
+      "end": 201.36,
+      "text": " judged by a computer screen. If you upsell something, then you get someone to spend more. For example,",
+      "words": [
+        {
+          "word": "judged",
+          "start": 194.58,
+          "end": 194.92,
+          "probability": 0.99
+        },
+        {
+          "word": "by",
+          "start": 194.92,
+          "end": 195.18,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 195.18,
+          "end": 195.36,
+          "probability": 0.992
+        },
+        {
+          "word": "computer",
+          "start": 195.36,
+          "end": 195.7,
+          "probability": 0.852
+        },
+        {
+          "word": "screen.",
+          "start": 195.7,
+          "end": 196.22,
+          "probability": 0.998
+        },
+        {
+          "word": "If",
+          "start": 196.4,
+          "end": 196.64,
+          "probability": 0.982
+        },
+        {
+          "word": "you",
+          "start": 196.64,
+          "end": 196.94,
+          "probability": 0.999
+        },
+        {
+          "word": "upsell",
+          "start": 196.94,
+          "end": 197.58,
+          "probability": 0.976
+        },
+        {
+          "word": "something,",
+          "start": 197.58,
+          "end": 198.28,
+          "probability": 0.904
+        },
+        {
+          "word": "then",
+          "start": 198.56,
+          "end": 198.78,
+          "probability": 0.993
+        },
+        {
+          "word": "you",
+          "start": 198.78,
+          "end": 198.84,
+          "probability": 0.999
+        },
+        {
+          "word": "get",
+          "start": 198.84,
+          "end": 199.14,
+          "probability": 0.998
+        },
+        {
+          "word": "someone",
+          "start": 199.14,
+          "end": 199.48,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 199.48,
+          "end": 199.8,
+          "probability": 0.999
+        },
+        {
+          "word": "spend",
+          "start": 199.8,
+          "end": 200.22,
+          "probability": 0.993
+        },
+        {
+          "word": "more.",
+          "start": 200.22,
+          "end": 200.72,
+          "probability": 0.961
+        },
+        {
+          "word": "For",
+          "start": 200.86,
+          "end": 201.02,
+          "probability": 0.789
+        },
+        {
+          "word": "example,",
+          "start": 201.02,
+          "end": 201.36,
+          "probability": 0.695
+        }
+      ]
+    },
+    {
+      "start": 201.46,
+      "end": 207.78,
+      "text": " waiters often try to get people to buy larger portions, more drinks, or dessert. Dean says that",
+      "words": [
+        {
+          "word": "waiters",
+          "start": 201.46,
+          "end": 202.0,
+          "probability": 0.921
+        },
+        {
+          "word": "often",
+          "start": 202.0,
+          "end": 202.3,
+          "probability": 0.982
+        },
+        {
+          "word": "try",
+          "start": 202.3,
+          "end": 202.54,
+          "probability": 0.924
+        },
+        {
+          "word": "to",
+          "start": 202.54,
+          "end": 202.64,
+          "probability": 0.996
+        },
+        {
+          "word": "get",
+          "start": 202.64,
+          "end": 202.78,
+          "probability": 0.999
+        },
+        {
+          "word": "people",
+          "start": 202.78,
+          "end": 203.1,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 203.1,
+          "end": 203.26,
+          "probability": 0.997
+        },
+        {
+          "word": "buy",
+          "start": 203.26,
+          "end": 203.48,
+          "probability": 0.998
+        },
+        {
+          "word": "larger",
+          "start": 203.48,
+          "end": 203.82,
+          "probability": 0.995
+        },
+        {
+          "word": "portions,",
+          "start": 203.82,
+          "end": 204.46,
+          "probability": 0.993
+        },
+        {
+          "word": "more",
+          "start": 204.98,
+          "end": 205.16,
+          "probability": 0.988
+        },
+        {
+          "word": "drinks,",
+          "start": 205.16,
+          "end": 205.64,
+          "probability": 0.997
+        },
+        {
+          "word": "or",
+          "start": 206.0,
+          "end": 206.22,
+          "probability": 0.984
+        },
+        {
+          "word": "dessert.",
+          "start": 206.22,
+          "end": 206.66,
+          "probability": 0.593
+        },
+        {
+          "word": "Dean",
+          "start": 206.98,
+          "end": 207.24,
+          "probability": 0.62
+        },
+        {
+          "word": "says",
+          "start": 207.24,
+          "end": 207.52,
+          "probability": 0.845
+        },
+        {
+          "word": "that",
+          "start": 207.52,
+          "end": 207.78,
+          "probability": 0.426
+        }
+      ]
+    },
+    {
+      "start": 207.78,
+      "end": 213.5,
+      "text": " upselling can increase people's basket spend. A basket spend is a total amount that someone spends",
+      "words": [
+        {
+          "word": "upselling",
+          "start": 207.78,
+          "end": 208.36,
+          "probability": 0.477
+        },
+        {
+          "word": "can",
+          "start": 208.36,
+          "end": 208.6,
+          "probability": 0.975
+        },
+        {
+          "word": "increase",
+          "start": 208.6,
+          "end": 209.0,
+          "probability": 0.999
+        },
+        {
+          "word": "people's",
+          "start": 209.0,
+          "end": 209.44,
+          "probability": 0.996
+        },
+        {
+          "word": "basket",
+          "start": 209.44,
+          "end": 209.88,
+          "probability": 0.864
+        },
+        {
+          "word": "spend.",
+          "start": 209.88,
+          "end": 210.42,
+          "probability": 0.995
+        },
+        {
+          "word": "A",
+          "start": 210.82,
+          "end": 210.9,
+          "probability": 0.991
+        },
+        {
+          "word": "basket",
+          "start": 210.9,
+          "end": 211.3,
+          "probability": 0.997
+        },
+        {
+          "word": "spend",
+          "start": 211.3,
+          "end": 211.8,
+          "probability": 0.996
+        },
+        {
+          "word": "is",
+          "start": 211.8,
+          "end": 212.06,
+          "probability": 0.994
+        },
+        {
+          "word": "a",
+          "start": 212.06,
+          "end": 212.16,
+          "probability": 0.935
+        },
+        {
+          "word": "total",
+          "start": 212.16,
+          "end": 212.54,
+          "probability": 0.998
+        },
+        {
+          "word": "amount",
+          "start": 212.54,
+          "end": 212.82,
+          "probability": 0.999
+        },
+        {
+          "word": "that",
+          "start": 212.82,
+          "end": 213.04,
+          "probability": 0.973
+        },
+        {
+          "word": "someone",
+          "start": 213.04,
+          "end": 213.22,
+          "probability": 0.935
+        },
+        {
+          "word": "spends",
+          "start": 213.22,
+          "end": 213.5,
+          "probability": 0.878
+        }
+      ]
+    },
+    {
+      "start": 213.5,
+      "end": 219.5,
+      "text": " in one transaction on everything that's in their basket. Now, this is an example of a business",
+      "words": [
+        {
+          "word": "in",
+          "start": 213.5,
+          "end": 213.9,
+          "probability": 0.999
+        },
+        {
+          "word": "one",
+          "start": 213.9,
+          "end": 214.14,
+          "probability": 0.994
+        },
+        {
+          "word": "transaction",
+          "start": 214.14,
+          "end": 214.78,
+          "probability": 0.999
+        },
+        {
+          "word": "on",
+          "start": 214.78,
+          "end": 215.2,
+          "probability": 0.542
+        },
+        {
+          "word": "everything",
+          "start": 215.2,
+          "end": 215.64,
+          "probability": 0.994
+        },
+        {
+          "word": "that's",
+          "start": 215.64,
+          "end": 216.0,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 216.0,
+          "end": 216.2,
+          "probability": 1.0
+        },
+        {
+          "word": "their",
+          "start": 216.2,
+          "end": 216.38,
+          "probability": 0.995
+        },
+        {
+          "word": "basket.",
+          "start": 216.38,
+          "end": 216.94,
+          "probability": 0.999
+        },
+        {
+          "word": "Now,",
+          "start": 217.4,
+          "end": 217.78,
+          "probability": 0.995
+        },
+        {
+          "word": "this",
+          "start": 218.1,
+          "end": 218.16,
+          "probability": 0.998
+        },
+        {
+          "word": "is",
+          "start": 218.16,
+          "end": 218.32,
+          "probability": 0.999
+        },
+        {
+          "word": "an",
+          "start": 218.32,
+          "end": 218.44,
+          "probability": 0.999
+        },
+        {
+          "word": "example",
+          "start": 218.44,
+          "end": 218.86,
+          "probability": 1.0
+        },
+        {
+          "word": "of",
+          "start": 218.86,
+          "end": 219.06,
+          "probability": 0.978
+        },
+        {
+          "word": "a",
+          "start": 219.06,
+          "end": 219.18,
+          "probability": 0.972
+        },
+        {
+          "word": "business",
+          "start": 219.18,
+          "end": 219.5,
+          "probability": 0.928
+        }
+      ]
+    },
+    {
+      "start": 219.5,
+      "end": 224.4,
+      "text": " using behavioral science to nudge people to do things. But it's not just businesses that",
+      "words": [
+        {
+          "word": "using",
+          "start": 219.5,
+          "end": 219.88,
+          "probability": 0.998
+        },
+        {
+          "word": "behavioral",
+          "start": 219.88,
+          "end": 220.46,
+          "probability": 0.928
+        },
+        {
+          "word": "science",
+          "start": 220.46,
+          "end": 220.94,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 220.94,
+          "end": 221.14,
+          "probability": 0.997
+        },
+        {
+          "word": "nudge",
+          "start": 221.14,
+          "end": 221.4,
+          "probability": 0.973
+        },
+        {
+          "word": "people",
+          "start": 221.4,
+          "end": 221.76,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 221.76,
+          "end": 221.88,
+          "probability": 0.995
+        },
+        {
+          "word": "do",
+          "start": 221.88,
+          "end": 222.1,
+          "probability": 0.998
+        },
+        {
+          "word": "things.",
+          "start": 222.1,
+          "end": 222.48,
+          "probability": 0.999
+        },
+        {
+          "word": "But",
+          "start": 222.86,
+          "end": 223.02,
+          "probability": 0.992
+        },
+        {
+          "word": "it's",
+          "start": 223.02,
+          "end": 223.24,
+          "probability": 0.991
+        },
+        {
+          "word": "not",
+          "start": 223.24,
+          "end": 223.54,
+          "probability": 0.999
+        },
+        {
+          "word": "just",
+          "start": 223.54,
+          "end": 223.82,
+          "probability": 0.998
+        },
+        {
+          "word": "businesses",
+          "start": 223.82,
+          "end": 224.2,
+          "probability": 0.979
+        },
+        {
+          "word": "that",
+          "start": 224.2,
+          "end": 224.4,
+          "probability": 0.901
+        }
+      ]
+    },
+    {
+      "start": 224.4,
+      "end": 230.24,
+      "text": " use behavioral science in this way. In Tunisia, the United Nations World Food Program wanted to",
+      "words": [
+        {
+          "word": "use",
+          "start": 224.4,
+          "end": 224.78,
+          "probability": 0.978
+        },
+        {
+          "word": "behavioral",
+          "start": 224.78,
+          "end": 225.18,
+          "probability": 0.993
+        },
+        {
+          "word": "science",
+          "start": 225.18,
+          "end": 225.58,
+          "probability": 0.999
+        },
+        {
+          "word": "in",
+          "start": 225.58,
+          "end": 225.72,
+          "probability": 0.994
+        },
+        {
+          "word": "this",
+          "start": 225.72,
+          "end": 225.9,
+          "probability": 0.998
+        },
+        {
+          "word": "way.",
+          "start": 225.9,
+          "end": 226.3,
+          "probability": 1.0
+        },
+        {
+          "word": "In",
+          "start": 226.48,
+          "end": 226.7,
+          "probability": 0.993
+        },
+        {
+          "word": "Tunisia,",
+          "start": 226.7,
+          "end": 227.16,
+          "probability": 0.908
+        },
+        {
+          "word": "the",
+          "start": 227.46,
+          "end": 227.58,
+          "probability": 0.989
+        },
+        {
+          "word": "United",
+          "start": 227.58,
+          "end": 228.04,
+          "probability": 0.996
+        },
+        {
+          "word": "Nations",
+          "start": 228.04,
+          "end": 228.54,
+          "probability": 0.985
+        },
+        {
+          "word": "World",
+          "start": 228.54,
+          "end": 228.92,
+          "probability": 0.806
+        },
+        {
+          "word": "Food",
+          "start": 228.92,
+          "end": 229.22,
+          "probability": 0.987
+        },
+        {
+          "word": "Program",
+          "start": 229.22,
+          "end": 229.62,
+          "probability": 0.607
+        },
+        {
+          "word": "wanted",
+          "start": 229.62,
+          "end": 230.02,
+          "probability": 0.866
+        },
+        {
+          "word": "to",
+          "start": 230.02,
+          "end": 230.24,
+          "probability": 0.74
+        }
+      ]
+    },
+    {
+      "start": 230.24,
+      "end": 235.62,
+      "text": " encourage people to eat food together more often. They made a TV show set in a restaurant.",
+      "words": [
+        {
+          "word": "encourage",
+          "start": 230.24,
+          "end": 230.6,
+          "probability": 0.999
+        },
+        {
+          "word": "people",
+          "start": 230.6,
+          "end": 230.96,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 230.96,
+          "end": 231.1,
+          "probability": 1.0
+        },
+        {
+          "word": "eat",
+          "start": 231.1,
+          "end": 231.36,
+          "probability": 0.998
+        },
+        {
+          "word": "food",
+          "start": 231.36,
+          "end": 231.7,
+          "probability": 0.999
+        },
+        {
+          "word": "together",
+          "start": 231.7,
+          "end": 232.16,
+          "probability": 0.999
+        },
+        {
+          "word": "more",
+          "start": 232.16,
+          "end": 232.5,
+          "probability": 0.846
+        },
+        {
+          "word": "often.",
+          "start": 232.5,
+          "end": 233.02,
+          "probability": 0.995
+        },
+        {
+          "word": "They",
+          "start": 233.3,
+          "end": 233.54,
+          "probability": 0.999
+        },
+        {
+          "word": "made",
+          "start": 233.54,
+          "end": 233.82,
+          "probability": 0.997
+        },
+        {
+          "word": "a",
+          "start": 233.82,
+          "end": 234.02,
+          "probability": 0.999
+        },
+        {
+          "word": "TV",
+          "start": 234.02,
+          "end": 234.36,
+          "probability": 0.87
+        },
+        {
+          "word": "show",
+          "start": 234.36,
+          "end": 234.72,
+          "probability": 0.993
+        },
+        {
+          "word": "set",
+          "start": 234.72,
+          "end": 234.96,
+          "probability": 0.98
+        },
+        {
+          "word": "in",
+          "start": 234.96,
+          "end": 235.1,
+          "probability": 0.978
+        },
+        {
+          "word": "a",
+          "start": 235.1,
+          "end": 235.2,
+          "probability": 0.992
+        },
+        {
+          "word": "restaurant.",
+          "start": 235.2,
+          "end": 235.62,
+          "probability": 0.999
+        }
+      ]
+    },
+    {
+      "start": 236.2,
+      "end": 241.46,
+      "text": " Let's hear from Takua Khalifa from the World Food Program talking to BBC World Services business",
+      "words": [
+        {
+          "word": "Let's",
+          "start": 236.2,
+          "end": 236.58,
+          "probability": 0.992
+        },
+        {
+          "word": "hear",
+          "start": 236.58,
+          "end": 236.76,
+          "probability": 0.998
+        },
+        {
+          "word": "from",
+          "start": 236.76,
+          "end": 236.96,
+          "probability": 0.998
+        },
+        {
+          "word": "Takua",
+          "start": 236.96,
+          "end": 237.38,
+          "probability": 0.344
+        },
+        {
+          "word": "Khalifa",
+          "start": 237.38,
+          "end": 237.86,
+          "probability": 0.413
+        },
+        {
+          "word": "from",
+          "start": 237.86,
+          "end": 238.12,
+          "probability": 0.93
+        },
+        {
+          "word": "the",
+          "start": 238.12,
+          "end": 238.24,
+          "probability": 0.973
+        },
+        {
+          "word": "World",
+          "start": 238.24,
+          "end": 238.54,
+          "probability": 0.985
+        },
+        {
+          "word": "Food",
+          "start": 238.54,
+          "end": 238.82,
+          "probability": 0.998
+        },
+        {
+          "word": "Program",
+          "start": 238.82,
+          "end": 239.22,
+          "probability": 0.919
+        },
+        {
+          "word": "talking",
+          "start": 239.22,
+          "end": 239.64,
+          "probability": 0.656
+        },
+        {
+          "word": "to",
+          "start": 239.64,
+          "end": 239.88,
+          "probability": 0.995
+        },
+        {
+          "word": "BBC",
+          "start": 239.88,
+          "end": 240.26,
+          "probability": 0.982
+        },
+        {
+          "word": "World",
+          "start": 240.26,
+          "end": 240.54,
+          "probability": 0.977
+        },
+        {
+          "word": "Services",
+          "start": 240.54,
+          "end": 241.06,
+          "probability": 0.971
+        },
+        {
+          "word": "business",
+          "start": 241.06,
+          "end": 241.46,
+          "probability": 0.374
+        }
+      ]
+    },
+    {
+      "start": 241.46,
+      "end": 249.09,
+      "text": " daily. So we needed something really creative and really different to think outside of the box or",
+      "words": [
+        {
+          "word": "daily.",
+          "start": 241.46,
+          "end": 241.86,
+          "probability": 0.937
+        },
+        {
+          "word": "So",
+          "start": 242.58,
+          "end": 242.6,
+          "probability": 0.901
+        },
+        {
+          "word": "we",
+          "start": 242.6,
+          "end": 242.76,
+          "probability": 0.659
+        },
+        {
+          "word": "needed",
+          "start": 242.76,
+          "end": 243.08,
+          "probability": 0.753
+        },
+        {
+          "word": "something",
+          "start": 243.08,
+          "end": 243.56,
+          "probability": 0.994
+        },
+        {
+          "word": "really",
+          "start": 243.56,
+          "end": 244.12,
+          "probability": 0.988
+        },
+        {
+          "word": "creative",
+          "start": 244.12,
+          "end": 244.56,
+          "probability": 0.997
+        },
+        {
+          "word": "and",
+          "start": 244.56,
+          "end": 244.88,
+          "probability": 0.931
+        },
+        {
+          "word": "really",
+          "start": 244.88,
+          "end": 245.2,
+          "probability": 0.946
+        },
+        {
+          "word": "different",
+          "start": 245.2,
+          "end": 245.7,
+          "probability": 0.987
+        },
+        {
+          "word": "to",
+          "start": 245.7,
+          "end": 247.12,
+          "probability": 0.901
+        },
+        {
+          "word": "think",
+          "start": 247.12,
+          "end": 248.06,
+          "probability": 0.494
+        },
+        {
+          "word": "outside",
+          "start": 248.06,
+          "end": 248.34,
+          "probability": 0.981
+        },
+        {
+          "word": "of",
+          "start": 248.34,
+          "end": 248.56,
+          "probability": 0.981
+        },
+        {
+          "word": "the",
+          "start": 248.56,
+          "end": 248.62,
+          "probability": 0.976
+        },
+        {
+          "word": "box",
+          "start": 248.62,
+          "end": 248.9,
+          "probability": 0.837
+        },
+        {
+          "word": "or",
+          "start": 248.9,
+          "end": 249.09,
+          "probability": 0.561
+        }
+      ]
+    },
+    {
+      "start": 249.09,
+      "end": 256.7,
+      "text": " to let people see themselves in those stories because people are learning and changing by imitating",
+      "words": [
+        {
+          "word": "to",
+          "start": 249.09,
+          "end": 249.28,
+          "probability": 0.933
+        },
+        {
+          "word": "let",
+          "start": 249.28,
+          "end": 249.46,
+          "probability": 0.997
+        },
+        {
+          "word": "people",
+          "start": 249.46,
+          "end": 249.78,
+          "probability": 0.998
+        },
+        {
+          "word": "see",
+          "start": 249.78,
+          "end": 250.06,
+          "probability": 0.996
+        },
+        {
+          "word": "themselves",
+          "start": 250.06,
+          "end": 250.56,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 250.56,
+          "end": 250.76,
+          "probability": 0.989
+        },
+        {
+          "word": "those",
+          "start": 250.76,
+          "end": 251.06,
+          "probability": 0.993
+        },
+        {
+          "word": "stories",
+          "start": 251.06,
+          "end": 251.44,
+          "probability": 0.989
+        },
+        {
+          "word": "because",
+          "start": 251.44,
+          "end": 252.14,
+          "probability": 0.417
+        },
+        {
+          "word": "people",
+          "start": 252.14,
+          "end": 253.52,
+          "probability": 0.992
+        },
+        {
+          "word": "are",
+          "start": 253.52,
+          "end": 254.14,
+          "probability": 0.997
+        },
+        {
+          "word": "learning",
+          "start": 254.14,
+          "end": 254.56,
+          "probability": 0.998
+        },
+        {
+          "word": "and",
+          "start": 254.56,
+          "end": 255.16,
+          "probability": 0.994
+        },
+        {
+          "word": "changing",
+          "start": 255.16,
+          "end": 255.6,
+          "probability": 0.995
+        },
+        {
+          "word": "by",
+          "start": 255.6,
+          "end": 256.04,
+          "probability": 0.842
+        },
+        {
+          "word": "imitating",
+          "start": 256.04,
+          "end": 256.7,
+          "probability": 0.825
+        }
+      ]
+    },
+    {
+      "start": 256.74,
+      "end": 265.4,
+      "text": " and modeling and like observing others, behaviors and other actions and emotional reactions to things.",
+      "words": [
+        {
+          "word": "and",
+          "start": 256.74,
+          "end": 257.14,
+          "probability": 0.995
+        },
+        {
+          "word": "modeling",
+          "start": 257.14,
+          "end": 257.84,
+          "probability": 0.939
+        },
+        {
+          "word": "and",
+          "start": 257.84,
+          "end": 259.4,
+          "probability": 0.915
+        },
+        {
+          "word": "like",
+          "start": 259.4,
+          "end": 259.84,
+          "probability": 0.535
+        },
+        {
+          "word": "observing",
+          "start": 259.84,
+          "end": 260.92,
+          "probability": 0.99
+        },
+        {
+          "word": "others,",
+          "start": 260.92,
+          "end": 261.54,
+          "probability": 0.812
+        },
+        {
+          "word": "behaviors",
+          "start": 261.58,
+          "end": 262.22,
+          "probability": 0.758
+        },
+        {
+          "word": "and",
+          "start": 262.22,
+          "end": 262.52,
+          "probability": 0.573
+        },
+        {
+          "word": "other",
+          "start": 262.52,
+          "end": 262.98,
+          "probability": 0.755
+        },
+        {
+          "word": "actions",
+          "start": 262.98,
+          "end": 263.62,
+          "probability": 0.961
+        },
+        {
+          "word": "and",
+          "start": 263.62,
+          "end": 263.88,
+          "probability": 0.683
+        },
+        {
+          "word": "emotional",
+          "start": 263.88,
+          "end": 264.36,
+          "probability": 0.953
+        },
+        {
+          "word": "reactions",
+          "start": 264.36,
+          "end": 264.98,
+          "probability": 0.957
+        },
+        {
+          "word": "to",
+          "start": 264.98,
+          "end": 265.24,
+          "probability": 0.899
+        },
+        {
+          "word": "things.",
+          "start": 265.24,
+          "end": 265.4,
+          "probability": 0.731
+        }
+      ]
+    },
+    {
+      "start": 265.4,
+      "end": 273.9,
+      "text": " So this is why we tried this project or tried this product or this TV series in order to impact people.",
+      "words": [
+        {
+          "word": "So",
+          "start": 265.4,
+          "end": 266.2,
+          "probability": 0.988
+        },
+        {
+          "word": "this",
+          "start": 266.2,
+          "end": 266.46,
+          "probability": 0.926
+        },
+        {
+          "word": "is",
+          "start": 266.46,
+          "end": 266.66,
+          "probability": 0.997
+        },
+        {
+          "word": "why",
+          "start": 266.66,
+          "end": 266.86,
+          "probability": 1.0
+        },
+        {
+          "word": "we",
+          "start": 266.86,
+          "end": 267.06,
+          "probability": 0.998
+        },
+        {
+          "word": "tried",
+          "start": 267.06,
+          "end": 267.54,
+          "probability": 0.801
+        },
+        {
+          "word": "this",
+          "start": 267.54,
+          "end": 268.54,
+          "probability": 0.986
+        },
+        {
+          "word": "project",
+          "start": 268.54,
+          "end": 269.12,
+          "probability": 0.996
+        },
+        {
+          "word": "or",
+          "start": 269.12,
+          "end": 269.38,
+          "probability": 0.826
+        },
+        {
+          "word": "tried",
+          "start": 269.38,
+          "end": 269.9,
+          "probability": 0.435
+        },
+        {
+          "word": "this",
+          "start": 269.9,
+          "end": 270.22,
+          "probability": 0.993
+        },
+        {
+          "word": "product",
+          "start": 270.22,
+          "end": 270.56,
+          "probability": 0.962
+        },
+        {
+          "word": "or",
+          "start": 270.56,
+          "end": 270.86,
+          "probability": 0.865
+        },
+        {
+          "word": "this",
+          "start": 270.86,
+          "end": 271.1,
+          "probability": 0.95
+        },
+        {
+          "word": "TV",
+          "start": 271.1,
+          "end": 271.54,
+          "probability": 0.943
+        },
+        {
+          "word": "series",
+          "start": 271.54,
+          "end": 271.98,
+          "probability": 0.987
+        },
+        {
+          "word": "in",
+          "start": 271.98,
+          "end": 272.5,
+          "probability": 0.541
+        },
+        {
+          "word": "order",
+          "start": 272.5,
+          "end": 272.74,
+          "probability": 0.992
+        },
+        {
+          "word": "to",
+          "start": 272.74,
+          "end": 273.0,
+          "probability": 0.963
+        },
+        {
+          "word": "impact",
+          "start": 273.0,
+          "end": 273.48,
+          "probability": 0.867
+        },
+        {
+          "word": "people.",
+          "start": 273.48,
+          "end": 273.9,
+          "probability": 0.739
+        }
+      ]
+    },
+    {
+      "start": 274.5,
+      "end": 280.54,
+      "text": " Takua says that they needed to think outside the box. This means to try and think in a different",
+      "words": [
+        {
+          "word": "Takua",
+          "start": 274.5,
+          "end": 274.98,
+          "probability": 0.963
+        },
+        {
+          "word": "says",
+          "start": 274.98,
+          "end": 275.26,
+          "probability": 0.989
+        },
+        {
+          "word": "that",
+          "start": 275.26,
+          "end": 275.48,
+          "probability": 0.941
+        },
+        {
+          "word": "they",
+          "start": 275.48,
+          "end": 275.6,
+          "probability": 0.998
+        },
+        {
+          "word": "needed",
+          "start": 275.6,
+          "end": 276.02,
+          "probability": 0.917
+        },
+        {
+          "word": "to",
+          "start": 276.02,
+          "end": 276.3,
+          "probability": 0.999
+        },
+        {
+          "word": "think",
+          "start": 276.3,
+          "end": 276.76,
+          "probability": 0.998
+        },
+        {
+          "word": "outside",
+          "start": 276.76,
+          "end": 277.28,
+          "probability": 0.998
+        },
+        {
+          "word": "the",
+          "start": 277.28,
+          "end": 277.58,
+          "probability": 0.955
+        },
+        {
+          "word": "box.",
+          "start": 277.58,
+          "end": 278.2,
+          "probability": 0.999
+        },
+        {
+          "word": "This",
+          "start": 278.42,
+          "end": 278.76,
+          "probability": 0.943
+        },
+        {
+          "word": "means",
+          "start": 278.76,
+          "end": 279.06,
+          "probability": 0.991
+        },
+        {
+          "word": "to",
+          "start": 279.06,
+          "end": 279.24,
+          "probability": 0.966
+        },
+        {
+          "word": "try",
+          "start": 279.24,
+          "end": 279.42,
+          "probability": 0.992
+        },
+        {
+          "word": "and",
+          "start": 279.42,
+          "end": 279.56,
+          "probability": 0.971
+        },
+        {
+          "word": "think",
+          "start": 279.56,
+          "end": 279.8,
+          "probability": 0.933
+        },
+        {
+          "word": "in",
+          "start": 279.8,
+          "end": 279.92,
+          "probability": 0.936
+        },
+        {
+          "word": "a",
+          "start": 279.92,
+          "end": 280.16,
+          "probability": 0.981
+        },
+        {
+          "word": "different",
+          "start": 280.16,
+          "end": 280.54,
+          "probability": 0.841
+        }
+      ]
+    },
+    {
+      "start": 280.54,
+      "end": 286.8,
+      "text": " way to come up with something creative. The TV program leads to people modeling behavior.",
+      "words": [
+        {
+          "word": "way",
+          "start": 280.54,
+          "end": 280.96,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 280.96,
+          "end": 281.16,
+          "probability": 0.985
+        },
+        {
+          "word": "come",
+          "start": 281.16,
+          "end": 281.36,
+          "probability": 0.999
+        },
+        {
+          "word": "up",
+          "start": 281.36,
+          "end": 281.56,
+          "probability": 0.998
+        },
+        {
+          "word": "with",
+          "start": 281.56,
+          "end": 281.78,
+          "probability": 0.999
+        },
+        {
+          "word": "something",
+          "start": 281.78,
+          "end": 282.12,
+          "probability": 0.999
+        },
+        {
+          "word": "creative.",
+          "start": 282.12,
+          "end": 282.76,
+          "probability": 0.998
+        },
+        {
+          "word": "The",
+          "start": 283.24,
+          "end": 283.52,
+          "probability": 0.983
+        },
+        {
+          "word": "TV",
+          "start": 283.52,
+          "end": 284.0,
+          "probability": 0.995
+        },
+        {
+          "word": "program",
+          "start": 284.0,
+          "end": 284.62,
+          "probability": 0.932
+        },
+        {
+          "word": "leads",
+          "start": 284.62,
+          "end": 285.0,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 285.0,
+          "end": 285.26,
+          "probability": 0.999
+        },
+        {
+          "word": "people",
+          "start": 285.26,
+          "end": 285.58,
+          "probability": 0.995
+        },
+        {
+          "word": "modeling",
+          "start": 285.58,
+          "end": 286.2,
+          "probability": 0.494
+        },
+        {
+          "word": "behavior.",
+          "start": 286.2,
+          "end": 286.8,
+          "probability": 0.9
+        }
+      ]
+    },
+    {
+      "start": 287.16,
+      "end": 292.33,
+      "text": " If you model behavior, then you behave in a way that other people can copy. Now Phil,",
+      "words": [
+        {
+          "word": "If",
+          "start": 287.16,
+          "end": 287.44,
+          "probability": 0.996
+        },
+        {
+          "word": "you",
+          "start": 287.44,
+          "end": 287.62,
+          "probability": 0.998
+        },
+        {
+          "word": "model",
+          "start": 287.62,
+          "end": 287.9,
+          "probability": 0.978
+        },
+        {
+          "word": "behavior,",
+          "start": 287.9,
+          "end": 288.46,
+          "probability": 0.99
+        },
+        {
+          "word": "then",
+          "start": 288.84,
+          "end": 288.88,
+          "probability": 0.996
+        },
+        {
+          "word": "you",
+          "start": 288.88,
+          "end": 289.06,
+          "probability": 0.996
+        },
+        {
+          "word": "behave",
+          "start": 289.06,
+          "end": 289.4,
+          "probability": 0.892
+        },
+        {
+          "word": "in",
+          "start": 289.4,
+          "end": 289.58,
+          "probability": 0.999
+        },
+        {
+          "word": "a",
+          "start": 289.58,
+          "end": 289.7,
+          "probability": 0.998
+        },
+        {
+          "word": "way",
+          "start": 289.7,
+          "end": 289.9,
+          "probability": 1.0
+        },
+        {
+          "word": "that",
+          "start": 289.9,
+          "end": 290.06,
+          "probability": 0.975
+        },
+        {
+          "word": "other",
+          "start": 290.06,
+          "end": 290.26,
+          "probability": 0.995
+        },
+        {
+          "word": "people",
+          "start": 290.26,
+          "end": 290.58,
+          "probability": 0.998
+        },
+        {
+          "word": "can",
+          "start": 290.58,
+          "end": 290.82,
+          "probability": 0.996
+        },
+        {
+          "word": "copy.",
+          "start": 290.82,
+          "end": 291.24,
+          "probability": 0.989
+        },
+        {
+          "word": "Now",
+          "start": 291.72,
+          "end": 292.08,
+          "probability": 0.593
+        },
+        {
+          "word": "Phil,",
+          "start": 292.08,
+          "end": 292.33,
+          "probability": 0.698
+        }
+      ]
+    },
+    {
+      "start": 292.33,
+      "end": 298.38,
+      "text": " I think it's time to hear the answer to your question. Yes, it is. I asked what theory says that",
+      "words": [
+        {
+          "word": "I",
+          "start": 292.33,
+          "end": 292.58,
+          "probability": 0.988
+        },
+        {
+          "word": "think",
+          "start": 292.58,
+          "end": 292.8,
+          "probability": 1.0
+        },
+        {
+          "word": "it's",
+          "start": 292.8,
+          "end": 292.96,
+          "probability": 0.996
+        },
+        {
+          "word": "time",
+          "start": 292.96,
+          "end": 293.26,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 293.26,
+          "end": 293.4,
+          "probability": 0.999
+        },
+        {
+          "word": "hear",
+          "start": 293.4,
+          "end": 293.52,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 293.52,
+          "end": 293.74,
+          "probability": 0.999
+        },
+        {
+          "word": "answer",
+          "start": 293.74,
+          "end": 294.0,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 294.0,
+          "end": 294.12,
+          "probability": 0.993
+        },
+        {
+          "word": "your",
+          "start": 294.12,
+          "end": 294.28,
+          "probability": 0.999
+        },
+        {
+          "word": "question.",
+          "start": 294.28,
+          "end": 294.78,
+          "probability": 0.999
+        },
+        {
+          "word": "Yes,",
+          "start": 295.04,
+          "end": 295.4,
+          "probability": 0.954
+        },
+        {
+          "word": "it",
+          "start": 295.5,
+          "end": 295.62,
+          "probability": 0.989
+        },
+        {
+          "word": "is.",
+          "start": 295.62,
+          "end": 296.04,
+          "probability": 0.999
+        },
+        {
+          "word": "I",
+          "start": 296.32,
+          "end": 296.58,
+          "probability": 0.953
+        },
+        {
+          "word": "asked",
+          "start": 296.58,
+          "end": 296.92,
+          "probability": 0.883
+        },
+        {
+          "word": "what",
+          "start": 296.92,
+          "end": 297.44,
+          "probability": 0.775
+        },
+        {
+          "word": "theory",
+          "start": 297.44,
+          "end": 297.86,
+          "probability": 0.938
+        },
+        {
+          "word": "says",
+          "start": 297.86,
+          "end": 298.2,
+          "probability": 0.796
+        },
+        {
+          "word": "that",
+          "start": 298.2,
+          "end": 298.38,
+          "probability": 0.64
+        }
+      ]
+    },
+    {
+      "start": 298.72,
+      "end": 303.94,
+      "text": " people respond to small prompts to change their behavior. I thought it was Paul Theory,",
+      "words": [
+        {
+          "word": "people",
+          "start": 298.72,
+          "end": 298.74,
+          "probability": 0.635
+        },
+        {
+          "word": "respond",
+          "start": 298.74,
+          "end": 299.14,
+          "probability": 0.967
+        },
+        {
+          "word": "to",
+          "start": 299.14,
+          "end": 299.32,
+          "probability": 0.999
+        },
+        {
+          "word": "small",
+          "start": 299.32,
+          "end": 299.64,
+          "probability": 0.997
+        },
+        {
+          "word": "prompts",
+          "start": 299.64,
+          "end": 300.12,
+          "probability": 0.995
+        },
+        {
+          "word": "to",
+          "start": 300.12,
+          "end": 300.48,
+          "probability": 0.976
+        },
+        {
+          "word": "change",
+          "start": 300.48,
+          "end": 300.86,
+          "probability": 0.998
+        },
+        {
+          "word": "their",
+          "start": 300.86,
+          "end": 301.1,
+          "probability": 0.999
+        },
+        {
+          "word": "behavior.",
+          "start": 301.1,
+          "end": 301.74,
+          "probability": 0.884
+        },
+        {
+          "word": "I",
+          "start": 301.92,
+          "end": 302.22,
+          "probability": 0.964
+        },
+        {
+          "word": "thought",
+          "start": 302.22,
+          "end": 302.52,
+          "probability": 0.988
+        },
+        {
+          "word": "it",
+          "start": 302.52,
+          "end": 302.74,
+          "probability": 0.994
+        },
+        {
+          "word": "was",
+          "start": 302.74,
+          "end": 303.06,
+          "probability": 0.999
+        },
+        {
+          "word": "Paul",
+          "start": 303.06,
+          "end": 303.56,
+          "probability": 0.55
+        },
+        {
+          "word": "Theory,",
+          "start": 303.56,
+          "end": 303.94,
+          "probability": 0.545
+        }
+      ]
+    },
+    {
+      "start": 304.82,
+      "end": 311.22,
+      "text": " which I'm afraid was the wrong answer. Nudge Theory says that people's behavior can be changed",
+      "words": [
+        {
+          "word": "which",
+          "start": 304.82,
+          "end": 305.1,
+          "probability": 0.991
+        },
+        {
+          "word": "I'm",
+          "start": 305.1,
+          "end": 305.48,
+          "probability": 0.969
+        },
+        {
+          "word": "afraid",
+          "start": 305.48,
+          "end": 305.9,
+          "probability": 0.999
+        },
+        {
+          "word": "was",
+          "start": 305.9,
+          "end": 306.22,
+          "probability": 0.903
+        },
+        {
+          "word": "the",
+          "start": 306.22,
+          "end": 306.52,
+          "probability": 0.999
+        },
+        {
+          "word": "wrong",
+          "start": 306.52,
+          "end": 306.78,
+          "probability": 0.989
+        },
+        {
+          "word": "answer.",
+          "start": 306.78,
+          "end": 307.5,
+          "probability": 1.0
+        },
+        {
+          "word": "Nudge",
+          "start": 308.0,
+          "end": 308.62,
+          "probability": 0.851
+        },
+        {
+          "word": "Theory",
+          "start": 308.62,
+          "end": 309.2,
+          "probability": 0.629
+        },
+        {
+          "word": "says",
+          "start": 309.2,
+          "end": 309.58,
+          "probability": 0.973
+        },
+        {
+          "word": "that",
+          "start": 309.58,
+          "end": 309.76,
+          "probability": 0.985
+        },
+        {
+          "word": "people's",
+          "start": 309.76,
+          "end": 310.16,
+          "probability": 0.978
+        },
+        {
+          "word": "behavior",
+          "start": 310.16,
+          "end": 310.58,
+          "probability": 0.701
+        },
+        {
+          "word": "can",
+          "start": 310.58,
+          "end": 310.86,
+          "probability": 0.851
+        },
+        {
+          "word": "be",
+          "start": 310.86,
+          "end": 311.04,
+          "probability": 0.886
+        },
+        {
+          "word": "changed",
+          "start": 311.04,
+          "end": 311.22,
+          "probability": 0.628
+        }
+      ]
+    },
+    {
+      "start": 311.22,
+      "end": 317.26,
+      "text": " by small prompts or nudges. Okay, let's recap the vocabulary we've learned,",
+      "words": [
+        {
+          "word": "by",
+          "start": 311.22,
+          "end": 311.7,
+          "probability": 1.0
+        },
+        {
+          "word": "small",
+          "start": 311.7,
+          "end": 312.06,
+          "probability": 0.999
+        },
+        {
+          "word": "prompts",
+          "start": 312.06,
+          "end": 312.74,
+          "probability": 0.999
+        },
+        {
+          "word": "or",
+          "start": 312.74,
+          "end": 313.28,
+          "probability": 0.862
+        },
+        {
+          "word": "nudges.",
+          "start": 313.28,
+          "end": 313.94,
+          "probability": 0.973
+        },
+        {
+          "word": "Okay,",
+          "start": 314.38,
+          "end": 314.86,
+          "probability": 0.776
+        },
+        {
+          "word": "let's",
+          "start": 315.32,
+          "end": 315.5,
+          "probability": 0.993
+        },
+        {
+          "word": "recap",
+          "start": 315.5,
+          "end": 315.82,
+          "probability": 0.997
+        },
+        {
+          "word": "the",
+          "start": 315.82,
+          "end": 316.08,
+          "probability": 0.997
+        },
+        {
+          "word": "vocabulary",
+          "start": 316.08,
+          "end": 316.54,
+          "probability": 0.999
+        },
+        {
+          "word": "we've",
+          "start": 316.54,
+          "end": 316.98,
+          "probability": 0.993
+        },
+        {
+          "word": "learned,",
+          "start": 316.98,
+          "end": 317.26,
+          "probability": 0.964
+        }
+      ]
+    },
+    {
+      "start": 317.38,
+      "end": 322.24,
+      "text": " starting with mental shortcut, which is something that helps us make a decision quickly,",
+      "words": [
+        {
+          "word": "starting",
+          "start": 317.38,
+          "end": 317.86,
+          "probability": 0.981
+        },
+        {
+          "word": "with",
+          "start": 317.86,
+          "end": 318.2,
+          "probability": 1.0
+        },
+        {
+          "word": "mental",
+          "start": 318.2,
+          "end": 318.68,
+          "probability": 0.881
+        },
+        {
+          "word": "shortcut,",
+          "start": 318.68,
+          "end": 319.18,
+          "probability": 0.931
+        },
+        {
+          "word": "which",
+          "start": 319.72,
+          "end": 319.82,
+          "probability": 0.992
+        },
+        {
+          "word": "is",
+          "start": 319.82,
+          "end": 320.0,
+          "probability": 0.999
+        },
+        {
+          "word": "something",
+          "start": 320.0,
+          "end": 320.26,
+          "probability": 1.0
+        },
+        {
+          "word": "that",
+          "start": 320.26,
+          "end": 320.42,
+          "probability": 0.999
+        },
+        {
+          "word": "helps",
+          "start": 320.42,
+          "end": 320.66,
+          "probability": 0.997
+        },
+        {
+          "word": "us",
+          "start": 320.66,
+          "end": 320.82,
+          "probability": 0.993
+        },
+        {
+          "word": "make",
+          "start": 320.82,
+          "end": 321.04,
+          "probability": 0.989
+        },
+        {
+          "word": "a",
+          "start": 321.04,
+          "end": 321.22,
+          "probability": 0.994
+        },
+        {
+          "word": "decision",
+          "start": 321.22,
+          "end": 321.58,
+          "probability": 0.999
+        },
+        {
+          "word": "quickly,",
+          "start": 321.58,
+          "end": 322.24,
+          "probability": 0.952
+        }
+      ]
+    },
+    {
+      "start": 322.56,
+      "end": 327.1,
+      "text": " usually because we don't need to think about it. If someone feels judged,",
+      "words": [
+        {
+          "word": "usually",
+          "start": 322.56,
+          "end": 323.02,
+          "probability": 0.591
+        },
+        {
+          "word": "because",
+          "start": 323.02,
+          "end": 323.34,
+          "probability": 0.977
+        },
+        {
+          "word": "we",
+          "start": 323.34,
+          "end": 323.5,
+          "probability": 1.0
+        },
+        {
+          "word": "don't",
+          "start": 323.5,
+          "end": 323.68,
+          "probability": 0.999
+        },
+        {
+          "word": "need",
+          "start": 323.68,
+          "end": 323.92,
+          "probability": 0.997
+        },
+        {
+          "word": "to",
+          "start": 323.92,
+          "end": 324.06,
+          "probability": 1.0
+        },
+        {
+          "word": "think",
+          "start": 324.06,
+          "end": 324.22,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 324.22,
+          "end": 324.54,
+          "probability": 1.0
+        },
+        {
+          "word": "it.",
+          "start": 324.54,
+          "end": 324.82,
+          "probability": 0.999
+        },
+        {
+          "word": "If",
+          "start": 325.24,
+          "end": 325.58,
+          "probability": 0.739
+        },
+        {
+          "word": "someone",
+          "start": 325.58,
+          "end": 325.94,
+          "probability": 0.997
+        },
+        {
+          "word": "feels",
+          "start": 325.94,
+          "end": 326.52,
+          "probability": 0.997
+        },
+        {
+          "word": "judged,",
+          "start": 326.52,
+          "end": 327.1,
+          "probability": 0.991
+        }
+      ]
+    },
+    {
+      "start": 327.26,
+      "end": 330.3,
+      "text": " then they're worried about what other people think about them.",
+      "words": [
+        {
+          "word": "then",
+          "start": 327.26,
+          "end": 327.52,
+          "probability": 0.989
+        },
+        {
+          "word": "they're",
+          "start": 327.52,
+          "end": 327.76,
+          "probability": 0.995
+        },
+        {
+          "word": "worried",
+          "start": 327.76,
+          "end": 328.04,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 328.04,
+          "end": 328.38,
+          "probability": 0.999
+        },
+        {
+          "word": "what",
+          "start": 328.38,
+          "end": 328.66,
+          "probability": 0.999
+        },
+        {
+          "word": "other",
+          "start": 328.66,
+          "end": 328.94,
+          "probability": 0.997
+        },
+        {
+          "word": "people",
+          "start": 328.94,
+          "end": 329.22,
+          "probability": 1.0
+        },
+        {
+          "word": "think",
+          "start": 329.22,
+          "end": 329.52,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 329.52,
+          "end": 329.74,
+          "probability": 0.999
+        },
+        {
+          "word": "them.",
+          "start": 329.74,
+          "end": 330.3,
+          "probability": 0.989
+        }
+      ]
+    },
+    {
+      "start": 330.5,
+      "end": 335.76,
+      "text": " Absel refers to persuading someone to buy something extra, like a dessert, a restaurant.",
+      "words": [
+        {
+          "word": "Absel",
+          "start": 330.5,
+          "end": 331.12,
+          "probability": 0.219
+        },
+        {
+          "word": "refers",
+          "start": 331.12,
+          "end": 331.56,
+          "probability": 0.987
+        },
+        {
+          "word": "to",
+          "start": 331.56,
+          "end": 331.78,
+          "probability": 0.999
+        },
+        {
+          "word": "persuading",
+          "start": 331.78,
+          "end": 332.5,
+          "probability": 0.967
+        },
+        {
+          "word": "someone",
+          "start": 332.5,
+          "end": 332.84,
+          "probability": 0.999
+        },
+        {
+          "word": "to",
+          "start": 332.84,
+          "end": 333.04,
+          "probability": 0.999
+        },
+        {
+          "word": "buy",
+          "start": 333.04,
+          "end": 333.3,
+          "probability": 0.996
+        },
+        {
+          "word": "something",
+          "start": 333.3,
+          "end": 333.58,
+          "probability": 0.998
+        },
+        {
+          "word": "extra,",
+          "start": 333.58,
+          "end": 334.16,
+          "probability": 0.987
+        },
+        {
+          "word": "like",
+          "start": 334.54,
+          "end": 334.58,
+          "probability": 0.845
+        },
+        {
+          "word": "a",
+          "start": 334.58,
+          "end": 334.76,
+          "probability": 0.998
+        },
+        {
+          "word": "dessert,",
+          "start": 334.76,
+          "end": 335.1,
+          "probability": 0.852
+        },
+        {
+          "word": "a",
+          "start": 335.32,
+          "end": 335.42,
+          "probability": 0.71
+        },
+        {
+          "word": "restaurant.",
+          "start": 335.42,
+          "end": 335.76,
+          "probability": 0.995
+        }
+      ]
+    },
+    {
+      "start": 336.6,
+      "end": 341.72,
+      "text": " Basket spend is what you spend in one transaction on the things in your shopping basket.",
+      "words": [
+        {
+          "word": "Basket",
+          "start": 336.6,
+          "end": 337.1,
+          "probability": 0.619
+        },
+        {
+          "word": "spend",
+          "start": 337.1,
+          "end": 337.46,
+          "probability": 0.935
+        },
+        {
+          "word": "is",
+          "start": 337.46,
+          "end": 337.68,
+          "probability": 0.992
+        },
+        {
+          "word": "what",
+          "start": 337.68,
+          "end": 337.84,
+          "probability": 0.998
+        },
+        {
+          "word": "you",
+          "start": 337.84,
+          "end": 338.0,
+          "probability": 0.996
+        },
+        {
+          "word": "spend",
+          "start": 338.0,
+          "end": 338.26,
+          "probability": 0.998
+        },
+        {
+          "word": "in",
+          "start": 338.26,
+          "end": 338.52,
+          "probability": 0.998
+        },
+        {
+          "word": "one",
+          "start": 338.52,
+          "end": 338.86,
+          "probability": 0.983
+        },
+        {
+          "word": "transaction",
+          "start": 338.86,
+          "end": 339.58,
+          "probability": 0.997
+        },
+        {
+          "word": "on",
+          "start": 339.58,
+          "end": 340.04,
+          "probability": 0.551
+        },
+        {
+          "word": "the",
+          "start": 340.04,
+          "end": 340.26,
+          "probability": 0.967
+        },
+        {
+          "word": "things",
+          "start": 340.26,
+          "end": 340.52,
+          "probability": 0.971
+        },
+        {
+          "word": "in",
+          "start": 340.52,
+          "end": 340.68,
+          "probability": 0.907
+        },
+        {
+          "word": "your",
+          "start": 340.68,
+          "end": 340.92,
+          "probability": 0.995
+        },
+        {
+          "word": "shopping",
+          "start": 340.92,
+          "end": 341.3,
+          "probability": 0.976
+        },
+        {
+          "word": "basket.",
+          "start": 341.3,
+          "end": 341.72,
+          "probability": 0.975
+        }
+      ]
+    },
+    {
+      "start": 342.44,
+      "end": 346.89,
+      "text": " If you think outside the box, then you think about something in a different way to come up with",
+      "words": [
+        {
+          "word": "If",
+          "start": 342.44,
+          "end": 342.74,
+          "probability": 0.999
+        },
+        {
+          "word": "you",
+          "start": 342.74,
+          "end": 342.92,
+          "probability": 1.0
+        },
+        {
+          "word": "think",
+          "start": 342.92,
+          "end": 343.2,
+          "probability": 1.0
+        },
+        {
+          "word": "outside",
+          "start": 343.2,
+          "end": 343.52,
+          "probability": 0.999
+        },
+        {
+          "word": "the",
+          "start": 343.52,
+          "end": 343.68,
+          "probability": 0.997
+        },
+        {
+          "word": "box,",
+          "start": 343.68,
+          "end": 344.1,
+          "probability": 0.998
+        },
+        {
+          "word": "then",
+          "start": 344.28,
+          "end": 344.32,
+          "probability": 0.989
+        },
+        {
+          "word": "you",
+          "start": 344.32,
+          "end": 344.44,
+          "probability": 0.998
+        },
+        {
+          "word": "think",
+          "start": 344.44,
+          "end": 344.64,
+          "probability": 0.999
+        },
+        {
+          "word": "about",
+          "start": 344.64,
+          "end": 344.92,
+          "probability": 0.997
+        },
+        {
+          "word": "something",
+          "start": 344.92,
+          "end": 345.28,
+          "probability": 0.997
+        },
+        {
+          "word": "in",
+          "start": 345.28,
+          "end": 345.48,
+          "probability": 0.964
+        },
+        {
+          "word": "a",
+          "start": 345.48,
+          "end": 345.66,
+          "probability": 0.999
+        },
+        {
+          "word": "different",
+          "start": 345.66,
+          "end": 345.98,
+          "probability": 0.989
+        },
+        {
+          "word": "way",
+          "start": 345.98,
+          "end": 346.32,
+          "probability": 0.873
+        },
+        {
+          "word": "to",
+          "start": 346.32,
+          "end": 346.5,
+          "probability": 0.685
+        },
+        {
+          "word": "come",
+          "start": 346.5,
+          "end": 346.7,
+          "probability": 0.951
+        },
+        {
+          "word": "up",
+          "start": 346.7,
+          "end": 346.84,
+          "probability": 0.846
+        },
+        {
+          "word": "with",
+          "start": 346.84,
+          "end": 346.89,
+          "probability": 0.666
+        }
+      ]
+    },
+    {
+      "start": 346.89,
+      "end": 353.04,
+      "text": " a creative solution. And finally, modeling is behaving in a way that others can copy.",
+      "words": [
+        {
+          "word": "a",
+          "start": 346.89,
+          "end": 347.1,
+          "probability": 0.995
+        },
+        {
+          "word": "creative",
+          "start": 347.1,
+          "end": 347.54,
+          "probability": 0.998
+        },
+        {
+          "word": "solution.",
+          "start": 347.54,
+          "end": 348.26,
+          "probability": 0.999
+        },
+        {
+          "word": "And",
+          "start": 348.78,
+          "end": 349.06,
+          "probability": 0.953
+        },
+        {
+          "word": "finally,",
+          "start": 349.06,
+          "end": 349.54,
+          "probability": 0.983
+        },
+        {
+          "word": "modeling",
+          "start": 349.84,
+          "end": 350.16,
+          "probability": 0.898
+        },
+        {
+          "word": "is",
+          "start": 350.16,
+          "end": 350.6,
+          "probability": 0.998
+        },
+        {
+          "word": "behaving",
+          "start": 350.6,
+          "end": 351.2,
+          "probability": 0.997
+        },
+        {
+          "word": "in",
+          "start": 351.2,
+          "end": 351.46,
+          "probability": 0.998
+        },
+        {
+          "word": "a",
+          "start": 351.46,
+          "end": 351.58,
+          "probability": 0.999
+        },
+        {
+          "word": "way",
+          "start": 351.58,
+          "end": 351.82,
+          "probability": 1.0
+        },
+        {
+          "word": "that",
+          "start": 351.82,
+          "end": 352.08,
+          "probability": 0.994
+        },
+        {
+          "word": "others",
+          "start": 352.08,
+          "end": 352.38,
+          "probability": 0.988
+        },
+        {
+          "word": "can",
+          "start": 352.38,
+          "end": 352.62,
+          "probability": 0.987
+        },
+        {
+          "word": "copy.",
+          "start": 352.62,
+          "end": 353.04,
+          "probability": 0.997
+        }
+      ]
+    },
+    {
+      "start": 353.4,
+      "end": 357.68,
+      "text": " Once again, our six minutes are up, but why not head over to our website,",
+      "words": [
+        {
+          "word": "Once",
+          "start": 353.4,
+          "end": 353.7,
+          "probability": 0.99
+        },
+        {
+          "word": "again,",
+          "start": 353.7,
+          "end": 354.12,
+          "probability": 0.999
+        },
+        {
+          "word": "our",
+          "start": 354.16,
+          "end": 354.46,
+          "probability": 0.429
+        },
+        {
+          "word": "six",
+          "start": 354.46,
+          "end": 354.76,
+          "probability": 0.796
+        },
+        {
+          "word": "minutes",
+          "start": 354.76,
+          "end": 355.0,
+          "probability": 0.986
+        },
+        {
+          "word": "are",
+          "start": 355.0,
+          "end": 355.18,
+          "probability": 0.992
+        },
+        {
+          "word": "up,",
+          "start": 355.18,
+          "end": 355.42,
+          "probability": 0.997
+        },
+        {
+          "word": "but",
+          "start": 355.6,
+          "end": 355.72,
+          "probability": 0.983
+        },
+        {
+          "word": "why",
+          "start": 355.72,
+          "end": 355.94,
+          "probability": 0.997
+        },
+        {
+          "word": "not",
+          "start": 355.94,
+          "end": 356.26,
+          "probability": 0.999
+        },
+        {
+          "word": "head",
+          "start": 356.26,
+          "end": 356.5,
+          "probability": 0.96
+        },
+        {
+          "word": "over",
+          "start": 356.5,
+          "end": 356.76,
+          "probability": 0.998
+        },
+        {
+          "word": "to",
+          "start": 356.76,
+          "end": 356.96,
+          "probability": 0.994
+        },
+        {
+          "word": "our",
+          "start": 356.96,
+          "end": 357.18,
+          "probability": 0.995
+        },
+        {
+          "word": "website,",
+          "start": 357.18,
+          "end": 357.68,
+          "probability": 0.993
+        }
+      ]
+    },
+    {
+      "start": 357.88,
+      "end": 365.44,
+      "text": " BBCLearningEnglish.com to try the quiz and worksheet for this episode. See you again soon. Bye!",
+      "words": [
+        {
+          "word": "BBCLearningEnglish.com",
+          "start": 357.88,
+          "end": 360.24,
+          "probability": 0.653
+        },
+        {
+          "word": "to",
+          "start": 360.24,
+          "end": 360.6,
+          "probability": 0.502
+        },
+        {
+          "word": "try",
+          "start": 360.6,
+          "end": 360.82,
+          "probability": 0.971
+        },
+        {
+          "word": "the",
+          "start": 360.82,
+          "end": 361.02,
+          "probability": 0.993
+        },
+        {
+          "word": "quiz",
+          "start": 361.02,
+          "end": 361.42,
+          "probability": 0.999
+        },
+        {
+          "word": "and",
+          "start": 361.42,
+          "end": 361.94,
+          "probability": 0.972
+        },
+        {
+          "word": "worksheet",
+          "start": 361.94,
+          "end": 362.52,
+          "probability": 0.936
+        },
+        {
+          "word": "for",
+          "start": 362.52,
+          "end": 362.76,
+          "probability": 0.996
+        },
+        {
+          "word": "this",
+          "start": 362.76,
+          "end": 362.96,
+          "probability": 0.997
+        },
+        {
+          "word": "episode.",
+          "start": 362.96,
+          "end": 363.48,
+          "probability": 0.995
+        },
+        {
+          "word": "See",
+          "start": 363.76,
+          "end": 364.08,
+          "probability": 0.855
+        },
+        {
+          "word": "you",
+          "start": 364.08,
+          "end": 364.24,
+          "probability": 0.989
+        },
+        {
+          "word": "again",
+          "start": 364.24,
+          "end": 364.46,
+          "probability": 0.996
+        },
+        {
+          "word": "soon.",
+          "start": 364.46,
+          "end": 364.94,
+          "probability": 0.976
+        },
+        {
+          "word": "Bye!",
+          "start": 365.12,
+          "end": 365.44,
+          "probability": 0.769
+        }
+      ]
+    }
+  ]
+}
