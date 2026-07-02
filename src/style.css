@@ -109,6 +109,16 @@
   --dur-fast: 150ms;
   --dur-normal: 250ms;
   --dur-slow: 400ms;
+
+  /* Auth Module (Sprint 1) — additive tokens only, existing tokens reused elsewhere */
+  --font-display: 'Outfit', var(--font);
+  --secondary: #8B70DB;
+  --secondary-light: #A38EE3;
+  --secondary-dark: #6F52C7;
+  --secondary-soft: rgba(139, 112, 219, 0.1);
+  --bg-midnight: #10131A;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 /* ======================== RESET ======================== */
