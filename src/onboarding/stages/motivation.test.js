@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { motivationStage, MOTIVATION_TAGS } from './motivation.js';
+import { motivationStage, createMotivationStage, MOTIVATION_TAGS } from './motivation.js';
 
 let container;
 
@@ -100,5 +100,29 @@ describe('motivationStage', () => {
     expect(container.innerHTML).toBe('');
     expect(changeCount).toBe(countAfterMount);
     expect(motivationStage.collect()).toEqual({ tags: [], freeText: '' });
+  });
+});
+
+describe('createMotivationStage (factory)', () => {
+  it('produces independent instances with isolated tag/free-text state', () => {
+    const instanceA = createMotivationStage();
+    const instanceB = createMotivationStage();
+    const containerA = document.createElement('div');
+    const containerB = document.createElement('div');
+
+    instanceA.mount({ container: containerA });
+    instanceB.mount({ container: containerB });
+
+    containerA.querySelector('.ob2-chip[data-value="Career"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const textareaA = containerA.querySelector('.ob2-freetext-input');
+    textareaA.value = 'promotion';
+    textareaA.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(instanceA.collect()).toEqual({ tags: ['Career'], freeText: 'promotion' });
+    expect(instanceB.collect()).toEqual({ tags: [], freeText: '' });
+    expect(instanceB.validate()).toBe(false);
+
+    instanceA.unmount();
+    instanceB.unmount();
   });
 });

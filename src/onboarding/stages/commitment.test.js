@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { commitmentStage, DAILY_COMMITMENT_MINUTES } from './commitment.js';
+import { commitmentStage, createCommitmentStage, DAILY_COMMITMENT_MINUTES } from './commitment.js';
 
 let container;
 
@@ -56,5 +56,25 @@ describe('commitmentStage', () => {
     commitmentStage.unmount();
     expect(container.innerHTML).toBe('');
     expect(commitmentStage.collect()).toEqual({ dailyTimeGoalMinutes: null });
+  });
+});
+
+describe('createCommitmentStage (factory)', () => {
+  it('produces independent instances with isolated selection state', () => {
+    const instanceA = createCommitmentStage();
+    const instanceB = createCommitmentStage();
+    const containerA = document.createElement('div');
+    const containerB = document.createElement('div');
+
+    instanceA.mount({ container: containerA });
+    instanceB.mount({ container: containerB });
+
+    containerA.querySelector('.ob2-chip[data-value="60"]').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(instanceA.collect()).toEqual({ dailyTimeGoalMinutes: 60 });
+    expect(instanceB.collect()).toEqual({ dailyTimeGoalMinutes: 20 });
+
+    instanceA.unmount();
+    instanceB.unmount();
   });
 });

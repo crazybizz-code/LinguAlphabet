@@ -6,6 +6,10 @@
 // stage doesn't invent new copy the Blueprint hasn't reviewed.
 // collect() returns { targetGoal } matching
 // profileBuilder's plan.targetGoal input exactly.
+//
+// createGoalStage() is exported alongside the `goalStage` singleton
+// (same factory+singleton pattern as onboarding/store.js) so each
+// instance's DOM/selection state lives in its own closure.
 
 import { createStage } from './stageDescriptor.js';
 import { createChipGroup } from './shared/chipGroup.js';
@@ -24,58 +28,62 @@ export const GOAL_OPTIONS = Object.freeze([
 const DEFAULT_GOAL = 'General English';
 const GOAL_VALUES = GOAL_OPTIONS.map(option => option.value);
 
-let containerRef = null;
-let chipGroupHandle = null;
-
 function resolveInitialSelection(initialData) {
   const targetGoal = initialData?.targetGoal;
   return GOAL_VALUES.includes(targetGoal) ? [targetGoal] : [DEFAULT_GOAL];
 }
 
-function render(ctx) {
-  containerRef.innerHTML = '';
+export function createGoalStage() {
+  let containerRef = null;
+  let chipGroupHandle = null;
 
-  const wrapper = document.createElement('div');
-  wrapper.className = 'ob2-stage ob2-stage--goal';
-  wrapper.innerHTML = `
-    <span class="ob2-badge">Your goal</span>
-    <h1 class="ob2-heading">What's your main goal?</h1>
-    <p class="ob2-subtext">We'll tailor your roadmap and lesson recommendations around this.</p>
-    <div class="ob2-chip-mount" data-role="goal-options"></div>
-  `;
-  containerRef.appendChild(wrapper);
+  function render(ctx) {
+    containerRef.innerHTML = '';
 
-  const chipMount = wrapper.querySelector('[data-role="goal-options"]');
-  chipGroupHandle = createChipGroup({
-    container: chipMount,
-    options: GOAL_OPTIONS,
-    multi: false,
-    initialSelected: resolveInitialSelection(ctx?.initialData),
-    groupLabel: 'Learning goal options',
-    onChange: () => ctx?.onChange?.(),
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ob2-stage ob2-stage--goal';
+    wrapper.innerHTML = `
+      <span class="ob2-badge">Your goal</span>
+      <h1 class="ob2-heading">What's your main goal?</h1>
+      <p class="ob2-subtext">We'll tailor your roadmap and lesson recommendations around this.</p>
+      <div class="ob2-chip-mount" data-role="goal-options"></div>
+    `;
+    containerRef.appendChild(wrapper);
+
+    const chipMount = wrapper.querySelector('[data-role="goal-options"]');
+    chipGroupHandle = createChipGroup({
+      container: chipMount,
+      options: GOAL_OPTIONS,
+      multi: false,
+      initialSelected: resolveInitialSelection(ctx?.initialData),
+      groupLabel: 'Learning goal options',
+      onChange: () => ctx?.onChange?.(),
+    });
+  }
+
+  return createStage({
+    id: STAGE_ID,
+
+    mount(ctx) {
+      containerRef = ctx.container;
+      render(ctx);
+    },
+
+    validate() {
+      return (chipGroupHandle?.getSelected().length ?? 0) === 1;
+    },
+
+    collect() {
+      return { targetGoal: chipGroupHandle?.getSelected()[0] ?? null };
+    },
+
+    unmount() {
+      chipGroupHandle?.destroy();
+      chipGroupHandle = null;
+      if (containerRef) containerRef.innerHTML = '';
+      containerRef = null;
+    },
   });
 }
 
-export const goalStage = createStage({
-  id: STAGE_ID,
-
-  mount(ctx) {
-    containerRef = ctx.container;
-    render(ctx);
-  },
-
-  validate() {
-    return (chipGroupHandle?.getSelected().length ?? 0) === 1;
-  },
-
-  collect() {
-    return { targetGoal: chipGroupHandle?.getSelected()[0] ?? null };
-  },
-
-  unmount() {
-    chipGroupHandle?.destroy();
-    chipGroupHandle = null;
-    if (containerRef) containerRef.innerHTML = '';
-    containerRef = null;
-  },
-});
+export const goalStage = createGoalStage();

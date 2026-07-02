@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { welcomeStage } from './welcome.js';
+import { welcomeStage, createWelcomeStage } from './welcome.js';
 
 let container;
 
@@ -53,5 +53,32 @@ describe('welcomeStage', () => {
     welcomeStage.mount({ container });
     welcomeStage.unmount();
     expect(container.innerHTML).toBe('');
+  });
+});
+
+describe('createWelcomeStage (factory)', () => {
+  it('produces independent instances that do not share mount state', () => {
+    const instanceA = createWelcomeStage();
+    const instanceB = createWelcomeStage();
+    const containerA = document.createElement('div');
+    const containerB = document.createElement('div');
+
+    instanceA.mount({ container: containerA, initialData: { displayName: 'Alice' } });
+    instanceB.mount({ container: containerB, initialData: { displayName: 'Bob' } });
+
+    expect(containerA.querySelector('.ob2-heading').textContent).toBe('Welcome back, Alice!');
+    expect(containerB.querySelector('.ob2-heading').textContent).toBe('Welcome back, Bob!');
+
+    instanceA.unmount();
+    expect(containerA.innerHTML).toBe('');
+    expect(containerB.innerHTML).not.toBe('');
+
+    instanceB.unmount();
+  });
+
+  it('produces a stage satisfying the same contract as the singleton', () => {
+    const instance = createWelcomeStage();
+    expect(instance.id).toBe(welcomeStage.id);
+    expect(instance).not.toBe(welcomeStage);
   });
 });

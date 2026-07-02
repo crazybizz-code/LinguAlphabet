@@ -15,6 +15,12 @@
 //
 // collect() returns { tags, freeText } matching profileBuilder's
 // motivation input exactly.
+//
+// createMotivationStage() is exported alongside the `motivationStage`
+// singleton (same factory+singleton pattern as onboarding/store.js)
+// so each instance's DOM/selection/text state lives in its own
+// closure — this stage has the most mutable state of the five, so
+// isolating it per-instance is the most valuable here.
 
 import { createStage } from './stageDescriptor.js';
 import { createChipGroup } from './shared/chipGroup.js';
@@ -31,100 +37,104 @@ export const MOTIVATION_TAGS = Object.freeze([
   { value: 'Personal Growth', icon: '🌱', label: 'Personal Growth & Culture' },
 ]);
 
-let containerRef = null;
-let chipGroupHandle = null;
-let textareaRef = null;
-let counterRef = null;
-let freeTextValue = '';
-let handleInput = null;
+export function createMotivationStage() {
+  let containerRef = null;
+  let chipGroupHandle = null;
+  let textareaRef = null;
+  let counterRef = null;
+  let freeTextValue = '';
+  let handleInput = null;
 
-function updateCounter() {
-  if (counterRef) {
-    counterRef.textContent = `${freeTextValue.length}/${FREE_TEXT_MAX_LENGTH}`;
-  }
-}
-
-function render(ctx) {
-  containerRef.innerHTML = '';
-  freeTextValue = typeof ctx?.initialData?.freeText === 'string' ? ctx.initialData.freeText : '';
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'ob2-stage ob2-stage--motivation';
-  wrapper.innerHTML = `
-    <span class="ob2-badge">Your motivation</span>
-    <h1 class="ob2-heading">What's motivating you to learn English?</h1>
-    <p class="ob2-subtext">Pick anything that applies, and tell us more in your own words if you'd like.</p>
-    <div class="ob2-chip-mount" data-role="motivation-tags"></div>
-    <div class="ob2-freetext-field">
-      <label for="${FREE_TEXT_ID}">In your own words (optional)</label>
-      <textarea
-        id="${FREE_TEXT_ID}"
-        class="ob2-freetext-input"
-        maxlength="${FREE_TEXT_MAX_LENGTH}"
-        placeholder="e.g. I want to feel confident in work meetings"
-        aria-describedby="${FREE_TEXT_ID}-count"
-      ></textarea>
-      <span id="${FREE_TEXT_ID}-count" class="ob2-freetext-count"></span>
-    </div>
-  `;
-  containerRef.appendChild(wrapper);
-
-  const chipMount = wrapper.querySelector('[data-role="motivation-tags"]');
-  const initialTags = Array.isArray(ctx?.initialData?.tags) ? ctx.initialData.tags : [];
-  chipGroupHandle = createChipGroup({
-    container: chipMount,
-    options: MOTIVATION_TAGS,
-    multi: true,
-    initialSelected: initialTags,
-    groupLabel: 'Quick motivation tags',
-    onChange: () => ctx?.onChange?.(),
-  });
-
-  textareaRef = wrapper.querySelector(`#${FREE_TEXT_ID}`);
-  counterRef = wrapper.querySelector(`#${FREE_TEXT_ID}-count`);
-  textareaRef.value = freeTextValue;
-  updateCounter();
-
-  handleInput = () => {
-    freeTextValue = textareaRef.value;
-    updateCounter();
-    ctx?.onChange?.();
-  };
-  textareaRef.addEventListener('input', handleInput);
-}
-
-export const motivationStage = createStage({
-  id: STAGE_ID,
-
-  mount(ctx) {
-    containerRef = ctx.container;
-    render(ctx);
-  },
-
-  validate() {
-    const hasTag = (chipGroupHandle?.getSelected().length ?? 0) > 0;
-    const hasFreeText = freeTextValue.trim().length > 0;
-    return hasTag || hasFreeText;
-  },
-
-  collect() {
-    return {
-      tags: chipGroupHandle?.getSelected() ?? [],
-      freeText: freeTextValue.trim(),
-    };
-  },
-
-  unmount() {
-    chipGroupHandle?.destroy();
-    chipGroupHandle = null;
-    if (textareaRef && handleInput) {
-      textareaRef.removeEventListener('input', handleInput);
+  function updateCounter() {
+    if (counterRef) {
+      counterRef.textContent = `${freeTextValue.length}/${FREE_TEXT_MAX_LENGTH}`;
     }
-    textareaRef = null;
-    counterRef = null;
-    handleInput = null;
-    freeTextValue = '';
-    if (containerRef) containerRef.innerHTML = '';
-    containerRef = null;
-  },
-});
+  }
+
+  function render(ctx) {
+    containerRef.innerHTML = '';
+    freeTextValue = typeof ctx?.initialData?.freeText === 'string' ? ctx.initialData.freeText : '';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ob2-stage ob2-stage--motivation';
+    wrapper.innerHTML = `
+      <span class="ob2-badge">Your motivation</span>
+      <h1 class="ob2-heading">What's motivating you to learn English?</h1>
+      <p class="ob2-subtext">Pick anything that applies, and tell us more in your own words if you'd like.</p>
+      <div class="ob2-chip-mount" data-role="motivation-tags"></div>
+      <div class="ob2-freetext-field">
+        <label for="${FREE_TEXT_ID}">In your own words (optional)</label>
+        <textarea
+          id="${FREE_TEXT_ID}"
+          class="ob2-freetext-input"
+          maxlength="${FREE_TEXT_MAX_LENGTH}"
+          placeholder="e.g. I want to feel confident in work meetings"
+          aria-describedby="${FREE_TEXT_ID}-count"
+        ></textarea>
+        <span id="${FREE_TEXT_ID}-count" class="ob2-freetext-count"></span>
+      </div>
+    `;
+    containerRef.appendChild(wrapper);
+
+    const chipMount = wrapper.querySelector('[data-role="motivation-tags"]');
+    const initialTags = Array.isArray(ctx?.initialData?.tags) ? ctx.initialData.tags : [];
+    chipGroupHandle = createChipGroup({
+      container: chipMount,
+      options: MOTIVATION_TAGS,
+      multi: true,
+      initialSelected: initialTags,
+      groupLabel: 'Quick motivation tags',
+      onChange: () => ctx?.onChange?.(),
+    });
+
+    textareaRef = wrapper.querySelector(`#${FREE_TEXT_ID}`);
+    counterRef = wrapper.querySelector(`#${FREE_TEXT_ID}-count`);
+    textareaRef.value = freeTextValue;
+    updateCounter();
+
+    handleInput = () => {
+      freeTextValue = textareaRef.value;
+      updateCounter();
+      ctx?.onChange?.();
+    };
+    textareaRef.addEventListener('input', handleInput);
+  }
+
+  return createStage({
+    id: STAGE_ID,
+
+    mount(ctx) {
+      containerRef = ctx.container;
+      render(ctx);
+    },
+
+    validate() {
+      const hasTag = (chipGroupHandle?.getSelected().length ?? 0) > 0;
+      const hasFreeText = freeTextValue.trim().length > 0;
+      return hasTag || hasFreeText;
+    },
+
+    collect() {
+      return {
+        tags: chipGroupHandle?.getSelected() ?? [],
+        freeText: freeTextValue.trim(),
+      };
+    },
+
+    unmount() {
+      chipGroupHandle?.destroy();
+      chipGroupHandle = null;
+      if (textareaRef && handleInput) {
+        textareaRef.removeEventListener('input', handleInput);
+      }
+      textareaRef = null;
+      counterRef = null;
+      handleInput = null;
+      freeTextValue = '';
+      if (containerRef) containerRef.innerHTML = '';
+      containerRef = null;
+    },
+  });
+}
+
+export const motivationStage = createMotivationStage();

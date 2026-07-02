@@ -14,6 +14,10 @@
 //
 // No default is pre-selected: unlike Goal/Commitment, the level is
 // a meaningful self-report and must not be silently assumed.
+//
+// createLevelStage() is exported alongside the `levelStage` singleton
+// (same factory+singleton pattern as onboarding/store.js) so each
+// instance's DOM/selection state lives in its own closure.
 
 import { createStage } from './stageDescriptor.js';
 import { createChipGroup } from './shared/chipGroup.js';
@@ -33,9 +37,6 @@ export const LEVEL_OPTIONS = Object.freeze([
   },
 ]);
 
-let containerRef = null;
-let chipGroupHandle = null;
-
 function resolveInitialSelection(initialData) {
   if (!initialData) return [];
   if (initialData.needsLevelAssessment) return [LEVEL_UNKNOWN_VALUE];
@@ -45,54 +46,61 @@ function resolveInitialSelection(initialData) {
   return [];
 }
 
-function render(ctx) {
-  containerRef.innerHTML = '';
+export function createLevelStage() {
+  let containerRef = null;
+  let chipGroupHandle = null;
 
-  const wrapper = document.createElement('div');
-  wrapper.className = 'ob2-stage ob2-stage--level';
-  wrapper.innerHTML = `
-    <span class="ob2-badge">Your level</span>
-    <h1 class="ob2-heading">What's your English level?</h1>
-    <p class="ob2-subtext">Pick the option that feels right — you can fine-tune it later as you learn.</p>
-    <div class="ob2-chip-mount" data-role="level-options"></div>
-  `;
-  containerRef.appendChild(wrapper);
+  function render(ctx) {
+    containerRef.innerHTML = '';
 
-  const chipMount = wrapper.querySelector('[data-role="level-options"]');
-  chipGroupHandle = createChipGroup({
-    container: chipMount,
-    options: LEVEL_OPTIONS,
-    multi: false,
-    initialSelected: resolveInitialSelection(ctx?.initialData),
-    groupLabel: 'English level options',
-    onChange: () => ctx?.onChange?.(),
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ob2-stage ob2-stage--level';
+    wrapper.innerHTML = `
+      <span class="ob2-badge">Your level</span>
+      <h1 class="ob2-heading">What's your English level?</h1>
+      <p class="ob2-subtext">Pick the option that feels right — you can fine-tune it later as you learn.</p>
+      <div class="ob2-chip-mount" data-role="level-options"></div>
+    `;
+    containerRef.appendChild(wrapper);
+
+    const chipMount = wrapper.querySelector('[data-role="level-options"]');
+    chipGroupHandle = createChipGroup({
+      container: chipMount,
+      options: LEVEL_OPTIONS,
+      multi: false,
+      initialSelected: resolveInitialSelection(ctx?.initialData),
+      groupLabel: 'English level options',
+      onChange: () => ctx?.onChange?.(),
+    });
+  }
+
+  return createStage({
+    id: STAGE_ID,
+
+    mount(ctx) {
+      containerRef = ctx.container;
+      render(ctx);
+    },
+
+    validate() {
+      return (chipGroupHandle?.getSelected().length ?? 0) === 1;
+    },
+
+    collect() {
+      const selected = chipGroupHandle?.getSelected()[0] ?? null;
+      if (selected === LEVEL_UNKNOWN_VALUE) {
+        return { selectedLevel: null, needsLevelAssessment: true };
+      }
+      return { selectedLevel: selected, needsLevelAssessment: false };
+    },
+
+    unmount() {
+      chipGroupHandle?.destroy();
+      chipGroupHandle = null;
+      if (containerRef) containerRef.innerHTML = '';
+      containerRef = null;
+    },
   });
 }
 
-export const levelStage = createStage({
-  id: STAGE_ID,
-
-  mount(ctx) {
-    containerRef = ctx.container;
-    render(ctx);
-  },
-
-  validate() {
-    return (chipGroupHandle?.getSelected().length ?? 0) === 1;
-  },
-
-  collect() {
-    const selected = chipGroupHandle?.getSelected()[0] ?? null;
-    if (selected === LEVEL_UNKNOWN_VALUE) {
-      return { selectedLevel: null, needsLevelAssessment: true };
-    }
-    return { selectedLevel: selected, needsLevelAssessment: false };
-  },
-
-  unmount() {
-    chipGroupHandle?.destroy();
-    chipGroupHandle = null;
-    if (containerRef) containerRef.innerHTML = '';
-    containerRef = null;
-  },
-});
+export const levelStage = createLevelStage();

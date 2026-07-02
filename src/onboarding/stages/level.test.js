@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { levelStage, LEVEL_OPTIONS, LEVEL_UNKNOWN_VALUE } from './level.js';
+import { levelStage, createLevelStage, LEVEL_OPTIONS, LEVEL_UNKNOWN_VALUE } from './level.js';
 import { LEARNING_LEVELS } from '../../profile/learningBrainProfile.js';
 
 let container;
@@ -84,5 +84,28 @@ describe('levelStage', () => {
     levelStage.unmount();
     expect(container.innerHTML).toBe('');
     expect(levelStage.collect()).toEqual({ selectedLevel: null, needsLevelAssessment: false });
+  });
+});
+
+describe('createLevelStage (factory)', () => {
+  it('produces independent instances with isolated selection state', () => {
+    const instanceA = createLevelStage();
+    const instanceB = createLevelStage();
+    const containerA = document.createElement('div');
+    const containerB = document.createElement('div');
+
+    instanceA.mount({ container: containerA });
+    instanceB.mount({ container: containerB });
+
+    containerA
+      .querySelector(`.ob2-chip[data-value="${LEVEL_UNKNOWN_VALUE}"]`)
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(instanceA.collect()).toEqual({ selectedLevel: null, needsLevelAssessment: true });
+    expect(instanceB.collect()).toEqual({ selectedLevel: null, needsLevelAssessment: false });
+    expect(instanceB.validate()).toBe(false);
+
+    instanceA.unmount();
+    instanceB.unmount();
   });
 });

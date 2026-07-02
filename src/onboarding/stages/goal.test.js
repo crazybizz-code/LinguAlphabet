@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { goalStage, GOAL_OPTIONS } from './goal.js';
+import { goalStage, createGoalStage, GOAL_OPTIONS } from './goal.js';
 
 let container;
 
@@ -61,5 +61,27 @@ describe('goalStage', () => {
     goalStage.unmount();
     expect(container.innerHTML).toBe('');
     expect(goalStage.collect()).toEqual({ targetGoal: null });
+  });
+});
+
+describe('createGoalStage (factory)', () => {
+  it('produces independent instances with isolated selection state', () => {
+    const instanceA = createGoalStage();
+    const instanceB = createGoalStage();
+    const containerA = document.createElement('div');
+    const containerB = document.createElement('div');
+
+    instanceA.mount({ container: containerA });
+    instanceB.mount({ container: containerB });
+
+    containerA
+      .querySelector('.ob2-chip[data-value="Business English"]')
+      .dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(instanceA.collect()).toEqual({ targetGoal: 'Business English' });
+    expect(instanceB.collect()).toEqual({ targetGoal: 'General English' });
+
+    instanceA.unmount();
+    instanceB.unmount();
   });
 });
