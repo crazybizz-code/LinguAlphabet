@@ -4197,14 +4197,60 @@ button,
 /* ============================================================
    SPRINT 2 — ONBOARDING v2 (Phase D: Completion Experience)
    ============================================================
-   Additive only — no selector below this point modifies or
-   overrides any rule above it. Reuses existing keyframes already
-   defined above (fadeIn, fadeSlideIn, tutoBreathe, tutoCelebrate)
-   via new .ob2-* classes; no keyframe is redefined here. Not yet
-   wired into index.html/main.js — these classes are applied by the
-   onboarding v2 stage modules (src/onboarding/), which are not yet
-   mounted into the running app.
+   Additive only. No selector below this point modifies or overrides
+   any rule above it. Reuses existing keyframes already defined above
+   (fadeIn, fadeSlideIn, tutoBreathe, tutoCelebrate) via new classes
+   prefixed ob2, none redefined here. Wired into index.html (see
+   onboarding-v2-container) and main.js as of Phase E, kept under its
+   own ob2/onboarding-container-v2 namespace, deliberately separate
+   from the classes prefixed ob used by the legacy engine, so the two
+   engines can never visually interfere with each other.
    ============================================================ */
+
+/* ---- v2 engine mount point (sibling to the legacy .onboarding-container) ---- */
+.onboarding-container-v2 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  padding: calc(36px + var(--safe-top)) 24px calc(20px + var(--safe-bottom));
+}
+
+/* ---- Onboarding Machine chrome (answering-phase navigation) ---- */
+.ob2-machine {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 16px;
+}
+
+.ob2-machine-stage-mount {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ob2-machine-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.ob2-machine-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
 
 /* ---- Shared onboarding v2 primitives (also used by Phase B stages) ---- */
 .ob2-stage {

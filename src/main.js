@@ -8,6 +8,8 @@ import { supabase, UserState, CONFIG, updateConfig } from './db.js';
 import { copilot, lookupWord } from './ai.js';
 import { SyncedAudioPlayer } from './player.js';
 import { syncAllFeeds } from './rss.js';
+import { isOnboardingComplete, startOnboarding } from './onboarding/index.js';
+import { reconcileOnboardingCompletionState } from './services/guestMigration.js';
 
 // ==================== GLOBAL STATE ====================
 const state = {
@@ -414,12 +416,25 @@ function initWelcomeScreen() {
 function showMainApp() {
   document.getElementById('auth-screen').classList.add('hidden');
 
-  const user = UserState._data;
-  const onboardingComplete = user?.hasCompletedAssessment === true;
-  if (!onboardingComplete) {
+  // ONBOARDING_ENGINE: 'legacy' (Sprint 1's assessment-based flow) or
+  // 'v2' (Sprint 2's onboarding machine). Both stay fully functional;
+  // this is the only branch point between them. See db.js CONFIG.
+  if (CONFIG.onboardingEngine === 'legacy') {
+    const onboardingComplete = UserState._data?.hasCompletedAssessment === true;
+    if (!onboardingComplete) {
+      document.getElementById('onboarding-v2-container').classList.add('hidden');
+      document.getElementById('onboarding-container').classList.remove('hidden');
+      document.getElementById('main-app').classList.add('hidden');
+      document.getElementById('onboarding-screen').classList.remove('hidden');
+      startOnboardingFlow();
+      return;
+    }
+  } else if (!isOnboardingComplete(UserState)) {
+    document.getElementById('onboarding-container').classList.add('hidden');
+    document.getElementById('onboarding-v2-container').classList.remove('hidden');
     document.getElementById('main-app').classList.add('hidden');
     document.getElementById('onboarding-screen').classList.remove('hidden');
-    startOnboardingFlow();
+    startOnboardingV2Flow();
     return;
   }
 
@@ -427,6 +442,21 @@ function showMainApp() {
   document.getElementById('main-app').classList.remove('hidden');
   navigateTo(UserState.get('lastActiveTab') || 'home');
   renderAllViews();
+}
+
+// ==================== ONBOARDING v2 (Sprint 2) ====================
+// Mounts the Onboarding Machine (src/onboarding/machine.js), which owns
+// stage navigation, the Progress Experience, and the Completion Card.
+// Re-entering showMainApp() from onExit is the entire dashboard handoff:
+// by then UserState.hasCompletedAssessment/learningBrain reflect the
+// just-committed profile, so the branch above naturally falls through
+// to the dashboard tail — no separate "show dashboard" code path exists.
+function startOnboardingV2Flow() {
+  const container = document.getElementById('onboarding-v2-container');
+  startOnboarding(container, {
+    userId: UserState.get('userId') || null,
+    onExit: () => showMainApp(),
+  });
 }
 
 function setupAuthListeners() {
@@ -577,6 +607,10 @@ function setupAuthListeners() {
       });
       // Fetch remote profile
       await UserState.syncFromRemote().catch(() => null);
+      // Guest Migration: reconcile which learningBrain ended up
+      // authoritative after the sync merge (remote's if it had one,
+      // otherwise whatever was already local) against the completion flag.
+      reconcileOnboardingCompletionState(UserState);
       showMainApp();
     } catch (err) {
       showError(errEl, err.message || 'Incorrect email or password');
@@ -612,11 +646,15 @@ function setupAuthListeners() {
         userId: supabase.currentUser?.id || 'guest_user',
         email,
         username,
-        isGuest: false,
-        hasCompletedAssessment: false // Force onboarding for new accounts
+        isGuest: false
       });
+      // Guest Migration: if this guest already completed onboarding v2,
+      // preserve that instead of forcing them through it again. Sets
+      // hasCompletedAssessment to false for a brand-new/incomplete guest,
+      // same as the previous unconditional default.
+      reconcileOnboardingCompletionState(UserState);
       clearOnboardingDraft();
-      // Sync initial profile state to remote
+      // Sync initial profile state to remote (now includes learning_brain)
       await UserState.syncToRemote().catch(() => null);
       showMainApp();
     } catch (err) {

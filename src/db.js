@@ -4,10 +4,15 @@
 import { getInitialData } from './data.js';
 
 // ==================== CONFIG ====================
+// ONBOARDING_ENGINE: 'v2' (Sprint 2's onboarding machine, Phases A-D)
+// or 'legacy' (Sprint 1's original assessment-based flow). Both stay
+// fully functional side by side — see main.js's showMainApp(). The
+// localStorage override exists for QA/rollback without a code change.
 export const CONFIG = {
   supabaseUrl: localStorage.getItem('sb_url') || import.meta.env.VITE_SUPABASE_URL || '',
   supabaseKey: localStorage.getItem('sb_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '',
   geminiKey: localStorage.getItem('gemini_key') || import.meta.env.VITE_GEMINI_API_KEY || '',
+  onboardingEngine: localStorage.getItem('linguAlphabet_onboarding_engine') || 'v2',
 };
 
 export function updateConfig(key, value) {
@@ -15,6 +20,7 @@ export function updateConfig(key, value) {
   if (key === 'supabaseUrl') localStorage.setItem('sb_url', value);
   if (key === 'supabaseKey') localStorage.setItem('sb_key', value);
   if (key === 'geminiKey') localStorage.setItem('gemini_key', value);
+  if (key === 'onboardingEngine') localStorage.setItem('linguAlphabet_onboarding_engine', value);
 }
 
 function reportError(...args) {
@@ -390,7 +396,12 @@ export const UserState = {
       learningMemory: { masteredWords: [], weakWords: [], masteredConcepts: [], weakConcepts: [], repeatedMistakes: [] },
       assessmentHistory: [],
       pathStep: 1,
-      pathDate: ""
+      pathDate: "",
+
+      // Sprint 2 onboarding v2 — the versioned LearningBrainProfile
+      // (see profile/learningBrainProfile.js). null until the
+      // Initialization Runner commits one.
+      learningBrain: null
     };
   },
 
@@ -516,7 +527,8 @@ export const UserState = {
         learning_score: this._data.learningScore,
         learning_memory: this._data.learningMemory,
         assessment_history: this._data.assessmentHistory,
-        has_completed_assessment: this._data.hasCompletedAssessment
+        has_completed_assessment: this._data.hasCompletedAssessment,
+        learning_brain: this._data.learningBrain
       };
       await supabase.upsertProfile(remoteProfile).catch(err => reportError("Profile sync error:", err));
 
@@ -594,6 +606,10 @@ export const UserState = {
         if (typeof profile.has_completed_assessment === 'boolean') {
           this._data.hasCompletedAssessment = profile.has_completed_assessment;
         }
+        // Remote wins if present; otherwise the local value (e.g. a
+        // guest's freshly-completed brain) is left untouched — same
+        // OR-fallback merge as every other field above.
+        this._data.learningBrain = profile.learning_brain || this._data.learningBrain;
       }
 
       // 2. Pull Progress
