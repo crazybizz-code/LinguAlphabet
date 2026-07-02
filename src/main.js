@@ -25,7 +25,13 @@ import {
   renderPasswordStrength,
   setupPasswordToggle,
   bindEnterToSubmit,
-  handleGoogleAuth
+  handleGoogleAuth,
+  runAuthFlow,
+  showAuthSuccess,
+  lockAuthNavigation,
+  unlockAuthNavigation,
+  setGuestUpgradeHook,
+  requestGuestUpgrade
 } from './auth.js';
 
 // ==================== GLOBAL STATE ====================
@@ -431,6 +437,25 @@ function setupAuthListeners() {
     }
   });
 
+  // auth-guest.js knows nothing about the DOM or which modal to open — it
+  // just calls this hook. main.js owns the existing #upgrade-overlay, so
+  // every upgrade prompt (manual, from Settings, or a future feature-limit
+  // trigger) opens through this single path — no second upgrade modal.
+  setGuestUpgradeHook((reason) => {
+    const reasonEl = document.getElementById('upgrade-reason');
+    if (reasonEl) {
+      if (reason) {
+        reasonEl.textContent = reason;
+        reasonEl.classList.remove('hidden');
+      } else {
+        reasonEl.classList.add('hidden');
+      }
+    }
+    const errEl = document.getElementById('upgrade-error');
+    if (errEl) errEl.classList.add('hidden');
+    showModal('upgrade-overlay');
+  });
+
   // Welcome Hero (SCR-002) triggers
   document.getElementById('hero-start-btn')?.addEventListener('click', () => {
     showAuthPanel('signup-panel');
@@ -517,14 +542,19 @@ function setupAuthListeners() {
     }
   });
 
-  // Welcome panel Continue trigger
+  // Welcome panel Continue trigger — the conversational Tuto pacing (750ms
+  // pause + its own fade transition) stays exactly as designed; only the
+  // navigation lock and the shared Success Transition are added, so Guest
+  // gets the same premium close as Login/Register without disturbing the
+  // existing name-capture experience.
   continueBtn?.addEventListener('click', () => {
     const name = nameInput.value.trim();
     if (!name) return;
 
-    // Lock controls
+    // Lock controls + navigation for the duration of this transition
     if (nameInput) nameInput.disabled = true;
     if (continueBtn) continueBtn.disabled = true;
+    lockAuthNavigation();
 
     // Show Tuto's transition response
     const speechEl = document.getElementById('welcome-tuto-speech');
@@ -537,7 +567,7 @@ function setupAuthListeners() {
       if (nameInput) nameInput.disabled = false;
       if (continueBtn) continueBtn.disabled = false;
 
-      transitionWelcomeToOnboarding(() => {
+      transitionWelcomeToOnboarding(async () => {
         // Initialize guest session and proceed to Onboarding
         clearOnboardingDraft();
         state.assessmentIndex = 0;
@@ -555,6 +585,8 @@ function setupAuthListeners() {
         });
         state.isGuest = true;
         state.user = UserState._data;
+        await showAuthSuccess('guest');
+        unlockAuthNavigation();
         showMainApp();
       });
     }, 750);
@@ -613,27 +645,22 @@ function setupAuthListeners() {
       return;
     }
 
-    const btn = document.getElementById('login-btn');
-    btn.innerHTML = '<span class="spinner"></span> Signing in...';
-    btn.disabled = true;
-
     try {
-      const remember = rememberInput ? rememberInput.checked : true;
-      await supabase.signIn(email, password, remember);
-      UserState.update({
-        userId: supabase.currentUser.id,
-        email,
-        isGuest: false
-      });
-      // Fetch remote profile
-      await UserState.syncFromRemote().catch(() => null);
+      await runAuthFlow(async () => {
+        const remember = rememberInput ? rememberInput.checked : true;
+        await supabase.signIn(email, password, remember);
+        UserState.update({
+          userId: supabase.currentUser.id,
+          email,
+          isGuest: false
+        });
+        // Fetch remote profile
+        await UserState.syncFromRemote().catch(() => null);
+      }, { context: 'login' });
       showMainApp();
     } catch (err) {
       showError(errEl, err.message || 'Incorrect email or password');
       shakeFieldError(passwordInput);
-    } finally {
-      btn.innerHTML = "Let's Go";
-      btn.disabled = false;
     }
   });
 
@@ -677,28 +704,23 @@ function setupAuthListeners() {
       return;
     }
 
-    const btn = document.getElementById('signup-btn');
-    btn.innerHTML = '<span class="spinner"></span> Creating Account...';
-    btn.disabled = true;
-
     try {
-      await supabase.signUp(email, password, fullName);
-      UserState.update({
-        userId: supabase.currentUser?.id || 'guest_user',
-        email,
-        username: fullName,
-        isGuest: false,
-        hasCompletedAssessment: false // Force onboarding for new accounts
-      });
-      clearOnboardingDraft();
-      // Sync initial profile state to remote
-      await UserState.syncToRemote().catch(() => null);
+      await runAuthFlow(async () => {
+        await supabase.signUp(email, password, fullName);
+        UserState.update({
+          userId: supabase.currentUser?.id || 'guest_user',
+          email,
+          username: fullName,
+          isGuest: false,
+          hasCompletedAssessment: false // Force onboarding for new accounts
+        });
+        clearOnboardingDraft();
+        // Sync initial profile state to remote
+        await UserState.syncToRemote().catch(() => null);
+      }, { context: 'register' });
       showMainApp();
     } catch (err) {
       showError(errEl, err.message || 'Failed to create account');
-    } finally {
-      btn.innerHTML = 'Create Account';
-      btn.disabled = false;
     }
   });
 
@@ -715,13 +737,10 @@ function setupAuthListeners() {
       return;
     }
 
-    const btn = document.getElementById('forgot-submit-btn');
-    btn.innerHTML = '<span class="spinner"></span> Sending link...';
-    btn.disabled = true;
-    emailInput.disabled = true;
-
     try {
-      await supabase.resetPassword(email);
+      // Forgot Password stays on its own panel after success (SCR-005) —
+      // no Success Transition here, only the shared Loading experience.
+      await runAuthFlow(() => supabase.resetPassword(email), { context: 'forgot', withSuccess: false });
       if (successEl) {
         successEl.textContent = 'A secure recovery link has been sent to your email!';
         successEl.classList.remove('hidden');
@@ -729,10 +748,6 @@ function setupAuthListeners() {
       }
     } catch (err) {
       showError(errEl, err.message || 'Failed to send recovery link');
-    } finally {
-      btn.innerHTML = 'Send Recovery Link';
-      btn.disabled = false;
-      emailInput.disabled = false;
     }
   });
 }
@@ -3818,9 +3833,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('settings-upgrade-btn')?.addEventListener('click', () => {
-    const errEl = document.getElementById('upgrade-error');
-    if (errEl) errEl.classList.add('hidden');
-    showModal('upgrade-overlay');
+    requestGuestUpgrade();
   });
 
   document.getElementById('upgrade-cancel-btn')?.addEventListener('click', () => {

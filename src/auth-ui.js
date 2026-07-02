@@ -1,10 +1,19 @@
 // ============================================================
 // auth-ui.js — Auth screen DOM building blocks (no db.js/session dependency).
-// Tuto mascot rendering, panel switching, and generic field interactions
-// (password show/hide, Enter-to-submit, error display, field shake) shared
-// across every auth screen: Welcome Hero, Guest Mode, Guest name-capture,
-// Login, Register, Forgot Password.
+// Owns every auth-domain screen/overlay's presentation — Splash, Welcome
+// Hero, Guest Mode, Guest name-capture, Login, Register, Forgot Password,
+// Auth Loading, Auth Success — plus the generic field interactions they
+// share (password show/hide, Enter-to-submit, error display, field shake).
+// Screens that need session/network state (Splash's cold-start check,
+// Google OAuth) live in auth-session.js and call back into this file's
+// display functions; this file never reaches into db.js itself.
 // ============================================================
+
+const OVERLAY_EXIT_MS = 400; // matches --dur-slow in style.css
+
+function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // ==================== TUTO MASCOT ====================
 export function getTutoSVG(size = 80) {
@@ -83,7 +92,22 @@ export function syncAuthScreenMode() {
   }
 }
 
+// Blocks panel switching while an authentication attempt is in flight
+// (Login/Register/Forgot/Guest all route through here via runAuthFlow), so a
+// stray tap on "Back" or "Sign In" mid-request can't abandon the request or
+// land the user on a screen that no longer matches what's happening.
+let navigationLocked = false;
+
+export function lockAuthNavigation() {
+  navigationLocked = true;
+}
+
+export function unlockAuthNavigation() {
+  navigationLocked = false;
+}
+
 export function showAuthPanel(panelId) {
+  if (navigationLocked) return;
   document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(panelId)?.classList.add('active');
   syncAuthScreenMode();
@@ -91,6 +115,16 @@ export function showAuthPanel(panelId) {
     initHeroScreen();
   }
   panelHook?.(panelId);
+}
+
+// Disables every button/input in a panel for the duration of a submission —
+// prevents duplicate submissions and stray interaction with other fields
+// while the request is running. Paired with the navigation lock above.
+export function setPanelControlsDisabled(panelEl, disabled) {
+  if (!panelEl) return;
+  panelEl.querySelectorAll('button, input').forEach(el => {
+    el.disabled = disabled;
+  });
 }
 
 // ==================== WELCOME HERO (SCR-002) ====================
@@ -154,4 +188,188 @@ export function bindEnterToSubmit(inputIds, buttonId) {
       }
     });
   });
+}
+
+// ==================== SPLASH (SCR-001) ====================
+export function showSplash() {
+  document.getElementById('splash-screen')?.classList.remove('hidden', 'overlay-exit');
+}
+
+export function showSplashOfflineBanner() {
+  document.getElementById('splash-offline-banner')?.classList.remove('hidden');
+}
+
+export function hideSplash() {
+  const splash = document.getElementById('splash-screen');
+  if (!splash) return;
+  splash.classList.add('overlay-exit');
+  setTimeout(() => {
+    splash.classList.add('hidden');
+    splash.classList.remove('overlay-exit');
+  }, OVERLAY_EXIT_MS);
+}
+
+// ==================== AUTH LOADING (SCR-007) ====================
+// Friendly coaching messages per flow — never a bare spinner. Two phrases
+// rotate for flows with real network latency; single-phrase flows (Forgot)
+// just hold their one message.
+const LOADING_COPY = {
+  login: [
+    { main: 'Tuto is finding your profile...', sub: 'Syncing your streak, XP and saved lessons.' },
+    { main: 'Almost there...', sub: 'A great coach remembers every detail.' }
+  ],
+  register: [
+    { main: 'Tuto is setting up your coach...', sub: 'Your personalized English journey starts now.' },
+    { main: 'Preparing your Learning Brain...', sub: 'Consistent practice of 5 minutes a day builds real fluency.' }
+  ],
+  forgot: [
+    { main: 'Sending your recovery link...', sub: 'Check your inbox in just a moment.' }
+  ],
+  guest: [
+    { main: 'Getting your session ready...', sub: 'You can create a free account anytime to save your progress.' }
+  ]
+};
+
+let loadingRotationTimer = null;
+
+function renderLoadingPhrase(phrase) {
+  const mainEl = document.getElementById('auth-loading-main');
+  const subEl = document.getElementById('auth-loading-sub');
+  [mainEl, subEl].forEach(el => {
+    if (!el) return;
+    el.classList.remove('phrase-fade');
+    void el.offsetWidth; // restart the fade animation for this swap
+    el.classList.add('phrase-fade');
+  });
+  if (mainEl) mainEl.textContent = phrase.main;
+  if (subEl) subEl.textContent = phrase.sub;
+}
+
+export function showAuthLoading(context = 'login') {
+  const overlay = document.getElementById('auth-loading-screen');
+  if (!overlay) return;
+
+  const mascot = document.getElementById('auth-loading-tuto');
+  if (mascot && !mascot.dataset.rendered) {
+    mascot.innerHTML = getTutoSVG(110);
+    mascot.dataset.rendered = '1';
+  }
+  startTutoBlinkLoop(mascot);
+
+  const phrases = LOADING_COPY[context] || LOADING_COPY.login;
+  let index = 0;
+  renderLoadingPhrase(phrases[index]);
+
+  clearInterval(loadingRotationTimer);
+  if (phrases.length > 1) {
+    loadingRotationTimer = setInterval(() => {
+      index = (index + 1) % phrases.length;
+      renderLoadingPhrase(phrases[index]);
+    }, 2200);
+  }
+
+  overlay.classList.remove('hidden', 'overlay-exit');
+}
+
+// Returns a Promise that resolves once the overlay has fully faded out, so
+// runAuthFlow can keep the navigation lock / disabled controls in place for
+// the entire time the overlay is visually on screen — not just until the
+// underlying network call settles.
+export function hideAuthLoading() {
+  clearInterval(loadingRotationTimer);
+  const overlay = document.getElementById('auth-loading-screen');
+  if (!overlay) return Promise.resolve();
+  const mascot = document.getElementById('auth-loading-tuto');
+  stopTutoBlinkLoop(mascot);
+  overlay.classList.add('overlay-exit');
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      overlay.classList.add('hidden');
+      overlay.classList.remove('overlay-exit');
+      resolve();
+    }, OVERLAY_EXIT_MS);
+  });
+}
+
+// ==================== AUTH SUCCESS (SCR-008) ====================
+const SUCCESS_COPY = {
+  login: { headline: 'Welcome back!', sub: "Let's continue your English journey." },
+  register: { headline: 'Welcome aboard!', sub: "Let's coach your English together." },
+  guest: { headline: "You're all set!", sub: "Let's coach your English together." }
+};
+
+const SUCCESS_DISPLAY_MS = 1300;
+
+// Small celebration before continuing into the app — never a hard cut.
+// Resolves once the overlay has fully faded back out, so callers can
+// `await` it and then navigate, keeping the whole transition smooth.
+export function showAuthSuccess(context = 'login') {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('auth-success-screen');
+    if (!overlay) { resolve(); return; }
+
+    const copy = SUCCESS_COPY[context] || SUCCESS_COPY.login;
+    const headlineEl = document.getElementById('auth-success-headline');
+    const subEl = document.getElementById('auth-success-sub');
+    if (headlineEl) headlineEl.textContent = copy.headline;
+    if (subEl) subEl.textContent = copy.sub;
+
+    const mascot = document.getElementById('auth-success-tuto');
+    if (mascot && !mascot.dataset.rendered) {
+      mascot.innerHTML = getTutoSVG(110);
+      mascot.dataset.rendered = '1';
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate([40, 60, 40]); } catch {}
+    }
+
+    overlay.classList.remove('hidden', 'overlay-exit');
+
+    setTimeout(() => {
+      overlay.classList.add('overlay-exit');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('overlay-exit');
+        resolve();
+      }, OVERLAY_EXIT_MS);
+    }, SUCCESS_DISPLAY_MS);
+  });
+}
+
+// ==================== AUTH FLOW ORCHESTRATOR ====================
+const AUTH_TIMEOUT_MS = 12000;
+
+// Wraps Login/Register/Forgot's async submission with the full premium
+// treatment: locks navigation, disables the active panel's controls,
+// shows the mascot Loading overlay with context-appropriate coaching
+// copy, runs the task with a hard timeout (blueprint SCR-007 error state),
+// and — for flows that continue into the app — shows the Success
+// transition before resolving. Always restores navigation/controls, on
+// both success and failure, so the UI can never get stuck locked or mid-load.
+export async function runAuthFlow(taskFn, { context = 'login', withSuccess = true } = {}) {
+  const activePanel = document.querySelector('.auth-panel.active');
+  lockAuthNavigation();
+  setPanelControlsDisabled(activePanel, true);
+  showAuthLoading(context);
+
+  try {
+    const result = await Promise.race([
+      taskFn(),
+      wait(AUTH_TIMEOUT_MS).then(() => {
+        throw new Error('Connection timed out. Tuto is trying to find a better signal. Please try again.');
+      })
+    ]);
+    await hideAuthLoading();
+    if (withSuccess) {
+      await showAuthSuccess(context);
+    }
+    return result;
+  } catch (err) {
+    await hideAuthLoading();
+    throw err;
+  } finally {
+    setPanelControlsDisabled(activePanel, false);
+    unlockAuthNavigation();
+  }
 }

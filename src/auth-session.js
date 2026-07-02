@@ -1,36 +1,17 @@
 // ============================================================
 // auth-session.js — Session/network side of authentication: cold-start
-// routing (Splash), and Google OAuth. Everything here talks to db.js
-// (Supabase + UserState); UI-only concerns live in auth-ui.js.
+// routing (Splash's session check) and Google OAuth. Everything here talks
+// to db.js (Supabase + UserState); screen/overlay presentation — including
+// Splash's own show/hide — lives in auth-ui.js, which this file calls into.
 // ============================================================
 import { supabase, UserState } from './db.js';
-import { showError } from './auth-ui.js';
+import { showError, showSplash, showSplashOfflineBanner } from './auth-ui.js';
 
 const SPLASH_MIN_DISPLAY_MS = 1200;
 const SPLASH_VALIDATE_TIMEOUT_MS = 4000;
-const SPLASH_EXIT_MS = 400; // matches --dur-slow in style.css
 
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// ==================== SPLASH (SCR-001) ====================
-export function showSplash() {
-  document.getElementById('splash-screen')?.classList.remove('hidden', 'splash-exit');
-}
-
-export function showSplashOfflineBanner() {
-  document.getElementById('splash-offline-banner')?.classList.remove('hidden');
-}
-
-export function hideSplash() {
-  const splash = document.getElementById('splash-screen');
-  if (!splash) return;
-  splash.classList.add('splash-exit');
-  setTimeout(() => {
-    splash.classList.add('hidden');
-    splash.classList.remove('splash-exit');
-  }, SPLASH_EXIT_MS);
 }
 
 // Cold-start session routing: consumes a Google OAuth redirect if present,

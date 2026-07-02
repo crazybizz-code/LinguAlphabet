@@ -16,8 +16,8 @@
   <!-- App Root -->
   <div id="app">
 
-    <!-- ===================== SPLASH SCREEN ===================== -->
-    <div id="splash-screen" class="splash-screen" role="img" aria-label="LinguAlphabet">
+    <!-- ===================== SPLASH SCREEN (SCR-001) ===================== -->
+    <div id="splash-screen" class="auth-overlay-screen" role="img" aria-label="LinguAlphabet">
       <div class="splash-glow-orb" aria-hidden="true"></div>
       <div class="splash-center">
         <div class="splash-logo-icon">
@@ -31,6 +31,25 @@
         <span class="splash-logotype">LinguAlphabet</span>
       </div>
       <div class="splash-offline-banner hidden" id="splash-offline-banner">Connecting offline. Coaching ready.</div>
+    </div>
+
+    <!-- ===================== AUTH LOADING (SCR-007) ===================== -->
+    <div id="auth-loading-screen" class="auth-overlay-screen hidden" role="status" aria-label="Signing you in">
+      <div class="auth-loading-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Working"></div>
+      <div class="auth-loading-mascot" id="auth-loading-tuto"></div>
+      <div class="auth-loading-copy" aria-live="assertive">
+        <p class="auth-loading-main" id="auth-loading-main"></p>
+        <p class="auth-loading-sub" id="auth-loading-sub"></p>
+      </div>
+    </div>
+
+    <!-- ===================== AUTH SUCCESS (SCR-008) ===================== -->
+    <div id="auth-success-screen" class="auth-overlay-screen hidden" role="status">
+      <div class="auth-success-streak" aria-hidden="true"></div>
+      <div class="auth-success-icon" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="auth-success-mascot" id="auth-success-tuto"></div>
+      <h2 class="auth-success-headline" id="auth-success-headline">Welcome aboard!</h2>
+      <p class="auth-success-sub" id="auth-success-sub">Let's coach your English together.</p>
     </div>
 
     <!-- ===================== ONBOARDING ASSESSMENT ===================== -->
@@ -1325,6 +1344,7 @@
           <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5">
             Upgrade to a cloud account to backup your study goals, stats, and vocabulary permanently. All local progress will be automatically imported.
           </p>
+          <p class="upgrade-reason-text hidden" id="upgrade-reason" role="status"></p>
         </div>
 
         <div class="auth-form" style="margin-top: 16px">

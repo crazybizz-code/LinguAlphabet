@@ -502,7 +502,12 @@ export const UserState = {
       learningMemory: { masteredWords: [], weakWords: [], masteredConcepts: [], weakConcepts: [], repeatedMistakes: [] },
       assessmentHistory: [],
       pathStep: 1,
-      pathDate: ""
+      pathDate: "",
+
+      // Generic guest usage-metering store (auth-guest.js). Keyed by
+      // whatever feature a future phase configures — no limits are
+      // hardcoded here, this is just the persisted counter shape.
+      guestUsage: {}
     };
   },
 

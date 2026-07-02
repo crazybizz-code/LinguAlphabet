@@ -4385,11 +4385,13 @@ button,
   }
 }
 
-/* ======================== SPLASH SCREEN (SCR-001) ======================== */
-/* Positioned as an overlay (not a flex sibling) so it can stay visible while
-   the destination screen (Auth or Main App) is revealed underneath, then
-   fade out — this is what prevents any flash of the wrong screen. */
-.splash-screen {
+/* ======================== AUTH OVERLAY SCREENS ======================== */
+/* Shared full-bleed overlay base for every dark auth transition screen:
+   Splash (SCR-001), Auth Loading (SCR-007), Auth Success (SCR-008).
+   Positioned as an overlay (not a flex sibling) so it can stay visible while
+   the destination screen is revealed underneath, then fade out — this is
+   what prevents any flash of the wrong screen. */
+.auth-overlay-screen {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -4400,18 +4402,21 @@ button,
   transform: translate3d(-50%, 0, 0);
   background: var(--bg-midnight);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  padding: 32px 28px;
   transition: opacity var(--dur-slow) var(--ease-spring), transform var(--dur-slow) var(--ease-spring);
 }
 
-.splash-screen.splash-exit {
+.auth-overlay-screen.overlay-exit {
   opacity: 0;
   transform: translate3d(-50%, -16px, 0);
   pointer-events: none;
 }
 
+/* ======================== SPLASH SCREEN (SCR-001) ======================== */
 .splash-glow-orb {
   position: absolute;
   top: 50%;
@@ -4475,6 +4480,125 @@ button,
   padding: 8px 16px;
   border-radius: var(--r-full);
   white-space: nowrap;
+}
+
+/* ======================== AUTH LOADING (SCR-007) ======================== */
+.auth-loading-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.auth-loading-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+  animation: auth-loading-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes auth-loading-sweep {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+.auth-loading-mascot {
+  animation: tuto-breath 2.5s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+.auth-loading-copy {
+  text-align: center;
+  min-height: 54px;
+  max-width: 280px;
+}
+
+.auth-loading-main {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-on-dark);
+}
+
+.auth-loading-sub {
+  font-size: 12.5px;
+  color: var(--text-on-dark-2);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* Re-triggerable fade for each phrase swap — same reflow-restart technique
+   already used by shakeFieldError() in auth-ui.js. */
+.phrase-fade {
+  animation: hero-fade-up 400ms var(--ease-out);
+}
+
+/* ======================== AUTH SUCCESS (SCR-008) ======================== */
+.auth-success-streak {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-success-streak::after {
+  content: '';
+  position: absolute;
+  width: 160%;
+  height: 3px;
+  left: -80%;
+  bottom: 20%;
+  background: linear-gradient(90deg, transparent, var(--success), transparent);
+  opacity: 0;
+  animation: success-streak 900ms var(--ease-out) 150ms forwards;
+}
+
+@keyframes success-streak {
+  0% { transform: translate3d(-40%, 40%, 0) rotate(-24deg); opacity: 0; }
+  40% { opacity: 0.8; }
+  100% { transform: translate3d(40%, -40%, 0) rotate(-24deg); opacity: 0; }
+}
+
+.auth-success-icon {
+  position: relative;
+  font-size: 56px;
+  color: var(--success);
+  margin-bottom: 16px;
+  animation: scale-up 450ms var(--ease-spring);
+}
+
+.auth-success-mascot {
+  position: relative;
+  animation: tuto-breath 2.5s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+.auth-success-headline {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-on-dark);
+  margin-bottom: 6px;
+  text-align: center;
+  opacity: 0;
+  animation: hero-fade-up 400ms var(--ease-out) 200ms forwards;
+}
+
+.auth-success-sub {
+  position: relative;
+  font-size: 13px;
+  color: var(--text-on-dark-2);
+  text-align: center;
+  opacity: 0;
+  animation: hero-fade-up 400ms var(--ease-out) 260ms forwards;
 }
 
 /* ======================== WELCOME HERO (SCR-002) ======================== */
@@ -4689,6 +4813,21 @@ button,
   border-radius: var(--r-md);
   padding: 12px 14px;
   margin-bottom: 20px;
+}
+
+/* Optional contextual reason shown in the Upgrade Overlay (SCR-006 upsell),
+   set by whatever triggered it — the guest-metering hook or the profile
+   settings entry point both funnel through the same modal. */
+.upgrade-reason-text {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  border: 1px solid rgba(255, 107, 53, 0.25);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 10px;
 }
 
 @media (max-width: 360px), (max-height: 740px) {
