@@ -4,9 +4,14 @@
 
 **Role:** Technical Lead / Engineering Orchestrator
 **Status:** Approved plan for implementation — no production code in this document
-**Date:** 2026-07-02
+**Revision:** 2 (2026-07-02)
 
-> **Source-of-truth note:** The Product Blueprint document referenced in the task was not found in the repository, its branches, or GitHub issues/PRs. This plan reconstructs the stage model from (a) the five explicit product decisions supplied with the task, (b) the existing Sprint 1 onboarding implementation, and (c) the LearningBrainProfile field list. Every assumption is marked **[ASSUMPTION — confirm against Blueprint]**. The proposed architecture is stage-registry-driven, so correcting stage content after confirmation is a content change, not an architectural change.
+> **Revision 2 incorporates three approved Product decisions:**
+> 1. The legacy Adaptive Assessment is **out of Sprint 2**. It is replaced by a simple **English Level Selection** screen (7 options incl. "I don't know my level" → `needsLevelAssessment = true`). AI-driven level estimation from real learning behaviour is a future feature.
+> 2. The legacy onboarding engine is **NOT deleted** during Sprint 2. Strategy: Legacy → New → Feature Parity → QA Approval → Legacy Removal (removal only after explicit approval; nothing irreversible this sprint).
+> 3. The **Completion Card is mandatory** — the flow always ends Initialization → Completion Card → Dashboard. No direct transition from initialization to the Dashboard is possible.
+
+> **Source-of-truth note:** The Product Blueprint document referenced in the task was not found in the repository, its branches, or GitHub issues/PRs. This plan reconstructs the stage model from (a) the approved product decisions supplied with the task, (b) the existing Sprint 1 onboarding implementation, and (c) the LearningBrainProfile field list. Every assumption is marked **[ASSUMPTION — confirm against Blueprint]**. The proposed architecture is stage-registry-driven, so correcting stage content after confirmation is a content change, not an architectural change.
 
 ---
 
@@ -96,29 +101,42 @@ boot()
 ### Principles
 
 1. **Stay vanilla JS.** No framework migration inside a feature sprint. Match existing idioms (template strings, `classList` toggling, module singletons).
-2. **Stop the monolith.** All Sprint 2 logic lives in new modules under `src/onboarding/` and `src/profile/`; `main.js` only gains a thin integration seam (~40 lines). The Sprint 1 onboarding engine inside `main.js` is removed, not extended.
+2. **Stop the monolith.** All Sprint 2 logic lives in new modules under `src/onboarding/` and `src/profile/`; `main.js` only gains a thin integration seam (~40 lines). **Per Product Decision 2 (Rev 2), the Sprint 1 onboarding engine inside `main.js` is retained, dormant, behind an engine switch — it is not deleted in this sprint** (see "Engine coexistence strategy" below).
 3. **Stage registry, not hardcoded flow.** Onboarding is a declarative array of stage descriptors consumed by a small runner (state machine). Adding/reordering/correcting stages after Blueprint confirmation = editing the registry.
 4. **One canonical profile artifact.** Onboarding's output is a `LearningBrainProfile` object built by a pure function from collected answers — testable in isolation, versioned, persisted locally and remotely through one service.
 5. **Local-first, sync-behind.** Onboarding must complete fully offline (guests exist by design). Supabase writes are best-effort with retry; completion is never blocked on network.
 
-### Target flow (implements the five product decisions)
+### Target flow (implements the approved product decisions)
 
-**[ASSUMPTION — confirm against Blueprint]** Exact content of stages 2, 5, 6, 8. Stages 1, 3–4, 7, 9, and the Completion Card are anchored by the product decisions and existing code.
+**[ASSUMPTION — confirm against Blueprint]** Exact content of stages 4, 5, 6, 8. Stages 1–3, 7, 9, and the Completion Card are anchored by the product decisions and existing code.
 
 | Stage | Name | Content | Source |
 |---|---|---|---|
 | 1 | Welcome / Meet Tuto | Name capture, Tuto greeting (exists in auth welcome panel; onboarding re-greets by name) | Existing |
 | 2 | Learning Reason | "Why are you learning English?" (career/school/university/travel/growth) | Existing `#ob-step-welcome` select → upgraded to card grid |
-| 3 | Level Assessment | Adaptive 10-question engine (5 skills × medium, then easy/hard) | Existing, ported to stage module |
-| 4 | Assessment Report | CEFR + 5-skill breakdown + strongest/weakest | Existing, ported |
+| 3 | **English Level Selection** | **Single-select: Beginner / Elementary / Pre-Intermediate / Intermediate / Upper Intermediate / Advanced / "I don't know my level"** (the last sets `needsLevelAssessment = true`). Replaces the legacy 10-question adaptive assessment, which becomes a future feature. | **Product decision (Rev 2) #1** |
+| 4 | Level Preview | Light confirmation card: what the chosen level means, sample content band; for "I don't know" — friendly copy that Tuto will estimate the level from real learning behaviour **[ASSUMPTION]** | Reconstructed |
 | 5 | Target Goal | General/IELTS/Business/Speaking/Travel/Academic | Existing `#ob-step-plan`, split out |
 | 6 | Daily Commitment | 10/20/30/45/60 min | Existing, split out |
-| 7 | **Motivation** | **Quick Motivation Tags AND Free Text** (both supported, both optional-or-required per Blueprint copy; tags multi-select + textarea) | Product decision #2 |
+| 7 | **Motivation** | **Quick Motivation Tags AND Free Text** (both supported; tags multi-select + textarea) | Product decision #2 (Rev 1) |
 | 8 | Confirmation / Review | Summary of choices before brain build **[ASSUMPTION]** | Reconstructed |
-| 9 | **Learning Brain Initialization** | **Real progress messages tied to real async tasks** (see §7): "Saving your preferences…", "Creating your learning profile…", "Preparing your first lesson…", "Building your personalized roadmap…", "Finalizing your AI Coach…" | Product decision #3 |
-| — | **Completion Card** | "Learning Brain Ready" + Today's First Mission + Recommended First Podcast → CTA "Enter Dashboard" | Product decision #4 |
+| 9 | **Learning Brain Initialization** | **Real progress messages tied to real async tasks** (see §7): "Saving your preferences…", "Creating your learning profile…", "Preparing your first lesson…", "Building your personalized roadmap…", "Finalizing your AI Coach…" | Product decision #3 (Rev 1) |
+| — | **Completion Card (MANDATORY)** | "Learning Brain Ready" + Today's First Mission + Recommended First Podcast + **Start Learning CTA** → Dashboard. **Always shown; there is no code path from Stage 9 to the Dashboard that bypasses it** (see invariant below). | Product decisions #4 (Rev 1) + #3 (Rev 2) |
 
-**Product decision #1 (no skip):** There is no "Skip to default profile" affordance anywhere in the new flow, and the gate in `showMainApp()` becomes unconditional: no user — guest or registered — reaches `#main-app` unless `learningBrain.onboardingCompleted === true`. The Sprint 1 legacy flag `hasCompletedAssessment` is kept in sync for backward compatibility (see §10).
+**Level → CEFR mapping** **[ASSUMPTION — confirm labels/mapping against Blueprint]**: Beginner→A1, Elementary→A2, Pre-Intermediate→A2/B1 boundary (store as B1-low, content band A2–B1), Intermediate→B1, Upper Intermediate→B2, Advanced→C1. "I don't know my level" → `cefrLevel: null`, `needsLevelAssessment: true`; content targeting uses a conservative default band (A2–B1) until the AI estimates the real level from learning behaviour (podcasts, quizzes, speaking, vocabulary — future sprint).
+
+**Product decision #1 (Rev 1, no skip):** There is no "Skip to default profile" affordance anywhere in the new flow, and the gate in `showMainApp()` becomes unconditional: no user — guest or registered — reaches `#main-app` unless `learningBrain.onboardingCompleted === true`. The Sprint 1 legacy flag `hasCompletedAssessment` is kept in sync for backward compatibility (see §10).
+
+**Completion Card invariant (Product decision #3, Rev 2):** the state machine has exactly one terminal transition: `initializing → completionCard`. The initialization runner has no reference to `showMainApp()`; the **only** call site that hands off to the Dashboard is the Completion Card's "Start Learning" CTA, which fires only after the brain is persisted locally. Enforced structurally (the function simply isn't reachable from Stage 9) and verified in QA (§18.5).
+
+### Engine coexistence strategy (Product decision #2, Rev 2)
+
+Approved rollout ladder: **Legacy Onboarding → New Onboarding → Feature Parity → QA Approval → Legacy Removal.** Sprint 2 delivers the first four rungs; removal is a separate, explicitly-approved change after the sprint.
+
+- A single engine switch `ONBOARDING_ENGINE = 'v2' | 'legacy'` lives in one place (a `CONFIG` constant in `db.js`, overridable via localStorage key `linguAlphabet_onboarding_engine` for QA). `showMainApp()` dispatches to exactly one engine per session based on it. Default during development: `legacy`; flipped to `v2` when Phase 2 parity is demonstrated; legacy stays fully functional behind the switch until removal is approved.
+- Legacy code paths (`startOnboardingFlow`, `showOnboardingStep`, `getCurrentAdaptiveQuestion`, `renderAssessmentQuestion`, `gradeAssessment`, `generateLearningPlan`, v1 draft helpers) are **left in place untouched**, as are the `#ob-step-*` markup blocks and their CSS. The new engine mounts into a new, separate `#onboarding-v2-container` inside `#onboarding-screen`, so the two engines share the screen shell but never share DOM nodes, element IDs, or listeners.
+- Both engines write the same completion contract (`hasCompletedAssessment: true` + Sprint 2 additionally `learningBrain`), so a user completing under either engine is recognized as onboarded by both.
+- **Legacy removal (post-sprint, approval-gated):** a prepared, reviewable deletion PR (engine code, `#ob-step-*` markup, orphaned CSS, v1 draft key) that merges only after written QA approval. Nothing irreversible happens during Sprint 2.
 
 ### Component model
 
@@ -126,16 +144,16 @@ boot()
 OnboardingController (machine.js)
   ├─ reads   STAGE_REGISTRY (stages/index.js)
   ├─ owns    OnboardingStore (answers + cursor + draft persistence)
-  ├─ renders one stage at a time into #onboarding-container
+  ├─ renders one stage at a time into #onboarding-v2-container
   │            each stage module: { id, mount(ctx), collect(), validate(), unmount() }
   ├─ drives  transitions (reuses existing 400ms exit-animation pattern)
   └─ on finish:
-       profileBuilder.build(answers, assessmentResult, contentCatalog)
+       profileBuilder.build(answers, contentCatalog)
          → LearningBrainProfile
        initializationRunner.run(profile)      ← Stage 9 real tasks
          → per-task progress events → UI messages
-       completionCard.show(profile)
-         → "Enter Dashboard" → main.js showMainApp()
+       completionCard.show(profile)           ← MANDATORY terminal stage
+         → "Start Learning" CTA → main.js showMainApp()   (only handoff point)
 ```
 
 ---
@@ -144,30 +162,31 @@ OnboardingController (machine.js)
 
 ```
 src/
-├── main.js                      (MODIFY — integration seam only)
-├── db.js                        (MODIFY — UserState extension, token refresh, new endpoints)
-├── data.js                      (MODIFY — motivation tags catalog, mission templates)
+├── main.js                      (MODIFY — integration seam + engine switch; legacy engine retained)
+├── db.js                        (MODIFY — UserState extension, token refresh, engine switch const, new endpoints)
+├── data.js                      (MODIFY — level options catalog, motivation tags catalog, mission templates)
 ├── ai.js                        (unchanged)
 ├── onboarding/                  (NEW)
 │   ├── index.js                 public API: startOnboarding(), resumeOnboarding(), isOnboardingComplete()
-│   ├── machine.js               OnboardingController: cursor, transitions, draft resume
+│   ├── machine.js               OnboardingController: cursor, transitions, draft resume,
+│   │                            enforces initializing → completionCard terminal transition
 │   ├── store.js                 OnboardingStore: answers, draft persistence (versioned key)
 │   ├── initialization.js        Stage 9 task runner: ordered real tasks + progress events
 │   ├── stages/
 │   │   ├── index.js             STAGE_REGISTRY (ordered descriptors)
 │   │   ├── welcome.js           Stage 1
 │   │   ├── reason.js            Stage 2
-│   │   ├── assessment.js        Stage 3 (ports adaptive QA engine out of main.js)
-│   │   ├── report.js            Stage 4
+│   │   ├── levelSelect.js       Stage 3 — English Level Selection (7 options, needsLevelAssessment)
+│   │   ├── levelPreview.js      Stage 4 — level confirmation / "Tuto will estimate" messaging
 │   │   ├── goal.js              Stage 5
 │   │   ├── commitment.js        Stage 6
 │   │   ├── motivation.js        Stage 7 (tags + free text)
 │   │   ├── review.js            Stage 8
 │   │   └── initializing.js      Stage 9 (renders progress messages from initialization.js events)
-│   └── completionCard.js        Completion Card (pre-dashboard)
+│   └── completionCard.js        Completion Card (mandatory terminal stage, pre-dashboard)
 ├── profile/                     (NEW)
 │   ├── learningBrainProfile.js  schema constant, defaults, validate(), migrate(vN→vN+1)
-│   ├── profileBuilder.js        pure: (answers, assessmentResult, catalog) → LearningBrainProfile
+│   ├── profileBuilder.js        pure: (answers, catalog) → LearningBrainProfile
 │   ├── recommendation.js        recommendedFirstLesson / firstPodcastId / first mission selection
 │   └── leagues.js               league tier table + resolveLeague(xp)
 └── services/                    (NEW)
@@ -178,43 +197,45 @@ supabase/
     └── 002_sprint2_learning_brain.sql   (NEW — schema delta, additive only)
 ```
 
-CSS: new rules appended to `style.css` under a clearly delimited `/* ===== SPRINT 2: ONBOARDING v2 ===== */` block (keeps single-file convention; ~600 lines budget). Mascot: import `MascotInteractionManager` patterns rather than the demo file itself — extract the state-machine core into `src/onboarding/` usage via a thin adapter if the public/ file proves too demo-coupled (decide in Phase 2; do not block on it).
+CSS: new rules appended to `style.css` under a clearly delimited `/* ===== SPRINT 2: ONBOARDING v2 ===== */` block using a `.ob2-` class prefix so legacy `.ob-*` styles remain untouched (keeps single-file convention; ~600 lines budget). Mascot: import `MascotInteractionManager` patterns rather than the demo file itself — extract the state-machine core via a thin adapter if the public/ file proves too demo-coupled (decide in Phase 2; do not block on it).
 
----
+The legacy adaptive-assessment engine and its question bank in `data.js` stay in the codebase (dormant behind the engine switch) as the seed of the future AI/assessment feature.
 
 ## 5. New Files
 
 | File | Responsibility | Size est. |
 |---|---|---|
 | `src/onboarding/index.js` | Entry points consumed by `main.js`; hides everything else | ~40 lines |
-| `src/onboarding/machine.js` | Stage cursor, next/back, draft save on every transition, resume, finish handoff | ~150 |
+| `src/onboarding/machine.js` | Stage cursor, next/back, draft save on every transition, resume, terminal `initializing → completionCard` transition, finish handoff | ~150 |
 | `src/onboarding/store.js` | `answers` map, `get/set/patch`, versioned draft key `linguAlphabet_onboarding_draft_v2`, user-scoped invalidation | ~100 |
 | `src/onboarding/stages/index.js` | `STAGE_REGISTRY` ordered array | ~30 |
-| `src/onboarding/stages/*.js` (9 files) | One module per stage; each owns its DOM template, listeners, validation | ~60–250 each (assessment.js largest — ported engine) |
-| `src/onboarding/initialization.js` | Ordered async tasks with human message per task; emits `{taskIndex, message, status}`; min-display-time per message so UI never flashes; all tasks are REAL (see §7) | ~120 |
-| `src/onboarding/completionCard.js` | Renders Learning Brain Ready card (streak/XP/league seeds, first mission, first podcast), celebrate mascot state, CTA | ~120 |
+| `src/onboarding/stages/levelSelect.js` | 7-option single-select; "I don't know my level" sets `needsLevelAssessment`; level→CEFR mapping applied at collect() | ~90 |
+| `src/onboarding/stages/levelPreview.js` | Level meaning card / estimation messaging for unknown level | ~70 |
+| `src/onboarding/stages/*.js` (7 other stages) | One module per stage; each owns its DOM template, listeners, validation | ~60–120 each |
+| `src/onboarding/initialization.js` | Ordered async tasks with human message per task; emits `{taskIndex, message, status}`; min-display-time per message so UI never flashes; all tasks are REAL (see §7); no dashboard handoff capability | ~120 |
+| `src/onboarding/completionCard.js` | Renders Learning Brain Ready card (streak/XP/league seeds, first mission, first podcast), celebrate mascot state, **Start Learning CTA** (sole dashboard handoff) | ~120 |
 | `src/profile/learningBrainProfile.js` | `LEARNING_BRAIN_VERSION`, `defaultLearningBrain()`, `validateLearningBrain()`, `migrateLearningBrain()` | ~120 |
-| `src/profile/profileBuilder.js` | Pure builder: answers + assessment scores + podcast catalog → complete profile incl. `recommendedFirstLesson`, `firstPodcastId` | ~120 |
-| `src/profile/recommendation.js` | Reuses the scoring logic of `getRecommendedPodcasts()` (extracted, not duplicated) to pick first podcast + derive "Today's First Mission" | ~100 |
+| `src/profile/profileBuilder.js` | Pure builder: answers + podcast catalog → complete profile incl. `recommendedFirstLesson`, `firstPodcastId`, `needsLevelAssessment` | ~110 |
+| `src/profile/recommendation.js` | Reuses the scoring logic of `getRecommendedPodcasts()` (extracted, not duplicated) to pick first podcast + derive "Today's First Mission"; conservative-band fallback when level unknown | ~110 |
 | `src/profile/leagues.js` | League ladder (e.g., Bronze → Silver → Gold → Sapphire → Ruby **[ASSUMPTION — league names need Blueprint/product confirmation]**), `resolveLeague(xp)` | ~40 |
 | `src/services/profileService.js` | `saveLearningBrain(profile)`, `loadLearningBrain(userId)`, retry-with-backoff, offline queue flag | ~120 |
 | `src/services/migrationService.js` | `migrateGuestToAccount(guestData, userId)` per §11 | ~100 |
 | `supabase/migrations/002_sprint2_learning_brain.sql` | Additive schema delta per §12 | ~60 |
 
-Total new code budget: **~1,600 lines** across 16 focused files instead of growing `main.js`.
+Total new code budget: **~1,450 lines** across 17 focused files instead of growing `main.js`. (Down from Rev 1: the assessment engine port is no longer needed.)
 
 ## 6. Files To Modify
 
 | File | Change | Risk |
 |---|---|---|
-| `src/main.js` | (a) Delete Sprint 1 onboarding engine (`startOnboardingFlow`, `showOnboardingStep`, `getCurrentAdaptiveQuestion`, `renderAssessmentQuestion`, `gradeAssessment`, `generateLearningPlan`, draft helpers — ~280 lines); (b) `showMainApp()` gates on `isOnboardingComplete()` and delegates to `startOnboarding()`; (c) extract podcast-scoring core of `getRecommendedPodcasts()` into `src/profile/recommendation.js` and re-import; (d) remove `#ob-*` event listeners from `setupEventListeners()` | Medium — touching boot path |
-| `index.html` | (a) **Fix the `>>>>`/`<task_progress>` artifact at lines 256–260**; (b) replace the four static `#ob-step-*` blocks with a single empty `#onboarding-container` mount point (stages render themselves); (c) keep `#onboarding-screen` shell + background blobs | Low–Medium |
-| `src/style.css` | Append Sprint 2 block: stage transitions, tag chips, textarea, progress-message list, completion card, league badge | Low (additive) |
-| `src/db.js` | (a) Extend `UserState.defaults()` with `learningBrain: null` + legacy-flag bridge; (b) `syncToRemote`/`syncFromRemote` add `learning_brain` field; (c) **add token refresh** (`/auth/v1/token?grant_type=refresh_token` on 401, once) — prerequisite for reliable Stage 9 writes; (d) mark `hasCompletedAssessment` as derived | Medium |
-| `src/data.js` | Add `motivationTags` catalog, first-mission templates | Low |
+| `src/main.js` | (a) **Retain the entire Sprint 1 onboarding engine untouched** (Product decision #2, Rev 2); (b) add engine dispatch in `showMainApp()`: `ONBOARDING_ENGINE === 'v2'` → gate on `isOnboardingComplete()` and delegate to `startOnboarding()`; `'legacy'` → existing behaviour byte-for-byte; (c) extract podcast-scoring core of `getRecommendedPodcasts()` into `src/profile/recommendation.js` and re-import (shared-code refactor, not legacy removal — `main.js` keeps its existing function signature as a thin delegate); (d) no listener removals | Low–Medium — boot path gains a branch but legacy path is unchanged |
+| `index.html` | (a) **Fix the `>>>>`/`<task_progress>` artifact at lines 256–260**; (b) **keep** the four legacy `#ob-step-*` blocks intact; (c) add an empty sibling `#onboarding-v2-container` mount point inside `#onboarding-screen` (stages render themselves); engine dispatch shows exactly one of the two | Low |
+| `src/style.css` | Append Sprint 2 block (`.ob2-` prefix): stage transitions, level-select option list, tag chips, textarea, progress-message list, completion card, league badge. No legacy `.ob-*` rules touched | Low (additive) |
+| `src/db.js` | (a) Extend `UserState.defaults()` with `learningBrain: null` + legacy-flag bridge; (b) `syncToRemote`/`syncFromRemote` add `learning_brain` field; (c) **add token refresh** (`/auth/v1/token?grant_type=refresh_token` on 401, once) — prerequisite for reliable Stage 9 writes; (d) add `ONBOARDING_ENGINE` switch (CONFIG constant + localStorage override) | Medium |
+| `src/data.js` | Add `levelOptions` catalog (7 options + CEFR mapping), `motivationTags` catalog, first-mission templates. Legacy `assessmentQuestions` retained (dormant; future feature seed) | Low |
 | `supabase-schema.sql` | Reconcile drift: add the columns `syncToRemote` already assumes + Sprint 2 columns (documented; the runnable delta lives in `supabase/migrations/002_…`) | Low (docs-level) |
 
-Deletions: `src/counter.js` (dead scaffold).
+Deletions this sprint: `src/counter.js` only (dead Vite scaffold, unrelated to onboarding). **No legacy onboarding code, markup, or CSS is deleted in Sprint 2** — a prepared removal PR ships after explicit QA approval (§3, §15 step 8).
 
 ---
 
@@ -223,20 +244,20 @@ Deletions: `src/counter.js` (dead scaffold).
 Three layers, single-writer each:
 
 1. **OnboardingStore (ephemeral + draft)** — owns everything the user enters during onboarding. Never writes to `UserState` mid-flow. Draft persisted to localStorage on every stage transition (key `linguAlphabet_onboarding_draft_v2`, scoped by `userId`, invalidated on user switch — same rule Sprint 1 used). Abandoning mid-flow and returning resumes at the saved stage.
-2. **UserState (runtime authority)** — unchanged role. Gains one new field: `learningBrain` (the full `LearningBrainProfile`). Written exactly once, atomically, at Stage 9 task "Creating your learning profile…". Legacy fields (`cefrLevel`, `targetGoal`, `dailyTimeGoal`, `hasCompletedAssessment`, `learningScore`) are still written at the same moment so all existing dashboard/recommendation/profile code keeps working untouched.
+2. **UserState (runtime authority)** — unchanged role. Gains one new field: `learningBrain` (the full `LearningBrainProfile`). Written exactly once, atomically, at Stage 9 task "Creating your learning profile…". Legacy fields (`cefrLevel`, `targetGoal`, `dailyTimeGoal`, `hasCompletedAssessment`, `learningScore`) are still written at the same moment so all existing dashboard/recommendation/profile code keeps working untouched. For "I don't know my level": `cefrLevel` stays `null` and `learningScore` seeds neutral — existing consumers already default safely (`cefrLevel || 'A1'` etc.).
 3. **Supabase (durable, best-effort)** — written by `profileService` during Stage 9 for registered users; skipped for guests (their durable copy is localStorage until account creation, per §11).
 
-**Stage 9 real tasks (product decision #3)** — each message maps to actual work, executed sequentially by `initialization.js`:
+**Stage 9 real tasks (product decision #3, Rev 1)** — each message maps to actual work, executed sequentially by `initialization.js`:
 
 | Message | Real task |
 |---|---|
-| "Saving your preferences…" | Commit answers → `UserState.update()` (legacy fields) + draft cleanup |
+| "Saving your preferences…" | Commit answers → `UserState.update()` (legacy fields incl. level/CEFR or `needsLevelAssessment`) + draft cleanup |
 | "Creating your learning profile…" | `profileBuilder.build()` → validate → `UserState.set('learningBrain', …)` |
-| "Preparing your first lesson…" | Resolve `recommendedFirstLesson`/`firstPodcastId` against loaded catalog (incl. cached remote lessons); prefetch cover image; warm transcript if local |
+| "Preparing your first lesson…" | Resolve `recommendedFirstLesson`/`firstPodcastId` against loaded catalog (incl. cached remote lessons; conservative band if level unknown); prefetch cover image; warm transcript if local |
 | "Building your personalized roadmap…" | Run `recalculateInsights()`, seed daily quests for the goal, write inbox welcome item |
 | "Finalizing your AI Coach…" | Registered: `profileService.saveLearningBrain()` + `syncToRemote()` (with refresh-token retry). Guest: mark local durable. Failure ⇒ set `learningBrain.syncPending = true`, continue — never block completion |
 
-Each task has a minimum display duration (~700ms) so the sequence reads naturally even when tasks are instant, but the messages are never fake: if a task fails, the UI reflects retry/degraded state instead of pretending.
+Each task has a minimum display duration (~700ms) so the sequence reads naturally even when tasks are instant, but the messages are never fake: if a task fails, the UI reflects retry/degraded state instead of pretending. **On completion of the last task, the runner's only possible emission is a `done` event consumed by the machine's `initializing → completionCard` transition** — the runner cannot navigate (Completion Card invariant, §3).
 
 ## 8. LearningBrainProfile Architecture
 
@@ -248,16 +269,20 @@ LearningBrainProfile v1
 ├── onboardingCompleted: boolean
 ├── onboardingCompletedAt: ISO string
 ├── identity:      { displayName, learningReason }            (stages 1–2)
-├── assessment:    { cefrLevel, friendlyLevel, scores{listening, vocabulary,
-│                    grammar, comprehension, retention}, strongestSkill,
-│                    weakestSkill, completedAt }               (stages 3–4)
+├── level:         ← replaces Rev 1 "assessment" block (Product decision #1, Rev 2)
+│   ├── selectedLevel: 'Beginner' | 'Elementary' | 'Pre-Intermediate' |
+│   │                  'Intermediate' | 'Upper Intermediate' | 'Advanced' | 'Unknown'
+│   ├── cefrLevel: 'A1'|'A2'|'B1'|'B2'|'C1'| null              (null when Unknown)
+│   ├── needsLevelAssessment: boolean                          (true iff "I don't know my level")
+│   ├── source: 'self-reported' | 'unknown'                    (future: 'ai-estimated')
+│   └── selectedAt: ISO string
 ├── plan:          { targetGoal, dailyTimeGoalMinutes }        (stages 5–6)
-├── motivation:    { tags: string[], freeText: string }        (stage 7 — BOTH, per decision #2)
-├── gamification:  ← NEW REQUIRED FIELDS (decision #5)
+├── motivation:    { tags: string[], freeText: string }        (stage 7 — BOTH, per Rev 1 decision #2)
+├── gamification:  ← REQUIRED FIELDS (Rev 1 decision #5)
 │   ├── learningStreak: number        (seeded 0; mirrors UserState.streak)
 │   ├── currentXP: number             (seeded from UserState.xp incl. onboarding bonus)
 │   └── currentLeague: string         (resolveLeague(currentXP), default lowest tier)
-├── firstSession:  ← NEW REQUIRED FIELDS (decision #5)
+├── firstSession:  ← REQUIRED FIELDS (Rev 1 decision #5)
 │   ├── recommendedFirstLesson: { podcastId, title, reason }
 │   ├── firstPodcastId: string
 │   └── firstMission: { title, description, xpReward }         (Completion Card)
@@ -267,6 +292,7 @@ LearningBrainProfile v1
 **Ownership rules (avoids the classic dual-source-of-truth bug):**
 
 - `learningStreak` / `currentXP` / `currentLeague` are **initialization snapshots + mirrors**. Runtime authority for XP/streak remains `UserState.xp` / `UserState.streak` (all existing `addXP`/`recordStudy` code paths untouched). `UserState.save()` refreshes the mirror fields in `learningBrain.gamification` so the persisted brain is always consistent. Dashboard reads runtime fields; Completion Card reads the brain.
+- `level` is written once at onboarding; the **future** AI level-estimation feature is the designated writer that will later set `cefrLevel` + `source: 'ai-estimated'` and clear `needsLevelAssessment` — the schema reserves this path now so no v2 migration is needed for it.
 - `recommendedFirstLesson`/`firstPodcastId` are immutable after onboarding (historical record of what the brain chose); the live recommendation engine keeps evolving independently.
 - `validateLearningBrain()` runs on load; `migrateLearningBrain()` handles future `version` bumps; corrupt/invalid brain ⇒ treated as onboarding-incomplete (re-onboard) rather than crashing.
 
@@ -276,20 +302,22 @@ LearningBrainProfile v1
 boot()
  └─ hasSession?
      ├─ NO  → #auth-screen (welcome / login / signup / forgot)   [Sprint 1, unchanged]
-     └─ YES → isOnboardingComplete(UserState)?
-               │     (learningBrain.onboardingCompleted === true
-               │      OR legacy hasCompletedAssessment === true → §10 backfill)
-               ├─ NO  → #onboarding-screen
-               │         Stage 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
-               │         (back allowed 1–8; back disabled during 9;
-               │          draft resume re-enters at saved stage;
-               │          NO skip path exists — decision #1)
-               │         Stage 9 done → Completion Card (same screen container)
-               │         "Enter Dashboard" CTA → showMainApp()
-               └─ YES → #main-app (last active tab)
+     └─ YES → ONBOARDING_ENGINE?
+               ├─ 'legacy' → Sprint 1 behaviour, byte-for-byte     [retained per decision #2, Rev 2]
+               └─ 'v2'     → isOnboardingComplete(UserState)?
+                     │   (learningBrain.onboardingCompleted === true
+                     │    OR legacy hasCompletedAssessment === true → §10 backfill)
+                     ├─ NO  → #onboarding-screen (#onboarding-v2-container)
+                     │         Stage 1 → 2 → 3 (Level Select) → 4 → 5 → 6 → 7 → 8 → 9
+                     │         (back allowed 1–8; back disabled during 9;
+                     │          draft resume re-enters at saved stage;
+                     │          NO skip path exists — Rev 1 decision #1)
+                     │         Stage 9 done ──► Completion Card   ← MANDATORY, only exit from 9
+                     │         "Start Learning" CTA ──► showMainApp()   ← only dashboard handoff
+                     └─ YES → #main-app (last active tab)
 ```
 
-- Completion Card is a terminal onboarding stage, not a `#main-app` view — the dashboard is never partially visible behind it.
+- Completion Card is a mandatory terminal onboarding stage, not a `#main-app` view — the dashboard is never partially visible behind it, and no code path skips it (§3 invariant).
 - Sign-out during onboarding (possible via kill/relaunch only; no sign-out control is shown in the flow) → draft invalidation rules in §10.
 - Browser back button: unchanged from Sprint 1 (no history integration). **[Recommendation §20: add `history.pushState` guards in a later sprint, not this one.]**
 
@@ -299,11 +327,12 @@ boot()
 |---|---|---|
 | `linguAlphabet_user` | `UserState` incl. `learningBrain` | Existing; grows by one nested object |
 | `linguAlphabet_onboarding_draft_v2` | `{ userId, stageId, answers, savedAt }` | Written on every stage transition; cleared on completion, on user switch, and when `savedAt` > 14 days old **[ASSUMPTION on TTL]** |
-| `linguAlphabet_onboarding_draft` (v1) | Sprint 1 draft | Read-once migration: if present and holds ≥1 assessment answer for same user, offer resume by mapping into v2; else delete |
+| `linguAlphabet_onboarding_draft` (v1) | Sprint 1 draft | **Kept functional** — the legacy engine still reads/writes it while it remains behind the switch. The v2 engine ignores it (legacy drafts hold assessment answers that have no v2 equivalent now that the assessment is out of scope); a user switching engines mid-flow restarts onboarding. Key is deleted only in the post-approval legacy-removal PR |
+| `linguAlphabet_onboarding_engine` | QA override for engine switch | QA/dev only; absent for end users |
 | `sb_session` | Supabase session | Existing; gains refresh handling (§6) |
 | `linguAlphabet_remote_lessons_v1` | Lesson cache | Unchanged; Stage 9 "Preparing your first lesson" reads it |
 
-**Backward compatibility:** existing users with `hasCompletedAssessment === true` but no `learningBrain` must NOT be re-onboarded. On load, a one-time backfill constructs `learningBrain` from existing fields (`cefrLevel`, `learningScore`, `targetGoal`, `dailyTimeGoal`, `motivation`, xp/streak) with `recommendedFirstLesson`/`firstPodcastId` resolved lazily and `firstMission` set to a generic mission. Flag: `learningBrain.backfilled = true`.
+**Backward compatibility:** existing users with `hasCompletedAssessment === true` but no `learningBrain` must NOT be re-onboarded. On load, a one-time backfill constructs `learningBrain` from existing fields (`cefrLevel`, `learningScore`, `targetGoal`, `dailyTimeGoal`, `motivation`, xp/streak) with `level.source: 'self-reported'` when a CEFR exists (from the old assessment) and `recommendedFirstLesson`/`firstPodcastId` resolved lazily; `firstMission` set to a generic mission. Flag: `learningBrain.backfilled = true`.
 
 IndexedDB: not adopted for onboarding (localStorage payload is small); revisit only if profile size grows.
 
@@ -315,7 +344,7 @@ Guests exist by design (name-only welcome path) and must complete onboarding lik
 1. Snapshot guest `UserState` (incl. `learningBrain`) before `signUp()`.
 2. After signup succeeds: rewrite `userId` from `guest_*` to auth UID; keep everything else.
 3. `migrationService.migrateGuestToAccount()`: push profile + learningBrain + vocabulary/progress/notes/bookmarks/achievements via existing upserts; set `syncPending=false` on success.
-4. **Do not re-run onboarding** — brain is complete. (Sprint 1's `signUp` handler currently forces `hasCompletedAssessment:false`; change to: force re-onboarding only when no completed local brain exists.)
+4. **Do not re-run onboarding** — brain is complete. (Sprint 1's `signUp` handler currently forces `hasCompletedAssessment:false`; change to: force re-onboarding only when no completed local brain exists. This conditional lives in the v2 path only; legacy-engine behaviour is untouched.)
 
 **Case B — Guest (with local brain) signs IN to an existing account:**
 Conflict policy — **"completed brain wins; remote wins ties":**
@@ -333,7 +362,8 @@ Edge rule: a `guest_*` userId must never reach Supabase writes (existing guard i
 
 1. `profiles` — add columns (several are drift-reconciliation for what `syncToRemote()` already sends):
    - Drift: `motivation text`, `cefr_level text`, `target_goal text`, `daily_time_goal int`, `study_hours_goal int`, `learning_score jsonb`, `learning_memory jsonb`, `assessment_history jsonb`, `has_completed_assessment boolean default false`.
-   - Sprint 2: `learning_brain jsonb` (whole versioned profile — the JSON document is the contract, mirroring local), `current_league text default '<lowest tier>'`, `onboarding_completed_at timestamptz`.
+   - Sprint 2: `learning_brain jsonb` (whole versioned profile — the JSON document is the contract, mirroring local; `needsLevelAssessment` lives inside it, no dedicated column needed), `current_league text default '<lowest tier>'`, `onboarding_completed_at timestamptz`.
+   - `cefr_level` is nullable — "I don't know my level" users have no CEFR until the future AI estimation writes one.
 2. Rationale for `jsonb` over normalized columns: the brain is a versioned document owned by the client, read/written whole, evolving per sprint; `xp`/`streak`/`current_league` remain first-class columns because the leaderboard view queries them.
 3. RLS: existing per-user policies on `profiles` cover the new columns — no policy changes.
 4. `leaderboard` view: optionally add `current_league` (non-breaking).
@@ -347,30 +377,32 @@ Edge rule: a `guest_*` userId must never reach Supabase writes (existing guard i
 |---|---|---|
 | `onboarding/index.js` | `startOnboarding()`, `resumeOnboarding()`, `isOnboardingComplete(userState)` | `main.js` only |
 | `onboarding/store.js` | `get/set/patch/answers()`, `saveDraft/loadDraft/clearDraft` | machine + stages |
-| `onboarding/initialization.js` | `runInitialization(profileDraft, {onProgress})` | initializing stage |
+| `onboarding/initialization.js` | `runInitialization(profileDraft, {onProgress})` — resolves with the built brain; **cannot navigate** | initializing stage |
+| `onboarding/completionCard.js` | `showCompletionCard(brain, {onStartLearning})` — sole dashboard handoff | machine |
 | `profile/learningBrainProfile.js` | `defaultLearningBrain()`, `validateLearningBrain()`, `migrateLearningBrain()`, `LEARNING_BRAIN_VERSION` | builder, db.js backfill, profileService |
-| `profile/profileBuilder.js` | `buildLearningBrain(answers, assessment, catalog)` (pure) | initialization |
+| `profile/profileBuilder.js` | `buildLearningBrain(answers, catalog)` (pure) | initialization |
 | `profile/recommendation.js` | `scorePodcasts(user, catalog)`, `pickFirstLesson(brainDraft, catalog)`, `buildFirstMission(brainDraft)` | initialization, main.js (re-import for existing recs) |
 | `profile/leagues.js` | `LEAGUES`, `resolveLeague(xp)` | builder, completion card, profile view (later) |
 | `services/profileService.js` | `saveLearningBrain(userId, brain)`, `loadLearningBrain(userId)` | initialization, db.js sync |
 | `services/migrationService.js` | `migrateGuestToAccount(localState, session)` | main.js auth handlers |
 
-Hard rules: stages never touch `UserState` or Supabase directly; `main.js` never touches `OnboardingStore`; only `profileService` speaks to Supabase about the brain.
+Hard rules: stages never touch `UserState` or Supabase directly; `main.js` never touches `OnboardingStore`; only `profileService` speaks to Supabase about the brain; only the Completion Card CTA reaches `showMainApp()` from the onboarding flow.
 
 ## 14. Dependency Graph
 
 ```
-main.js ──► onboarding/index.js ──► machine.js ──► stages/* ──► store.js
-   │                                    │
-   │                                    └─► initialization.js
-   │                                          ├─► profile/profileBuilder.js ─► learningBrainProfile.js
-   │                                          │            └─► recommendation.js ─► leagues.js
-   │                                          ├─► services/profileService.js ─► db.js (supabase client)
-   │                                          └─► db.js (UserState)
-   │
-   ├─► completionCard.js ─► (reads learningBrain via UserState)
+main.js ──► [ONBOARDING_ENGINE switch]
+   ├─ 'legacy' ─► existing in-file engine (retained, dormant when 'v2')
+   └─ 'v2' ────► onboarding/index.js ──► machine.js ──► stages/* ──► store.js
+                     │                       │
+                     │                       ├─► initialization.js
+                     │                       │     ├─► profile/profileBuilder.js ─► learningBrainProfile.js
+                     │                       │     │            └─► recommendation.js ─► leagues.js
+                     │                       │     ├─► services/profileService.js ─► db.js (supabase client)
+                     │                       │     └─► db.js (UserState)
+                     │                       └─► completionCard.js   (terminal; sole showMainApp() caller)
    ├─► services/migrationService.js ─► profileService.js + db.js
-   └─► profile/recommendation.js   (replaces inline getRecommendedPodcasts core)
+   └─► profile/recommendation.js   (shared core; main.js keeps thin delegate)
 
 db.js ─► learningBrainProfile.js (validate/migrate/backfill on load)
 No cycles: profile/* and services/* never import onboarding/*; onboarding/* never imports main.js.
@@ -378,43 +410,46 @@ No cycles: profile/* and services/* never import onboarding/*; onboarding/* neve
 
 ## 15. Safe Implementation Order
 
-1. **Foundations (no user-visible change):** fix `index.html` artifact; delete `counter.js`; add token refresh in `db.js`; `leagues.js`; `learningBrainProfile.js` (+ validate/migrate/backfill); extend `UserState.defaults()`; write Supabase migration and reconcile `supabase-schema.sql`. App behaves identically. ✅ safe checkpoint
-2. **Profile pipeline (still dark):** `recommendation.js` extraction (re-import from `main.js`, verify recs unchanged); `profileBuilder.js`; `profileService.js`. ✅ safe checkpoint
-3. **Onboarding engine behind the same gate:** `store.js`, `machine.js`, stage registry, port stages 2–6 (reason/assessment/report/goal/commitment) from Sprint 1 markup+logic; replace `#ob-step-*` HTML with mount point; delete old engine from `main.js`; wire `showMainApp()` to new gate. Functional parity milestone: old flow fully replicated by new architecture. ✅ regression-test checkpoint
+1. **Foundations (no user-visible change):** fix `index.html` artifact; delete `counter.js`; add token refresh in `db.js`; add `ONBOARDING_ENGINE` switch (default `legacy` — app behaviour identical); `leagues.js`; `learningBrainProfile.js` (+ validate/migrate/backfill); extend `UserState.defaults()`; write Supabase migration and reconcile `supabase-schema.sql`. ✅ safe checkpoint
+2. **Profile pipeline (still dark):** `recommendation.js` extraction (main.js keeps a thin delegate; verify recs unchanged); `profileBuilder.js`; `profileService.js`. ✅ safe checkpoint
+3. **Onboarding v2 engine behind the switch (legacy untouched):** `store.js`, `machine.js`, stage registry; build stages 2, 5, 6 from Sprint 1 content (reason/goal/commitment) + new Stage 3 Level Selection + Stage 4 Level Preview; add `#onboarding-v2-container` mount point. **Feature-parity milestone:** with the switch on `v2`, a user completes onboarding end-to-end and lands on the dashboard recognized as onboarded by both engines; with the switch on `legacy`, Sprint 1 behaviour is byte-identical. ✅ parity checkpoint
 4. **New stages:** welcome (1), motivation (7), review (8), initializing (9) + `initialization.js` real tasks.
-5. **Completion Card** + celebrate mascot moment + dashboard handoff.
-6. **Migration & backfill paths:** `migrationService.js`, signup/signin handler changes, v1-draft migration, legacy-user backfill.
-7. **Hardening:** offline Stage 9, `syncPending` retry on next `save()`, draft TTL, QA pass.
+5. **Completion Card** (mandatory terminal stage + invariant enforcement) + celebrate mascot moment + dashboard handoff.
+6. **Migration & backfill paths:** `migrationService.js`, signup/signin conditional (v2 path only), legacy-user backfill.
+7. **Hardening:** offline Stage 9, `syncPending` retry on next `save()`, draft TTL, QA pass → flip default switch to `v2` upon QA sign-off.
+8. **Post-sprint, approval-gated:** prepared legacy-removal PR (engine code, `#ob-step-*` markup, orphaned `.ob-*` CSS, v1 draft key, dormant assessment bank decision). **Merges only after explicit written approval. Not part of Sprint 2 scope.**
 
-Each step leaves `main` shippable; steps 3 is the only one where old code is deleted, and it lands only after parity verification.
+Every step leaves `main` shippable; no step in Sprint 2 deletes legacy onboarding code.
 
 ## 16. Sprint Breakdown
 
 | Phase | Scope (from §15) | Est. | Exit criteria |
 |---|---|---|---|
-| **Phase 0 — Repo hygiene & foundations** | Steps 1 | 1–1.5 d | Artifact fixed; token refresh proven against a real Supabase project; migration applied to staging; zero visual diff |
-| **Phase 1 — Profile pipeline** | Step 2 | 1–1.5 d | `buildLearningBrain()` produces valid v1 profile from fixture answers; recommendations byte-identical pre/post extraction |
-| **Phase 2 — Engine parity** | Step 3 | 2–3 d | New engine reproduces Sprint 1 flow end-to-end incl. draft resume; old engine deleted; `main.js` net-negative lines |
+| **Phase 0 — Repo hygiene & foundations** | Step 1 | 1–1.5 d | Artifact fixed; token refresh proven against a real Supabase project; engine switch in place (default `legacy`); migration applied to staging; zero visual diff |
+| **Phase 1 — Profile pipeline** | Step 2 | 1–1.5 d | `buildLearningBrain()` produces valid v1 profile from fixture answers (incl. `needsLevelAssessment` case); recommendations byte-identical pre/post extraction |
+| **Phase 2 — v2 engine core + parity** | Step 3 | 1.5–2 d | Switch-on-`v2` completes end-to-end; switch-on-`legacy` byte-identical to Sprint 1; both write compatible completion state |
 | **Phase 3 — New stages 1/7/8/9** | Step 4 | 2 d | Motivation tags+free text captured into brain; Stage 9 messages each bound to a real task; offline completion works |
-| **Phase 4 — Completion Card** | Step 5 | 1 d | Card shows Learning Brain Ready, first mission, first podcast; CTA lands on dashboard with brain persisted |
+| **Phase 4 — Completion Card** | Step 5 | 1 d | Card always shown after Stage 9 (invariant verified); shows Learning Brain Ready, first mission, first podcast, Start Learning CTA; CTA is the only path to dashboard |
 | **Phase 5 — Migration & compat** | Step 6 | 1.5 d | All three guest cases (§11) verified; legacy user with `hasCompletedAssessment` is not re-onboarded |
-| **Phase 6 — Hardening & QA** | Step 7 + §18 matrix | 1.5 d | QA matrix green on desktop Chrome + Android WebView (Capacitor) |
+| **Phase 6 — Hardening & QA sign-off** | Step 7 + §18 matrix | 1.5 d | QA matrix green on desktop Chrome + Android WebView (Capacitor); default switch flipped to `v2` |
+| *(Post-sprint)* **Legacy removal** | Step 8 | 0.5 d | Explicit written approval received; prepared deletion PR merged |
 
-Total: **~10–12 working days.** Phases 0–2 are sequential; Phase 3 stages can be parallelized across contributors once Phase 2 lands; Phase 5 can start in parallel with Phase 4.
+Total Sprint 2: **~9.5–11.5 working days.** Phases 0–2 are sequential; Phase 3 stages can be parallelized across contributors once Phase 2 lands; Phase 5 can start in parallel with Phase 4. Phase 2 is ~1 day shorter than Rev 1 (no assessment port, no deletion work).
 
 ## 17. Risks
 
 | # | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|---|
-| 1 | **Blueprint not in repo** — stage content for 2/5/6/8, league names, copy are reconstructed | High | Medium | Registry-driven stages make content swaps cheap; get Blueprint confirmation before Phase 3 |
-| 2 | Boot-path regression while replacing the onboarding gate | Medium | High | Phase 2 parity checkpoint; legacy flag kept in sync; backfill for existing users |
-| 3 | Supabase schema drift (live DB vs `supabase-schema.sql`) — unknown live state | Medium | High | Migration is additive `if not exists`; verify against staging before Phase 3; Stage 9 tolerates missing columns via `syncPending` |
-| 4 | Token expiry during Stage 9 writes | High (pre-fix) | Medium | Token refresh in Phase 0 is a hard prerequisite |
-| 5 | Guest→account migration data loss | Medium | High | Snapshot-before-auth pattern; confirmation prompt on destructive path (Case B); never delete local until remote write confirmed |
-| 6 | `main.js` merge conflicts if other work lands mid-sprint | Medium | Medium | Phase 2 deletes code in one focused PR; freeze other `main.js` edits during it |
-| 7 | Mascot `public/` system too demo-coupled to reuse | Medium | Low | Fallback: keep `getTutoSVG` + CSS classes for thinking/celebrating; adoption is a nice-to-have, not a dependency |
-| 8 | Stage 9 perceived as fake if tasks complete instantly | Low | Medium | Min-display-time per message + tasks genuinely ordered; failure states surface honestly |
-| 9 | No automated tests exist | High | Medium | Pure modules (builder, leagues, recommendation, validate) designed test-ready; recommend adding Vitest in Phase 0 (small, no app refactor needed) |
+| 1 | **Blueprint not in repo** — stage content for 4/5/6/8, league names, level→CEFR mapping, copy are reconstructed | High | Medium | Registry-driven stages make content swaps cheap; get Blueprint confirmation before Phase 3 |
+| 2 | Boot-path regression from engine dispatch | Low–Medium | High | Legacy branch is byte-identical Sprint 1 code; switch defaults to `legacy` until QA; parity checkpoint |
+| 3 | **Dual-engine drift** — both engines live in the tree; a change to shared code (UserState, gate, CSS) breaks the dormant one unnoticed | Medium | Medium | Both engines in the QA matrix until removal (§18.15); completion contract shared; `.ob2-` CSS namespace isolation; removal PR prepared early so the coexistence window stays short |
+| 4 | Supabase schema drift (live DB vs `supabase-schema.sql`) — unknown live state | Medium | High | Migration is additive `if not exists`; verify against staging before Phase 3; Stage 9 tolerates missing columns via `syncPending` |
+| 5 | Token expiry during Stage 9 writes | High (pre-fix) | Medium | Token refresh in Phase 0 is a hard prerequisite |
+| 6 | Guest→account migration data loss | Medium | High | Snapshot-before-auth pattern; confirmation prompt on destructive path (Case B); never delete local until remote write confirmed |
+| 7 | **"I don't know my level" users get mistargeted content** until AI estimation ships | Medium | Medium | Conservative default band (A2–B1) for recommendations; `needsLevelAssessment` surfaced to future AI feature; Completion Card copy sets expectation ("Tuto will fine-tune your level as you learn") **[ASSUMPTION — confirm copy]** |
+| 8 | Mascot `public/` system too demo-coupled to reuse | Medium | Low | Fallback: keep `getTutoSVG` + CSS classes for thinking/celebrating; adoption is a nice-to-have, not a dependency |
+| 9 | Stage 9 perceived as fake if tasks complete instantly | Low | Medium | Min-display-time per message + tasks genuinely ordered; failure states surface honestly |
+| 10 | No automated tests exist | High | Medium | Pure modules (builder, leagues, recommendation, validate) designed test-ready; recommend adding Vitest in Phase 0 (small, no app refactor needed) |
 
 ## 18. Manual QA Strategy
 
@@ -422,42 +457,49 @@ Environments: desktop Chrome (dev + `vite preview`), Android WebView via Capacit
 
 **Core matrix (each on fresh profile unless noted):**
 
-1. **New guest, happy path:** name → stages 1–9 → Completion Card → dashboard. Verify brain in localStorage (all §8 fields incl. the five new ones), XP bonus applied, first mission matches card.
+1. **New guest, happy path:** name → stages 1–9 → Completion Card → Start Learning → dashboard. Verify brain in localStorage (all §8 fields incl. gamification + firstSession), XP bonus applied, first mission matches card.
 2. **No-skip enforcement:** attempt to reach dashboard with incomplete brain (edit localStorage `onboardingCompleted:false`, reload) → must land in onboarding. No skip control visible at any stage.
-3. **Stage 7 both inputs:** tags only / text only / both / neither (verify required-ness per Blueprint) persist into `motivation.{tags,freeText}`.
-4. **Stage 9 honesty:** throttle network (DevTools offline) as a registered user → messages progress, completion still reached, `syncPending:true`; go online, trigger a save → sync flushes.
-5. **Draft resume:** quit at stages 2, 3(q6), 7; relaunch → resume at same stage with answers intact. Quit, switch user → draft cleared, Stage 1.
-6. **Assessment parity:** answer patterns (all-correct, all-wrong, mixed) produce identical CEFR/scores as Sprint 1 (fixtures recorded during Phase 2).
-7. **Legacy user:** localStorage with Sprint 1 shape (`hasCompletedAssessment:true`, no brain) → straight to dashboard, backfilled brain present.
-8. **Guest→signup migration:** complete brain as guest → sign up → no re-onboarding; Supabase `profiles.learning_brain` populated; XP/streak preserved.
-9. **Guest→signin conflict:** local guest brain + remote account with brain → prompt → remote wins; remote without brain → local migrates up.
-10. **Registered signup path:** fresh signup → onboarding forced → Stage 9 writes reach Supabase (check table).
-11. **Token expiry:** age the session (tamper `expires_at`) → Stage 9 write refreshes and succeeds.
-12. **Completion Card content:** recommended podcast exists in catalog, is level-appropriate (CEFR match), opens correctly from dashboard afterwards.
-13. **Visual/UX:** transitions at 400ms pattern, no layout jump on keyboard (Android), mascot states (thinking during 9, celebrating on card), small-viewport rendering.
-14. **Regression sweep:** §19 checklist.
+3. **Level Selection:** each of the 6 explicit levels persists correct `selectedLevel`/`cefrLevel`/`source:'self-reported'`; **"I don't know my level"** persists `cefrLevel:null`, `needsLevelAssessment:true`, `source:'unknown'`, and Stage 4 shows the estimation messaging; recommended first podcast for unknown level comes from the conservative band.
+4. **Stage 7 both inputs:** tags only / text only / both / neither (verify required-ness per Blueprint) persist into `motivation.{tags,freeText}`.
+5. **Completion Card invariant:** instrument/observe that after Stage 9's last message the Completion Card always appears — including when Stage 9 tasks fail (offline) and when the app is killed during Stage 9 and relaunched (resume must land on Stage 9 → card, never dashboard). No direct init→dashboard transition exists.
+6. **Stage 9 honesty:** throttle network (DevTools offline) as a registered user → messages progress, completion still reached via Completion Card, `syncPending:true`; go online, trigger a save → sync flushes.
+7. **Draft resume:** quit at stages 2, 3, 7; relaunch → resume at same stage with answers intact. Quit, switch user → draft cleared, Stage 1.
+8. **Legacy user:** localStorage with Sprint 1 shape (`hasCompletedAssessment:true`, no brain) → straight to dashboard, backfilled brain present.
+9. **Guest→signup migration:** complete brain as guest → sign up → no re-onboarding; Supabase `profiles.learning_brain` populated; XP/streak preserved.
+10. **Guest→signin conflict:** local guest brain + remote account with brain → prompt → remote wins; remote without brain → local migrates up.
+11. **Registered signup path:** fresh signup → onboarding forced → Stage 9 writes reach Supabase (check table).
+12. **Token expiry:** age the session (tamper `expires_at`) → Stage 9 write refreshes and succeeds.
+13. **Completion Card content:** recommended podcast exists in catalog, is level-appropriate (CEFR match, or conservative band for unknown), opens correctly from dashboard afterwards.
+14. **Visual/UX:** transitions at 400ms pattern, no layout jump on keyboard (Android), mascot states (thinking during 9, celebrating on card), small-viewport rendering.
+15. **Engine switch (Product decision #2, Rev 2):** with `linguAlphabet_onboarding_engine=legacy`, the Sprint 1 flow (motivation select → 10-question assessment → report → plan) runs exactly as before and its completion is honoured by the v2 gate afterwards; switching back mid-flow restarts onboarding cleanly (documented behaviour, §10).
+16. **Regression sweep:** §19 checklist.
+
+**QA sign-off is the explicit gate** both for flipping the default engine to `v2` and (separately, later) for approving the legacy-removal PR.
 
 ## 19. Regression Risks
 
 Areas Sprint 2 touches that already work — explicit re-verification list:
 
 1. **Auth panels** (`index.html` welcome-panel edit for the artifact fix sits inside Sprint 1's most polished screen): welcome typing/blink/keyboard-offset behavior, login, signup, forgot flows.
-2. **Boot gating**: existing signed-in users and existing guests must not be re-onboarded or logged out (legacy-flag bridge + backfill).
-3. **Recommendation engine**: extraction to `recommendation.js` must not change home-screen "Recommended for you" ordering (fixture comparison).
-4. **`UserState.save()` path**: brain mirroring added to a hot path called on every XP/progress event — verify no perf/sync regressions and no infinite save loops.
-5. **`syncToRemote`/`syncFromRemote`**: new `learning_brain` field must not break against a DB where the migration hasn't run yet (older prod) — writes must degrade gracefully.
-6. **Onboarding CSS**: old `#ob-*` selectors removed with their markup; verify no other view reused those classes (`ob-badge` etc. — grep before delete).
-7. **Daily quests / inbox / XP toast**: `generateLearningPlan()`'s side effects (inbox item, +50 XP, quest seed) move into Stage 9 tasks — ensure they fire exactly once.
-8. **Capacitor Android build**: `npm run cap:sync` after HTML/CSS restructure; WebView localStorage behavior unchanged.
-9. **Remote lesson cache**: Stage 9 reads it; ensure cold-start (empty cache, no network) still yields a valid `recommendedFirstLesson` from bundled seed data.
+2. **Boot gating**: existing signed-in users and existing guests must not be re-onboarded or logged out (legacy-flag bridge + backfill); the `legacy` switch position must be byte-identical Sprint 1 behaviour.
+3. **Legacy onboarding engine**: it remains shipped and reachable via the switch — verify it still completes end-to-end after every phase that touches shared code (`db.js`, `index.html`, `style.css`).
+4. **Recommendation engine**: extraction to `recommendation.js` must not change home-screen "Recommended for you" ordering (fixture comparison); `main.js` delegate keeps the old signature.
+5. **`UserState.save()` path**: brain mirroring added to a hot path called on every XP/progress event — verify no perf/sync regressions and no infinite save loops.
+6. **`syncToRemote`/`syncFromRemote`**: new `learning_brain` field must not break against a DB where the migration hasn't run yet (older prod) — writes must degrade gracefully.
+7. **Onboarding CSS**: legacy `.ob-*` selectors are untouched this sprint; new styles use `.ob2-` prefix — verify no selector collisions and no accidental restyling of the dormant legacy markup.
+8. **Daily quests / inbox / XP toast**: `generateLearningPlan()`'s side effects (inbox item, +50 XP, quest seed) are replicated in Stage 9 tasks — ensure they fire exactly once per completion, under either engine, and never twice for the same user.
+9. **Capacitor Android build**: `npm run cap:sync` after HTML/CSS additions; WebView localStorage behavior unchanged.
+10. **Remote lesson cache**: Stage 9 reads it; ensure cold-start (empty cache, no network) still yields a valid `recommendedFirstLesson` from bundled seed data.
 
 ## 20. Final Engineering Recommendations
 
-1. **Confirm the Blueprint before Phase 3.** The architecture absorbs content corrections cheaply, but copy, stage 2/5/6/8 content, league names, and motivation-tag lists should not be invented twice. Commit the Blueprint into `docs/` as the canonical reference.
+1. **Confirm the Blueprint before Phase 3.** The architecture absorbs content corrections cheaply, but copy, stage 4/5/6/8 content, the level→CEFR mapping, league names, and motivation-tag lists should not be invented twice. Commit the Blueprint into `docs/` as the canonical reference.
 2. **Treat Phase 0 as non-negotiable.** The shipped HTML artifact and the missing token refresh are Sprint 1 escapes that Sprint 2 would otherwise build on top of.
-3. **Enforce the module boundary in review.** The single most valuable structural outcome of this sprint is that `main.js` shrinks. Reject any PR that adds onboarding logic to `main.js` beyond the integration seam.
-4. **Add Vitest for the pure core only** (builder, leagues, recommendation scoring, brain validation/migration, assessment grading fixtures). ~1 setup hour, no app refactor, converts the QA fixtures from §18.6 into permanent regression tests.
-5. **Keep the brain as a versioned JSON document** everywhere (localStorage, Supabase jsonb, in-memory). One schema module, one validator, one migrator — this is what makes Sprint 3+ (real AI Coach personalization) cheap.
-6. **Adopt the mascot state machine opportunistically, not structurally.** Stage 9 (thinking) and Completion Card (celebrating) are the pilot; full app adoption is a later sprint.
-7. **Defer, explicitly:** URL/hash routing and browser-back support; supabase-js adoption; IndexedDB usage; i18n of onboarding copy. Each is worthwhile and each would destabilize this sprint if bundled in.
-8. **Sequence the Supabase migration operationally:** apply to staging in Phase 0, to production before Phase 3 merges, because Stage 9 writes `learning_brain` — client tolerates absence (`syncPending`) but shouldn't rely on it.
+3. **Enforce the module boundary in review.** The single most valuable structural outcome of this sprint is that new logic lands outside `main.js`. Reject any PR that adds onboarding logic to `main.js` beyond the integration seam and engine switch.
+4. **Keep the coexistence window short.** Dual engines are the approved safety mechanism, not a destination — prepare the legacy-removal PR during Phase 6 so it is ready the moment approval is given, and keep both engines in the QA matrix until then.
+5. **Add Vitest for the pure core only** (builder incl. `needsLevelAssessment` cases, leagues, recommendation scoring, brain validation/migration). ~1 setup hour, no app refactor, converts the QA fixtures from §18 into permanent regression tests.
+6. **Keep the brain as a versioned JSON document** everywhere (localStorage, Supabase jsonb, in-memory). One schema module, one validator, one migrator — and the `level.source` field already reserves the write path for the future AI level-estimation feature, so it will not need a schema migration.
+7. **Preserve the assessment engine as the future feature's seed.** The dormant question bank and adaptive logic are the starting point for AI-driven level estimation; document that intent where the code lives so nobody "cleans it up" prematurely.
+8. **Adopt the mascot state machine opportunistically, not structurally.** Stage 9 (thinking) and Completion Card (celebrating) are the pilot; full app adoption is a later sprint.
+9. **Defer, explicitly:** URL/hash routing and browser-back support; supabase-js adoption; IndexedDB usage; i18n of onboarding copy. Each is worthwhile and each would destabilize this sprint if bundled in.
+10. **Sequence the Supabase migration operationally:** apply to staging in Phase 0, to production before Phase 3 merges, because Stage 9 writes `learning_brain` — client tolerates absence (`syncPending`) but shouldn't rely on it.
