@@ -4890,3 +4890,228 @@ button,
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================================
+   SPRINT 2 — ONBOARDING v2 (Phase D: Completion Experience)
+   ============================================================
+   Additive only. No selector below this point modifies or overrides
+   any rule above it. Reuses existing keyframes already defined above
+   (fadeIn, fadeSlideIn, tutoBreathe, tutoCelebrate) via new classes
+   prefixed ob2, none redefined here. Wired into index.html (see
+   onboarding-v2-container) and main.js as of Phase E, kept under its
+   own ob2/onboarding-container-v2 namespace, deliberately separate
+   from the classes prefixed ob used by the legacy engine, so the two
+   engines can never visually interfere with each other.
+   ============================================================ */
+
+/* ---- v2 engine mount point (sibling to the legacy .onboarding-container) ---- */
+.onboarding-container-v2 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  padding: calc(36px + var(--safe-top)) 24px calc(20px + var(--safe-bottom));
+}
+
+/* ---- Onboarding Machine chrome (answering-phase navigation) ---- */
+.ob2-machine {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 16px;
+}
+
+.ob2-machine-stage-mount {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ob2-machine-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.ob2-machine-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ---- Shared onboarding v2 primitives (also used by Phase B stages) ---- */
+.ob2-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeSlideIn 0.4s ease-out;
+}
+
+.ob2-badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ob2-heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.ob2-subtext {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ---- Mascot (reuses tutoBreathe / tutoCelebrate keyframes above) ---- */
+.ob2-mascot {
+  display: flex;
+  justify-content: center;
+  width: 96px;
+  margin: 0 auto;
+}
+
+.ob2-mascot-img {
+  width: 100%;
+  height: auto;
+}
+
+.ob2-mascot--idle {
+  animation: tutoBreathe 3s ease-in-out infinite;
+}
+
+.ob2-mascot--celebrate {
+  animation: tutoCelebrate 0.8s ease-out;
+}
+
+/* ---- Progress Experience ---- */
+.ob2-progress-mascot-mount {
+  display: flex;
+  justify-content: center;
+}
+
+.ob2-progress-percentage {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.ob2-progress-message {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-secondary);
+  min-height: 20px;
+}
+
+.ob2-progress-message--enter {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.ob2-progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.ob2-progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.4s ease-out;
+}
+
+.ob2-progress-error {
+  text-align: center;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* ---- Completion Card ---- */
+.ob2-completion-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  animation: fadeSlideIn 0.5s ease-out;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.ob2-completion-card--exit {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.98);
+}
+
+.ob2-completion-mascot-mount {
+  display: flex;
+  justify-content: center;
+}
+
+.ob2-completion-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  text-align: left;
+}
+
+.ob2-completion-block-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.ob2-completion-block-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ob2-completion-block-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ob2-completion-cta {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--primary);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ob2-completion-cta:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
