@@ -4,6 +4,20 @@
 **Status:** Approved with Founder Overrides (v1.1) — implemented.
 **Scope:** Scene 1 only. The Engineering Specification, state machine, adaptive engine, Learning Brain, and the scene's `mount(ctx)` / `ctx.onReady()` contract are untouched by everything in this document.
 
+> ### Founder Principle (v1.4) — mandatory four-breakpoint review
+> No scene is complete until it has been reviewed **simultaneously** on Desktop, Laptop, Tablet, and Mobile — not spot-checked on one size and assumed to scale. The desktop version must never read as a centered mobile card; **each breakpoint must feel intentionally designed, not merely resized.** This is a standing Definition-of-Done for every scene from here forward, not a one-time fix to Scene 1.
+>
+> Canonical reference widths for the Discovery Session (matching the tiers already used to verify Scene 1 and the `min-width: 880px` composition threshold in the fluid-scale system):
+>
+> | Tier | Reference viewport | What "intentionally designed" means here |
+> |---|---|---|
+> | Mobile | 375×667 | Top-anchored composition, thumb-safe orb placement, no dead space below the fold |
+> | Tablet (portrait) | 834×1112 | Same top-anchored composition as mobile, fluid tokens scaled up — not mobile pixel-doubled |
+> | Laptop | 1440×900 | Desktop composition engaged (vertically centered, re-anchored atmosphere) — not a stretched mobile column |
+> | Desktop | 1920×1080 | Full canvas composed — atmosphere fills the frame, hero elements read at a scale that matches the window, no leftover dead space |
+>
+> Review means: capture (or inspect live) all four simultaneously before calling a scene done, confirm no tier is a naive resize of another, and confirm the composition — not just element sizes — changes where the design calls for it (per the desktop-primary canvas principle above). Scene 1 already meets this bar as of the last review pass; this entry makes that bar mandatory and explicit for Scene 2 onward.
+>
 > ### Founder Principle (v1.3) — desktop-primary responsive canvas
 > The Discovery Session is a premium responsive web experience, not a mobile onboarding flow. **Desktop is the primary experience, tablet secondary, mobile an adaptation.** The browser viewport is the canvas; the conversation must live inside a composed desktop layout, never a phone-width column simply centered inside a much larger window (the "phone screen stretched onto desktop" failure mode). Two changes carry this forward:
 > 1. **Every scale-bearing dimension is a fluid token**, not a fixed pixel value with a couple of breakpoint patches. `.ds-scene` now defines `--ds-ember`, `--ds-veil-glow`, `--ds-stage`, `--ds-avatar`, `--ds-whisper-size`, `--ds-line-size`, `--ds-line-max`, `--ds-reply-input`, `--ds-orb-size`, `--ds-orb-bottom` as `clamp()` expressions that grow continuously from a phone up through a cinema display — the old fixed mobile values are now each token's floor, not its only value. Every later scene should read its sizes from these tokens instead of inventing fixed pixel dimensions.
