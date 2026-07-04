@@ -23,32 +23,20 @@
         <div class="auth-blob auth-blob-2"></div>
       </div>
       <div class="onboarding-container" id="onboarding-container">
-        <!-- Step 1: Greeting -->
+        <!-- Step 1: Tuto Welcome -->
         <div class="onboarding-step active" id="ob-step-welcome">
-          <div class="ob-step-body">
-            <div class="ob-header">
-              <span class="ob-badge">Welcome</span>
-              <h1>Let's start! 👋</h1>
-              <p>Tell us about yourself to customize your English learning experience.</p>
-            </div>
-            
-            <div class="auth-form" style="margin: 20px 0">
-              <div class="form-group" style="margin-bottom: 16px">
-                <label style="font-weight:600;color:var(--text-primary)">Why are you learning English?</label>
-                <select id="ob-motivation" style="background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--r-md);padding:14px;width:100%;color:var(--text-primary);font-size:14px;margin-top:6px">
-                  <option value="Career">Career & Job Opportunities 💼</option>
-                  <option value="School">School Education 🏫</option>
-                  <option value="University">University Studies 🎓</option>
-                  <option value="Travel">Travel & Tourism ✈️</option>
-                  <option value="Personal Growth">Personal Growth & Culture 🌱</option>
-                </select>
+          <div class="ob-step-body ob-welcome-body">
+            <div class="welcome-tuto-avatar" id="ob-welcome-tuto"></div>
+            <div class="welcome-speech-bubble" id="ob-welcome-bubble">
+              <div class="welcome-typing-indicator" id="ob-welcome-typing">
+                <span></span><span></span><span></span>
               </div>
-              <div id="ob-welcome-error" class="form-error hidden" style="margin-top: 8px"></div>
+              <div class="welcome-speech-text hidden" id="ob-welcome-speech"></div>
             </div>
           </div>
 
           <div class="ob-footer">
-            <button class="btn-primary btn-full" id="start-assessment-btn">Continue to Level Assessment</button>
+            <button class="btn-primary btn-full" id="ob-welcome-continue-btn" disabled>Continue</button>
           </div>
         </div>
 
@@ -253,11 +241,6 @@
 
             <!-- Safe Area Spacer (Bottom) -->
             <div class="safe-area-spacer-bottom"></div>
->>>>
-<task_progress>- [x] Replace welcome screen HTML structure
-- [ ] Implement new CSS styles and animations
-- [ ] Implement new JS logic for interactions and transitions
-- [ ] Build and verify</task_progress>
         </div>
 
         <div id="login-panel" class="auth-panel">

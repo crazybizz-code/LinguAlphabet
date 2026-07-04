@@ -724,9 +724,42 @@ function showOnboardingStep(stepId) {
   step.classList.add('active');
 
   if (stepId === 'welcome') {
-    const tutoArt = document.getElementById('ob-welcome-tuto');
-    if (tutoArt) tutoArt.innerHTML = getTutoSVG(160);
+    initOnboardingWelcomeStep();
   }
+}
+
+// ==================== FOUNDER ONBOARDING: SCREEN 1 — TUTO WELCOME ====================
+let onboardingWelcomeSpeechTimer = null;
+
+function initOnboardingWelcomeStep() {
+  const tutoArt = document.getElementById('ob-welcome-tuto');
+  const typingEl = document.getElementById('ob-welcome-typing');
+  const speechEl = document.getElementById('ob-welcome-speech');
+  const continueBtn = document.getElementById('ob-welcome-continue-btn');
+  if (!tutoArt) return;
+
+  if (onboardingWelcomeSpeechTimer) {
+    clearTimeout(onboardingWelcomeSpeechTimer);
+    onboardingWelcomeSpeechTimer = null;
+  }
+
+  tutoArt.innerHTML = getTutoSVG(160);
+
+  if (continueBtn) continueBtn.disabled = true;
+  if (speechEl) {
+    speechEl.classList.add('hidden');
+    speechEl.innerHTML = '';
+  }
+  if (typingEl) typingEl.classList.remove('hidden');
+
+  onboardingWelcomeSpeechTimer = setTimeout(() => {
+    if (typingEl) typingEl.classList.add('hidden');
+    if (speechEl) {
+      speechEl.innerHTML = "Hello! 👋<br><br>I'm Tuto.<br><br>I'll be your personal English coach here at LinguAlphabet.<br><br>Before we begin, I'd love to get to know you.";
+      speechEl.classList.remove('hidden');
+    }
+    if (continueBtn) continueBtn.disabled = false;
+  }, 900);
 }
 
 function getCurrentAdaptiveQuestion() {
@@ -3454,23 +3487,18 @@ function setupEventListeners() {
   BottomSheetController.init();
   setupAuthListeners();
 
-  // Onboarding Assessment buttons
-  document.getElementById('start-assessment-btn')?.addEventListener('click', () => {
-    const motivation = document.getElementById('ob-motivation').value;
-    const errEl = document.getElementById('ob-welcome-error');
-    const username = (UserState.get('username') || '').trim();
+  // Founder Onboarding — Screen 1: Tuto Welcome → Continue
+  document.getElementById('ob-welcome-continue-btn')?.addEventListener('click', function onWelcomeContinue() {
+    const btn = document.getElementById('ob-welcome-continue-btn');
+    const bubble = document.getElementById('ob-welcome-bubble');
+    const tutoArt = document.getElementById('ob-welcome-tuto');
+    if (btn) btn.disabled = true;
 
-    if (!username) {
-      showError(errEl, 'Please enter your first name');
-      return;
-    }
-
-    UserState.update({
-      motivation: motivation
-    });
-
-    showOnboardingStep('qa');
-    renderAssessmentQuestion();
+    // Phase 1 builds one screen at a time — Screen 2 (Display Name) is not
+    // wired up yet. Play the exit transition and stop here for review.
+    bubble?.classList.add('ob-welcome-exit');
+    tutoArt?.classList.add('ob-welcome-exit');
+    console.info('[Founder Onboarding] Screen 1 (Tuto Welcome) complete → Screen 2 (Display Name) not built yet');
   });
 
   document.getElementById('report-continue-btn')?.addEventListener('click', () => {
