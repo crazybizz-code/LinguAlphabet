@@ -5118,6 +5118,15 @@ button,
 
 /* ===== DISCOVERY SESSION: SCENE 1 — "FIRST LIGHT" ===== */
 /* .ds- prefix, isolated from .ob2-/.ob-/.welcome- namespaces.
+   v6 (Founder Principle — premium responsive canvas): the Discovery
+   Session is a desktop-primary experience; the browser viewport is
+   the canvas, not a phone screen stretched wide. Every scale-bearing
+   dimension below is a fluid token (--ds-*, defined once on .ds-scene)
+   so the composition grows deliberately from a phone to a cinema
+   display instead of sitting as a fixed-width mobile column adrift in
+   empty desktop space. Later scenes should reuse these tokens rather
+   than inventing their own fixed pixel sizes.
+
    v4 (First Light + Founder Overrides): the scene opens under a warm
    golden veil — the cream world dimmed to dusk, never dark — with one
    breathing ember. The learner's touch lifts the veil (bloom centered
@@ -5130,6 +5139,21 @@ button,
    every element in its correct resting state. */
 
 .ds-scene {
+  /* Fluid scale tokens — phone → tablet → desktop → cinema display,
+     continuous rather than a handful of fixed breakpoints. Every
+     min-bound below is the old mobile fixed value; every max-bound is
+     the new desktop-primary ceiling. */
+  --ds-ember: clamp(20px, 1.6vw + 14px, 34px);
+  --ds-veil-glow: clamp(120px, 14vw, 320px);
+  --ds-stage: clamp(240px, 24vw + 94px, 560px);
+  --ds-avatar: clamp(160px, 16vw + 64px, 400px);
+  --ds-whisper-size: clamp(13px, 0.7vw + 11px, 20px);
+  --ds-line-size: clamp(26px, 2.2vw + 15px, 58px);
+  --ds-line-max: clamp(340px, 42vw, 960px);
+  --ds-reply-input: clamp(180px, 20vw, 420px);
+  --ds-orb-size: clamp(60px, 3vw + 48px, 100px);
+  --ds-orb-bottom: clamp(56px, 8vh, 120px);
+
   position: relative;
   overflow: hidden;
   display: flex;
@@ -5140,7 +5164,7 @@ button,
   min-height: 100dvh;
   width: 100%;
   margin: 0 auto;
-  padding: clamp(28px, 9vh, 72px) 24px 40px;
+  padding: clamp(28px, 9vh, 72px) clamp(24px, 4vw, 96px) 40px;
   background: var(--bg-app, #f7f4f0);
 }
 
@@ -5171,7 +5195,7 @@ button,
   justify-content: center;
   gap: 56px;
   background:
-    radial-gradient(circle 120px at 50% 44%, rgba(255, 140, 66, 0.32), transparent 70%),
+    radial-gradient(circle var(--ds-veil-glow) at 50% 44%, rgba(255, 140, 66, 0.32), transparent 70%),
     radial-gradient(ellipse 140% 120% at 50% 50%, transparent 30%, rgba(92, 52, 18, 0.32) 100%),
     linear-gradient(rgba(255, 148, 72, 0.07), rgba(255, 148, 72, 0.07)),
     linear-gradient(rgba(96, 60, 24, 0.40), rgba(96, 60, 24, 0.40)),
@@ -5190,8 +5214,8 @@ button,
 
 .ds-ember {
   position: relative;
-  width: 22px;
-  height: 22px;
+  width: var(--ds-ember);
+  height: var(--ds-ember);
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -5236,7 +5260,7 @@ button,
 
 .ds-whisper {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ds-whisper-size);
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: lowercase;
@@ -5259,9 +5283,12 @@ button,
   z-index: 6;
   left: var(--ds-wake-x, 50%);
   top: var(--ds-wake-y, 44%);
-  width: 60px;
-  height: 60px;
-  margin: -30px 0 0 -30px;
+  /* vmax-based so the scaled bloom always outruns the viewport
+     diagonal from an arbitrary touch point, on a phone or a cinema
+     display alike (see the design doc's coverage math). */
+  width: 6vmax;
+  height: 6vmax;
+  margin: -3vmax 0 0 -3vmax;
   border-radius: 50%;
   pointer-events: none;
   background: radial-gradient(circle, rgba(255, 214, 170, 0.9) 0%, rgba(255, 140, 66, 0.45) 45%, transparent 70%);
@@ -5278,8 +5305,8 @@ button,
 .ds-stage {
   position: relative;
   z-index: 1;
-  width: 288px;
-  height: 288px;
+  width: var(--ds-stage);
+  height: var(--ds-stage);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5324,15 +5351,23 @@ button,
 
 .ds-avatar {
   position: relative;
-  width: 192px;
-  height: 192px;
+  width: var(--ds-avatar);
+  height: var(--ds-avatar);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
+/* getTutoSVG() writes fixed width/height attributes on the <svg> root
+   (a mobile-era default); these CSS rules win over presentation
+   attributes and stretch the markup to fill --ds-avatar, so Tuto
+   scales with the fluid canvas instead of floating undersized inside
+   a much larger box on desktop. */
 .ds-avatar svg {
+  width: 100%;
+  height: 100%;
+  display: block;
   filter: drop-shadow(0 14px 30px rgba(26, 26, 46, 0.16));
   animation: tuto-breath 4.8s ease-in-out infinite;
 }
@@ -5366,7 +5401,7 @@ button,
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 340px;
+  max-width: var(--ds-line-max);
   min-height: 96px;
   justify-content: flex-start;
 }
@@ -5374,7 +5409,7 @@ button,
 /* One focal line at a time — words as light, spoken at chest level. */
 .ds-line {
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: var(--ds-line-size);
   line-height: 1.25;
   font-weight: 700;
   color: var(--text-primary);
@@ -5457,7 +5492,7 @@ button,
 }
 
 .ds-reply-input {
-  width: min(52vw, 200px);
+  width: var(--ds-reply-input);
   border: none;
   outline: none;
   background: transparent;
@@ -5540,9 +5575,9 @@ button,
   position: absolute;
   z-index: 2;
   left: 50%;
-  bottom: 72px;
-  width: 64px;
-  height: 64px;
+  bottom: var(--ds-orb-bottom);
+  width: var(--ds-orb-size);
+  height: var(--ds-orb-size);
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -5588,7 +5623,7 @@ button,
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: clamp(14px, 0.5vw + 12px, 17px);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -5611,13 +5646,62 @@ button,
   100% { transform: translateX(-50%) scale(0.25); opacity: 0; }
 }
 
-/* ---------- Small viewports ---------- */
+/* Small viewports need no dedicated breakpoint any more — every
+   scale-bearing rule above reads its size from a --ds-* clamp() token
+   whose minimum already equals the old fixed mobile values (stage
+   240px, avatar 160px, line 26px, orb bottom 56px). One fluid rule
+   replaces what used to be a rule plus an override. */
 
-@media (max-width: 380px) {
-  .ds-stage { width: 240px; height: 240px; }
-  .ds-avatar { width: 160px; height: 160px; }
-  .ds-line { font-size: 25px; }
-  .ds-orb { bottom: 56px; }
+/* ---------- Desktop-primary composition ---------- */
+/* Founder Principle: the Discovery Session is a desktop-primary
+   experience, not a phone screen stretched wide. Top-anchoring the
+   conversation (the mobile/portrait-tablet default above) exists so
+   the orb never fights a software keyboard or a thumb reaching up a
+   tall narrow screen — a real constraint on those devices. It is not
+   a constraint on a landscape desktop canvas, where top-anchoring
+   instead reads as a small mobile column adrift over a dead lower
+   two-thirds of the window. From this width, the whole conversation
+   re-composes around the vertical center of the browser window — the
+   canvas itself, not a fixed card — and the atmosphere re-anchors
+   with it so the warm wash still frames Tuto rather than lingering
+   where the old top-anchored position used to be. Every later scene
+   should repeat this pattern rather than only shipping a mobile
+   layout with desktop treated as an afterthought. */
+
+@media (min-width: 880px) {
+  .ds-scene {
+    justify-content: center;
+    padding-top: clamp(28px, 6vh, 64px);
+    padding-bottom: clamp(28px, 6vh, 64px);
+  }
+
+  .ds-stage {
+    margin-bottom: clamp(4px, 1.4vh, 20px);
+  }
+
+  .ds-vignette {
+    background:
+      radial-gradient(ellipse 60% 62% at 50% 46%, rgba(255, 107, 53, 0.22), transparent 66%),
+      radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255, 107, 53, 0.12), transparent 58%),
+      radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(26, 26, 46, 0.05) 100%);
+  }
+
+  .ds-veil {
+    background:
+      radial-gradient(circle var(--ds-veil-glow) at 50% 50%, rgba(255, 140, 66, 0.32), transparent 70%),
+      radial-gradient(ellipse 90% 90% at 50% 50%, transparent 30%, rgba(92, 52, 18, 0.32) 100%),
+      linear-gradient(rgba(255, 148, 72, 0.07), rgba(255, 148, 72, 0.07)),
+      linear-gradient(rgba(96, 60, 24, 0.40), rgba(96, 60, 24, 0.40)),
+      var(--bg-app, #f7f4f0);
+  }
+
+  /* The bloom's default top offset (44%) was tuned for the
+     top-anchored mobile stage; centered composition wants it to
+     originate from mid-frame when the wake is keyboard-triggered
+     (no real touch point to read coordinates from). */
+  .ds-scene--waking::before {
+    top: var(--ds-wake-y, 50%);
+  }
 }
 
 /* ---------- Reduced motion (Override 4) ---------- */
