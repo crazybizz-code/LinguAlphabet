@@ -1,8 +1,15 @@
 # Scene 1 — "First Light"
 ## A design review and complete reconception of the first meeting with Tuto
 
-**Status:** Design proposal — awaiting approval before implementation.
+**Status:** Approved with Founder Overrides (v1.1) — implemented.
 **Scope:** Scene 1 only. The Engineering Specification, state machine, adaptive engine, Learning Brain, and the scene's `mount(ctx)` / `ctx.onReady()` contract are untouched by everything in this document.
+
+> ### Founder Overrides (v1.1) — these amend everything below
+> 1. **No dark visual identity.** State I is not darkness: it is the app's own warm cream world dimmed to a golden dusk (a honey veil), so the arc is *hushed → vivid*, never *black → light*. Every reference to "dark"/"darkness" below reads as this warm veil.
+> 2. **Sound is optional.** The wake tone is a grace note behind capability checks; the scene is complete and equally magical muted.
+> 3. **Haptics are progressive enhancement only** — a `navigator.vibrate` probe, never a dependency, never a plugin requirement.
+> 4. **Full input parity.** The ember and the orb are real buttons (mouse/touch/keyboard/AT all get native activation); Enter/Space anywhere on the veil wakes; any input advances the exchange; focus is managed ember → orb; reduced-motion and screen-reader paths are first-class.
+> 5. **Once in a lifetime.** The scene never repeats after onboarding. It remains stateless; the caller records completion (Learning Brain / profile layer per the Engineering Specification) and simply never mounts it again — including across guest→account migration.
 
 ---
 
