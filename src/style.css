@@ -5117,101 +5117,177 @@ button,
 }
 
 /* ===== DISCOVERY SESSION: SCENE 1 — MEET TUTO ===== */
-/* .ds- prefix, isolated from .ob2-/.ob-/.welcome- namespaces. Reuses
-   the app's established motion vocabulary (scale-up, typing-dots,
-   tuto-breath keyframes defined above) rather than inventing new
-   timing curves. */
+/* .ds- prefix, isolated from .ob2-/.ob-/.welcome- namespaces.
+   Cinematic pass (v2): the scene is a full-bleed atmospheric stage,
+   not a chat card. Tuto is the visual hero — larger, lit by a
+   breathing aura — and only the current line holds full attention;
+   earlier lines recede rather than stack as a message list. Reuses
+   the app's motion vocabulary (tuto-breath, scale-up, typing-dots)
+   but gives it more room and weight. */
 
 .ds-scene {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  max-width: 360px;
+  justify-content: center;
+  gap: 0;
+  min-height: 100dvh;
+  width: 100%;
   margin: 0 auto;
-  padding: 32px 20px;
+  padding: 48px 24px 56px;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 32%, rgba(255, 107, 53, 0.16), transparent 68%),
+    radial-gradient(ellipse 120% 90% at 50% 100%, rgba(26, 26, 46, 0.08), transparent 60%),
+    var(--bg-app, #f7f4f0);
+  animation: ds-scene-in 0.6s ease-out forwards;
 }
 
-.ds-avatar {
-  width: 120px;
-  height: 120px;
+@keyframes ds-scene-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.ds-stage {
+  position: relative;
+  width: 260px;
+  height: 260px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  animation: tuto-entrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  margin-bottom: 12px;
+}
+
+.ds-aura {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.38) 0%, rgba(255, 107, 53, 0.14) 45%, transparent 72%);
+  filter: blur(6px);
+  animation: ds-aura-breathe 4.2s ease-in-out infinite;
+  animation-delay: 0.15s;
+}
+
+@keyframes ds-aura-breathe {
+  0%, 100% { transform: scale(0.92); opacity: 0.65; }
+  50% { transform: scale(1.08); opacity: 0.95; }
+}
+
+.ds-avatar {
+  position: relative;
+  width: 176px;
+  height: 176px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: tuto-entrance 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .ds-avatar svg {
-  animation: tuto-breath 3s ease-in-out infinite;
+  filter: drop-shadow(0 12px 28px rgba(26, 26, 46, 0.14));
+  animation: tuto-breath 3.6s ease-in-out infinite;
 }
 
 .ds-transcript {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   width: 100%;
+  max-width: 340px;
+  min-height: 132px;
+  justify-content: flex-start;
 }
 
-.ds-bubble {
-  background: var(--bg-card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-md, 14px);
-  padding: 14px 18px;
-  max-width: 290px;
-  box-shadow: var(--sh-md);
-  transform-origin: center;
-  will-change: transform, opacity;
-  animation: scale-up 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-.ds-bubble-text {
-  font-size: 15px;
-  line-height: 1.45;
+.ds-line {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.35;
   font-weight: 600;
   color: var(--text-primary);
   text-align: center;
   margin: 0;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
-.ds-bubble.ds-typing {
+.ds-line--current {
+  animation: ds-line-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ds-line--past {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  transform: scale(0.94);
+  transition: font-size 0.5s var(--ease), opacity 0.5s var(--ease), transform 0.5s var(--ease), color 0.5s var(--ease);
+}
+
+@keyframes ds-line-in {
+  0% { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.ds-typing {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
-  padding: 12px 18px;
-  min-width: 60px;
+  gap: 8px;
+  height: 24px;
 }
 
-.ds-bubble.ds-typing span {
-  width: 7px;
-  height: 7px;
-  background-color: var(--text-secondary);
+.ds-typing span {
+  width: 8px;
+  height: 8px;
+  background-color: var(--primary);
   border-radius: 50%;
-  opacity: 0.4;
+  opacity: 0.35;
   animation: typing-dots 1.2s infinite ease-in-out;
 }
 
-.ds-bubble.ds-typing span:nth-child(1) { animation-delay: 0s; }
-.ds-bubble.ds-typing span:nth-child(2) { animation-delay: 0.2s; }
-.ds-bubble.ds-typing span:nth-child(3) { animation-delay: 0.4s; }
+.ds-typing span:nth-child(1) { animation-delay: 0s; }
+.ds-typing span:nth-child(2) { animation-delay: 0.2s; }
+.ds-typing span:nth-child(3) { animation-delay: 0.4s; }
 
 .ds-cta {
-  margin-top: 8px;
-  width: 100%;
-  max-width: 240px;
-  padding: 14px;
+  margin-top: 40px;
+  padding: 16px 40px;
   border: none;
-  border-radius: var(--r-md, 14px);
+  border-radius: 999px;
   background: var(--primary);
   color: white;
-  font-size: 15px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  animation: scale-up 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 8px 28px rgba(255, 107, 53, 0.35);
+  animation: ds-cta-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.ds-cta:active {
+  transform: scale(0.97);
+}
+
+@keyframes ds-cta-in {
+  0% { opacity: 0; transform: translateY(10px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .ds-cta.ds-hidden {
   display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-scene,
+  .ds-aura,
+  .ds-avatar,
+  .ds-avatar svg,
+  .ds-line--current,
+  .ds-typing span,
+  .ds-cta {
+    animation: none;
+  }
 }
