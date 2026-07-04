@@ -109,6 +109,27 @@
   --dur-fast: 150ms;
   --dur-normal: 250ms;
   --dur-slow: 400ms;
+
+  /* Auth Module (Sprint 1) — additive tokens only, existing tokens reused elsewhere */
+  --font-display: 'Outfit', var(--font);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --secondary: #8B70DB;
+  --secondary-light: #A38EE3;
+  --secondary-dark: #6F52C7;
+  --secondary-soft: rgba(139, 112, 219, 0.1);
+  --bg-midnight: #10131A;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* WCAG AA-safe text variants (4.5:1+ on white/--bg-card) for small auth
+     UI text where the brand tokens (--danger/--warning/--success/
+     --primary-dark) fall short at normal text size. Those brand tokens are
+     unchanged and still used everywhere else (borders, backgrounds, icons,
+     large text) — these exist only for small-text color usage in auth. */
+  --auth-text-danger: #C0362C;
+  --auth-text-warning: #8A5A0A;
+  --auth-text-success: #0D7A5F;
+  --auth-text-primary-dark: #B5401A;
 }
 
 /* ======================== RESET ======================== */
@@ -189,6 +210,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ======================== APP SHELL ======================== */
 #app {
+  position: relative; /* positioning context for the Splash overlay */
   display: flex;
   justify-content: center;
   align-items: stretch;
@@ -341,12 +363,202 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--primary);
 }
 
+.form-group input.input-error {
+  border-color: var(--danger);
+  animation: shake-error 0.3s ease-in-out;
+}
+
 .form-error {
   background: rgba(239,68,68,0.08);
   color: var(--danger);
   padding: 10px 12px;
   border-radius: var(--r-sm);
   font-size: 13px;
+  animation: shake-error 0.3s ease-in-out;
+}
+
+/* --danger (#EF4444) is ~3.7:1 on white — short of WCAG AA (4.5:1) for
+   normal-size text. Scoped override for the Authentication module's own
+   error text only; --danger itself is unchanged for its many other uses
+   (borders, icons, badges) elsewhere in the app. */
+.auth-screen .form-error,
+.auth-overlay-screen .form-error {
+  color: var(--auth-text-danger);
+}
+
+/* ---- Password field: show/hide toggle (Login, Register, Confirm) ---- */
+.password-input-wrap {
+  position: relative;
+}
+
+.password-input-wrap input {
+  padding-right: 44px;
+  width: 100%;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.password-toggle-btn:active {
+  background: var(--border-light);
+}
+
+/* ---- Password strength meter (Register) ---- */
+.password-strength-meter {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.strength-segment {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--r-full);
+  background: var(--border);
+  transition: background var(--dur-normal) var(--ease);
+}
+
+.password-strength-meter[data-level="1"] .strength-segment:nth-child(1) { background: var(--danger); }
+.password-strength-meter[data-level="2"] .strength-segment:nth-child(-n+2) { background: var(--warning); }
+.password-strength-meter[data-level="3"] .strength-segment:nth-child(-n+3) { background: var(--cat-1); }
+.password-strength-meter[data-level="4"] .strength-segment { background: var(--success); }
+
+.password-strength-label {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+  min-height: 14px;
+}
+
+/* AA-safe darker variants of --danger/--warning/--success/--secondary —
+   the brand tokens themselves fall short of 4.5:1 on white at this text size. */
+.password-strength-label[data-level="1"] { color: var(--auth-text-danger); }
+.password-strength-label[data-level="2"] { color: var(--auth-text-warning); }
+.password-strength-label[data-level="3"] { color: var(--secondary-dark); }
+.password-strength-label[data-level="4"] { color: var(--auth-text-success); }
+
+/* ---- Custom checkbox (Remember Me, Terms & Conditions) ---- */
+.auth-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.auth-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.auth-checkbox-box {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  position: relative;
+  pointer-events: none; /* let clicks reach the checkbox input underneath */
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.auth-checkbox-box::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+
+.auth-checkbox input:checked ~ .auth-checkbox-box {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.auth-checkbox input:checked ~ .auth-checkbox-box::after {
+  transform: rotate(45deg) scale(1);
+}
+
+.auth-checkbox input:focus-visible ~ .auth-checkbox-box {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.auth-checkbox-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* ---- Divider + Google OAuth button (Login, Register) ---- */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.btn-google {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--r-md);
+  padding: 13px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all var(--dur-fast) var(--ease);
+}
+
+.btn-google:active {
+  background: var(--border-light);
+  transform: scale(0.98);
+}
+
+.btn-google:disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .auth-switch {
@@ -3025,7 +3237,7 @@ button,
     background-image: radial-gradient(circle at 50% 50%, #E0E0E0, #AAAAAA);
   }
 
-  .auth-screen, .main-app {
+  .auth-screen, .main-app, .auth-overlay-screen {
     box-shadow: 0 0 0 12px #333, 0 0 0 14px #222, var(--sh-xl);
     border-radius: 48px;
     height: min(90vh, 844px);
@@ -4192,4 +4404,1723 @@ button,
   .welcome-action-section .auth-switch {
     margin-top: 12px !important;
   }
+}
+
+/* ======================== AUTH OVERLAY SCREENS ======================== */
+/* Shared full-bleed overlay base for every dark auth transition screen:
+   Splash (SCR-001), Auth Loading (SCR-007), Auth Success (SCR-008).
+   Positioned as an overlay (not a flex sibling) so it can stay visible while
+   the destination screen is revealed underneath, then fade out — this is
+   what prevents any flash of the wrong screen.
+   Centered via inset + auto margins (not left:50%+transform) so it matches
+   .auth-screen/.main-app's flex-centered box exactly, including on the
+   desktop "phone frame" breakpoint below — the transform is then free to
+   use for the exit micro-motion only. */
+.auth-overlay-screen {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  max-width: 430px;
+  height: 100%;
+  z-index: 500;
+  background: var(--bg-midnight);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 32px 28px;
+  transition: opacity var(--dur-slow) var(--ease-spring), transform var(--dur-slow) var(--ease-spring);
+}
+
+.auth-overlay-screen.overlay-exit {
+  opacity: 0;
+  transform: translate3d(0, -16px, 0);
+  pointer-events: none;
+}
+
+/* ======================== SPLASH SCREEN (SCR-001) ======================== */
+.splash-glow-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+  opacity: 0.05;
+  transform: translate3d(-50%, -50%, 0);
+  animation: splash-orb-drift 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes splash-orb-drift {
+  0%, 100% { transform: translate3d(-50%, -50%, 0) scale(1); }
+  50% { transform: translate3d(calc(-50% + 10px), calc(-50% - 10px), 0) scale(1.06); }
+}
+
+.splash-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  opacity: 0;
+  transform: scale(0.95);
+  animation: splash-logo-in 350ms var(--ease-out-expo) forwards;
+}
+
+.splash-logo-icon svg {
+  filter: drop-shadow(0 8px 24px rgba(255, 107, 53, 0.35));
+}
+
+.splash-logotype {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text-on-dark);
+}
+
+@keyframes splash-logo-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.splash-offline-banner {
+  position: absolute;
+  bottom: calc(32px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-on-dark-2);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+}
+
+/* ======================== AUTH LOADING (SCR-007) ======================== */
+.auth-loading-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.auth-loading-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--secondary), transparent);
+  animation: auth-loading-sweep 1.4s ease-in-out infinite;
+}
+
+@keyframes auth-loading-sweep {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+.auth-loading-mascot {
+  animation: tuto-breath 2.5s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+.auth-loading-copy {
+  text-align: center;
+  min-height: 54px;
+  max-width: 280px;
+}
+
+.auth-loading-main {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-on-dark);
+}
+
+.auth-loading-sub {
+  font-size: 12.5px;
+  color: var(--text-on-dark-2);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* Re-triggerable fade for each phrase swap — same reflow-restart technique
+   already used by shakeFieldError() in auth-ui.js. */
+.phrase-fade {
+  animation: hero-fade-up 400ms var(--ease-out);
+}
+
+/* ======================== AUTH SUCCESS (SCR-008) ======================== */
+.auth-success-streak {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-success-streak::after {
+  content: '';
+  position: absolute;
+  width: 160%;
+  height: 3px;
+  left: -80%;
+  bottom: 20%;
+  background: linear-gradient(90deg, transparent, var(--success), transparent);
+  opacity: 0;
+  animation: success-streak 900ms var(--ease-out) 150ms forwards;
+}
+
+@keyframes success-streak {
+  0% { transform: translate3d(-40%, 40%, 0) rotate(-24deg); opacity: 0; }
+  40% { opacity: 0.8; }
+  100% { transform: translate3d(40%, -40%, 0) rotate(-24deg); opacity: 0; }
+}
+
+.auth-success-icon {
+  position: relative;
+  font-size: 56px;
+  color: var(--success);
+  margin-bottom: 16px;
+  animation: scale-up 450ms var(--ease-spring);
+}
+
+.auth-success-mascot {
+  position: relative;
+  animation: tuto-breath 2.5s ease-in-out infinite;
+  margin-bottom: 16px;
+}
+
+.auth-success-headline {
+  position: relative;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-on-dark);
+  margin-bottom: 6px;
+  text-align: center;
+  opacity: 0;
+  animation: hero-fade-up 400ms var(--ease-out) 200ms forwards;
+}
+
+.auth-success-sub {
+  position: relative;
+  font-size: 13px;
+  color: var(--text-on-dark-2);
+  text-align: center;
+  opacity: 0;
+  animation: hero-fade-up 400ms var(--ease-out) 260ms forwards;
+}
+
+/* ======================== WELCOME HERO (SCR-002) ======================== */
+.hero-mascot-area {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34vh;
+  margin: -8px -4px 24px;
+}
+
+.hero-floating-letters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-floating-letter {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--secondary);
+  opacity: 0.35;
+  animation: hero-letter-float 6s ease-in-out infinite;
+}
+
+@keyframes hero-letter-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -14px, 0) rotate(6deg); }
+}
+
+.hero-tuto-avatar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  animation: tuto-breath 3s ease-in-out infinite;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 10px;
+  opacity: 0;
+  animation: hero-fade-up var(--dur-slow) var(--ease-out) forwards;
+}
+
+.hero-body {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  opacity: 0;
+  animation: hero-fade-up var(--dur-slow) var(--ease-out) forwards;
+  animation-delay: 60ms;
+}
+
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translate3d(0, 16px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hero-actions > * {
+  opacity: 0;
+  animation: hero-fade-up var(--dur-slow) var(--ease-out) forwards;
+}
+
+.hero-actions > *:nth-child(1) { animation-delay: 120ms; }
+.hero-actions > *:nth-child(2) { animation-delay: 170ms; }
+.hero-actions > *:nth-child(3) { animation-delay: 220ms; }
+
+.hero-guest-link {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 6px;
+  position: relative;
+  cursor: pointer;
+}
+
+.hero-guest-link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 0;
+  height: 1px;
+  background: var(--text-secondary);
+  transition: width var(--dur-normal) var(--ease);
+  transform: translateX(-50%);
+}
+
+.hero-guest-link:hover::after,
+.hero-guest-link:focus-visible::after {
+  width: 64px;
+}
+
+/* Premium metallic sweep — reusable utility for any primary CTA that needs it */
+.btn-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
+  animation: btn-sweep 4s ease-in-out infinite;
+}
+
+@keyframes btn-sweep {
+  0%, 40% { left: -150%; }
+  60%, 100% { left: 150%; }
+}
+
+/* ======================== GUEST MODE (SCR-006) ======================== */
+.guest-comparison-card {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0 14px;
+}
+
+.guest-compare-col {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px 14px;
+  transition: opacity var(--dur-normal) var(--ease);
+}
+
+.guest-col-guest {
+  opacity: 0.6;
+}
+
+.guest-comparison-card:hover .guest-col-guest,
+.guest-comparison-card:focus-within .guest-col-guest {
+  opacity: 0.45;
+}
+
+.guest-col-full {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.guest-col-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.guest-col-full .guest-col-title {
+  color: var(--primary);
+}
+
+.guest-col-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.guest-col-full .guest-col-list {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.guest-col-list li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.guest-col-list li::before {
+  content: '\2022';
+  position: absolute;
+  left: 0;
+  color: currentColor;
+}
+
+.guest-warning-box {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1.5px solid var(--warning);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  line-height: 1.5;
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 20px;
+}
+
+/* Optional contextual reason shown in the Upgrade Overlay (SCR-006 upsell),
+   set by whatever triggered it — the guest-metering hook or the profile
+   settings entry point both funnel through the same modal. */
+.upgrade-reason-text {
+  background: var(--primary-soft);
+  color: var(--auth-text-primary-dark); /* --primary-dark is ~3.7:1 on white, short of AA */
+  border: 1px solid rgba(255, 107, 53, 0.25);
+  border-radius: var(--r-sm);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 10px;
+}
+
+@media (max-width: 360px), (max-height: 740px) {
+  .hero-mascot-area {
+    min-height: 26vh;
+    margin-bottom: 16px;
+  }
+  .hero-title {
+    font-size: 26px;
+  }
+}
+
+/* ======================== AUTH ACCESSIBILITY ======================== */
+/* Global button/input resets (line ~197) remove the native focus ring
+   app-wide; :focus (border-color) alone isn't a strong enough indicator for
+   keyboard users per WCAG 2.4.7. Scoped to the auth module only — adding a
+   visible ring here doesn't touch focus styling anywhere else in the app. */
+.auth-screen button:focus-visible,
+.auth-screen input:focus-visible,
+.auth-screen a:focus-visible,
+.auth-overlay-screen button:focus-visible,
+.modal-overlay#upgrade-overlay button:focus-visible,
+.modal-overlay#upgrade-overlay input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-screen *,
+  .auth-overlay-screen *,
+  .modal-overlay#upgrade-overlay * {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   SPRINT 2 — ONBOARDING v2 (Phase D: Completion Experience)
+   ============================================================
+   Additive only. No selector below this point modifies or overrides
+   any rule above it. Reuses existing keyframes already defined above
+   (fadeIn, fadeSlideIn, tutoBreathe, tutoCelebrate) via new classes
+   prefixed ob2, none redefined here. Wired into index.html (see
+   onboarding-v2-container) and main.js as of Phase E, kept under its
+   own ob2/onboarding-container-v2 namespace, deliberately separate
+   from the classes prefixed ob used by the legacy engine, so the two
+   engines can never visually interfere with each other.
+   ============================================================ */
+
+/* ---- v2 engine mount point (sibling to the legacy .onboarding-container) ---- */
+.onboarding-container-v2 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  padding: calc(36px + var(--safe-top)) 24px calc(20px + var(--safe-bottom));
+}
+
+/* ---- Onboarding Machine chrome (answering-phase navigation) ---- */
+.ob2-machine {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 16px;
+}
+
+.ob2-machine-stage-mount {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.ob2-machine-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.ob2-machine-error {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ---- Shared onboarding v2 primitives (also used by Phase B stages) ---- */
+.ob2-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeSlideIn 0.4s ease-out;
+}
+
+.ob2-badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ob2-heading {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.ob2-subtext {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ---- Mascot (reuses tutoBreathe / tutoCelebrate keyframes above) ---- */
+.ob2-mascot {
+  display: flex;
+  justify-content: center;
+  width: 96px;
+  margin: 0 auto;
+}
+
+.ob2-mascot-img {
+  width: 100%;
+  height: auto;
+}
+
+.ob2-mascot--idle {
+  animation: tutoBreathe 3s ease-in-out infinite;
+}
+
+.ob2-mascot--celebrate {
+  animation: tutoCelebrate 0.8s ease-out;
+}
+
+/* ---- Progress Experience ---- */
+.ob2-progress-mascot-mount {
+  display: flex;
+  justify-content: center;
+}
+
+.ob2-progress-percentage {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.ob2-progress-message {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-secondary);
+  min-height: 20px;
+}
+
+.ob2-progress-message--enter {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.ob2-progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.ob2-progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.4s ease-out;
+}
+
+.ob2-progress-error {
+  text-align: center;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+/* ---- Completion Card ---- */
+.ob2-completion-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  animation: fadeSlideIn 0.5s ease-out;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.ob2-completion-card--exit {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.98);
+}
+
+.ob2-completion-mascot-mount {
+  display: flex;
+  justify-content: center;
+}
+
+.ob2-completion-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  text-align: left;
+}
+
+.ob2-completion-block-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.ob2-completion-block-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ob2-completion-block-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ob2-completion-cta {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--primary);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ob2-completion-cta:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ===== DISCOVERY SESSION: SCENE 1 — "FIRST LIGHT" ===== */
+/* .ds- prefix, isolated from .ob2-/.ob-/.welcome- namespaces.
+   v6 (Founder Principle — premium responsive canvas): the Discovery
+   Session is a desktop-primary experience; the browser viewport is
+   the canvas, not a phone screen stretched wide. Every scale-bearing
+   dimension below is a fluid token (--ds-*, defined once on .ds-scene)
+   so the composition grows deliberately from a phone to a cinema
+   display instead of sitting as a fixed-width mobile column adrift in
+   empty desktop space. Later scenes should reuse these tokens rather
+   than inventing their own fixed pixel sizes.
+
+   v4 (First Light + Founder Overrides): the scene opens under a warm
+   golden veil — the cream world dimmed to dusk, never dark — with one
+   breathing ember. The learner's touch lifts the veil (bloom centered
+   on their contact point), Tuto condenses out of the light, and the
+   exchange plays in single focal lines that dissolve into motes. The
+   threshold is a small orb of the same light. Motion law: everything
+   breathes (4.8s sinusoid), entrances condense, exits dissolve,
+   nothing bounces. All entrance animations are additive over final-
+   state base styles so reduced-motion (animation: none) still lands
+   every element in its correct resting state. */
+
+.ds-scene {
+  /* Fluid scale tokens — phone → tablet → desktop → cinema display,
+     continuous rather than a handful of fixed breakpoints. Every
+     min-bound below is the old mobile fixed value; every max-bound is
+     the new desktop-primary ceiling. */
+  --ds-ember: clamp(20px, 1.6vw + 14px, 34px);
+  --ds-veil-glow: clamp(120px, 14vw, 320px);
+  --ds-stage: clamp(240px, 24vw + 94px, 560px);
+  --ds-avatar: clamp(160px, 16vw + 64px, 400px);
+  --ds-whisper-size: clamp(13px, 0.7vw + 11px, 20px);
+  --ds-line-size: clamp(26px, 2.2vw + 15px, 58px);
+  --ds-line-max: clamp(340px, 42vw, 960px);
+  --ds-reply-input: clamp(180px, 20vw, 420px);
+  --ds-orb-size: clamp(60px, 3vw + 48px, 100px);
+  --ds-orb-bottom: clamp(56px, 8vh, 120px);
+  /* Scene 2's card grid needs its own width ceiling — --ds-line-max
+     is tuned for prose, not a six-way card choice, and would squeeze
+     a premium desktop grid into a narrow text column. */
+  --ds-grid-max: clamp(320px, 74vw, 1080px);
+  /* Secondary accent for Scene 2's card iconography — a soft violet
+     that stays distinct from the warm orange used for light/energy
+     (aura, orb, selection) everywhere else. */
+  --ds-icon-accent: #8e7cc3;
+
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  min-height: 100dvh;
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(28px, 9vh, 72px) clamp(24px, 4vw, 96px) 40px;
+  background: var(--bg-app, #f7f4f0);
+}
+
+/* Day-state atmosphere: warm core wash behind Tuto, floor glow,
+   gentle edge vignette. Revealed as the veil lifts. */
+.ds-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 52% at 50% 26%, rgba(255, 107, 53, 0.22), transparent 64%),
+    radial-gradient(ellipse 130% 70% at 50% 96%, rgba(255, 107, 53, 0.12), transparent 58%),
+    radial-gradient(ellipse 140% 140% at 50% 45%, transparent 55%, rgba(26, 26, 46, 0.05) 100%);
+}
+
+/* ---------- State I: the veil (warm hush, Override 1) ---------- */
+/* The app's own warm world dimmed to golden dusk — luminance drops,
+   hue stays honey. Two things exist: the ember and the whisper. */
+
+.ds-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 56px;
+  background:
+    radial-gradient(circle var(--ds-veil-glow) at 50% 44%, rgba(255, 140, 66, 0.32), transparent 70%),
+    radial-gradient(ellipse 140% 120% at 50% 50%, transparent 30%, rgba(92, 52, 18, 0.32) 100%),
+    linear-gradient(rgba(255, 148, 72, 0.07), rgba(255, 148, 72, 0.07)),
+    linear-gradient(rgba(96, 60, 24, 0.40), rgba(96, 60, 24, 0.40)),
+    var(--bg-app, #f7f4f0);
+}
+
+.ds-veil--lifting {
+  opacity: 0;
+  transition: opacity 580ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.ds-veil--gone {
+  visibility: hidden;
+}
+
+.ds-ember {
+  position: relative;
+  width: var(--ds-ember);
+  height: var(--ds-ember);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle, #ffd9b0 0%, var(--primary) 55%, rgba(255, 107, 53, 0.4) 100%);
+  box-shadow:
+    0 0 18px 6px rgba(255, 140, 66, 0.55),
+    0 0 60px 24px rgba(255, 120, 50, 0.28);
+  animation:
+    ds-ember-breathe 4.8s ease-in-out infinite,
+    ds-ember-glint 12s ease-in-out 12s infinite;
+}
+
+/* Generous invisible hit target around the small light. */
+.ds-ember::after {
+  content: '';
+  position: absolute;
+  inset: -44px;
+  border-radius: 50%;
+}
+
+.ds-ember:focus-visible {
+  outline: 2px solid rgba(255, 217, 176, 0.9);
+  outline-offset: 14px;
+}
+
+.ds-veil--lifting .ds-ember {
+  transform: scale(1.15);
+}
+
+@keyframes ds-ember-breathe {
+  0%, 100% { transform: scale(0.9); box-shadow: 0 0 14px 5px rgba(255, 140, 66, 0.45), 0 0 44px 18px rgba(255, 120, 50, 0.22); }
+  50% { transform: scale(1.08); box-shadow: 0 0 22px 8px rgba(255, 140, 66, 0.6), 0 0 72px 30px rgba(255, 120, 50, 0.32); }
+}
+
+/* Once per 12s of patience: a brighter glint — an invitation,
+   never a nag. */
+@keyframes ds-ember-glint {
+  0%, 92%, 100% { filter: brightness(1); }
+  96% { filter: brightness(1.35); }
+}
+
+.ds-whisper {
+  margin: 0;
+  font-size: var(--ds-whisper-size);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: rgba(255, 236, 214, 0.85);
+  opacity: 0;
+  animation: ds-whisper-in 600ms ease-out 2.4s forwards;
+}
+
+@keyframes ds-whisper-in {
+  to { opacity: 0.75; }
+}
+
+/* ---------- The bloom (T0) ---------- */
+/* A wave of warm light expanding from the learner's own contact
+   point, riding above the fading veil: their touch is the sunrise. */
+
+.ds-scene--waking::before {
+  content: '';
+  position: absolute;
+  z-index: 6;
+  left: var(--ds-wake-x, 50%);
+  top: var(--ds-wake-y, 44%);
+  /* vmax-based so the scaled bloom always outruns the viewport
+     diagonal from an arbitrary touch point, on a phone or a cinema
+     display alike (see the design doc's coverage math). */
+  width: 6vmax;
+  height: 6vmax;
+  margin: -3vmax 0 0 -3vmax;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 214, 170, 0.9) 0%, rgba(255, 140, 66, 0.45) 45%, transparent 70%);
+  animation: ds-bloom 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes ds-bloom {
+  0% { transform: scale(0.2); opacity: 1; }
+  100% { transform: scale(30); opacity: 0; }
+}
+
+/* ---------- Tuto: condensation, breath, gaze ---------- */
+
+.ds-stage {
+  position: relative;
+  z-index: 1;
+  width: var(--ds-stage);
+  height: var(--ds-stage);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.ds-stage--veiled {
+  opacity: 0;
+}
+
+.ds-stage--condense {
+  opacity: 1;
+  animation: ds-condense 650ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ds-condense {
+  0% { opacity: 0; transform: scale(0.92); filter: blur(12px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+/* The aura is causal, not decorative: it is the light the learner
+   gave Tuto at the wake. It dims a breath while he thinks. */
+.ds-aura {
+  position: absolute;
+  inset: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.4) 0%, rgba(255, 107, 53, 0.15) 45%, transparent 72%);
+  filter: blur(6px);
+  animation: ds-aura-breathe 4.8s ease-in-out infinite;
+  transition: opacity 400ms var(--ease);
+}
+
+.ds-scene--thinking .ds-aura {
+  opacity: 0.8;
+}
+
+@keyframes ds-aura-breathe {
+  0%, 100% { transform: scale(0.92); opacity: 0.65; }
+  50% { transform: scale(1.08); opacity: 0.95; }
+}
+
+.ds-avatar {
+  position: relative;
+  z-index: 1;
+  width: var(--ds-avatar);
+  height: var(--ds-avatar);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* getTutoSVG() writes fixed width/height attributes on the <svg> root
+   (a mobile-era default); these CSS rules win over presentation
+   attributes and stretch the markup to fill --ds-avatar, so Tuto
+   scales with the fluid canvas instead of floating undersized inside
+   a much larger box on desktop. */
+.ds-avatar svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 14px 30px rgba(26, 26, 46, 0.16));
+  animation: tuto-breath 4.8s ease-in-out infinite;
+}
+
+/* Softened by Scene 2's polishAvatar() (adds .ds-tuto-shadow to the
+   SVG's own flat shadow ellipse) — a hard-edged ellipse reads as a
+   sticker; a blurred one reads as Tuto resting on something. */
+.ds-tuto-shadow {
+  filter: blur(4px);
+  opacity: 0.55;
+}
+
+/* A soft cloud of light beneath Tuto — the premium "floating" read
+   the flat shadow ellipse alone can't give. Sits behind the avatar,
+   in front of the aura. Scene 2 only; Scene 1 is frozen. */
+.ds-tuto-cloud {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  bottom: 4%;
+  width: 78%;
+  height: 26%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 72%);
+  filter: blur(7px);
+}
+
+/* Pupils tagged by the scene (circle[fill="#2c3e50"] → .ds-pupil):
+   gaze is a glance, driven by --ds-gx/--ds-gy. */
+.ds-pupil {
+  transform: translate(var(--ds-gx, 0px), var(--ds-gy, 0px));
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.ds-eye--blink {
+  animation: ds-eyeblink 280ms ease-in-out;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes ds-eyeblink {
+  0%, 100% { transform: scaleY(1) translate(var(--ds-gx, 0px), var(--ds-gy, 0px)); }
+  50% { transform: scaleY(0.06) translate(var(--ds-gx, 0px), var(--ds-gy, 0px)); }
+}
+
+/* ---------- The exchange ---------- */
+
+.ds-transcript {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: var(--ds-line-max);
+  min-height: 96px;
+  justify-content: flex-start;
+}
+
+/* One focal line at a time — words as light, spoken at chest level. */
+.ds-line {
+  font-family: var(--font-display);
+  font-size: var(--ds-line-size);
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin: 0;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  text-shadow: 0 0 24px rgba(255, 150, 90, 0.35);
+  animation: ds-line-condense 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ds-line-condense {
+  0% { opacity: 0; transform: translateY(14px); filter: blur(8px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.ds-line--dissolve {
+  animation: ds-line-dissolve 600ms cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+}
+
+@keyframes ds-line-dissolve {
+  0% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  100% { opacity: 0; transform: translateY(-18px); filter: blur(10px); }
+}
+
+/* Spent words break into motes and join the air of the room. */
+.ds-mote {
+  position: absolute;
+  z-index: 1;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 140, 66, 0.7);
+  pointer-events: none;
+  animation: ds-mote-rise 600ms ease-out forwards;
+}
+
+@keyframes ds-mote-rise {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+  25% { opacity: 0.7; }
+  100% { opacity: 0; transform: translate(var(--ds-mote-drift, -40px), -72px) scale(1.1); }
+}
+
+/* ---------- The ask: the reply bubble ---------- */
+/* The learner's half of the conversation — a soft vessel of the same
+   warm light, not a form field. A real <form> (labeled input + submit
+   button) so typing, Enter, tap, and AT all reply identically;
+   submission is always explicit (Founder Decision 5). */
+
+.ds-reply {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 8px 8px 8px 26px;
+  border-radius: 999px;
+  background: rgba(255, 253, 250, 0.92);
+  box-shadow:
+    0 2px 14px rgba(255, 140, 66, 0.18),
+    0 10px 40px rgba(26, 26, 46, 0.08),
+    inset 0 0 0 1.5px rgba(255, 170, 110, 0.35);
+  animation: ds-reply-breathe 4.8s ease-in-out infinite;
+}
+
+.ds-reply.ds-hidden {
+  display: none;
+}
+
+.ds-reply--reveal {
+  animation:
+    ds-line-condense 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    ds-reply-breathe 4.8s ease-in-out 420ms infinite;
+}
+
+@keyframes ds-reply-breathe {
+  0%, 100% { box-shadow: 0 2px 14px rgba(255, 140, 66, 0.14), 0 10px 40px rgba(26, 26, 46, 0.08), inset 0 0 0 1.5px rgba(255, 170, 110, 0.28); }
+  50% { box-shadow: 0 2px 18px rgba(255, 140, 66, 0.26), 0 10px 44px rgba(26, 26, 46, 0.09), inset 0 0 0 1.5px rgba(255, 170, 110, 0.45); }
+}
+
+.ds-reply-input {
+  width: var(--ds-reply-input);
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary);
+  caret-color: var(--primary);
+}
+
+.ds-reply-input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+/* The send affordance is a small ember — the learner answers light
+   with light. */
+.ds-reply-send {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle, #ffd9b0 0%, var(--primary) 60%, rgba(255, 107, 53, 0.55) 100%);
+  box-shadow: 0 0 14px 4px rgba(255, 140, 66, 0.4);
+}
+
+/* The bubble itself is the focus indicator: while it's listening it
+   holds its breath and glows steadily. A rectangle outline inside the
+   pill would collapse it back into a form field. */
+.ds-reply-input:focus,
+.ds-reply-input:focus-visible {
+  outline: none;
+}
+
+.ds-reply:focus-within {
+  animation: none;
+  box-shadow:
+    0 2px 20px rgba(255, 140, 66, 0.34),
+    0 10px 44px rgba(26, 26, 46, 0.09),
+    inset 0 0 0 2px rgba(255, 150, 80, 0.65);
+}
+
+.ds-reply-send:focus-visible {
+  outline: 2px solid rgba(255, 150, 80, 0.8);
+  outline-offset: 4px;
+}
+
+.ds-reply-send:active {
+  transform: scale(0.94);
+}
+
+/* An empty reply sways the bubble — a held-out hand, still waiting.
+   Nothing scolds, nothing turns red. */
+.ds-reply--sway {
+  animation: ds-reply-sway 320ms ease-in-out;
+}
+
+@keyframes ds-reply-sway {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-7px); }
+  70% { transform: translateX(6px); }
+}
+
+.ds-reply--dissolve {
+  animation: ds-line-dissolve 600ms cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+  pointer-events: none;
+}
+
+/* ---------- The threshold: the orb ---------- */
+/* No pill button. Tuto's aura sheds a small orb of the first light;
+   it descends into the thumb zone and waits. A real <button>:
+   touch, click, Enter, and AT all cross the threshold identically. */
+
+.ds-orb {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: var(--ds-orb-bottom);
+  width: var(--ds-orb-size);
+  height: var(--ds-orb-size);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, #ffe3c4 0%, var(--primary) 62%, rgba(255, 107, 53, 0.5) 100%);
+  box-shadow:
+    0 0 22px 8px rgba(255, 140, 66, 0.45),
+    0 0 70px 28px rgba(255, 120, 50, 0.22);
+}
+
+.ds-orb.ds-hidden {
+  display: none;
+}
+
+.ds-orb--arriving {
+  animation: ds-orb-descend 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes ds-orb-descend {
+  0% { transform: translateX(calc(-50% - 14px)) translateY(-42vh) scale(0.7); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+}
+
+.ds-orb--settled {
+  animation: ds-orb-breathe 4.8s ease-in-out infinite;
+}
+
+@keyframes ds-orb-breathe {
+  0%, 100% { transform: translateX(-50%) scale(0.95); }
+  50% { transform: translateX(-50%) scale(1.05); }
+}
+
+.ds-orb:focus-visible {
+  outline: 2px solid rgba(255, 217, 176, 0.95);
+  outline-offset: 10px;
+}
+
+.ds-orb-label {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: clamp(14px, 0.5vw + 12px, 17px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  opacity: 0;
+  transition: opacity 300ms var(--ease);
+}
+
+.ds-orb--labeled .ds-orb-label {
+  opacity: 0.85;
+}
+
+.ds-orb--taken {
+  animation: ds-orb-taken 450ms cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+  pointer-events: none;
+}
+
+@keyframes ds-orb-taken {
+  0% { transform: translateX(-50%) scale(1); opacity: 1; }
+  100% { transform: translateX(-50%) scale(0.25); opacity: 0; }
+}
+
+/* ---------- Reusable panel reveal/dissolve ---------- */
+/* Any non-Tuto-line block that needs to condense in and dissolve out
+   the same way lines do (Scene 2's card grid + reassurance caption).
+   Shares .ds-line's keyframes rather than duplicating them. */
+
+.ds-panel--reveal {
+  animation: ds-line-condense 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ds-panel--dissolve {
+  animation: ds-line-dissolve 600ms cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+  pointer-events: none;
+}
+
+/* ---------- Scene 2: a bigger, more dimensional Tuto ---------- */
+/* Custom properties cascade — redefining them at a more specific
+   selector overrides the shared .ds-scene values for this scene only.
+   Scene 1 (frozen) is completely unaffected. */
+.ds-scene--self-level {
+  --ds-avatar: clamp(180px, 18vw + 70px, 460px);
+  --ds-stage: clamp(260px, 26vw + 100px, 620px);
+}
+
+/* ---------- Scene 2: header (brand + "why do we ask") ---------- */
+/* A minimal top bar — the app's existing brand mark plus a disclosure
+   for why the question is being asked. Scoped to this scene only;
+   Scene 1 is frozen and stays chrome-free by design. */
+
+.ds-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: min(100%, 1400px);
+  margin: 0 auto clamp(12px, 3vh, 28px);
+}
+
+.ds-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-brand svg {
+  width: clamp(20px, 1.4vw + 14px, 26px);
+  height: clamp(20px, 1.4vw + 14px, 26px);
+  flex-shrink: 0;
+}
+
+.ds-brand-text {
+  font-family: var(--font-display);
+  font-size: clamp(13px, 0.6vw + 11px, 16px);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ds-why {
+  position: relative;
+}
+
+.ds-why-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 253, 250, 0.85);
+  color: var(--text-secondary);
+  font-size: clamp(11.5px, 0.3vw + 10.5px, 13px);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ds-why-btn i {
+  color: var(--ds-icon-accent);
+}
+
+.ds-why-btn:hover,
+.ds-why-btn[aria-expanded='true'] {
+  border-color: rgba(255, 170, 110, 0.6);
+  color: var(--text-primary);
+}
+
+.ds-why-btn:focus-visible {
+  outline: 2px solid rgba(255, 150, 80, 0.8);
+  outline-offset: 2px;
+}
+
+.ds-why-popover {
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(280px, 78vw);
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgba(26, 26, 46, 0.12);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  animation: ds-line-condense 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ds-why-popover.ds-hidden {
+  display: none;
+}
+
+/* ---------- Scene 2: sparkles ---------- */
+/* A handful of small motes around Tuto's aura — presence, not
+   decoration for its own sake. Fixed positions/delays, purely
+   cosmetic; never read by the phase state machine. */
+
+.ds-sparkles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ds-sparkle {
+  position: absolute;
+  left: var(--sx);
+  top: var(--sy);
+  width: var(--ssize);
+  height: var(--ssize);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 210, 160, 0.6) 60%, transparent 75%);
+  clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+  animation: ds-sparkle-twinkle 3.2s ease-in-out infinite;
+  animation-delay: var(--sdelay);
+}
+
+@keyframes ds-sparkle-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.7); }
+  50% { opacity: 0.95; transform: scale(1.05); }
+}
+
+/* ---------- Scene 2: subheading + the level grid ---------- */
+/* A native radiogroup of seven premium cards (six CEFR levels plus an
+   explicit "I'm not sure") — the right surface for this choice, where
+   Scene 1's reply bubble (right for one name) would be wrong. The
+   CEFR count is always exactly six, so column counts are set
+   explicitly per tier (2 → 3 → 6) rather than left to auto-fit:
+   auto-fit packs greedily by available width and leaves an orphaned
+   card alone on its own row the moment N-1 columns fit before N does
+   — an accident of arithmetic, not a designed grid. 2×3 on a phone,
+   3×2 on a tablet (the "I'm not sure" card spanning full width below
+   either), a full 7-across row from min-width: 880px (the same
+   threshold Scene 1's composition shifts at) reads as composed at
+   every size instead of merely resized. */
+
+.ds-subheading {
+  position: relative;
+  z-index: 1;
+  margin: 6px 0 0;
+  max-width: var(--ds-line-max);
+  font-size: clamp(12.5px, 0.4vw + 11px, 15px);
+  color: var(--text-secondary);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ds-subheading.ds-hidden {
+  display: none;
+}
+
+.ds-level-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(10px, 1.6vw, 22px);
+  width: 100%;
+  max-width: var(--ds-grid-max);
+  margin-top: clamp(14px, 2vh, 22px);
+}
+
+@media (min-width: 560px) {
+  .ds-level-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 880px) {
+  .ds-level-grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+}
+
+.ds-level-grid.ds-hidden {
+  display: none;
+}
+
+.ds-level-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: clamp(118px, 9.5vw, 168px);
+  padding: clamp(18px, 1.8vw, 26px) clamp(10px, 1.2vw, 16px) clamp(16px, 1.6vw, 22px);
+  border: 1.5px solid var(--border);
+  border-radius: clamp(16px, 1.4vw, 24px);
+  background: linear-gradient(180deg, #fffdfb 0%, #fff8f1 100%);
+  /* Layered ambient + contact shadow, tinted toward the card's own
+     accent rather than a flat neutral — this is the "premium SaaS
+     card" read the flat single-shadow version didn't have. */
+  box-shadow:
+    0 1px 2px rgba(26, 26, 46, 0.04),
+    0 10px 24px -10px color-mix(in srgb, var(--card-accent, var(--ds-icon-accent)) 55%, transparent),
+    0 24px 44px -22px rgba(26, 26, 46, 0.16);
+  color: var(--card-accent, var(--ds-icon-accent));
+  cursor: pointer;
+  transition: transform 240ms var(--ease), box-shadow 240ms var(--ease), border-color 240ms var(--ease), color 240ms var(--ease);
+}
+
+/* Exactly six CEFR cards, so "I'm not sure" is the odd one out —
+   given its own full-width row below them until there's room for a
+   full 7-across single row. */
+.ds-level-card--unsure {
+  grid-column: 1 / -1;
+  color: var(--text-tertiary);
+}
+
+@media (min-width: 880px) {
+  .ds-level-card--unsure {
+    grid-column: auto;
+  }
+}
+
+.ds-level-card:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow:
+    0 1px 2px rgba(26, 26, 46, 0.04),
+    0 14px 28px -10px color-mix(in srgb, var(--card-accent, var(--ds-icon-accent)) 65%, transparent),
+    0 28px 52px -20px rgba(26, 26, 46, 0.2);
+  border-color: color-mix(in srgb, var(--card-accent, var(--ds-icon-accent)) 45%, var(--border));
+}
+
+.ds-level-card:focus-visible {
+  outline: 2px solid rgba(255, 150, 80, 0.8);
+  outline-offset: 3px;
+}
+
+.ds-level-card:disabled {
+  cursor: default;
+}
+
+.ds-level-card--selected {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.55),
+    0 14px 30px -8px rgba(255, 140, 66, 0.4),
+    0 28px 52px -20px rgba(26, 26, 46, 0.18);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.ds-level-icon-slot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: clamp(30px, 2.6vw, 42px);
+}
+
+.ds-level-icon-slot svg {
+  transform: scale(var(--card-scale, 1));
+  transform-origin: center bottom;
+}
+
+.ds-level-check {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 3px 10px rgba(255, 107, 53, 0.45);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 200ms var(--ease), transform 200ms var(--ease);
+}
+
+.ds-level-card--selected .ds-level-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.ds-level-code {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 1.5vw + 15px, 36px);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  transition: color 220ms var(--ease);
+}
+
+.ds-level-card--selected .ds-level-code {
+  color: var(--primary);
+}
+
+.ds-level-label {
+  font-size: clamp(11px, 0.45vw + 10px, 13.5px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.ds-reassurance {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: clamp(14px, 2vh, 22px) 0 0;
+  max-width: var(--ds-line-max);
+  font-size: clamp(12.5px, 0.4vw + 11px, 15px);
+  color: var(--text-secondary);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ds-reassurance i {
+  color: var(--primary);
+  font-size: 0.85em;
+}
+
+.ds-reassurance.ds-hidden {
+  display: none;
+}
+
+/* Small viewports need no dedicated breakpoint any more — every
+   scale-bearing rule above reads its size from a --ds-* clamp() token
+   whose minimum already equals the old fixed mobile values (stage
+   240px, avatar 160px, line 26px, orb bottom 56px). One fluid rule
+   replaces what used to be a rule plus an override. */
+
+/* ---------- Desktop-primary composition ---------- */
+/* Founder Principle: the Discovery Session is a desktop-primary
+   experience, not a phone screen stretched wide. Top-anchoring the
+   conversation (the mobile/portrait-tablet default above) exists so
+   the orb never fights a software keyboard or a thumb reaching up a
+   tall narrow screen — a real constraint on those devices. It is not
+   a constraint on a landscape desktop canvas, where top-anchoring
+   instead reads as a small mobile column adrift over a dead lower
+   two-thirds of the window. From this width, the whole conversation
+   re-composes around the vertical center of the browser window — the
+   canvas itself, not a fixed card — and the atmosphere re-anchors
+   with it so the warm wash still frames Tuto rather than lingering
+   where the old top-anchored position used to be. Every later scene
+   should repeat this pattern rather than only shipping a mobile
+   layout with desktop treated as an afterthought. */
+
+@media (min-width: 880px) {
+  .ds-scene {
+    justify-content: center;
+    padding-top: clamp(28px, 6vh, 64px);
+    padding-bottom: clamp(28px, 6vh, 64px);
+  }
+
+  .ds-stage {
+    margin-bottom: clamp(4px, 1.4vh, 20px);
+  }
+
+  .ds-vignette {
+    background:
+      radial-gradient(ellipse 60% 62% at 50% 46%, rgba(255, 107, 53, 0.22), transparent 66%),
+      radial-gradient(ellipse 90% 60% at 50% 100%, rgba(255, 107, 53, 0.12), transparent 58%),
+      radial-gradient(ellipse 90% 90% at 50% 50%, transparent 55%, rgba(26, 26, 46, 0.05) 100%);
+  }
+
+  .ds-veil {
+    background:
+      radial-gradient(circle var(--ds-veil-glow) at 50% 50%, rgba(255, 140, 66, 0.32), transparent 70%),
+      radial-gradient(ellipse 90% 90% at 50% 50%, transparent 30%, rgba(92, 52, 18, 0.32) 100%),
+      linear-gradient(rgba(255, 148, 72, 0.07), rgba(255, 148, 72, 0.07)),
+      linear-gradient(rgba(96, 60, 24, 0.40), rgba(96, 60, 24, 0.40)),
+      var(--bg-app, #f7f4f0);
+  }
+
+  /* The bloom's default top offset (44%) was tuned for the
+     top-anchored mobile stage; centered composition wants it to
+     originate from mid-frame when the wake is keyboard-triggered
+     (no real touch point to read coordinates from). */
+  .ds-scene--waking::before {
+    top: var(--ds-wake-y, 50%);
+  }
+}
+
+/* ---------- Reduced motion (Override 4) ---------- */
+/* Entrances become plain state changes (base styles already carry
+   final states); the veil still lifts via its opacity transition —
+   a crossfade, not a bloom. The meaning survives with the motion
+   removed. */
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-ember,
+  .ds-whisper,
+  .ds-aura,
+  .ds-avatar svg,
+  .ds-stage--condense,
+  .ds-line,
+  .ds-line--dissolve,
+  .ds-mote,
+  .ds-reply,
+  .ds-reply--reveal,
+  .ds-reply--sway,
+  .ds-reply--dissolve,
+  .ds-panel--reveal,
+  .ds-panel--dissolve,
+  .ds-orb--arriving,
+  .ds-orb--settled,
+  .ds-sparkle,
+  .ds-why-popover,
+  .ds-eye--blink {
+    animation: none;
+  }
+  .ds-reply--dissolve { opacity: 0; }
+  .ds-panel--dissolve { opacity: 0; }
+  .ds-level-card,
+  .ds-level-check,
+  .ds-level-code {
+    transition: none;
+  }
+  .ds-sparkle { opacity: 0.5; }
+  /* Without its animation the bloom would freeze as a stray glow at
+     the wake point — remove it; the veil's opacity crossfade carries
+     the transition alone. */
+  .ds-scene--waking::before { content: none; }
+  .ds-whisper { opacity: 0.75; }
+  .ds-line--dissolve { opacity: 0; }
+  .ds-mote { opacity: 0; }
+  .ds-pupil { transition: none; }
 }

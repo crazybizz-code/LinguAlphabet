@@ -8,13 +8,49 @@
   <title>LinguAlphabet</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
   <!-- App Root -->
   <div id="app">
+
+    <!-- ===================== SPLASH SCREEN (SCR-001) ===================== -->
+    <div id="splash-screen" class="auth-overlay-screen" role="img" aria-label="LinguAlphabet">
+      <div class="splash-glow-orb" aria-hidden="true"></div>
+      <div class="splash-center">
+        <div class="splash-logo-icon">
+          <svg width="64" height="64" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="20" fill="#FF6B35"/>
+            <path d="M12 14a8 8 0 0 1 16 0v8a8 8 0 0 1-16 0v-8z" fill="white" opacity="0.9"/>
+            <circle cx="16" cy="18" r="2.5" fill="#FF6B35"/>
+            <circle cx="24" cy="18" r="2.5" fill="#FF6B35"/>
+          </svg>
+        </div>
+        <span class="splash-logotype">LinguAlphabet</span>
+      </div>
+      <div class="splash-offline-banner hidden" id="splash-offline-banner">Connecting offline. Coaching ready.</div>
+    </div>
+
+    <!-- ===================== AUTH LOADING (SCR-007) ===================== -->
+    <div id="auth-loading-screen" class="auth-overlay-screen hidden" role="status" aria-label="Signing you in">
+      <div class="auth-loading-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Working"></div>
+      <div class="auth-loading-mascot" id="auth-loading-tuto"></div>
+      <div class="auth-loading-copy" aria-live="assertive">
+        <p class="auth-loading-main" id="auth-loading-main"></p>
+        <p class="auth-loading-sub" id="auth-loading-sub"></p>
+      </div>
+    </div>
+
+    <!-- ===================== AUTH SUCCESS (SCR-008) ===================== -->
+    <div id="auth-success-screen" class="auth-overlay-screen hidden" role="status">
+      <div class="auth-success-streak" aria-hidden="true"></div>
+      <div class="auth-success-icon" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="auth-success-mascot" id="auth-success-tuto"></div>
+      <h2 class="auth-success-headline" id="auth-success-headline">Welcome aboard!</h2>
+      <p class="auth-success-sub" id="auth-success-sub">Let's coach your English together.</p>
+    </div>
 
     <!-- ===================== ONBOARDING ASSESSMENT ===================== -->
     <div id="onboarding-screen" class="onboarding-screen hidden">
@@ -193,10 +229,16 @@
           </div>
         </div>
       </div>
+
+      <!-- Onboarding v2 (Sprint 2) mount point. Sibling to the legacy
+           #onboarding-container above, not nested inside it — the two
+           engines never share DOM. main.js shows exactly one of the
+           two based on ONBOARDING_ENGINE. -->
+      <div class="onboarding-container-v2 hidden" id="onboarding-v2-container"></div>
     </div>
 
     <!-- ===================== AUTH SCREENS ===================== -->
-    <div id="auth-screen" class="auth-screen">
+    <div id="auth-screen" class="auth-screen hidden">
       <div class="auth-bg">
         <div class="auth-blob auth-blob-1"></div>
         <div class="auth-blob auth-blob-2"></div>
@@ -215,8 +257,59 @@
           <span class="auth-logo-text">LinguAlphabet</span>
         </div>
 
-        <!-- Step 0: Welcome Landing Panel -->
-        <div id="welcome-panel" class="auth-panel active">
+        <!-- Step 0: Welcome Hero (Value Proposition Landing) -->
+        <div id="welcome-hero-panel" class="auth-panel active">
+          <div class="hero-mascot-area">
+            <div class="hero-floating-letters" aria-hidden="true">
+              <span class="hero-floating-letter" style="top:6%;left:8%;animation-delay:0s">A</span>
+              <span class="hero-floating-letter" style="top:12%;right:10%;animation-delay:1.3s">B</span>
+              <span class="hero-floating-letter" style="bottom:20%;left:14%;animation-delay:2.6s">C</span>
+              <span class="hero-floating-letter" style="bottom:12%;right:6%;animation-delay:3.9s">Z</span>
+            </div>
+            <div id="hero-tuto-avatar" class="hero-tuto-avatar"></div>
+          </div>
+          <h1 class="hero-title">Your AI English Coach</h1>
+          <p class="hero-body">Learn by speaking, not by tap-filling cards. Speak natural English with Tuto.</p>
+          <div class="hero-actions">
+            <button id="hero-start-btn" class="btn-primary btn-full btn-sweep" aria-label="Start your journey and create an account">Start Your Journey</button>
+            <button id="hero-signin-btn" class="btn-ghost btn-full" aria-label="Sign in to your account">Sign In to My Coach</button>
+            <button id="hero-guest-btn" class="hero-guest-link" aria-label="Explore guest mode">Explore Guest Mode</button>
+          </div>
+        </div>
+
+        <!-- Step 0b: Guest Mode Comparison -->
+        <div id="guest-mode-panel" class="auth-panel">
+          <h1 class="auth-title">Explore LinguAlphabet</h1>
+          <p class="auth-subtitle">See what you get as a guest versus a full account.</p>
+          <div class="guest-comparison-card">
+            <div class="guest-compare-col guest-col-guest">
+              <span class="guest-col-title">Guest</span>
+              <ul class="guest-col-list">
+                <li>No progress sync</li>
+                <li>Limited AI speech minutes (10m/day)</li>
+              </ul>
+            </div>
+            <div class="guest-compare-col guest-col-full">
+              <span class="guest-col-title">Full Account</span>
+              <ul class="guest-col-list">
+                <li>Unlimited Speech</li>
+                <li>Personalized Vocab Coach</li>
+                <li>Cross-device sync</li>
+              </ul>
+            </div>
+          </div>
+          <div class="guest-warning-box" id="guest-limits-note">
+            Your progress is stored locally on this device only.
+          </div>
+          <div class="auth-form">
+            <button id="guest-create-account-btn" class="btn-primary btn-full">Create Full Account First</button>
+            <button id="guest-continue-btn" class="btn-ghost btn-full">Continue as Guest</button>
+            <button id="guest-back-btn" class="btn-ghost btn-full">Back</button>
+          </div>
+        </div>
+
+        <!-- Step 0c: Guest Name Capture (Tuto conversational entry, reached only from Guest Mode) -->
+        <div id="welcome-panel" class="auth-panel">
             <!-- Safe Area Spacer (Top) -->
             <div class="safe-area-spacer-top"></div>
 
@@ -253,11 +346,6 @@
 
             <!-- Safe Area Spacer (Bottom) -->
             <div class="safe-area-spacer-bottom"></div>
->>>>
-<task_progress>- [x] Replace welcome screen HTML structure
-- [ ] Implement new CSS styles and animations
-- [ ] Implement new JS logic for interactions and transitions
-- [ ] Build and verify</task_progress>
         </div>
 
         <div id="login-panel" class="auth-panel">
@@ -265,19 +353,32 @@
           <p class="auth-subtitle">Continue your English learning journey</p>
           <div class="auth-form">
             <div class="form-group">
-              <label>Email</label>
-              <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email" />
+              <label for="login-email">Email</label>
+              <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email" aria-required="true" />
             </div>
             <div class="form-group">
               <div style="display:flex;justify-content:space-between;align-items:center">
-                <label>Password</label>
-                <button id="forgot-password-btn" style="font-size:12px;color:var(--primary);font-weight:600;padding:0;border:none;background:none;cursor:pointer">Forgot?</button>
+                <label for="login-password">Password</label>
+                <button type="button" id="forgot-password-btn" class="link-btn" style="font-size:12px">Forgot?</button>
               </div>
-              <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+              <div class="password-input-wrap">
+                <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" aria-required="true" />
+                <button type="button" class="password-toggle-btn" id="login-password-toggle" aria-label="Show password" aria-pressed="false"><i class="fa-regular fa-eye"></i></button>
+              </div>
             </div>
+            <label class="auth-checkbox" for="login-remember">
+              <input type="checkbox" id="login-remember" checked />
+              <span class="auth-checkbox-box" aria-hidden="true"></span>
+              <span class="auth-checkbox-label">Remember me</span>
+            </label>
             <div id="login-error" class="form-error hidden"></div>
             <div id="login-success" class="form-success hidden" style="color:var(--success);background:var(--success-soft);border:1.5px solid var(--success);border-radius:var(--r-md);padding:10px 14px;font-size:12px;margin-bottom:16px;text-align:center"></div>
-            <button id="login-btn" class="btn-primary btn-full">Sign In</button>
+            <button id="login-btn" class="btn-primary btn-full">Let's Go</button>
+            <div class="auth-divider"><span>or continue with</span></div>
+            <button type="button" id="login-google-btn" class="btn-google btn-full" aria-label="Continue with Google">
+              <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/></svg>
+              Continue with Google
+            </button>
             <button id="goto-welcome-btn" class="btn-ghost btn-full">Back to Welcome</button>
           </div>
           <p class="auth-switch">Don't have an account? <button id="goto-signup">Sign up</button></p>
@@ -288,19 +389,46 @@
           <p class="auth-subtitle">Start your personalized education today</p>
           <div class="auth-form">
             <div class="form-group">
-              <label>Username</label>
-              <input type="text" id="signup-username" placeholder="Choose a username" autocomplete="username" />
+              <label for="signup-username">Full Name</label>
+              <input type="text" id="signup-username" placeholder="Your Name" autocomplete="name" aria-required="true" />
             </div>
             <div class="form-group">
-              <label>Email</label>
-              <input type="email" id="signup-email" placeholder="your@email.com" autocomplete="email" />
+              <label for="signup-email">Email</label>
+              <input type="email" id="signup-email" placeholder="name@email.com" autocomplete="email" aria-required="true" />
             </div>
             <div class="form-group">
-              <label>Password</label>
-              <input type="password" id="signup-password" placeholder="Create a password" autocomplete="new-password" />
+              <label for="signup-password">Password</label>
+              <div class="password-input-wrap">
+                <input type="password" id="signup-password" placeholder="••••••••••••" autocomplete="new-password" aria-required="true" aria-describedby="signup-strength-label" />
+                <button type="button" class="password-toggle-btn" id="signup-password-toggle" aria-label="Show password" aria-pressed="false"><i class="fa-regular fa-eye"></i></button>
+              </div>
+              <div class="password-strength-meter" id="signup-strength-meter" data-level="0" aria-hidden="true">
+                <span class="strength-segment"></span>
+                <span class="strength-segment"></span>
+                <span class="strength-segment"></span>
+                <span class="strength-segment"></span>
+              </div>
+              <div class="password-strength-label" id="signup-strength-label" aria-live="polite"></div>
             </div>
+            <div class="form-group">
+              <label for="signup-confirm-password">Confirm Password</label>
+              <div class="password-input-wrap">
+                <input type="password" id="signup-confirm-password" placeholder="••••••••••••" autocomplete="new-password" aria-required="true" />
+                <button type="button" class="password-toggle-btn" id="signup-confirm-password-toggle" aria-label="Show password" aria-pressed="false"><i class="fa-regular fa-eye"></i></button>
+              </div>
+            </div>
+            <label class="auth-checkbox" for="signup-terms">
+              <input type="checkbox" id="signup-terms" />
+              <span class="auth-checkbox-box" aria-hidden="true"></span>
+              <span class="auth-checkbox-label">I agree to the Terms and Privacy Policy</span>
+            </label>
             <div id="signup-error" class="form-error hidden"></div>
             <button id="signup-btn" class="btn-primary btn-full">Create Account</button>
+            <div class="auth-divider"><span>or continue with</span></div>
+            <button type="button" id="signup-google-btn" class="btn-google btn-full" aria-label="Continue with Google">
+              <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.167 6.656 3.58 9 3.58z"/></svg>
+              Continue with Google
+            </button>
             <button id="goto-welcome-from-signup-btn" class="btn-ghost btn-full">Back to Welcome</button>
           </div>
           <p class="auth-switch">Already have an account? <button id="goto-login">Sign in</button></p>
@@ -311,11 +439,11 @@
           <p class="auth-subtitle">We will send you a secure link to recover your profile</p>
           <div class="auth-form">
             <div class="form-group">
-              <label>Email</label>
-              <input type="email" id="forgot-email" placeholder="your@email.com" autocomplete="email" />
+              <label for="forgot-email">Email</label>
+              <input type="email" id="forgot-email" placeholder="your@email.com" autocomplete="email" aria-required="true" />
             </div>
             <div id="forgot-error" class="form-error hidden"></div>
-            <div id="forgot-success" class="form-success hidden" style="color:var(--success);background:var(--success-soft);border:1.5px solid var(--success);border-radius:var(--r-md);padding:10px 14px;font-size:12px;margin-bottom:16px;text-align:center"></div>
+            <div id="forgot-success" class="form-success hidden" role="status" aria-live="polite" style="color:var(--success);background:var(--success-soft);border:1.5px solid var(--success);border-radius:var(--r-md);padding:10px 14px;font-size:12px;margin-bottom:16px;text-align:center"></div>
             <button id="forgot-submit-btn" class="btn-primary btn-full">Send Recovery Link</button>
           </div>
           <p class="auth-switch">Remember your password? <button id="goto-login-from-forgot">Sign in</button></p>
@@ -1217,6 +1345,7 @@
           <p style="font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5">
             Upgrade to a cloud account to backup your study goals, stats, and vocabulary permanently. All local progress will be automatically imported.
           </p>
+          <p class="upgrade-reason-text hidden" id="upgrade-reason" role="status"></p>
         </div>
 
         <div class="auth-form" style="margin-top: 16px">

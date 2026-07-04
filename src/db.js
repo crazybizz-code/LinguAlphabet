@@ -4,10 +4,15 @@
 import { getInitialData } from './data.js';
 
 // ==================== CONFIG ====================
+// ONBOARDING_ENGINE: 'v2' (Sprint 2's onboarding machine, Phases A-D)
+// or 'legacy' (Sprint 1's original assessment-based flow). Both stay
+// fully functional side by side — see main.js's showMainApp(). The
+// localStorage override exists for QA/rollback without a code change.
 export const CONFIG = {
   supabaseUrl: localStorage.getItem('sb_url') || import.meta.env.VITE_SUPABASE_URL || '',
   supabaseKey: localStorage.getItem('sb_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || '',
   geminiKey: localStorage.getItem('gemini_key') || import.meta.env.VITE_GEMINI_API_KEY || '',
+  onboardingEngine: localStorage.getItem('linguAlphabet_onboarding_engine') || 'v2',
 };
 
 export function updateConfig(key, value) {
@@ -15,6 +20,7 @@ export function updateConfig(key, value) {
   if (key === 'supabaseUrl') localStorage.setItem('sb_url', value);
   if (key === 'supabaseKey') localStorage.setItem('sb_key', value);
   if (key === 'geminiKey') localStorage.setItem('gemini_key', value);
+  if (key === 'onboardingEngine') localStorage.setItem('linguAlphabet_onboarding_engine', value);
 }
 
 function reportError(...args) {
@@ -34,8 +40,8 @@ class SupabaseClient {
 
   async init() {
     if (!this.url || !this.key) return false;
-    // Try to restore session
-    const stored = localStorage.getItem('sb_session');
+    // Try to restore session (Remember Me: localStorage; session-only: sessionStorage)
+    const stored = this._loadPersistedSession();
     if (stored) {
       try {
         this.session = JSON.parse(stored);
@@ -45,6 +51,46 @@ class SupabaseClient {
     }
     this.isReady = !!this.url;
     return this.isReady;
+  }
+
+  // ---- Session persistence (Remember Me aware) ----
+  _persistSession(data, remember = true) {
+    const payload = JSON.stringify(data);
+    if (remember) {
+      localStorage.setItem('sb_session', payload);
+      sessionStorage.removeItem('sb_session');
+    } else {
+      sessionStorage.setItem('sb_session', payload);
+      localStorage.removeItem('sb_session');
+    }
+  }
+
+  _loadPersistedSession() {
+    return localStorage.getItem('sb_session') || sessionStorage.getItem('sb_session');
+  }
+
+  _clearPersistedSession() {
+    localStorage.removeItem('sb_session');
+    sessionStorage.removeItem('sb_session');
+  }
+
+  // Validates the current access token against Supabase (used by the Splash
+  // screen's cold-start session check). Clears a dead/expired session so the
+  // app falls back to the Welcome screen instead of a broken "logged in" state.
+  async validateSession() {
+    if (!this.session?.access_token) return false;
+    try {
+      const user = await this.request('/auth/v1/user');
+      if (user && !user.error) {
+        this.session.user = user;
+        return true;
+      }
+      throw new Error('Invalid session');
+    } catch {
+      this.session = null;
+      this._clearPersistedSession();
+      return false;
+    }
   }
 
   headers(extra = {}) {
@@ -78,7 +124,7 @@ class SupabaseClient {
     }
     if (!res.ok) {
       const message = typeof data === 'object'
-        ? (data.message || data.error_description || data.error || data.details)
+        ? (data.message || data.msg || data.error_description || data.error || data.details)
         : data;
       throw new Error(message || 'Request failed');
     }
@@ -92,17 +138,17 @@ class SupabaseClient {
       body: JSON.stringify({ email, password, data: { username } })
     });
     this.session = data;
-    localStorage.setItem('sb_session', JSON.stringify(data));
+    this._persistSession(data, true);
     return data;
   }
 
-  async signIn(email, password) {
+  async signIn(email, password, remember = true) {
     const data = await this.request('/auth/v1/token?grant_type=password', {
       method: 'POST',
       body: JSON.stringify({ email, password })
     });
     this.session = data;
-    localStorage.setItem('sb_session', JSON.stringify(data));
+    this._persistSession(data, remember);
     return data;
   }
 
@@ -111,7 +157,7 @@ class SupabaseClient {
       await this.request('/auth/v1/logout', { method: 'POST' }).catch(() => {});
     }
     this.session = null;
-    localStorage.removeItem('sb_session');
+    this._clearPersistedSession();
   }
 
   async resetPassword(email) {
@@ -123,6 +169,78 @@ class SupabaseClient {
 
   get currentUser() {
     return this.session?.user || null;
+  }
+
+  // ---- Google OAuth ----
+  // Checks whether the Google provider is actually enabled on this Supabase
+  // project before navigating away, so a misconfigured backend produces a
+  // friendly in-app message instead of a broken redirect.
+  async getGoogleOAuthAvailability() {
+    if (!this.url || !this.key) {
+      return { available: false, reason: 'Sign-in is not configured yet. Please try again later.' };
+    }
+
+    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+    const authorizeUrl = `${this.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+
+    try {
+      const res = await fetch(authorizeUrl, {
+        method: 'GET',
+        redirect: 'manual',
+        headers: { apikey: this.key }
+      });
+
+      // GoTrue redirects (opaque under `redirect: 'manual'`) to Google when the
+      // provider is enabled. A normal JSON response means it rejected the
+      // request before ever redirecting (provider disabled/misconfigured).
+      if (res.type === 'opaqueredirect' || (res.status >= 300 && res.status < 400)) {
+        return { available: true, url: authorizeUrl };
+      }
+
+      let reason = 'Google Sign-In isn’t available right now. Please use email instead.';
+      try {
+        const body = await res.json();
+        if (body?.msg || body?.message || body?.error_description) {
+          reason = body.msg || body.message || body.error_description;
+        }
+      } catch {}
+      return { available: false, reason };
+    } catch {
+      return { available: false, reason: 'Could not reach the sign-in service. Check your connection and try again.' };
+    }
+  }
+
+  async signInWithGoogle() {
+    const check = await this.getGoogleOAuthAvailability();
+    if (!check.available) {
+      throw new Error(check.reason);
+    }
+    window.location.assign(check.url);
+  }
+
+  // Called on boot to consume the #access_token=...&refresh_token=... fragment
+  // Supabase appends when it redirects back from a successful OAuth flow.
+  async handleOAuthCallback() {
+    if (!window.location.hash || !window.location.hash.includes('access_token')) return null;
+
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const accessToken = params.get('access_token');
+    if (!accessToken) return null;
+
+    const sessionData = {
+      access_token: accessToken,
+      refresh_token: params.get('refresh_token') || null,
+      expires_in: params.get('expires_in') ? Number(params.get('expires_in')) : null,
+      token_type: params.get('token_type') || 'bearer'
+    };
+    this.session = sessionData;
+
+    const user = await this.request('/auth/v1/user').catch(() => null);
+    if (user) this.session.user = user;
+    this._persistSession(this.session, true);
+
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    return this.session;
   }
 
   // ---- Database ----
@@ -390,7 +508,17 @@ export const UserState = {
       learningMemory: { masteredWords: [], weakWords: [], masteredConcepts: [], weakConcepts: [], repeatedMistakes: [] },
       assessmentHistory: [],
       pathStep: 1,
-      pathDate: ""
+      pathDate: "",
+
+      // Generic guest usage-metering store (auth-guest.js). Keyed by
+      // whatever feature a future phase configures — no limits are
+      // hardcoded here, this is just the persisted counter shape.
+      guestUsage: {},
+
+      // Sprint 2 onboarding v2 — the versioned LearningBrainProfile
+      // (see profile/learningBrainProfile.js). null until the
+      // Initialization Runner commits one.
+      learningBrain: null
     };
   },
 
@@ -516,7 +644,8 @@ export const UserState = {
         learning_score: this._data.learningScore,
         learning_memory: this._data.learningMemory,
         assessment_history: this._data.assessmentHistory,
-        has_completed_assessment: this._data.hasCompletedAssessment
+        has_completed_assessment: this._data.hasCompletedAssessment,
+        learning_brain: this._data.learningBrain
       };
       await supabase.upsertProfile(remoteProfile).catch(err => reportError("Profile sync error:", err));
 
@@ -594,6 +723,10 @@ export const UserState = {
         if (typeof profile.has_completed_assessment === 'boolean') {
           this._data.hasCompletedAssessment = profile.has_completed_assessment;
         }
+        // Remote wins if present; otherwise the local value (e.g. a
+        // guest's freshly-completed brain) is left untouched — same
+        // OR-fallback merge as every other field above.
+        this._data.learningBrain = profile.learning_brain || this._data.learningBrain;
       }
 
       // 2. Pull Progress

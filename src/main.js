@@ -8,6 +8,35 @@ import { supabase, UserState, CONFIG, updateConfig } from './db.js';
 import { copilot, lookupWord } from './ai.js';
 import { SyncedAudioPlayer } from './player.js';
 import { syncAllFeeds } from './rss.js';
+import {
+  getTutoSVG,
+  startTutoBlinkLoop,
+  showAuthPanel,
+  syncAuthScreenMode,
+  setAuthPanelHook,
+  showSplash,
+  hideSplash,
+  runColdStartSequence,
+  showError,
+  shakeFieldError,
+  isValidEmail,
+  isValidFullName,
+  isPasswordComplex,
+  isLoginPasswordValid,
+  renderPasswordStrength,
+  setupPasswordToggle,
+  bindEnterToSubmit,
+  handleGoogleAuth,
+  runAuthFlow,
+  showAuthSuccess,
+  lockAuthNavigation,
+  unlockAuthNavigation,
+  setGuestUpgradeHook,
+  requestGuestUpgrade,
+  setupAuthKeyboardNav
+} from './auth.js';
+import { isOnboardingComplete, startOnboarding } from './onboarding/index.js';
+import { reconcileOnboardingCompletionState } from './services/guestMigration.js';
 
 // ==================== GLOBAL STATE ====================
 const state = {
@@ -116,17 +145,16 @@ async function boot() {
   }).catch(() => {});
   */
 
-  // Check Supabase session
-  await supabase.init().catch(() => {});
-
-  // Show auth or main app
-  const user = UserState._data;
-  const hasSession = Boolean(user?.email) || Boolean(user?.isGuest);
-  if (hasSession) {
+  // Splash validates any existing session while showing the brand mark, then
+  // reports where to land. The destination screen is prepared before Splash
+  // is hidden, so the UI never flashes the wrong screen mid-check.
+  const route = await runColdStartSequence();
+  if (route === 'authenticated') {
     showMainApp();
   } else {
     showAuth();
   }
+  hideSplash();
 
   setupEventListeners();
   setupPlayer();
@@ -285,16 +313,6 @@ function clearWelcomeTimers() {
   }
 }
 
-function syncAuthScreenMode() {
-  const authScreen = document.getElementById('auth-screen');
-  const welcomeActive = document.getElementById('welcome-panel')?.classList.contains('active');
-  authScreen?.classList.toggle('auth-screen--welcome', Boolean(welcomeActive));
-  if (!welcomeActive) {
-    authScreen?.classList.remove('auth-screen--exit');
-    authScreen?.style.removeProperty('--keyboard-offset');
-  }
-}
-
 function setupWelcomeKeyboard() {
   const input = document.getElementById('welcome-name-input');
   const authScreen = document.getElementById('auth-screen');
@@ -337,16 +355,14 @@ function showAuth() {
   document.getElementById('auth-screen').classList.remove('hidden');
   document.getElementById('main-app').classList.add('hidden');
   document.getElementById('onboarding-screen').classList.add('hidden');
-  
-  // Show welcome panel by default and initialize it
-  document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('welcome-panel')?.classList.add('active');
-  syncAuthScreenMode();
-  initWelcomeScreen();
+
+  // Welcome Hero (SCR-002) is the default entry panel; showAuthPanel() is the
+  // single source of truth for activating/initializing any auth panel.
+  showAuthPanel('welcome-hero-panel');
 }
 
 function initWelcomeScreen() {
-  const container = document.getElementById('welcome-tuto-container');
+  const container = document.getElementById('welcome-tuto-avatar');
   const speechEl = document.getElementById('welcome-tuto-speech');
   const typingEl = document.getElementById('welcome-tuto-typing');
   const inputEl = document.getElementById('welcome-name-input');
@@ -358,24 +374,8 @@ function initWelcomeScreen() {
   clearWelcomeTimers();
   syncAuthScreenMode();
 
-  // Random blink interval (3-6 seconds per spec)
-  if (window._welcomeBlinkTimer) clearInterval(window._welcomeBlinkTimer);
-  const scheduleBlink = () => {
-    const delay = 3000 + Math.random() * 3000;
-    window._welcomeBlinkTimer = setTimeout(() => {
-      const tutoEyes = container.querySelectorAll('.tuto-eye');
-      tutoEyes.forEach(eye => {
-        eye.style.animation = 'none';
-        void eye.offsetWidth;
-        eye.style.animation = 'tuto-blink 0.3s ease-in-out';
-        setTimeout(() => {
-          eye.style.animation = '';
-        }, 300);
-      });
-      scheduleBlink();
-    }, delay);
-  };
-  scheduleBlink();
+  // Random blink interval (3-6 seconds per spec) — shared helper (auth.js)
+  startTutoBlinkLoop(container);
 
   // Render Tuto SVG immediately
   const tutoSize = window.matchMedia('(max-width: 360px), (max-height: 740px)').matches ? 120 : 160;
@@ -414,12 +414,25 @@ function initWelcomeScreen() {
 function showMainApp() {
   document.getElementById('auth-screen').classList.add('hidden');
 
-  const user = UserState._data;
-  const onboardingComplete = user?.hasCompletedAssessment === true;
-  if (!onboardingComplete) {
+  // ONBOARDING_ENGINE: 'legacy' (Sprint 1's assessment-based flow) or
+  // 'v2' (Sprint 2's onboarding machine). Both stay fully functional;
+  // this is the only branch point between them. See db.js CONFIG.
+  if (CONFIG.onboardingEngine === 'legacy') {
+    const onboardingComplete = UserState._data?.hasCompletedAssessment === true;
+    if (!onboardingComplete) {
+      document.getElementById('onboarding-v2-container').classList.add('hidden');
+      document.getElementById('onboarding-container').classList.remove('hidden');
+      document.getElementById('main-app').classList.add('hidden');
+      document.getElementById('onboarding-screen').classList.remove('hidden');
+      startOnboardingFlow();
+      return;
+    }
+  } else if (!isOnboardingComplete(UserState)) {
+    document.getElementById('onboarding-container').classList.add('hidden');
+    document.getElementById('onboarding-v2-container').classList.remove('hidden');
     document.getElementById('main-app').classList.add('hidden');
     document.getElementById('onboarding-screen').classList.remove('hidden');
-    startOnboardingFlow();
+    startOnboardingV2Flow();
     return;
   }
 
@@ -429,18 +442,103 @@ function showMainApp() {
   renderAllViews();
 }
 
+// ==================== ONBOARDING v2 (Sprint 2) ====================
+// Mounts the Onboarding Machine (src/onboarding/machine.js), which owns
+// stage navigation, the Progress Experience, and the Completion Card.
+// Re-entering showMainApp() from onExit is the entire dashboard handoff:
+// by then UserState.hasCompletedAssessment/learningBrain reflect the
+// just-committed profile, so the branch above naturally falls through
+// to the dashboard tail — no separate "show dashboard" code path exists.
+function startOnboardingV2Flow() {
+  const container = document.getElementById('onboarding-v2-container');
+  startOnboarding(container, {
+    userId: UserState.get('userId') || null,
+    onExit: () => showMainApp(),
+  });
+}
+
 function setupAuthListeners() {
   setupWelcomeKeyboard();
+  setupAuthKeyboardNav();
 
-  // Panel Switchers helper
-  const showPanel = (panelId) => {
-    document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(panelId)?.classList.add('active');
-    syncAuthScreenMode();
+  // The Guest name-capture panel (SCR "welcome-panel") keeps its own init
+  // logic here in main.js since it owns onboarding-draft state; auth.js
+  // invokes it via this hook whenever that panel becomes active.
+  setAuthPanelHook((panelId) => {
     if (panelId === 'welcome-panel') {
       initWelcomeScreen();
     }
-  };
+  });
+
+  // auth-guest.js knows nothing about the DOM or which modal to open — it
+  // just calls this hook. main.js owns the existing #upgrade-overlay, so
+  // every upgrade prompt (manual, from Settings, or a future feature-limit
+  // trigger) opens through this single path — no second upgrade modal.
+  setGuestUpgradeHook((reason) => {
+    const reasonEl = document.getElementById('upgrade-reason');
+    if (reasonEl) {
+      if (reason) {
+        reasonEl.textContent = reason;
+        reasonEl.classList.remove('hidden');
+      } else {
+        reasonEl.classList.add('hidden');
+      }
+    }
+    const errEl = document.getElementById('upgrade-error');
+    if (errEl) errEl.classList.add('hidden');
+    showModal('upgrade-overlay');
+  });
+
+  // Welcome Hero (SCR-002) triggers
+  document.getElementById('hero-start-btn')?.addEventListener('click', () => {
+    showAuthPanel('signup-panel');
+  });
+
+  document.getElementById('hero-signin-btn')?.addEventListener('click', () => {
+    showAuthPanel('login-panel');
+  });
+
+  document.getElementById('hero-guest-btn')?.addEventListener('click', () => {
+    showAuthPanel('guest-mode-panel');
+  });
+
+  // Guest Mode (SCR-006) triggers
+  document.getElementById('guest-create-account-btn')?.addEventListener('click', () => {
+    showAuthPanel('signup-panel');
+  });
+
+  document.getElementById('guest-continue-btn')?.addEventListener('click', () => {
+    showAuthPanel('welcome-panel');
+  });
+
+  document.getElementById('guest-back-btn')?.addEventListener('click', () => {
+    showAuthPanel('welcome-hero-panel');
+  });
+
+  // Login / Register field interactions (shared helpers, see auth.js)
+  setupPasswordToggle('login-password', 'login-password-toggle');
+  setupPasswordToggle('signup-password', 'signup-password-toggle');
+  setupPasswordToggle('signup-confirm-password', 'signup-confirm-password-toggle');
+
+  bindEnterToSubmit(['login-email', 'login-password'], 'login-btn');
+  bindEnterToSubmit(['signup-username', 'signup-email', 'signup-password', 'signup-confirm-password'], 'signup-btn');
+  bindEnterToSubmit(['forgot-email'], 'forgot-submit-btn');
+
+  // Live password strength meter (Register)
+  const signupPasswordInput = document.getElementById('signup-password');
+  const signupStrengthMeter = document.getElementById('signup-strength-meter');
+  const signupStrengthLabel = document.getElementById('signup-strength-label');
+  signupPasswordInput?.addEventListener('input', () => {
+    renderPasswordStrength(signupPasswordInput.value, signupStrengthMeter, signupStrengthLabel);
+  });
+
+  // Google Sign In / Sign Up
+  document.getElementById('login-google-btn')?.addEventListener('click', () => {
+    handleGoogleAuth(document.getElementById('login-google-btn'), document.getElementById('login-error'));
+  });
+  document.getElementById('signup-google-btn')?.addEventListener('click', () => {
+    handleGoogleAuth(document.getElementById('signup-google-btn'), document.getElementById('signup-error'));
+  });
 
   // Welcome panel name input validation
   const nameInput = document.getElementById('welcome-name-input');
@@ -477,14 +575,19 @@ function setupAuthListeners() {
     }
   });
 
-  // Welcome panel Continue trigger
+  // Welcome panel Continue trigger — the conversational Tuto pacing (750ms
+  // pause + its own fade transition) stays exactly as designed; only the
+  // navigation lock and the shared Success Transition are added, so Guest
+  // gets the same premium close as Login/Register without disturbing the
+  // existing name-capture experience.
   continueBtn?.addEventListener('click', () => {
     const name = nameInput.value.trim();
     if (!name) return;
 
-    // Lock controls
+    // Lock controls + navigation for the duration of this transition
     if (nameInput) nameInput.disabled = true;
     if (continueBtn) continueBtn.disabled = true;
+    lockAuthNavigation();
 
     // Show Tuto's transition response
     const speechEl = document.getElementById('welcome-tuto-speech');
@@ -497,7 +600,7 @@ function setupAuthListeners() {
       if (nameInput) nameInput.disabled = false;
       if (continueBtn) continueBtn.disabled = false;
 
-      transitionWelcomeToOnboarding(() => {
+      transitionWelcomeToOnboarding(async () => {
         // Initialize guest session and proceed to Onboarding
         clearOnboardingDraft();
         state.assessmentIndex = 0;
@@ -515,6 +618,8 @@ function setupAuthListeners() {
         });
         state.isGuest = true;
         state.user = UserState._data;
+        await showAuthSuccess('guest');
+        unlockAuthNavigation();
         showMainApp();
       });
     }, 750);
@@ -523,127 +628,160 @@ function setupAuthListeners() {
   // Welcome panel Sign In link trigger
   document.getElementById('welcome-signin-link')?.addEventListener('click', (e) => {
     e.preventDefault();
-    showPanel('login-panel');
+    showAuthPanel('login-panel');
   });
 
   // Login panel triggers
   document.getElementById('goto-welcome-btn')?.addEventListener('click', () => {
-    showPanel('welcome-panel');
+    showAuthPanel('welcome-hero-panel');
   });
 
   document.getElementById('goto-signup')?.addEventListener('click', () => {
-    showPanel('signup-panel');
+    showAuthPanel('signup-panel');
   });
 
   document.getElementById('forgot-password-btn')?.addEventListener('click', () => {
-    showPanel('forgot-panel');
+    showAuthPanel('forgot-panel');
   });
 
   // Signup panel triggers
   document.getElementById('goto-welcome-from-signup-btn')?.addEventListener('click', () => {
-    showPanel('welcome-panel');
+    showAuthPanel('welcome-hero-panel');
   });
 
   document.getElementById('goto-login')?.addEventListener('click', () => {
-    showPanel('login-panel');
+    showAuthPanel('login-panel');
   });
 
   // Forgot password panel triggers
   document.getElementById('goto-login-from-forgot')?.addEventListener('click', () => {
-    showPanel('login-panel');
+    showAuthPanel('login-panel');
   });
 
   // Sign In submission
   document.getElementById('login-btn').addEventListener('click', async () => {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const rememberInput = document.getElementById('login-remember');
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
     const errEl = document.getElementById('login-error');
 
-    if (!email || !password) {
-      showError(errEl, 'Please enter both email and password');
+    if (!isValidEmail(email)) {
+      showError(errEl, 'Please enter a valid email address');
+      shakeFieldError(emailInput);
+      return;
+    }
+    if (!isLoginPasswordValid(password)) {
+      showError(errEl, 'Please enter your password');
+      shakeFieldError(passwordInput);
       return;
     }
 
-    const btn = document.getElementById('login-btn');
-    btn.innerHTML = '<span class="spinner"></span> Signing in...';
-    btn.disabled = true;
-
     try {
-      await supabase.signIn(email, password);
-      UserState.update({
-        userId: supabase.currentUser.id,
-        email,
-        isGuest: false
-      });
-      // Fetch remote profile
-      await UserState.syncFromRemote().catch(() => null);
+      await runAuthFlow(async () => {
+        const remember = rememberInput ? rememberInput.checked : true;
+        await supabase.signIn(email, password, remember);
+        UserState.update({
+          userId: supabase.currentUser.id,
+          email,
+          isGuest: false
+        });
+        // Fetch remote profile
+        await UserState.syncFromRemote().catch(() => null);
+        // Guest Migration: reconcile which learningBrain ended up
+        // authoritative after the sync merge (remote's if it had one,
+        // otherwise whatever was already local) against the completion flag.
+        reconcileOnboardingCompletionState(UserState);
+      }, { context: 'login' });
       showMainApp();
     } catch (err) {
       showError(errEl, err.message || 'Incorrect email or password');
-    } finally {
-      btn.innerHTML = 'Sign In';
-      btn.disabled = false;
+      shakeFieldError(passwordInput);
     }
   });
 
-  // Sign Up submission
+  // Sign Up submission (the "Full Name" field is stored internally as
+  // `username`, which every other screen — home greeting, avatar initial,
+  // leaderboard — already reads; only the label/validation is "Full Name")
   document.getElementById('signup-btn').addEventListener('click', async () => {
-    const username = document.getElementById('signup-username').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const password = document.getElementById('signup-password').value;
+    const nameInput = document.getElementById('signup-username');
+    const emailInput = document.getElementById('signup-email');
+    const passwordInput = document.getElementById('signup-password');
+    const confirmInput = document.getElementById('signup-confirm-password');
+    const termsInput = document.getElementById('signup-terms');
+    const fullName = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmInput.value;
     const errEl = document.getElementById('signup-error');
 
-    if (!username || !email || !password) {
-      showError(errEl, 'Please fill in all fields');
+    if (!isValidFullName(fullName)) {
+      showError(errEl, 'Please enter your full name (letters only, 2-50 characters)');
+      shakeFieldError(nameInput);
       return;
     }
-    if (password.length < 6) {
-      showError(errEl, 'Password must be at least 6 characters');
+    if (!isValidEmail(email)) {
+      showError(errEl, 'Please enter a valid email address');
+      shakeFieldError(emailInput);
       return;
     }
-
-    const btn = document.getElementById('signup-btn');
-    btn.innerHTML = '<span class="spinner"></span> Creating Account...';
-    btn.disabled = true;
+    if (!isPasswordComplex(password)) {
+      showError(errEl, 'Password must be at least 8 characters with an uppercase letter, lowercase letter, number and special character');
+      shakeFieldError(passwordInput);
+      return;
+    }
+    if (password !== confirmPassword) {
+      showError(errEl, 'Passwords do not match');
+      shakeFieldError(confirmInput);
+      return;
+    }
+    if (!termsInput?.checked) {
+      showError(errEl, 'Please agree to the Terms and Privacy Policy to continue');
+      return;
+    }
 
     try {
-      await supabase.signUp(email, password, username);
-      UserState.update({
-        userId: supabase.currentUser?.id || 'guest_user',
-        email,
-        username,
-        isGuest: false,
-        hasCompletedAssessment: false // Force onboarding for new accounts
-      });
-      clearOnboardingDraft();
-      // Sync initial profile state to remote
-      await UserState.syncToRemote().catch(() => null);
+      await runAuthFlow(async () => {
+        await supabase.signUp(email, password, fullName);
+        UserState.update({
+          userId: supabase.currentUser?.id || 'guest_user',
+          email,
+          username: fullName,
+          isGuest: false
+        });
+        // Guest Migration: if this guest already completed onboarding v2,
+        // preserve that instead of forcing them through it again. Sets
+        // hasCompletedAssessment to false for a brand-new/incomplete guest,
+        // same as the previous unconditional default.
+        reconcileOnboardingCompletionState(UserState);
+        clearOnboardingDraft();
+        // Sync initial profile state to remote (now includes learning_brain)
+        await UserState.syncToRemote().catch(() => null);
+      }, { context: 'register' });
       showMainApp();
     } catch (err) {
       showError(errEl, err.message || 'Failed to create account');
-    } finally {
-      btn.innerHTML = 'Create Account';
-      btn.disabled = false;
     }
   });
 
   // Forgot password submission
   document.getElementById('forgot-submit-btn')?.addEventListener('click', async () => {
-    const email = document.getElementById('forgot-email').value.trim();
+    const emailInput = document.getElementById('forgot-email');
+    const email = emailInput.value.trim();
     const errEl = document.getElementById('forgot-error');
     const successEl = document.getElementById('forgot-success');
 
-    if (!email) {
-      showError(errEl, 'Please enter your email address');
+    if (!isValidEmail(email)) {
+      showError(errEl, 'Please enter a valid email address');
+      shakeFieldError(emailInput);
       return;
     }
 
-    const btn = document.getElementById('forgot-submit-btn');
-    btn.innerHTML = '<span class="spinner"></span> Sending link...';
-    btn.disabled = true;
-
     try {
-      await supabase.resetPassword(email);
+      // Forgot Password stays on its own panel after success (SCR-005) —
+      // no Success Transition here, only the shared Loading experience.
+      await runAuthFlow(() => supabase.resetPassword(email), { context: 'forgot', withSuccess: false });
       if (successEl) {
         successEl.textContent = 'A secure recovery link has been sent to your email!';
         successEl.classList.remove('hidden');
@@ -651,18 +789,8 @@ function setupAuthListeners() {
       }
     } catch (err) {
       showError(errEl, err.message || 'Failed to send recovery link');
-    } finally {
-      btn.innerHTML = 'Send Recovery Link';
-      btn.disabled = false;
     }
   });
-}
-
-function showError(el, msg) {
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.remove('hidden');
-  setTimeout(() => el.classList.add('hidden'), 4000);
 }
 
 // ==================== ONBOARDING ASSESSMENT ENGINE ====================
@@ -3133,29 +3261,6 @@ function checkBadges() {
 }
 
 // ==================== TUTO FLOATING COACH SVG ====================
-function getTutoSVG(size = 80) {
-  return `
-  <svg width="${size}" height="${size}" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-    <!-- Floor Shadow -->
-    <ellipse cx="200" cy="360" rx="80" ry="12" fill="rgba(0,0,0,0.08)"/>
-    <!-- Shell -->
-    <ellipse cx="200" cy="238" rx="95" ry="78" fill="#d4865a"/>
-    <!-- Body / Head -->
-    <ellipse cx="200" cy="172" rx="56" ry="62" fill="#7a9e82" class="tuto-body"/>
-    <!-- Eyes -->
-    <circle cx="181" cy="163" r="13" fill="white"/>
-    <circle cx="219" cy="163" r="13" fill="white"/>
-    <circle cx="184" cy="166" r="8" fill="#2c3e50"/>
-    <circle cx="222" cy="166" r="8" fill="#2c3e50"/>
-    <!-- Smile -->
-    <path d="M188,184 Q200,196 212,184" fill="none" stroke="#6b4226" stroke-width="3" stroke-linecap="round"/>
-    <!-- Headphones -->
-    <path d="M152,152 Q152,108 200,108 Q248,108 248,152" fill="none" stroke="#FF6B35" stroke-width="9" stroke-linecap="round"/>
-    <rect x="143" y="147" width="20" height="28" rx="9" fill="#FF6B35"/>
-    <rect x="237" y="147" width="20" height="28" rx="9" fill="#FF6B35"/>
-  </svg>`;
-}
-
 function renderTuto() {}
 
 // Simple markdown renderer
@@ -3769,9 +3874,7 @@ function setupEventListeners() {
   });
 
   document.getElementById('settings-upgrade-btn')?.addEventListener('click', () => {
-    const errEl = document.getElementById('upgrade-error');
-    if (errEl) errEl.classList.add('hidden');
-    showModal('upgrade-overlay');
+    requestGuestUpgrade();
   });
 
   document.getElementById('upgrade-cancel-btn')?.addEventListener('click', () => {
