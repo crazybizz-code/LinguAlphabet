@@ -5115,3 +5115,103 @@ button,
   opacity: 0.7;
   cursor: default;
 }
+
+/* ===== DISCOVERY SESSION: SCENE 1 — MEET TUTO ===== */
+/* .ds- prefix, isolated from .ob2-/.ob-/.welcome- namespaces. Reuses
+   the app's established motion vocabulary (scale-up, typing-dots,
+   tuto-breath keyframes defined above) rather than inventing new
+   timing curves. */
+
+.ds-scene {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.ds-avatar {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  animation: tuto-entrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.ds-avatar svg {
+  animation: tuto-breath 3s ease-in-out infinite;
+}
+
+.ds-transcript {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.ds-bubble {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md, 14px);
+  padding: 14px 18px;
+  max-width: 290px;
+  box-shadow: var(--sh-md);
+  transform-origin: center;
+  will-change: transform, opacity;
+  animation: scale-up 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.ds-bubble-text {
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  margin: 0;
+}
+
+.ds-bubble.ds-typing {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  min-width: 60px;
+}
+
+.ds-bubble.ds-typing span {
+  width: 7px;
+  height: 7px;
+  background-color: var(--text-secondary);
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: typing-dots 1.2s infinite ease-in-out;
+}
+
+.ds-bubble.ds-typing span:nth-child(1) { animation-delay: 0s; }
+.ds-bubble.ds-typing span:nth-child(2) { animation-delay: 0.2s; }
+.ds-bubble.ds-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+.ds-cta {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 240px;
+  padding: 14px;
+  border: none;
+  border-radius: var(--r-md, 14px);
+  background: var(--primary);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  animation: scale-up 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.ds-cta.ds-hidden {
+  display: none;
+}
