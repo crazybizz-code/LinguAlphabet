@@ -5118,27 +5118,27 @@ button,
 
 /* ===== DISCOVERY SESSION: SCENE 1 — MEET TUTO ===== */
 /* .ds- prefix, isolated from .ob2-/.ob-/.welcome- namespaces.
-   Cinematic pass (v2): the scene is a full-bleed atmospheric stage,
-   not a chat card. Tuto is the visual hero — larger, lit by a
-   breathing aura — and only the current line holds full attention;
-   earlier lines recede rather than stack as a message list. Reuses
-   the app's motion vocabulary (tuto-breath, scale-up, typing-dots)
-   but gives it more room and weight. */
+   Composition pass (v3): Tuto anchors a stable top-third position
+   (not a dead-centered block that re-centers as lines/CTA are added).
+   Negative space is filled with layered atmosphere — a vignette wash,
+   slow ambient particles, and a breathing pulse ring — so empty areas
+   read as a lit environment rather than unused canvas. Only the
+   current line is at full size/contrast; earlier lines recede. No
+   change to beat content, timing, or the mount/unmount contract. */
 
 .ds-scene {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0;
   min-height: 100dvh;
   width: 100%;
   margin: 0 auto;
-  padding: 48px 24px 56px;
-  background:
-    radial-gradient(ellipse 80% 55% at 50% 32%, rgba(255, 107, 53, 0.16), transparent 68%),
-    radial-gradient(ellipse 120% 90% at 50% 100%, rgba(26, 26, 46, 0.08), transparent 60%),
-    var(--bg-app, #f7f4f0);
+  padding: clamp(28px, 9vh, 72px) 24px 40px;
+  background: var(--bg-app, #f7f4f0);
   animation: ds-scene-in 0.6s ease-out forwards;
 }
 
@@ -5147,22 +5147,77 @@ button,
   100% { opacity: 1; }
 }
 
+.ds-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 52% at 50% 26%, rgba(255, 107, 53, 0.22), transparent 64%),
+    radial-gradient(ellipse 130% 70% at 50% 96%, rgba(255, 107, 53, 0.12), transparent 58%),
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(26, 26, 46, 0.05), transparent 55%),
+    radial-gradient(ellipse 140% 140% at 50% 45%, transparent 55%, rgba(26, 26, 46, 0.05) 100%);
+}
+
+.ds-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ds-particle {
+  position: absolute;
+  left: var(--x);
+  bottom: -24px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0;
+  filter: blur(0.5px);
+  animation: ds-particle-rise var(--dur) ease-in var(--delay) infinite;
+}
+
+@keyframes ds-particle-rise {
+  0% { transform: translateY(0) scale(0.8); opacity: 0; }
+  12% { opacity: 0.55; }
+  55% { opacity: 0.3; }
+  100% { transform: translateY(-72vh) scale(1.1); opacity: 0; }
+}
+
 .ds-stage {
   position: relative;
-  width: 260px;
-  height: 260px;
+  z-index: 1;
+  width: 288px;
+  height: 288px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
+}
+
+.ds-pulse-ring {
+  position: absolute;
+  inset: 38px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 107, 53, 0.4);
+  animation: ds-pulse 3.6s ease-out infinite;
+}
+
+@keyframes ds-pulse {
+  0% { transform: scale(0.86); opacity: 0.55; }
+  70% { opacity: 0; }
+  100% { transform: scale(1.22); opacity: 0; }
 }
 
 .ds-aura {
   position: absolute;
-  inset: 0;
+  inset: 24px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 107, 53, 0.38) 0%, rgba(255, 107, 53, 0.14) 45%, transparent 72%);
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.4) 0%, rgba(255, 107, 53, 0.15) 45%, transparent 72%);
   filter: blur(6px);
   animation: ds-aura-breathe 4.2s ease-in-out infinite;
   animation-delay: 0.15s;
@@ -5175,8 +5230,8 @@ button,
 
 .ds-avatar {
   position: relative;
-  width: 176px;
-  height: 176px;
+  width: 192px;
+  height: 192px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5185,30 +5240,31 @@ button,
 }
 
 .ds-avatar svg {
-  filter: drop-shadow(0 12px 28px rgba(26, 26, 46, 0.14));
+  filter: drop-shadow(0 14px 30px rgba(26, 26, 46, 0.16));
   animation: tuto-breath 3.6s ease-in-out infinite;
 }
 
 .ds-transcript {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   width: 100%;
   max-width: 340px;
-  min-height: 132px;
   justify-content: flex-start;
 }
 
 .ds-line {
   font-family: var(--font-display);
-  font-size: 24px;
-  line-height: 1.35;
-  font-weight: 600;
+  font-size: 27px;
+  line-height: 1.32;
+  font-weight: 700;
   color: var(--text-primary);
   text-align: center;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   text-wrap: balance;
 }
 
@@ -5217,11 +5273,11 @@ button,
 }
 
 .ds-line--past {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-secondary);
-  opacity: 0.5;
-  transform: scale(0.94);
+  opacity: 0.42;
+  transform: scale(0.92);
   transition: font-size 0.5s var(--ease), opacity 0.5s var(--ease), transform 0.5s var(--ease), color 0.5s var(--ease);
 }
 
@@ -5252,7 +5308,9 @@ button,
 .ds-typing span:nth-child(3) { animation-delay: 0.4s; }
 
 .ds-cta {
-  margin-top: 40px;
+  position: relative;
+  z-index: 1;
+  margin-top: 30px;
   padding: 16px 40px;
   border: none;
   border-radius: 999px;
@@ -5280,9 +5338,17 @@ button,
   display: none;
 }
 
+@media (max-width: 380px) {
+  .ds-stage { width: 240px; height: 240px; }
+  .ds-avatar { width: 160px; height: 160px; }
+  .ds-line { font-size: 23px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ds-scene,
   .ds-aura,
+  .ds-pulse-ring,
+  .ds-particle,
   .ds-avatar,
   .ds-avatar svg,
   .ds-line--current,

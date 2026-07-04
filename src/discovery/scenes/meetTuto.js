@@ -18,6 +18,15 @@
 // anything at all, so the first thing the learner perceives is
 // presence, not text.
 //
+// Redesign notes (v3 — composition pass): visual-only, no change to
+// BEATS, timing, or the mount/unmount contract. Tuto is repositioned
+// as a stable top-third anchor (instead of dead-centering the whole
+// block, which re-centered and visibly shifted as lines/CTA were
+// added). The vignette, particle, and pulse-ring layers are static
+// decorative markup — they carry no state and read nothing from the
+// beat sequence — added purely so the scene's negative space reads as
+// lit atmosphere instead of empty canvas.
+//
 // Per the Conversation Experience Specification and the Founder
 // Decisions: no "test/exam/score/grade/difficulty/algorithm/
 // confidence" language anywhere in this file's copy; Tuto's presence
@@ -57,6 +66,19 @@ const BEATS = Object.freeze([
 ]);
 
 const FINAL_SILENCE_MS = 900;
+
+// Purely decorative ambient motes — fixed positions/timings (not
+// randomized) so the scene renders identically every time. They carry
+// no state and are never read by playBeat/appendLine.
+const PARTICLES = Object.freeze([
+  { x: 18, dur: 10, delay: 0, size: 4 },
+  { x: 32, dur: 13, delay: 2.2, size: 3 },
+  { x: 50, dur: 11, delay: 0.8, size: 5 },
+  { x: 68, dur: 14, delay: 3.5, size: 3 },
+  { x: 82, dur: 9, delay: 1.5, size: 4 },
+  { x: 26, dur: 12, delay: 5, size: 3 },
+  { x: 74, dur: 10.5, delay: 4.2, size: 4 },
+]);
 
 export function createMeetTutoScene() {
   let containerRef = null;
@@ -129,7 +151,14 @@ export function createMeetTutoScene() {
     const wrapper = document.createElement('div');
     wrapper.className = 'ds-scene ds-scene--meet-tuto';
     wrapper.innerHTML = `
+      <div class="ds-vignette" aria-hidden="true"></div>
+      <div class="ds-particles" aria-hidden="true">
+        ${PARTICLES.map(
+          p => `<span class="ds-particle" style="--x:${p.x}%;--dur:${p.dur}s;--delay:${p.delay}s;--size:${p.size}px"></span>`
+        ).join('')}
+      </div>
       <div class="ds-stage">
+        <div class="ds-pulse-ring" aria-hidden="true"></div>
         <div class="ds-aura" aria-hidden="true"></div>
         <div class="ds-avatar" aria-hidden="true"></div>
       </div>
