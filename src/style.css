@@ -5157,6 +5157,10 @@ button,
      is tuned for prose, not a six-way card choice, and would squeeze
      a premium desktop grid into a narrow text column. */
   --ds-grid-max: clamp(320px, 74vw, 1080px);
+  /* Secondary accent for Scene 2's card iconography — a soft violet
+     that stays distinct from the warm orange used for light/energy
+     (aura, orb, selection) everywhere else. */
+  --ds-icon-accent: #8e7cc3;
 
   position: relative;
   overflow: hidden;
@@ -5355,6 +5359,7 @@ button,
 
 .ds-avatar {
   position: relative;
+  z-index: 1;
   width: var(--ds-avatar);
   height: var(--ds-avatar);
   display: flex;
@@ -5374,6 +5379,29 @@ button,
   display: block;
   filter: drop-shadow(0 14px 30px rgba(26, 26, 46, 0.16));
   animation: tuto-breath 4.8s ease-in-out infinite;
+}
+
+/* Softened by Scene 2's polishAvatar() (adds .ds-tuto-shadow to the
+   SVG's own flat shadow ellipse) — a hard-edged ellipse reads as a
+   sticker; a blurred one reads as Tuto resting on something. */
+.ds-tuto-shadow {
+  filter: blur(4px);
+  opacity: 0.55;
+}
+
+/* A soft cloud of light beneath Tuto — the premium "floating" read
+   the flat shadow ellipse alone can't give. Sits behind the avatar,
+   in front of the aura. Scene 2 only; Scene 1 is frozen. */
+.ds-tuto-cloud {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  bottom: 4%;
+  width: 78%;
+  height: 26%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 72%);
+  filter: blur(7px);
 }
 
 /* Pupils tagged by the scene (circle[fill="#2c3e50"] → .ds-pupil):
@@ -5664,17 +5692,161 @@ button,
   pointer-events: none;
 }
 
-/* ---------- Scene 2: the level grid ---------- */
-/* A native radiogroup of six premium cards — the right surface for a
-   six-way choice, where Scene 1's reply bubble (right for one name)
-   would be wrong. There are always exactly six cards, so the column
-   count is set explicitly per tier (2 → 3 → 6) rather than left to
-   auto-fit: auto-fit packs greedily by available width and leaves an
-   orphaned sixth card alone on its own row the moment five columns
-   fit before a sixth does — an accident of arithmetic, not a designed
-   grid. 2×3 on a phone, 3×2 on a tablet, a full 6-across row from
-   min-width: 880px (the same threshold Scene 1's composition shifts
-   at) reads as composed at every size instead of merely resized. */
+/* ---------- Scene 2: a bigger, more dimensional Tuto ---------- */
+/* Custom properties cascade — redefining them at a more specific
+   selector overrides the shared .ds-scene values for this scene only.
+   Scene 1 (frozen) is completely unaffected. */
+.ds-scene--self-level {
+  --ds-avatar: clamp(180px, 18vw + 70px, 460px);
+  --ds-stage: clamp(260px, 26vw + 100px, 620px);
+}
+
+/* ---------- Scene 2: header (brand + "why do we ask") ---------- */
+/* A minimal top bar — the app's existing brand mark plus a disclosure
+   for why the question is being asked. Scoped to this scene only;
+   Scene 1 is frozen and stays chrome-free by design. */
+
+.ds-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: min(100%, 1400px);
+  margin: 0 auto clamp(12px, 3vh, 28px);
+}
+
+.ds-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-brand svg {
+  width: clamp(20px, 1.4vw + 14px, 26px);
+  height: clamp(20px, 1.4vw + 14px, 26px);
+  flex-shrink: 0;
+}
+
+.ds-brand-text {
+  font-family: var(--font-display);
+  font-size: clamp(13px, 0.6vw + 11px, 16px);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ds-why {
+  position: relative;
+}
+
+.ds-why-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 253, 250, 0.85);
+  color: var(--text-secondary);
+  font-size: clamp(11.5px, 0.3vw + 10.5px, 13px);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ds-why-btn i {
+  color: var(--ds-icon-accent);
+}
+
+.ds-why-btn:hover,
+.ds-why-btn[aria-expanded='true'] {
+  border-color: rgba(255, 170, 110, 0.6);
+  color: var(--text-primary);
+}
+
+.ds-why-btn:focus-visible {
+  outline: 2px solid rgba(255, 150, 80, 0.8);
+  outline-offset: 2px;
+}
+
+.ds-why-popover {
+  position: absolute;
+  z-index: 3;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(280px, 78vw);
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgba(26, 26, 46, 0.12);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  animation: ds-line-condense 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ds-why-popover.ds-hidden {
+  display: none;
+}
+
+/* ---------- Scene 2: sparkles ---------- */
+/* A handful of small motes around Tuto's aura — presence, not
+   decoration for its own sake. Fixed positions/delays, purely
+   cosmetic; never read by the phase state machine. */
+
+.ds-sparkles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.ds-sparkle {
+  position: absolute;
+  left: var(--sx);
+  top: var(--sy);
+  width: var(--ssize);
+  height: var(--ssize);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 210, 160, 0.6) 60%, transparent 75%);
+  clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+  animation: ds-sparkle-twinkle 3.2s ease-in-out infinite;
+  animation-delay: var(--sdelay);
+}
+
+@keyframes ds-sparkle-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.7); }
+  50% { opacity: 0.95; transform: scale(1.05); }
+}
+
+/* ---------- Scene 2: subheading + the level grid ---------- */
+/* A native radiogroup of seven premium cards (six CEFR levels plus an
+   explicit "I'm not sure") — the right surface for this choice, where
+   Scene 1's reply bubble (right for one name) would be wrong. The
+   CEFR count is always exactly six, so column counts are set
+   explicitly per tier (2 → 3 → 6) rather than left to auto-fit:
+   auto-fit packs greedily by available width and leaves an orphaned
+   card alone on its own row the moment N-1 columns fit before N does
+   — an accident of arithmetic, not a designed grid. 2×3 on a phone,
+   3×2 on a tablet (the "I'm not sure" card spanning full width below
+   either), a full 7-across row from min-width: 880px (the same
+   threshold Scene 1's composition shifts at) reads as composed at
+   every size instead of merely resized. */
+
+.ds-subheading {
+  position: relative;
+  z-index: 1;
+  margin: 6px 0 0;
+  max-width: var(--ds-line-max);
+  font-size: clamp(12.5px, 0.4vw + 11px, 15px);
+  color: var(--text-secondary);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ds-subheading.ds-hidden {
+  display: none;
+}
 
 .ds-level-grid {
   position: relative;
@@ -5684,7 +5856,7 @@ button,
   gap: clamp(10px, 1.6vw, 22px);
   width: 100%;
   max-width: var(--ds-grid-max);
-  margin-top: 8px;
+  margin-top: clamp(14px, 2vh, 22px);
 }
 
 @media (min-width: 560px) {
@@ -5695,7 +5867,7 @@ button,
 
 @media (min-width: 880px) {
   .ds-level-grid {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(7, 1fr);
   }
 }
 
@@ -5704,25 +5876,50 @@ button,
 }
 
 .ds-level-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: clamp(84px, 8vw, 128px);
-  padding: clamp(12px, 1.4vw, 20px) clamp(8px, 1vw, 14px);
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: clamp(118px, 9.5vw, 168px);
+  padding: clamp(18px, 1.8vw, 26px) clamp(10px, 1.2vw, 16px) clamp(16px, 1.6vw, 22px);
   border: 1.5px solid var(--border);
-  border-radius: var(--r-lg, 20px);
-  background: rgba(255, 253, 250, 0.92);
-  box-shadow: 0 2px 10px rgba(26, 26, 46, 0.05);
+  border-radius: clamp(16px, 1.4vw, 24px);
+  background: linear-gradient(180deg, #fffdfb 0%, #fff8f1 100%);
+  /* Layered ambient + contact shadow, tinted toward the card's own
+     accent rather than a flat neutral — this is the "premium SaaS
+     card" read the flat single-shadow version didn't have. */
+  box-shadow:
+    0 1px 2px rgba(26, 26, 46, 0.04),
+    0 10px 24px -10px color-mix(in srgb, var(--card-accent, var(--ds-icon-accent)) 55%, transparent),
+    0 24px 44px -22px rgba(26, 26, 46, 0.16);
+  color: var(--card-accent, var(--ds-icon-accent));
   cursor: pointer;
-  transition: transform 220ms var(--ease), box-shadow 220ms var(--ease), border-color 220ms var(--ease);
+  transition: transform 240ms var(--ease), box-shadow 240ms var(--ease), border-color 240ms var(--ease), color 240ms var(--ease);
+}
+
+/* Exactly six CEFR cards, so "I'm not sure" is the odd one out —
+   given its own full-width row below them until there's room for a
+   full 7-across single row. */
+.ds-level-card--unsure {
+  grid-column: 1 / -1;
+  color: var(--text-tertiary);
+}
+
+@media (min-width: 880px) {
+  .ds-level-card--unsure {
+    grid-column: auto;
+  }
 }
 
 .ds-level-card:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(255, 140, 66, 0.18);
-  border-color: rgba(255, 170, 110, 0.6);
+  transform: translateY(-4px);
+  box-shadow:
+    0 1px 2px rgba(26, 26, 46, 0.04),
+    0 14px 28px -10px color-mix(in srgb, var(--card-accent, var(--ds-icon-accent)) 65%, transparent),
+    0 28px 52px -20px rgba(26, 26, 46, 0.2);
+  border-color: color-mix(in srgb, var(--card-accent, var(--ds-icon-accent)) 45%, var(--border));
 }
 
 .ds-level-card:focus-visible {
@@ -5736,23 +5933,65 @@ button,
 
 .ds-level-card--selected {
   border-color: var(--primary);
+  color: var(--primary);
   box-shadow:
     0 0 0 2px rgba(255, 107, 53, 0.55),
-    0 8px 24px rgba(255, 140, 66, 0.3);
-  transform: scale(1.03);
+    0 14px 30px -8px rgba(255, 140, 66, 0.4),
+    0 28px 52px -20px rgba(26, 26, 46, 0.18);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.ds-level-icon-slot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: clamp(30px, 2.6vw, 42px);
+}
+
+.ds-level-icon-slot svg {
+  transform: scale(var(--card-scale, 1));
+  transform-origin: center bottom;
+}
+
+.ds-level-check {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 3px 10px rgba(255, 107, 53, 0.45);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 200ms var(--ease), transform 200ms var(--ease);
+}
+
+.ds-level-card--selected .ds-level-check {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .ds-level-code {
   font-family: var(--font-display);
-  font-size: clamp(20px, 1.4vw + 14px, 32px);
-  font-weight: 700;
+  font-size: clamp(22px, 1.5vw + 15px, 36px);
+  font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  transition: color 220ms var(--ease);
+}
+
+.ds-level-card--selected .ds-level-code {
+  color: var(--primary);
 }
 
 .ds-level-label {
-  font-size: clamp(11px, 0.5vw + 10px, 14px);
-  font-weight: 500;
+  font-size: clamp(11px, 0.45vw + 10px, 13.5px);
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--text-secondary);
   text-align: center;
   line-height: 1.3;
@@ -5761,12 +6000,21 @@ button,
 .ds-reassurance {
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   margin: clamp(14px, 2vh, 22px) 0 0;
   max-width: var(--ds-line-max);
   font-size: clamp(12.5px, 0.4vw + 11px, 15px);
   color: var(--text-secondary);
   text-align: center;
   text-wrap: balance;
+}
+
+.ds-reassurance i {
+  color: var(--primary);
+  font-size: 0.85em;
 }
 
 .ds-reassurance.ds-hidden {
@@ -5854,12 +6102,19 @@ button,
   .ds-panel--dissolve,
   .ds-orb--arriving,
   .ds-orb--settled,
+  .ds-sparkle,
+  .ds-why-popover,
   .ds-eye--blink {
     animation: none;
   }
   .ds-reply--dissolve { opacity: 0; }
   .ds-panel--dissolve { opacity: 0; }
-  .ds-level-card { transition: none; }
+  .ds-level-card,
+  .ds-level-check,
+  .ds-level-code {
+    transition: none;
+  }
+  .ds-sparkle { opacity: 0.5; }
   /* Without its animation the bloom would freeze as a stray glow at
      the wake point — remove it; the veil's opacity crossfade carries
      the transition alone. */

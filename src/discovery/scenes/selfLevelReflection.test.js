@@ -87,20 +87,35 @@ describe('selfLevelReflectionScene — entrance and the bridge', () => {
 });
 
 describe('selfLevelReflectionScene — the self-assessment', () => {
-  it('reveals all six level cards and the reassurance line together, just after the question', () => {
+  it('reveals the subheading, all six level cards plus "I\'m not sure", and the reassurance line together, just after the question', () => {
     selfLevelReflectionScene.mount({ container });
     vi.advanceTimersByTime(QUESTION_AT);
     expect(container.querySelector('.ds-level-grid').classList.contains('ds-hidden')).toBe(true);
 
     vi.advanceTimersByTime(T.gridRevealDelayMs);
+    const subheading = container.querySelector('.ds-subheading');
     const grid = container.querySelector('.ds-level-grid');
     const reassurance = container.querySelector('.ds-reassurance');
+    expect(subheading.classList.contains('ds-hidden')).toBe(false);
     expect(grid.classList.contains('ds-hidden')).toBe(false);
     expect(reassurance.classList.contains('ds-hidden')).toBe(false);
     expect(reassurance.textContent).toMatch(/Discovery Session/);
 
     const codes = [...grid.querySelectorAll('.ds-level-card')].map(c => c.dataset.code);
-    expect(codes).toEqual(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
+    expect(codes).toEqual(['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'unsure']);
+  });
+
+  it('"I\'m not sure" reacts distinctly and reports no self-assessed level', () => {
+    const onReady = vi.fn();
+    selfLevelReflectionScene.mount({ container, onReady });
+    vi.advanceTimersByTime(GRID_AT);
+    pickCard('unsure');
+    vi.advanceTimersByTime(afterSelect(0));
+    expect(lineTexts()).toEqual(["That's alright — we'll figure it out together."]);
+
+    vi.advanceTimersByTime(ORB_AT - afterSelect(0) + T.orbDescentMs + T.orbLabelDelayMs);
+    container.querySelector('.ds-orb').click();
+    expect(onReady).toHaveBeenCalledWith({ selfAssessedLevel: null });
   });
 
   it('is a real radiogroup — accessible semantics, not a plain div of buttons', () => {
