@@ -729,37 +729,32 @@ function showOnboardingStep(stepId) {
 }
 
 // ==================== FOUNDER ONBOARDING: SCREEN 1 — TUTO WELCOME ====================
-let onboardingWelcomeSpeechTimer = null;
+let onboardingWelcomeRevealTimer = null;
 
 function initOnboardingWelcomeStep() {
   const tutoArt = document.getElementById('ob-welcome-tuto');
-  const typingEl = document.getElementById('ob-welcome-typing');
-  const speechEl = document.getElementById('ob-welcome-speech');
+  const avatarWrap = document.getElementById('ob-hero-avatar-wrap');
+  const heroText = document.getElementById('ob-hero-text');
+  const footer = document.getElementById('ob-welcome-footer');
   const continueBtn = document.getElementById('ob-welcome-continue-btn');
   if (!tutoArt) return;
 
-  if (onboardingWelcomeSpeechTimer) {
-    clearTimeout(onboardingWelcomeSpeechTimer);
-    onboardingWelcomeSpeechTimer = null;
+  if (onboardingWelcomeRevealTimer) {
+    clearTimeout(onboardingWelcomeRevealTimer);
+    onboardingWelcomeRevealTimer = null;
   }
 
-  tutoArt.innerHTML = getTutoSVG(160);
+  tutoArt.innerHTML = getTutoSVG(224);
+
+  // Clear a prior exit state so re-entering this step replays the reveal
+  [avatarWrap, heroText, footer].forEach(el => el?.classList.remove('ob-hero-exit'));
 
   if (continueBtn) continueBtn.disabled = true;
-  if (speechEl) {
-    speechEl.classList.add('hidden');
-    speechEl.innerHTML = '';
-  }
-  if (typingEl) typingEl.classList.remove('hidden');
 
-  onboardingWelcomeSpeechTimer = setTimeout(() => {
-    if (typingEl) typingEl.classList.add('hidden');
-    if (speechEl) {
-      speechEl.innerHTML = "Hello! 👋<br><br>I'm Tuto.<br><br>I'll be your personal English coach here at LinguAlphabet.<br><br>Before we begin, I'd love to get to know you.";
-      speechEl.classList.remove('hidden');
-    }
+  // Matches the staggered avatar → headline → subtext → CTA reveal timing in CSS
+  onboardingWelcomeRevealTimer = setTimeout(() => {
     if (continueBtn) continueBtn.disabled = false;
-  }, 900);
+  }, 1550);
 }
 
 function getCurrentAdaptiveQuestion() {
@@ -3490,14 +3485,16 @@ function setupEventListeners() {
   // Founder Onboarding — Screen 1: Tuto Welcome → Continue
   document.getElementById('ob-welcome-continue-btn')?.addEventListener('click', function onWelcomeContinue() {
     const btn = document.getElementById('ob-welcome-continue-btn');
-    const bubble = document.getElementById('ob-welcome-bubble');
-    const tutoArt = document.getElementById('ob-welcome-tuto');
+    const avatarWrap = document.getElementById('ob-hero-avatar-wrap');
+    const heroText = document.getElementById('ob-hero-text');
+    const footer = document.getElementById('ob-welcome-footer');
     if (btn) btn.disabled = true;
 
     // Phase 1 builds one screen at a time — Screen 2 (Display Name) is not
     // wired up yet. Play the exit transition and stop here for review.
-    bubble?.classList.add('ob-welcome-exit');
-    tutoArt?.classList.add('ob-welcome-exit');
+    avatarWrap?.classList.add('ob-hero-exit');
+    heroText?.classList.add('ob-hero-exit');
+    footer?.classList.add('ob-hero-exit');
     console.info('[Founder Onboarding] Screen 1 (Tuto Welcome) complete → Screen 2 (Display Name) not built yet');
   });
 

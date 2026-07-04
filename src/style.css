@@ -3146,22 +3146,145 @@ button,
   z-index: 10;
 }
 
-/* Screen 1 — Tuto Welcome */
-.ob-welcome-body {
+/* ============================================================
+   Screen 1 — Tuto Welcome (hero composition)
+   ============================================================ */
+.ob-hero-body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
   text-align: center;
+  padding: 0 4px;
 }
 
-.welcome-tuto-avatar.ob-welcome-exit,
-.welcome-speech-bubble.ob-welcome-exit {
+.ob-hero-spacer-top { flex: 1.15; }
+.ob-hero-spacer-bottom { flex: 0.85; }
+
+.ob-hero-avatar-wrap {
+  position: relative;
+  width: 248px;
+  height: 248px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  animation: obHeroAvatarIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.ob-hero-glow {
+  position: absolute;
+  inset: -28px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,107,53,0.24) 0%, rgba(255,107,53,0.10) 45%, rgba(255,107,53,0) 72%);
+  z-index: 0;
+}
+
+.ob-hero-avatar {
+  position: relative;
+  z-index: 1;
+  width: 224px;
+  height: 224px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ob-hero-avatar svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ob-hero-text {
+  margin-top: 32px;
+  max-width: 300px;
+}
+
+.ob-hero-headline {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  animation: obHeroTextIn 0.7s var(--ease-out) forwards;
+  animation-delay: 0.5s;
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.ob-hero-subtext {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  animation: obHeroTextIn 0.7s var(--ease-out) forwards;
+  animation-delay: 0.72s;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.ob-hero-footer-in {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  animation: obHeroTextIn 0.7s var(--ease-out) forwards;
+  animation-delay: 0.92s;
+}
+
+@keyframes obHeroAvatarIn {
+  0% { opacity: 0; transform: scale3d(0.72, 0.72, 1) translate3d(0, 14px, 0); }
+  100% { opacity: 1; transform: scale3d(1, 1, 1) translate3d(0, 0, 0); }
+}
+
+@keyframes obHeroTextIn {
+  0% { opacity: 0; transform: translate3d(0, 16px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Native iOS-style pill CTA */
+.ob-hero-cta {
+  width: 100%;
+  height: 58px;
+  border: none;
+  border-radius: 29px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--text-on-primary);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16px 32px rgba(255,107,53,0.26), 0 3px 10px rgba(255,107,53,0.16);
+  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-normal) var(--ease), opacity var(--dur-normal) var(--ease);
+}
+
+.ob-hero-cta:active {
+  transform: scale(0.97);
+  box-shadow: 0 8px 18px rgba(255,107,53,0.20), 0 2px 6px rgba(255,107,53,0.12);
+}
+
+.ob-hero-cta:disabled {
+  opacity: 0.38;
+  box-shadow: none;
+}
+
+/* Exit transition (Continue tapped) */
+.ob-hero-avatar-wrap.ob-hero-exit,
+.ob-hero-text.ob-hero-exit,
+.ob-hero-footer-in.ob-hero-exit {
   animation: none;
   transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
   opacity: 0;
-  transform: translate3d(0, -12px, 0);
+  transform: translate3d(0, -14px, 0);
+}
+
+@media (max-width: 360px), (max-height: 740px) {
+  .ob-hero-avatar-wrap { width: 188px; height: 188px; }
+  .ob-hero-avatar { width: 168px; height: 168px; }
+  .ob-hero-headline { font-size: 29px; }
+  .ob-hero-subtext { font-size: 16px; }
+  .ob-hero-text { margin-top: 24px; }
 }
 
 /* Assessment Q&A */
