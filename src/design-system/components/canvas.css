@@ -1,0 +1,130 @@
+/* ============================================================
+   la-canvas — the stage every scene is performed on.
+   A deep gradient field lit by two aurora sources, holding a
+   header slot, a stage (scrollable conversation/content region)
+   and a dock (composer / primary action, pinned at the bottom).
+
+   Density variants:
+   `--focus` : narrow column — Discovery Session, Assessment.
+   `--wide`  : wide grid — Dashboard, Learning Brain.
+   The canvas declares itself a container, so every Meridian
+   component inside adapts to it automatically.
+   ============================================================ */
+
+.la-canvas {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, var(--la-canvas-2), var(--la-canvas-0) 70%);
+  color: var(--la-ink-hi);
+  font-family: var(--la-font-body);
+}
+
+/* Aurora light sources — iris high left, cyan low right. */
+.la-canvas::before,
+.la-canvas::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+}
+.la-canvas::before {
+  top: -18%;
+  left: -8%;
+  width: 46cqw;
+  aspect-ratio: 1.4;
+  background: radial-gradient(closest-side, rgba(124, 92, 255, 0.28), transparent);
+}
+.la-canvas::after {
+  bottom: -22%;
+  right: -10%;
+  width: 42cqw;
+  aspect-ratio: 1.4;
+  background: radial-gradient(closest-side, rgba(54, 214, 206, 0.16), transparent);
+}
+
+/* ---- Column -------------------------------------------------- */
+/* The inner column is the CSS container: every Meridian component
+   inside adapts to the actual column width, not the shell. */
+.la-canvas__inner {
+  container-type: inline-size;
+  width: 100%;
+  max-width: var(--la-col-wide);
+  margin-inline: auto;
+  padding: clamp(var(--la-space-5), 4cqw, var(--la-space-8));
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--la-space-6);
+  min-height: 0;
+}
+
+.la-canvas--focus .la-canvas__inner {
+  max-width: var(--la-col-focus);
+}
+
+/* ---- Slots ---------------------------------------------------- */
+.la-canvas__header { flex: none; }
+
+.la-canvas__stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--la-space-5);
+}
+
+/* Constrained layouts (app shell gives the canvas a fixed height):
+   the stage scrolls, the dock stays. */
+.la-canvas--scroll .la-canvas__stage {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--la-stroke-2) transparent;
+  padding-right: var(--la-space-2);
+  /* content fades out under the dock rather than clipping */
+  mask-image: linear-gradient(180deg, #000 calc(100% - 2.5rem), transparent);
+}
+
+.la-canvas__dock {
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--la-space-4);
+  padding-top: var(--la-space-4);
+}
+
+/* Hairline of light separating dock from stage. */
+.la-canvas__dock::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent,
+    var(--la-stroke-2), transparent);
+}
+
+/* Wide variant: dock actions align right, dashboard-style. */
+.la-canvas--wide .la-canvas__dock {
+  justify-content: flex-end;
+}
+
+/* Compact columns: dock actions stack, primary action on top. */
+@container (max-width: 30rem) {
+  .la-canvas__dock {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .la-canvas__dock .la-orb-cta {
+    justify-content: center;
+  }
+}

@@ -1,0 +1,42 @@
+/* ============================================================
+   Meridian base — shared behavior for every .la- component.
+   Scoped to design-system classes; never touches app globals.
+   ============================================================ */
+
+[class^="la-"],
+[class^="la-"] *,
+[class^="la-"] *::before,
+[class^="la-"] *::after {
+  box-sizing: border-box;
+}
+
+/* Focus is always visible, always the same voice: signal cyan. */
+[class^="la-"] :focus-visible,
+.la-focusable:focus-visible {
+  outline: none;
+  box-shadow: var(--la-focus-ring);
+  border-radius: var(--la-radius-sm);
+}
+
+/* Selection color inside the stage */
+[class^="la-"] ::selection {
+  background: rgba(124, 92, 255, 0.45);
+  color: var(--la-ink-hi);
+}
+
+/* Reduced motion: every Meridian animation and transition collapses
+   to an instant state change. Components may add their own static
+   substitutes (e.g. the orb keeps its glow but stops breathing). */
+@media (prefers-reduced-motion: reduce) {
+  [class^="la-"],
+  [class^="la-"] *,
+  [class^="la-"] *::before,
+  [class^="la-"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Demo/testing hooks: `.is-hover` mirrors `:hover` so state boards
+   and visual tests can pin interactive states without a pointer. */

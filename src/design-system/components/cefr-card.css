@@ -1,0 +1,207 @@
+/* ============================================================
+   la-cefr-card — one CEFR level as a choice.
+   Six siblings, one language: identical anatomy, each lit by its
+   own point on the sunrise→open-sky spectrum, with its own glyph
+   and emotional tone line.
+
+   Anatomy: glyph chip · level code · name · tone line · check.
+   States: default · hover · selected · disabled · focus-visible.
+   Semantics: radio inside `.la-cefr-grid` (role=radiogroup),
+   roving tabindex handled by cefr-card.js.
+   ============================================================ */
+
+/* ---- Grid --------------------------------------------------- */
+.la-cefr-grid {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--la-space-4);
+}
+@container (min-width: 40rem) {
+  .la-cefr-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@container (min-width: 66rem) {
+  .la-cefr-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--la-space-5);
+  }
+}
+
+/* ---- Card ---------------------------------------------------- */
+.la-cefr-card {
+  --_accent: var(--la-iris);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--la-space-4);
+  padding: var(--la-space-5);
+  border: 1px solid var(--la-stroke-1);
+  border-radius: var(--la-radius-lg);
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--_accent) 7%, transparent),
+      transparent 42%),
+    var(--la-surface-1);
+  color: var(--la-ink-hi);
+  font-family: var(--la-font-body);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--la-shadow-1);
+  transition:
+    transform var(--la-dur-fast) var(--la-ease),
+    border-color var(--la-dur-med) var(--la-ease),
+    box-shadow var(--la-dur-med) var(--la-ease),
+    background-color var(--la-dur-med) var(--la-ease);
+}
+
+/* Accent hairline along the top edge — the level's signature. */
+.la-cefr-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--la-radius-lg);
+  right: var(--la-radius-lg);
+  height: 2px;
+  border-radius: var(--la-radius-full);
+  background: linear-gradient(90deg, transparent,
+    color-mix(in oklab, var(--_accent) 80%, transparent), transparent);
+  opacity: 0.55;
+  transition: opacity var(--la-dur-med) var(--la-ease);
+}
+
+/* Level accents */
+.la-cefr-card[data-level="a1"] { --_accent: var(--la-cefr-a1); }
+.la-cefr-card[data-level="a2"] { --_accent: var(--la-cefr-a2); }
+.la-cefr-card[data-level="b1"] { --_accent: var(--la-cefr-b1); }
+.la-cefr-card[data-level="b2"] { --_accent: var(--la-cefr-b2); }
+.la-cefr-card[data-level="c1"] { --_accent: var(--la-cefr-c1); }
+.la-cefr-card[data-level="c2"] { --_accent: var(--la-cefr-c2); }
+
+/* ---- Glyph chip ---------------------------------------------- */
+.la-cefr-card__glyph {
+  width: 3rem;
+  height: 3rem;
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-self: start;
+  border-radius: var(--la-radius-md);
+  border: 1px solid color-mix(in oklab, var(--_accent) 38%, transparent);
+  background: color-mix(in oklab, var(--_accent) 13%, transparent);
+  color: var(--_accent);
+  transition: box-shadow var(--la-dur-med) var(--la-ease);
+}
+.la-cefr-card__glyph svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block;
+}
+
+/* ---- Text ----------------------------------------------------- */
+.la-cefr-card__text {
+  display: grid;
+  gap: var(--la-space-1);
+  min-width: 0;
+}
+
+.la-cefr-card__code {
+  font-family: var(--la-font-display);
+  font-size: var(--la-text-xs);
+  font-weight: 700;
+  letter-spacing: var(--la-tracking-caps);
+  text-transform: uppercase;
+  color: var(--_accent);
+}
+
+.la-cefr-card__name {
+  font-family: var(--la-font-display);
+  font-size: var(--la-text-xl);
+  font-weight: 600;
+  line-height: var(--la-leading-tight);
+}
+
+.la-cefr-card__tone {
+  font-size: var(--la-text-sm);
+  line-height: 1.5;
+  color: var(--la-ink-mid);
+}
+
+/* ---- Check badge (selection) ----------------------------------- */
+.la-cefr-card__check {
+  position: absolute;
+  top: var(--la-space-4);
+  right: var(--la-space-4);
+  width: 1.5rem;
+  height: 1.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--_accent);
+  color: var(--la-ink-on-brand);
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity var(--la-dur-med) var(--la-ease),
+    transform var(--la-dur-med) var(--la-ease);
+}
+.la-cefr-card__check svg { width: 0.875rem; height: 0.875rem; }
+
+/* ---- States ------------------------------------------------------ */
+.la-cefr-card:hover:not([aria-disabled="true"]),
+.la-cefr-card.is-hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--_accent) 45%, transparent);
+  box-shadow:
+    0 14px 40px color-mix(in oklab, var(--_accent) 22%, transparent),
+    var(--la-shadow-2);
+}
+.la-cefr-card:hover:not([aria-disabled="true"])::before,
+.la-cefr-card.is-hover::before { opacity: 1; }
+.la-cefr-card:hover:not([aria-disabled="true"]) .la-cefr-card__glyph,
+.la-cefr-card.is-hover .la-cefr-card__glyph {
+  box-shadow: 0 0 22px color-mix(in oklab, var(--_accent) 42%, transparent);
+}
+
+.la-cefr-card[aria-checked="true"] {
+  border-color: color-mix(in oklab, var(--_accent) 70%, transparent);
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--_accent) 14%, transparent),
+      color-mix(in oklab, var(--_accent) 5%, transparent)),
+    var(--la-surface-1);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--_accent) 55%, transparent),
+    0 14px 40px color-mix(in oklab, var(--_accent) 20%, transparent);
+}
+.la-cefr-card[aria-checked="true"] .la-cefr-card__check {
+  opacity: 1;
+  transform: scale(1);
+}
+.la-cefr-card[aria-checked="true"]::before { opacity: 1; }
+
+.la-cefr-card[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.42;
+  filter: saturate(0.35);
+  box-shadow: none;
+}
+
+.la-cefr-card:focus-visible {
+  outline: none;
+  box-shadow: var(--la-focus-ring), var(--la-shadow-1);
+  border-radius: var(--la-radius-lg);
+}
+
+/* ---- Compact containers: tighter row anatomy ------------------- */
+@container (max-width: 26rem) {
+  .la-cefr-card { padding: var(--la-space-4); }
+  .la-cefr-card__glyph { width: 2.5rem; height: 2.5rem; }
+  .la-cefr-card__name { font-size: var(--la-text-lg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .la-cefr-card:hover:not([aria-disabled="true"]),
+  .la-cefr-card.is-hover { transform: none; }
+  .la-cefr-card__check { transform: none; }
+}

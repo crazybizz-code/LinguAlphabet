@@ -1,0 +1,177 @@
+/* ============================================================
+   la-tuto-hero — Tuto's presence.
+   A living orb of aurora light plus a greeting block. The orb is
+   pure CSS: core sphere, inner highlight, halo ring, breath.
+   States (data-state): idle · listening · thinking · speaking ·
+   celebrating. Desktop-first: orb + text sit side by side in wide
+   containers, stack centered in narrow ones.
+   ============================================================ */
+
+.la-tuto-hero {
+  container-type: inline-size;
+  font-family: var(--la-font-body);
+  color: var(--la-ink-hi);
+}
+
+.la-tuto-hero__grid {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--la-space-5);
+}
+
+/* ---- The orb ------------------------------------------------ */
+.la-tuto-hero__stage {
+  position: relative;
+  width: clamp(6.5rem, 18cqw, 10rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.la-tuto-hero__orb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 33% 28%,
+      #cfc2ff 0%, #8f74ff 34%, var(--la-iris) 55%, #241b5e 100%);
+  box-shadow:
+    inset 0 -18px 34px rgba(10, 8, 40, 0.55),
+    0 0 60px rgba(124, 92, 255, 0.45),
+    0 24px 60px rgba(3, 6, 18, 0.6);
+  animation: la-orb-breathe 4.4s var(--la-ease) infinite;
+}
+
+/* Specular highlight — the “alive” glint. */
+.la-tuto-hero__orb::before {
+  content: "";
+  position: absolute;
+  top: 12%;
+  left: 18%;
+  width: 34%;
+  height: 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), transparent 70%);
+  filter: blur(2px);
+}
+
+/* Halo ring — expands with the orb's state. */
+.la-tuto-hero__halo {
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(124, 92, 255, 0.35);
+  animation: la-orb-halo 4.4s var(--la-ease) infinite;
+}
+
+@keyframes la-orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+@keyframes la-orb-halo {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+
+/* ---- States ------------------------------------------------- */
+.la-tuto-hero[data-state="listening"] .la-tuto-hero__halo {
+  border-color: rgba(54, 214, 206, 0.7);
+  animation-duration: 1.8s;
+}
+.la-tuto-hero[data-state="listening"] .la-tuto-hero__orb {
+  box-shadow:
+    inset 0 -18px 34px rgba(10, 8, 40, 0.55),
+    0 0 70px rgba(54, 214, 206, 0.5),
+    0 24px 60px rgba(3, 6, 18, 0.6);
+}
+
+.la-tuto-hero[data-state="thinking"] .la-tuto-hero__orb {
+  animation-duration: 7s;
+  filter: saturate(0.8) brightness(0.92);
+}
+.la-tuto-hero[data-state="thinking"] .la-tuto-hero__halo {
+  border-style: dashed;
+  animation: la-orb-orbit 6s linear infinite;
+}
+@keyframes la-orb-orbit { to { transform: rotate(360deg); } }
+
+.la-tuto-hero[data-state="speaking"] .la-tuto-hero__orb {
+  animation-duration: 1.6s;
+}
+.la-tuto-hero[data-state="speaking"] .la-tuto-hero__halo {
+  animation: la-orb-ripple 1.6s var(--la-ease) infinite;
+}
+@keyframes la-orb-ripple {
+  from { transform: scale(0.96); opacity: 0.9; }
+  to   { transform: scale(1.22); opacity: 0; }
+}
+
+.la-tuto-hero[data-state="celebrating"] .la-tuto-hero__orb {
+  background:
+    radial-gradient(circle at 33% 28%,
+      #ffe3d6 0%, #ffa38f 36%, var(--la-coral) 58%, #6e2333 100%);
+  box-shadow:
+    inset 0 -18px 34px rgba(60, 12, 20, 0.5),
+    0 0 70px rgba(255, 126, 107, 0.55),
+    0 24px 60px rgba(3, 6, 18, 0.6);
+  animation-duration: 1.2s;
+}
+.la-tuto-hero[data-state="celebrating"] .la-tuto-hero__halo {
+  border-color: rgba(255, 126, 107, 0.6);
+  animation-duration: 1.2s;
+}
+
+/* ---- Greeting ------------------------------------------------ */
+.la-tuto-hero__eyebrow {
+  font-size: var(--la-text-xs);
+  font-weight: 600;
+  letter-spacing: var(--la-tracking-caps);
+  text-transform: uppercase;
+  color: var(--la-cyan);
+}
+
+.la-tuto-hero__title {
+  margin: 0;
+  font-family: var(--la-font-display);
+  font-size: clamp(var(--la-text-2xl), 4cqw + 1rem, var(--la-text-4xl));
+  font-weight: 600;
+  line-height: var(--la-leading-tight);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.la-tuto-hero__sub {
+  margin: 0;
+  max-width: 52ch;
+  font-size: var(--la-text-lg);
+  line-height: var(--la-leading-body);
+  color: var(--la-ink-mid);
+}
+
+.la-tuto-hero__copy {
+  display: grid;
+  gap: var(--la-space-3);
+  justify-items: center;
+}
+
+/* ---- Wide containers: hero row, text beside the orb ---------- */
+@container (min-width: 52rem) {
+  .la-tuto-hero__grid {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    justify-items: start;
+    text-align: left;
+    gap: var(--la-space-7);
+  }
+  .la-tuto-hero__copy { justify-items: start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .la-tuto-hero__orb,
+  .la-tuto-hero__halo {
+    animation: none !important;
+  }
+  /* States remain legible through color and glow alone. */
+}

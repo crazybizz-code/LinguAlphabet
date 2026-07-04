@@ -1,0 +1,131 @@
+/* ============================================================
+   la-orb-cta — the primary action of any scene.
+   A pill carrying a small living orb: Tuto's energy inside the
+   button. One primary per view; `--quiet` for secondary paths.
+   States: default · hover · active · focus · loading · disabled.
+   ============================================================ */
+
+.la-orb-cta {
+  --_orb: 0.75rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--la-space-3);
+  padding: 0.875rem 1.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--la-radius-full);
+  background: var(--la-aurora);
+  background-size: 160% 160%;
+  background-position: 0% 50%;
+  color: var(--la-ink-on-brand);
+  font-family: var(--la-font-display);
+  font-size: var(--la-text-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: var(--la-glow-iris);
+  transition:
+    transform var(--la-dur-fast) var(--la-ease),
+    box-shadow var(--la-dur-med) var(--la-ease),
+    background-position var(--la-dur-slow) var(--la-ease),
+    opacity var(--la-dur-med) var(--la-ease);
+}
+
+/* The orb — a small sphere of light that breathes. */
+.la-orb-cta__orb {
+  width: var(--_orb);
+  height: var(--_orb);
+  flex: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95),
+      rgba(255, 255, 255, 0.25) 45%, rgba(10, 15, 34, 0.4) 100%);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  animation: la-orb-cta-breathe 3.2s var(--la-ease) infinite;
+}
+
+@keyframes la-orb-cta-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50%      { transform: scale(1.22); opacity: 1; }
+}
+
+.la-orb-cta:hover,
+.la-orb-cta.is-hover {
+  transform: translateY(-2px);
+  background-position: 100% 50%;
+  box-shadow: 0 12px 44px rgba(124, 92, 255, 0.5);
+}
+
+.la-orb-cta:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--la-glow-iris);
+}
+
+.la-orb-cta:focus-visible {
+  box-shadow: var(--la-focus-ring), var(--la-glow-iris);
+  border-radius: var(--la-radius-full);
+}
+
+/* Loading — the label steps back, the orb takes over. */
+.la-orb-cta[aria-busy="true"] {
+  pointer-events: none;
+}
+.la-orb-cta[aria-busy="true"] .la-orb-cta__label {
+  opacity: 0.55;
+}
+.la-orb-cta[aria-busy="true"] .la-orb-cta__orb {
+  animation-duration: 0.9s;
+}
+
+.la-orb-cta:disabled,
+.la-orb-cta[aria-disabled="true"] {
+  background: var(--la-surface-2);
+  border-color: var(--la-stroke-1);
+  color: var(--la-ink-low);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.la-orb-cta:disabled .la-orb-cta__orb,
+.la-orb-cta[aria-disabled="true"] .la-orb-cta__orb {
+  animation: none;
+  background: var(--la-ink-low);
+  box-shadow: none;
+  opacity: 0.5;
+}
+
+/* Quiet variant — secondary path (“Not now”, “Skip”). */
+.la-orb-cta--quiet {
+  background: var(--la-surface-1);
+  border-color: var(--la-stroke-2);
+  color: var(--la-ink-hi);
+  box-shadow: none;
+}
+.la-orb-cta--quiet .la-orb-cta__orb {
+  background: radial-gradient(circle at 32% 28%, #fff, var(--la-cyan) 70%);
+  box-shadow: 0 0 8px rgba(54, 214, 206, 0.6);
+}
+.la-orb-cta--quiet:hover,
+.la-orb-cta--quiet.is-hover {
+  background: var(--la-surface-2);
+  border-color: var(--la-cyan);
+  box-shadow: var(--la-glow-cyan);
+}
+
+/* Hero size — one per scene, the moment of commitment. */
+.la-orb-cta--lg {
+  --_orb: 1rem;
+  padding: 1.125rem 2.5rem;
+  font-size: var(--la-text-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .la-orb-cta__orb { animation: none; }
+  .la-orb-cta[aria-busy="true"] .la-orb-cta__orb {
+    /* static loading cue: hollow orb */
+    background: transparent;
+    border: 2px solid currentColor;
+  }
+}

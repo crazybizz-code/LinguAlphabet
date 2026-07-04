@@ -1,0 +1,103 @@
+/* ============================================================
+   LinguAlphabet Design System v1 — "Meridian"
+   tokens.css — single source of truth for every visual decision.
+   No component may hard-code a color, size, or curve found here.
+   ============================================================ */
+
+:root {
+  /* ---- Canvas (the stage) ------------------------------- */
+  --la-canvas-0: #070b18;            /* floor — deepest layer   */
+  --la-canvas-1: #0b1124;            /* resting canvas          */
+  --la-canvas-2: #0e1530;            /* raised canvas           */
+
+  /* ---- Surfaces (glass instruments on the stage) --------- */
+  --la-surface-1: rgba(255, 255, 255, 0.04);
+  --la-surface-2: rgba(255, 255, 255, 0.07);
+  --la-surface-3: rgba(255, 255, 255, 0.11);
+  --la-stroke-1: rgba(255, 255, 255, 0.08);
+  --la-stroke-2: rgba(255, 255, 255, 0.16);
+
+  /* ---- Ink ------------------------------------------------ */
+  --la-ink-hi:  #f2f5ff;
+  --la-ink-mid: #a9b3d6;
+  --la-ink-low: #67729b;
+  --la-ink-on-brand: #0a0f22;        /* text set on bright brand fills */
+
+  /* ---- Brand ---------------------------------------------- */
+  --la-iris:  #7c5cff;               /* primary — Tuto's core   */
+  --la-cyan:  #36d6ce;               /* live / interactive      */
+  --la-coral: #ff7e6b;               /* warmth / celebration    */
+  --la-aurora: linear-gradient(135deg, #7c5cff 0%, #5e8bff 52%, #36d6ce 100%);
+
+  /* ---- Semantic ------------------------------------------- */
+  --la-success: #3ddc97;
+  --la-warning: #ffc24d;
+  --la-danger:  #ff6b7a;
+
+  /* ---- CEFR spectrum — sunrise to open sky ---------------- */
+  --la-cefr-a1: #ffb74a;             /* Spark        — amber   */
+  --la-cefr-a2: #ff8a66;             /* Ember        — coral   */
+  --la-cefr-b1: #f06fb7;             /* Bloom        — rose    */
+  --la-cefr-b2: #9d7bff;             /* Momentum     — violet  */
+  --la-cefr-c1: #5d8dff;             /* Constellation — blue   */
+  --la-cefr-c2: #38d6ce;             /* Summit       — teal    */
+
+  /* ---- Typography ----------------------------------------- */
+  /* Sora / system humanist stacks. Product builds self-host the
+     primary faces; every token degrades to a system face.      */
+  --la-font-display: "Sora", "Avenir Next", "Segoe UI Variable Display",
+                     "Segoe UI", system-ui, sans-serif;
+  --la-font-body: "Inter", "SF Pro Text", "Segoe UI Variable Text",
+                  "Segoe UI", system-ui, sans-serif;
+
+  --la-text-xs: 0.75rem;     /* 12 — labels, timestamps        */
+  --la-text-sm: 0.875rem;    /* 14 — meta, support             */
+  --la-text-md: 1rem;        /* 16 — body                      */
+  --la-text-lg: 1.125rem;    /* 18 — emphasized body           */
+  --la-text-xl: 1.375rem;    /* 22 — card titles               */
+  --la-text-2xl: 1.75rem;    /* 28 — section titles            */
+  --la-text-3xl: 2.375rem;   /* 38 — hero                      */
+  --la-text-4xl: 3.25rem;    /* 52 — display                   */
+
+  --la-tracking-caps: 0.14em;
+  --la-leading-tight: 1.15;
+  --la-leading-body: 1.6;
+
+  /* ---- Space (4px scale) ----------------------------------- */
+  --la-space-1: 0.25rem;
+  --la-space-2: 0.5rem;
+  --la-space-3: 0.75rem;
+  --la-space-4: 1rem;
+  --la-space-5: 1.5rem;
+  --la-space-6: 2rem;
+  --la-space-7: 3rem;
+  --la-space-8: 4rem;
+  --la-space-9: 6rem;
+
+  /* ---- Shape ------------------------------------------------ */
+  --la-radius-sm: 10px;
+  --la-radius-md: 16px;
+  --la-radius-lg: 22px;
+  --la-radius-xl: 30px;
+  --la-radius-full: 999px;
+
+  /* ---- Elevation & light ----------------------------------- */
+  --la-shadow-1: 0 2px 10px rgba(3, 6, 18, 0.35);
+  --la-shadow-2: 0 10px 34px rgba(3, 6, 18, 0.5);
+  --la-glow-iris: 0 8px 32px rgba(124, 92, 255, 0.38);
+  --la-glow-cyan: 0 8px 32px rgba(54, 214, 206, 0.32);
+
+  /* ---- Focus ------------------------------------------------ */
+  --la-focus-ring: 0 0 0 2px var(--la-canvas-0), 0 0 0 4.5px var(--la-cyan);
+
+  /* ---- Motion ----------------------------------------------- */
+  --la-ease: cubic-bezier(0.22, 1, 0.36, 1);   /* signature ease */
+  --la-dur-fast: 120ms;
+  --la-dur-med: 240ms;
+  --la-dur-slow: 460ms;
+
+  /* ---- Layout ------------------------------------------------ */
+  --la-col-focus: 46rem;      /* Discovery / Assessment column   */
+  --la-col-reading: 62ch;     /* conversation measure            */
+  --la-col-wide: 78rem;       /* Dashboard / Learning Brain      */
+}

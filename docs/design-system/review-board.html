@@ -1,0 +1,2273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>LinguAlphabet · Meridian DS v1 — Review Board</title>
+<style>/* ============================================================
+   LinguAlphabet Design System v1 — "Meridian"
+   tokens.css — single source of truth for every visual decision.
+   No component may hard-code a color, size, or curve found here.
+   ============================================================ */
+
+:root {
+  /* ---- Canvas (the stage) ------------------------------- */
+  --la-canvas-0: #070b18;            /* floor — deepest layer   */
+  --la-canvas-1: #0b1124;            /* resting canvas          */
+  --la-canvas-2: #0e1530;            /* raised canvas           */
+
+  /* ---- Surfaces (glass instruments on the stage) --------- */
+  --la-surface-1: rgba(255, 255, 255, 0.04);
+  --la-surface-2: rgba(255, 255, 255, 0.07);
+  --la-surface-3: rgba(255, 255, 255, 0.11);
+  --la-stroke-1: rgba(255, 255, 255, 0.08);
+  --la-stroke-2: rgba(255, 255, 255, 0.16);
+
+  /* ---- Ink ------------------------------------------------ */
+  --la-ink-hi:  #f2f5ff;
+  --la-ink-mid: #a9b3d6;
+  --la-ink-low: #67729b;
+  --la-ink-on-brand: #0a0f22;        /* text set on bright brand fills */
+
+  /* ---- Brand ---------------------------------------------- */
+  --la-iris:  #7c5cff;               /* primary — Tuto's core   */
+  --la-cyan:  #36d6ce;               /* live / interactive      */
+  --la-coral: #ff7e6b;               /* warmth / celebration    */
+  --la-aurora: linear-gradient(135deg, #7c5cff 0%, #5e8bff 52%, #36d6ce 100%);
+
+  /* ---- Semantic ------------------------------------------- */
+  --la-success: #3ddc97;
+  --la-warning: #ffc24d;
+  --la-danger:  #ff6b7a;
+
+  /* ---- CEFR spectrum — sunrise to open sky ---------------- */
+  --la-cefr-a1: #ffb74a;             /* Spark        — amber   */
+  --la-cefr-a2: #ff8a66;             /* Ember        — coral   */
+  --la-cefr-b1: #f06fb7;             /* Bloom        — rose    */
+  --la-cefr-b2: #9d7bff;             /* Momentum     — violet  */
+  --la-cefr-c1: #5d8dff;             /* Constellation — blue   */
+  --la-cefr-c2: #38d6ce;             /* Summit       — teal    */
+
+  /* ---- Typography ----------------------------------------- */
+  /* Sora / system humanist stacks. Product builds self-host the
+     primary faces; every token degrades to a system face.      */
+  --la-font-display: "Sora", "Avenir Next", "Segoe UI Variable Display",
+                     "Segoe UI", system-ui, sans-serif;
+  --la-font-body: "Inter", "SF Pro Text", "Segoe UI Variable Text",
+                  "Segoe UI", system-ui, sans-serif;
+
+  --la-text-xs: 0.75rem;     /* 12 — labels, timestamps        */
+  --la-text-sm: 0.875rem;    /* 14 — meta, support             */
+  --la-text-md: 1rem;        /* 16 — body                      */
+  --la-text-lg: 1.125rem;    /* 18 — emphasized body           */
+  --la-text-xl: 1.375rem;    /* 22 — card titles               */
+  --la-text-2xl: 1.75rem;    /* 28 — section titles            */
+  --la-text-3xl: 2.375rem;   /* 38 — hero                      */
+  --la-text-4xl: 3.25rem;    /* 52 — display                   */
+
+  --la-tracking-caps: 0.14em;
+  --la-leading-tight: 1.15;
+  --la-leading-body: 1.6;
+
+  /* ---- Space (4px scale) ----------------------------------- */
+  --la-space-1: 0.25rem;
+  --la-space-2: 0.5rem;
+  --la-space-3: 0.75rem;
+  --la-space-4: 1rem;
+  --la-space-5: 1.5rem;
+  --la-space-6: 2rem;
+  --la-space-7: 3rem;
+  --la-space-8: 4rem;
+  --la-space-9: 6rem;
+
+  /* ---- Shape ------------------------------------------------ */
+  --la-radius-sm: 10px;
+  --la-radius-md: 16px;
+  --la-radius-lg: 22px;
+  --la-radius-xl: 30px;
+  --la-radius-full: 999px;
+
+  /* ---- Elevation & light ----------------------------------- */
+  --la-shadow-1: 0 2px 10px rgba(3, 6, 18, 0.35);
+  --la-shadow-2: 0 10px 34px rgba(3, 6, 18, 0.5);
+  --la-glow-iris: 0 8px 32px rgba(124, 92, 255, 0.38);
+  --la-glow-cyan: 0 8px 32px rgba(54, 214, 206, 0.32);
+
+  /* ---- Focus ------------------------------------------------ */
+  --la-focus-ring: 0 0 0 2px var(--la-canvas-0), 0 0 0 4.5px var(--la-cyan);
+
+  /* ---- Motion ----------------------------------------------- */
+  --la-ease: cubic-bezier(0.22, 1, 0.36, 1);   /* signature ease */
+  --la-dur-fast: 120ms;
+  --la-dur-med: 240ms;
+  --la-dur-slow: 460ms;
+
+  /* ---- Layout ------------------------------------------------ */
+  --la-col-focus: 46rem;      /* Discovery / Assessment column   */
+  --la-col-reading: 62ch;     /* conversation measure            */
+  --la-col-wide: 78rem;       /* Dashboard / Learning Brain      */
+}
+
+/* ============================================================
+   Meridian base — shared behavior for every .la- component.
+   Scoped to design-system classes; never touches app globals.
+   ============================================================ */
+
+[class^="la-"],
+[class^="la-"] *,
+[class^="la-"] *::before,
+[class^="la-"] *::after {
+  box-sizing: border-box;
+}
+
+/* Focus is always visible, always the same voice: signal cyan. */
+[class^="la-"] :focus-visible,
+.la-focusable:focus-visible {
+  outline: none;
+  box-shadow: var(--la-focus-ring);
+  border-radius: var(--la-radius-sm);
+}
+
+/* Selection color inside the stage */
+[class^="la-"] ::selection {
+  background: rgba(124, 92, 255, 0.45);
+  color: var(--la-ink-hi);
+}
+
+/* Reduced motion: every Meridian animation and transition collapses
+   to an instant state change. Components may add their own static
+   substitutes (e.g. the orb keeps its glow but stops breathing). */
+@media (prefers-reduced-motion: reduce) {
+  [class^="la-"],
+  [class^="la-"] *,
+  [class^="la-"] *::before,
+  [class^="la-"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Demo/testing hooks: `.is-hover` mirrors `:hover` so state boards
+   and visual tests can pin interactive states without a pointer. */
+
+/* ============================================================
+   la-section-heading — the voice of every scene.
+   Eyebrow · Title · Lede · optional Meta slot (right on desktop).
+   Container-query responsive: adapts to wherever it is placed.
+   ============================================================ */
+
+.la-section-heading {
+  container-type: inline-size;
+  font-family: var(--la-font-body);
+  color: var(--la-ink-hi);
+}
+
+.la-section-heading__grid {
+  display: grid;
+  gap: var(--la-space-3);
+  align-items: end;
+}
+
+.la-section-heading__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--la-space-2);
+  font-size: var(--la-text-xs);
+  font-weight: 600;
+  letter-spacing: var(--la-tracking-caps);
+  text-transform: uppercase;
+  color: var(--la-ink-mid);
+}
+
+/* The eyebrow tick — a short bar of aurora light. */
+.la-section-heading__eyebrow::before {
+  content: "";
+  width: 1.25rem;
+  height: 3px;
+  border-radius: var(--la-radius-full);
+  background: var(--la-aurora);
+}
+
+.la-section-heading__title {
+  margin: 0;
+  font-family: var(--la-font-display);
+  font-size: clamp(var(--la-text-2xl), 4.5cqw + 0.9rem, var(--la-text-3xl));
+  font-weight: 600;
+  line-height: var(--la-leading-tight);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.la-section-heading__lede {
+  margin: 0;
+  max-width: 58ch;
+  font-size: var(--la-text-md);
+  line-height: var(--la-leading-body);
+  color: var(--la-ink-mid);
+}
+
+.la-section-heading__meta {
+  color: var(--la-ink-low);
+  font-size: var(--la-text-sm);
+}
+
+/* Centered variant — Discovery Session, Assessment prompts. */
+.la-section-heading--center .la-section-heading__grid {
+  justify-items: center;
+  text-align: center;
+}
+.la-section-heading--center .la-section-heading__lede {
+  margin-inline: auto;
+}
+
+/* Wide containers: meta slot sits on the same baseline, right side. */
+@container (min-width: 56rem) {
+  .la-section-heading:not(.la-section-heading--center)
+    .la-section-heading__grid:has(.la-section-heading__meta) {
+    grid-template-columns: 1fr auto;
+  }
+  .la-section-heading:not(.la-section-heading--center)
+    .la-section-heading__grid:has(.la-section-heading__meta)
+    > :not(.la-section-heading__meta) {
+    grid-column: 1;
+  }
+  .la-section-heading:not(.la-section-heading--center)
+    .la-section-heading__meta {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    text-align: right;
+  }
+}
+
+/* ============================================================
+   la-orb-cta — the primary action of any scene.
+   A pill carrying a small living orb: Tuto's energy inside the
+   button. One primary per view; `--quiet` for secondary paths.
+   States: default · hover · active · focus · loading · disabled.
+   ============================================================ */
+
+.la-orb-cta {
+  --_orb: 0.75rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--la-space-3);
+  padding: 0.875rem 1.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--la-radius-full);
+  background: var(--la-aurora);
+  background-size: 160% 160%;
+  background-position: 0% 50%;
+  color: var(--la-ink-on-brand);
+  font-family: var(--la-font-display);
+  font-size: var(--la-text-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: var(--la-glow-iris);
+  transition:
+    transform var(--la-dur-fast) var(--la-ease),
+    box-shadow var(--la-dur-med) var(--la-ease),
+    background-position var(--la-dur-slow) var(--la-ease),
+    opacity var(--la-dur-med) var(--la-ease);
+}
+
+/* The orb — a small sphere of light that breathes. */
+.la-orb-cta__orb {
+  width: var(--_orb);
+  height: var(--_orb);
+  flex: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95),
+      rgba(255, 255, 255, 0.25) 45%, rgba(10, 15, 34, 0.4) 100%);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  animation: la-orb-cta-breathe 3.2s var(--la-ease) infinite;
+}
+
+@keyframes la-orb-cta-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50%      { transform: scale(1.22); opacity: 1; }
+}
+
+.la-orb-cta:hover,
+.la-orb-cta.is-hover {
+  transform: translateY(-2px);
+  background-position: 100% 50%;
+  box-shadow: 0 12px 44px rgba(124, 92, 255, 0.5);
+}
+
+.la-orb-cta:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--la-glow-iris);
+}
+
+.la-orb-cta:focus-visible {
+  box-shadow: var(--la-focus-ring), var(--la-glow-iris);
+  border-radius: var(--la-radius-full);
+}
+
+/* Loading — the label steps back, the orb takes over. */
+.la-orb-cta[aria-busy="true"] {
+  pointer-events: none;
+}
+.la-orb-cta[aria-busy="true"] .la-orb-cta__label {
+  opacity: 0.55;
+}
+.la-orb-cta[aria-busy="true"] .la-orb-cta__orb {
+  animation-duration: 0.9s;
+}
+
+.la-orb-cta:disabled,
+.la-orb-cta[aria-disabled="true"] {
+  background: var(--la-surface-2);
+  border-color: var(--la-stroke-1);
+  color: var(--la-ink-low);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.la-orb-cta:disabled .la-orb-cta__orb,
+.la-orb-cta[aria-disabled="true"] .la-orb-cta__orb {
+  animation: none;
+  background: var(--la-ink-low);
+  box-shadow: none;
+  opacity: 0.5;
+}
+
+/* Quiet variant — secondary path (“Not now”, “Skip”). */
+.la-orb-cta--quiet {
+  background: var(--la-surface-1);
+  border-color: var(--la-stroke-2);
+  color: var(--la-ink-hi);
+  box-shadow: none;
+}
+.la-orb-cta--quiet .la-orb-cta__orb {
+  background: radial-gradient(circle at 32% 28%, #fff, var(--la-cyan) 70%);
+  box-shadow: 0 0 8px rgba(54, 214, 206, 0.6);
+}
+.la-orb-cta--quiet:hover,
+.la-orb-cta--quiet.is-hover {
+  background: var(--la-surface-2);
+  border-color: var(--la-cyan);
+  box-shadow: var(--la-glow-cyan);
+}
+
+/* Hero size — one per scene, the moment of commitment. */
+.la-orb-cta--lg {
+  --_orb: 1rem;
+  padding: 1.125rem 2.5rem;
+  font-size: var(--la-text-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .la-orb-cta__orb { animation: none; }
+  .la-orb-cta[aria-busy="true"] .la-orb-cta__orb {
+    /* static loading cue: hollow orb */
+    background: transparent;
+    border: 2px solid currentColor;
+  }
+}
+
+/* ============================================================
+   la-bubble — one conversational turn.
+   `--tuto`   : coach speaks — glass surface, aurora presence dot.
+   `--learner`: learner speaks — iris-tinted, right-aligned.
+   Supports meta row, typing indicator, streaming cursor.
+   ============================================================ */
+
+/* Bubbles expect a column flex parent (the canvas stage is one);
+   they shrink to their content up to the reading measure. */
+.la-bubble {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--la-space-3);
+  width: fit-content;
+  max-width: min(var(--la-col-reading), 88%);
+  font-family: var(--la-font-body);
+  animation: la-bubble-enter var(--la-dur-med) var(--la-ease) both;
+}
+
+@keyframes la-bubble-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Presence dot — who is speaking, in one glance. */
+.la-bubble__avatar {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  align-self: end;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85),
+      var(--la-iris) 55%, #2c2168 100%);
+  box-shadow: 0 0 14px rgba(124, 92, 255, 0.45);
+}
+
+.la-bubble__body {
+  min-width: 0;
+  padding: var(--la-space-4) var(--la-space-5);
+  border: 1px solid var(--la-stroke-1);
+  border-radius: var(--la-radius-lg);
+  border-end-start-radius: 6px;
+  background: var(--la-surface-2);
+  color: var(--la-ink-hi);
+  font-size: var(--la-text-md);
+  line-height: var(--la-leading-body);
+  box-shadow: var(--la-shadow-1);
+}
+
+.la-bubble__body p { margin: 0; }
+.la-bubble__body p + p { margin-top: var(--la-space-3); }
+
+.la-bubble__meta {
+  grid-column: 2;
+  display: flex;
+  gap: var(--la-space-2);
+  margin-top: var(--la-space-1);
+  font-size: var(--la-text-xs);
+  color: var(--la-ink-low);
+}
+
+.la-bubble__name { font-weight: 600; color: var(--la-ink-mid); }
+
+/* ---- Learner variant -------------------------------------- */
+.la-bubble--learner {
+  grid-template-columns: 1fr;
+  margin-inline-start: auto;
+  justify-items: end;
+}
+.la-bubble--learner .la-bubble__avatar { display: none; }
+.la-bubble--learner .la-bubble__body {
+  background: linear-gradient(160deg,
+    rgba(124, 92, 255, 0.28), rgba(124, 92, 255, 0.16));
+  border-color: rgba(124, 92, 255, 0.35);
+  border-radius: var(--la-radius-lg);
+  border-end-end-radius: 6px;
+}
+.la-bubble--learner .la-bubble__meta {
+  grid-column: 1;
+  justify-content: end;
+}
+
+/* ---- Typing indicator -------------------------------------- */
+.la-bubble__typing {
+  display: inline-flex;
+  gap: 5px;
+  padding-block: 2px;
+}
+.la-bubble__typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--la-ink-mid);
+  animation: la-bubble-typing 1.1s var(--la-ease) infinite;
+}
+.la-bubble__typing i:nth-child(2) { animation-delay: 0.15s; }
+.la-bubble__typing i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes la-bubble-typing {
+  0%, 60%, 100% { transform: none; opacity: 0.45; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Streaming cursor — text arriving live from the coach. */
+.la-bubble--streaming .la-bubble__body > p:last-of-type::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--la-cyan);
+  animation: la-bubble-caret 1s steps(2) infinite;
+}
+@keyframes la-bubble-caret { 50% { opacity: 0; } }
+
+/* Compact containers (side panels, mobile): full-width turns. */
+@container (max-width: 30rem) {
+  .la-bubble { max-width: 100%; }
+  .la-bubble__avatar { width: 1.5rem; height: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .la-bubble { animation: none; }
+  .la-bubble__typing i { animation: none; opacity: 0.7; }
+  .la-bubble--streaming .la-bubble__body > p:last-of-type::after { animation: none; }
+}
+
+/* ============================================================
+   la-tuto-hero — Tuto's presence.
+   A living orb of aurora light plus a greeting block. The orb is
+   pure CSS: core sphere, inner highlight, halo ring, breath.
+   States (data-state): idle · listening · thinking · speaking ·
+   celebrating. Desktop-first: orb + text sit side by side in wide
+   containers, stack centered in narrow ones.
+   ============================================================ */
+
+.la-tuto-hero {
+  container-type: inline-size;
+  font-family: var(--la-font-body);
+  color: var(--la-ink-hi);
+}
+
+.la-tuto-hero__grid {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: var(--la-space-5);
+}
+
+/* ---- The orb ------------------------------------------------ */
+.la-tuto-hero__stage {
+  position: relative;
+  width: clamp(6.5rem, 18cqw, 10rem);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.la-tuto-hero__orb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 33% 28%,
+      #cfc2ff 0%, #8f74ff 34%, var(--la-iris) 55%, #241b5e 100%);
+  box-shadow:
+    inset 0 -18px 34px rgba(10, 8, 40, 0.55),
+    0 0 60px rgba(124, 92, 255, 0.45),
+    0 24px 60px rgba(3, 6, 18, 0.6);
+  animation: la-orb-breathe 4.4s var(--la-ease) infinite;
+}
+
+/* Specular highlight — the “alive” glint. */
+.la-tuto-hero__orb::before {
+  content: "";
+  position: absolute;
+  top: 12%;
+  left: 18%;
+  width: 34%;
+  height: 24%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), transparent 70%);
+  filter: blur(2px);
+}
+
+/* Halo ring — expands with the orb's state. */
+.la-tuto-hero__halo {
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  border: 1.5px solid rgba(124, 92, 255, 0.35);
+  animation: la-orb-halo 4.4s var(--la-ease) infinite;
+}
+
+@keyframes la-orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+@keyframes la-orb-halo {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%      { transform: scale(1.06); opacity: 1; }
+}
+
+/* ---- States ------------------------------------------------- */
+.la-tuto-hero[data-state="listening"] .la-tuto-hero__halo {
+  border-color: rgba(54, 214, 206, 0.7);
+  animation-duration: 1.8s;
+}
+.la-tuto-hero[data-state="listening"] .la-tuto-hero__orb {
+  box-shadow:
+    inset 0 -18px 34px rgba(10, 8, 40, 0.55),
+    0 0 70px rgba(54, 214, 206, 0.5),
+    0 24px 60px rgba(3, 6, 18, 0.6);
+}
+
+.la-tuto-hero[data-state="thinking"] .la-tuto-hero__orb {
+  animation-duration: 7s;
+  filter: saturate(0.8) brightness(0.92);
+}
+.la-tuto-hero[data-state="thinking"] .la-tuto-hero__halo {
+  border-style: dashed;
+  animation: la-orb-orbit 6s linear infinite;
+}
+@keyframes la-orb-orbit { to { transform: rotate(360deg); } }
+
+.la-tuto-hero[data-state="speaking"] .la-tuto-hero__orb {
+  animation-duration: 1.6s;
+}
+.la-tuto-hero[data-state="speaking"] .la-tuto-hero__halo {
+  animation: la-orb-ripple 1.6s var(--la-ease) infinite;
+}
+@keyframes la-orb-ripple {
+  from { transform: scale(0.96); opacity: 0.9; }
+  to   { transform: scale(1.22); opacity: 0; }
+}
+
+.la-tuto-hero[data-state="celebrating"] .la-tuto-hero__orb {
+  background:
+    radial-gradient(circle at 33% 28%,
+      #ffe3d6 0%, #ffa38f 36%, var(--la-coral) 58%, #6e2333 100%);
+  box-shadow:
+    inset 0 -18px 34px rgba(60, 12, 20, 0.5),
+    0 0 70px rgba(255, 126, 107, 0.55),
+    0 24px 60px rgba(3, 6, 18, 0.6);
+  animation-duration: 1.2s;
+}
+.la-tuto-hero[data-state="celebrating"] .la-tuto-hero__halo {
+  border-color: rgba(255, 126, 107, 0.6);
+  animation-duration: 1.2s;
+}
+
+/* ---- Greeting ------------------------------------------------ */
+.la-tuto-hero__eyebrow {
+  font-size: var(--la-text-xs);
+  font-weight: 600;
+  letter-spacing: var(--la-tracking-caps);
+  text-transform: uppercase;
+  color: var(--la-cyan);
+}
+
+.la-tuto-hero__title {
+  margin: 0;
+  font-family: var(--la-font-display);
+  font-size: clamp(var(--la-text-2xl), 4cqw + 1rem, var(--la-text-4xl));
+  font-weight: 600;
+  line-height: var(--la-leading-tight);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.la-tuto-hero__sub {
+  margin: 0;
+  max-width: 52ch;
+  font-size: var(--la-text-lg);
+  line-height: var(--la-leading-body);
+  color: var(--la-ink-mid);
+}
+
+.la-tuto-hero__copy {
+  display: grid;
+  gap: var(--la-space-3);
+  justify-items: center;
+}
+
+/* ---- Wide containers: hero row, text beside the orb ---------- */
+@container (min-width: 52rem) {
+  .la-tuto-hero__grid {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    justify-items: start;
+    text-align: left;
+    gap: var(--la-space-7);
+  }
+  .la-tuto-hero__copy { justify-items: start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .la-tuto-hero__orb,
+  .la-tuto-hero__halo {
+    animation: none !important;
+  }
+  /* States remain legible through color and glow alone. */
+}
+
+/* ============================================================
+   la-cefr-card — one CEFR level as a choice.
+   Six siblings, one language: identical anatomy, each lit by its
+   own point on the sunrise→open-sky spectrum, with its own glyph
+   and emotional tone line.
+
+   Anatomy: glyph chip · level code · name · tone line · check.
+   States: default · hover · selected · disabled · focus-visible.
+   Semantics: radio inside `.la-cefr-grid` (role=radiogroup),
+   roving tabindex handled by cefr-card.js.
+   ============================================================ */
+
+/* ---- Grid --------------------------------------------------- */
+.la-cefr-grid {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--la-space-4);
+}
+@container (min-width: 40rem) {
+  .la-cefr-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@container (min-width: 66rem) {
+  .la-cefr-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--la-space-5);
+  }
+}
+
+/* ---- Card ---------------------------------------------------- */
+.la-cefr-card {
+  --_accent: var(--la-iris);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--la-space-4);
+  padding: var(--la-space-5);
+  border: 1px solid var(--la-stroke-1);
+  border-radius: var(--la-radius-lg);
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--_accent) 7%, transparent),
+      transparent 42%),
+    var(--la-surface-1);
+  color: var(--la-ink-hi);
+  font-family: var(--la-font-body);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--la-shadow-1);
+  transition:
+    transform var(--la-dur-fast) var(--la-ease),
+    border-color var(--la-dur-med) var(--la-ease),
+    box-shadow var(--la-dur-med) var(--la-ease),
+    background-color var(--la-dur-med) var(--la-ease);
+}
+
+/* Accent hairline along the top edge — the level's signature. */
+.la-cefr-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--la-radius-lg);
+  right: var(--la-radius-lg);
+  height: 2px;
+  border-radius: var(--la-radius-full);
+  background: linear-gradient(90deg, transparent,
+    color-mix(in oklab, var(--_accent) 80%, transparent), transparent);
+  opacity: 0.55;
+  transition: opacity var(--la-dur-med) var(--la-ease);
+}
+
+/* Level accents */
+.la-cefr-card[data-level="a1"] { --_accent: var(--la-cefr-a1); }
+.la-cefr-card[data-level="a2"] { --_accent: var(--la-cefr-a2); }
+.la-cefr-card[data-level="b1"] { --_accent: var(--la-cefr-b1); }
+.la-cefr-card[data-level="b2"] { --_accent: var(--la-cefr-b2); }
+.la-cefr-card[data-level="c1"] { --_accent: var(--la-cefr-c1); }
+.la-cefr-card[data-level="c2"] { --_accent: var(--la-cefr-c2); }
+
+/* ---- Glyph chip ---------------------------------------------- */
+.la-cefr-card__glyph {
+  width: 3rem;
+  height: 3rem;
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-self: start;
+  border-radius: var(--la-radius-md);
+  border: 1px solid color-mix(in oklab, var(--_accent) 38%, transparent);
+  background: color-mix(in oklab, var(--_accent) 13%, transparent);
+  color: var(--_accent);
+  transition: box-shadow var(--la-dur-med) var(--la-ease);
+}
+.la-cefr-card__glyph svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block;
+}
+
+/* ---- Text ----------------------------------------------------- */
+.la-cefr-card__text {
+  display: grid;
+  gap: var(--la-space-1);
+  min-width: 0;
+}
+
+.la-cefr-card__code {
+  font-family: var(--la-font-display);
+  font-size: var(--la-text-xs);
+  font-weight: 700;
+  letter-spacing: var(--la-tracking-caps);
+  text-transform: uppercase;
+  color: var(--_accent);
+}
+
+.la-cefr-card__name {
+  font-family: var(--la-font-display);
+  font-size: var(--la-text-xl);
+  font-weight: 600;
+  line-height: var(--la-leading-tight);
+}
+
+.la-cefr-card__tone {
+  font-size: var(--la-text-sm);
+  line-height: 1.5;
+  color: var(--la-ink-mid);
+}
+
+/* ---- Check badge (selection) ----------------------------------- */
+.la-cefr-card__check {
+  position: absolute;
+  top: var(--la-space-4);
+  right: var(--la-space-4);
+  width: 1.5rem;
+  height: 1.5rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--_accent);
+  color: var(--la-ink-on-brand);
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity var(--la-dur-med) var(--la-ease),
+    transform var(--la-dur-med) var(--la-ease);
+}
+.la-cefr-card__check svg { width: 0.875rem; height: 0.875rem; }
+
+/* ---- States ------------------------------------------------------ */
+.la-cefr-card:hover:not([aria-disabled="true"]),
+.la-cefr-card.is-hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--_accent) 45%, transparent);
+  box-shadow:
+    0 14px 40px color-mix(in oklab, var(--_accent) 22%, transparent),
+    var(--la-shadow-2);
+}
+.la-cefr-card:hover:not([aria-disabled="true"])::before,
+.la-cefr-card.is-hover::before { opacity: 1; }
+.la-cefr-card:hover:not([aria-disabled="true"]) .la-cefr-card__glyph,
+.la-cefr-card.is-hover .la-cefr-card__glyph {
+  box-shadow: 0 0 22px color-mix(in oklab, var(--_accent) 42%, transparent);
+}
+
+.la-cefr-card[aria-checked="true"] {
+  border-color: color-mix(in oklab, var(--_accent) 70%, transparent);
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--_accent) 14%, transparent),
+      color-mix(in oklab, var(--_accent) 5%, transparent)),
+    var(--la-surface-1);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--_accent) 55%, transparent),
+    0 14px 40px color-mix(in oklab, var(--_accent) 20%, transparent);
+}
+.la-cefr-card[aria-checked="true"] .la-cefr-card__check {
+  opacity: 1;
+  transform: scale(1);
+}
+.la-cefr-card[aria-checked="true"]::before { opacity: 1; }
+
+.la-cefr-card[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.42;
+  filter: saturate(0.35);
+  box-shadow: none;
+}
+
+.la-cefr-card:focus-visible {
+  outline: none;
+  box-shadow: var(--la-focus-ring), var(--la-shadow-1);
+  border-radius: var(--la-radius-lg);
+}
+
+/* ---- Compact containers: tighter row anatomy ------------------- */
+@container (max-width: 26rem) {
+  .la-cefr-card { padding: var(--la-space-4); }
+  .la-cefr-card__glyph { width: 2.5rem; height: 2.5rem; }
+  .la-cefr-card__name { font-size: var(--la-text-lg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .la-cefr-card:hover:not([aria-disabled="true"]),
+  .la-cefr-card.is-hover { transform: none; }
+  .la-cefr-card__check { transform: none; }
+}
+
+/* ============================================================
+   la-canvas — the stage every scene is performed on.
+   A deep gradient field lit by two aurora sources, holding a
+   header slot, a stage (scrollable conversation/content region)
+   and a dock (composer / primary action, pinned at the bottom).
+
+   Density variants:
+   `--focus` : narrow column — Discovery Session, Assessment.
+   `--wide`  : wide grid — Dashboard, Learning Brain.
+   The canvas declares itself a container, so every Meridian
+   component inside adapts to it automatically.
+   ============================================================ */
+
+.la-canvas {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, var(--la-canvas-2), var(--la-canvas-0) 70%);
+  color: var(--la-ink-hi);
+  font-family: var(--la-font-body);
+}
+
+/* Aurora light sources — iris high left, cyan low right. */
+.la-canvas::before,
+.la-canvas::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+}
+.la-canvas::before {
+  top: -18%;
+  left: -8%;
+  width: 46cqw;
+  aspect-ratio: 1.4;
+  background: radial-gradient(closest-side, rgba(124, 92, 255, 0.28), transparent);
+}
+.la-canvas::after {
+  bottom: -22%;
+  right: -10%;
+  width: 42cqw;
+  aspect-ratio: 1.4;
+  background: radial-gradient(closest-side, rgba(54, 214, 206, 0.16), transparent);
+}
+
+/* ---- Column -------------------------------------------------- */
+/* The inner column is the CSS container: every Meridian component
+   inside adapts to the actual column width, not the shell. */
+.la-canvas__inner {
+  container-type: inline-size;
+  width: 100%;
+  max-width: var(--la-col-wide);
+  margin-inline: auto;
+  padding: clamp(var(--la-space-5), 4cqw, var(--la-space-8));
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--la-space-6);
+  min-height: 0;
+}
+
+.la-canvas--focus .la-canvas__inner {
+  max-width: var(--la-col-focus);
+}
+
+/* ---- Slots ---------------------------------------------------- */
+.la-canvas__header { flex: none; }
+
+.la-canvas__stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--la-space-5);
+}
+
+/* Constrained layouts (app shell gives the canvas a fixed height):
+   the stage scrolls, the dock stays. */
+.la-canvas--scroll .la-canvas__stage {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--la-stroke-2) transparent;
+  padding-right: var(--la-space-2);
+  /* content fades out under the dock rather than clipping */
+  mask-image: linear-gradient(180deg, #000 calc(100% - 2.5rem), transparent);
+}
+
+.la-canvas__dock {
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--la-space-4);
+  padding-top: var(--la-space-4);
+}
+
+/* Hairline of light separating dock from stage. */
+.la-canvas__dock::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent,
+    var(--la-stroke-2), transparent);
+}
+
+/* Wide variant: dock actions align right, dashboard-style. */
+.la-canvas--wide .la-canvas__dock {
+  justify-content: flex-end;
+}
+
+/* Compact columns: dock actions stack, primary action on top. */
+@container (max-width: 30rem) {
+  .la-canvas__dock {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .la-canvas__dock .la-orb-cta {
+    justify-content: center;
+  }
+}
+
+
+  /* ---- board chrome (not part of the design system) ---- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { color-scheme: dark; }
+  body { margin: 0; background: #05070f; color: var(--la-ink-hi); font-family: var(--la-font-body); }
+  .board { max-width: 1120px; margin-inline: auto; padding: 48px 24px 96px; display: grid; gap: 56px; }
+  .board-head { display: grid; gap: 12px; padding-bottom: 24px; border-bottom: 1px solid var(--la-stroke-1); }
+  .board-head h1 { margin: 0; font-family: var(--la-font-display); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; letter-spacing: -0.02em; }
+  .board-head h1 em { font-style: normal; background: var(--la-aurora); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .board-head p { margin: 0; color: var(--la-ink-mid); max-width: 68ch; line-height: 1.6; }
+  .board-head .k { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--la-ink-low); font-weight: 600; }
+  .board-section { display: grid; gap: 20px; }
+  .board-section__head h2 { margin: 0 0 6px; font-family: var(--la-font-display); font-size: 1.35rem; font-weight: 600; }
+  .board-section__head p { margin: 0; color: var(--la-ink-mid); max-width: 72ch; line-height: 1.55; }
+  .board-section__sub { margin: 12px 0 0; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--la-ink-low); }
+  .vp { position: relative; overflow: hidden; border: 1px solid var(--la-stroke-1); border-radius: 14px; background: linear-gradient(180deg, var(--la-canvas-2), var(--la-canvas-0)); }
+  .vp__chip { position: absolute; z-index: 2; top: 10px; right: 12px; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--la-ink-low); background: rgba(5, 7, 15, 0.7); border: 1px solid var(--la-stroke-1); border-radius: 999px; padding: 3px 10px; }
+  .vp__frame { container-type: inline-size; transform-origin: top left; padding: 48px 40px; margin-inline: auto; }
+  .vp__frame:has(.la-canvas) { padding: 0; }
+  /* demo helpers */
+  .demo-row { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; }
+  .demo-thread { display: flex; flex-direction: column; gap: 20px; }
+  .demo-states { display: flex; flex-wrap: wrap; align-items: end; gap: 28px; }
+  .demo-states--cards { align-items: stretch; }
+  .demo-states--cards .demo-state { width: 320px; }
+  .demo-state { display: grid; gap: 10px; align-content: start; }
+  .demo-state__label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--la-ink-low); font-weight: 600; }
+  .demo-state .la-cefr-card { height: 100%; }
+  .demo-focus-pill { box-shadow: var(--la-focus-ring), var(--la-glow-iris); }
+  .demo-focus-card { box-shadow: var(--la-focus-ring), var(--la-shadow-1); }
+  /* foundations */
+  .fd { display: grid; gap: 20px; padding: 28px; border: 1px solid var(--la-stroke-1); border-radius: 14px; background: linear-gradient(180deg, var(--la-canvas-2), var(--la-canvas-0)); }
+  .fd-aurora { height: 10px; border-radius: 999px; background: var(--la-aurora); box-shadow: var(--la-glow-iris); }
+  .fd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .fd-swatch { display: grid; gap: 6px; font-size: 0.75rem; }
+  .fd-swatch__chip { height: 44px; border-radius: 10px; border: 1px solid var(--la-stroke-1); }
+  .fd-swatch__name { color: var(--la-ink-mid); font-weight: 600; }
+  .fd-swatch__val { color: var(--la-ink-low); font-variant-numeric: tabular-nums; }
+  .fd-type { display: grid; gap: 8px; border-top: 1px solid var(--la-stroke-1); padding-top: 18px; }
+  .fd-type__display { margin: 0; font-family: var(--la-font-display); font-size: 1.6rem; font-weight: 600; letter-spacing: -0.015em; }
+  .fd-type__body { margin: 0; color: var(--la-ink-mid); line-height: 1.6; max-width: 62ch; }
+  .fd-type__caps { margin: 0; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--la-ink-low); font-weight: 600; }
+  .board-foot { color: var(--la-ink-low); font-size: 0.85rem; line-height: 1.6; border-top: 1px solid var(--la-stroke-1); padding-top: 20px; }
+</style>
+<div class="board">
+  <header class="board-head">
+    <span class="k">LinguAlphabet Design System v1 · founder review</span>
+    <h1><em>Meridian</em> component library</h1>
+    <p>Six production components rendered at Desktop 1440 · Laptop 1152 · Tablet 834 · Mobile 390 container widths (frames are scaled to fit — hover and focus states are live inside them). The deep single-theme stage is a deliberate design decision. Reduced-motion mode collapses every animation to instant state changes.</p>
+  </header>
+
+  <section class="board-section" id="s0">
+    <div class="board-section__head"><h2>0. Foundations</h2>
+    <p>Stage palette, the aurora gradient, the CEFR sunrise&rarr;open-sky spectrum, and the type ramp.</p></div>
+    
+  <div class="fd">
+    <div class="fd-aurora"></div>
+    <div class="fd-grid">
+      <div class="fd-swatch"><span class="fd-swatch__chip" style="background:#070B18"></span><span class="fd-swatch__name">Canvas 0</span><span class="fd-swatch__val">#070B18</span></div><div class="fd-swatch"><span class="fd-swatch__chip" style="background:#0E1530"></span><span class="fd-swatch__name">Canvas 2</span><span class="fd-swatch__val">#0E1530</span></div>
+      <div class="fd-swatch"><span class="fd-swatch__chip" style="background:#7C5CFF"></span><span class="fd-swatch__name">Iris</span><span class="fd-swatch__val">#7C5CFF</span></div><div class="fd-swatch"><span class="fd-swatch__chip" style="background:#36D6CE"></span><span class="fd-swatch__name">Signal Cyan</span><span class="fd-swatch__val">#36D6CE</span></div>
+      <div class="fd-swatch"><span class="fd-swatch__chip" style="background:#FF7E6B"></span><span class="fd-swatch__name">Warm Coral</span><span class="fd-swatch__val">#FF7E6B</span></div><div class="fd-swatch"><span class="fd-swatch__chip" style="background:#F2F5FF"></span><span class="fd-swatch__name">Ink High</span><span class="fd-swatch__val">#F2F5FF</span></div>
+    </div>
+    <div class="fd-grid fd-grid--cefr">
+      <div class="fd-swatch"><span class="fd-swatch__chip" style="background:#FFB74A"></span><span class="fd-swatch__name">A1 Spark</span><span class="fd-swatch__val">#FFB74A</span></div><div class="fd-swatch"><span class="fd-swatch__chip" style="background:#FF8A66"></span><span class="fd-swatch__name">A2 Ember</span><span class="fd-swatch__val">#FF8A66</span></div>
+      <div class="fd-swatch"><span class="fd-swatch__chip" style="background:#F06FB7"></span><span class="fd-swatch__name">B1 Bloom</span><span class="fd-swatch__val">#F06FB7</span></div><div class="fd-swatch"><span class="fd-swatch__chip" style="background:#9D7BFF"></span><span class="fd-swatch__name">B2 Momentum</span><span class="fd-swatch__val">#9D7BFF</span></div>
+      <div class="fd-swatch"><span class="fd-swatch__chip" style="background:#5D8DFF"></span><span class="fd-swatch__name">C1 Constellation</span><span class="fd-swatch__val">#5D8DFF</span></div><div class="fd-swatch"><span class="fd-swatch__chip" style="background:#38D6CE"></span><span class="fd-swatch__name">C2 Summit</span><span class="fd-swatch__val">#38D6CE</span></div>
+    </div>
+    <div class="fd-type">
+      <p class="fd-type__display">Sora 600 — Where is your English today?</p>
+      <p class="fd-type__body">Body — Tuto listens for how you build sentences, not for mistakes. 16/1.6, 62ch measure.</p>
+      <p class="fd-type__caps">Caps label · 12px · 0.14em tracking</p>
+    </div>
+  </div>
+  </section>
+
+  
+  <section class="board-section" id="s1">
+    <div class="board-section__head">
+      <h2>1. CEFR Choice Card</h2>
+      <p>Six siblings, one language: identical anatomy, each lit by its own accent, glyph and tone line. Grid: 3&times;2 on desktop, 2-up on tablet, single column on mobile. B1 shown selected.</p>
+    </div>
+    
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <div class="la-cefr-grid" role="radiogroup" aria-label="Choose your current English level">
+    
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="a2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.5-2.5 6.5-6 0-4-3.5-6-4.5-10-2.5 2-3 4.5-3 6.5-1.2-.8-2-2-2.2-3.5C7 9.5 5.5 12 5.5 15c0 3.5 2.6 6 6.5 6Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A2 · Ember</span>
+      <span class="la-cefr-card__name">Elementary</span>
+      <span class="la-cefr-card__tone">Everyday moments start to make sense.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b1"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="c1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="1.4"/><circle cx="12" cy="7" r="1.4"/><circle cx="18" cy="13" r="1.4"/><path d="m7.2 15.9 3.7-7M13.3 7.8l3.5 4.2M7.4 16.7l9.2-3.3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C1 · Constellation</span>
+      <span class="la-cefr-card__name">Advanced</span>
+      <span class="la-cefr-card__tone">Nuance and style become second nature.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="c2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 10 6l3.5 6.5L16 9l5 10H3Z"/><path d="M10 6V3.5M10 3.5h3l-1 1.2 1 1.2h-3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C2 · Summit</span>
+      <span class="la-cefr-card__name">Mastery</span>
+      <span class="la-cefr-card__tone">The language no longer feels foreign at all.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  </div></div>
+  </div>
+  <div class="vp" data-w="1152">
+    <span class="vp__chip">Laptop · 1152px</span>
+    <div class="vp__frame" style="width:1152px">
+  <div class="la-cefr-grid" role="radiogroup" aria-label="Choose your current English level">
+    
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="a2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.5-2.5 6.5-6 0-4-3.5-6-4.5-10-2.5 2-3 4.5-3 6.5-1.2-.8-2-2-2.2-3.5C7 9.5 5.5 12 5.5 15c0 3.5 2.6 6 6.5 6Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A2 · Ember</span>
+      <span class="la-cefr-card__name">Elementary</span>
+      <span class="la-cefr-card__tone">Everyday moments start to make sense.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b1"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="c1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="1.4"/><circle cx="12" cy="7" r="1.4"/><circle cx="18" cy="13" r="1.4"/><path d="m7.2 15.9 3.7-7M13.3 7.8l3.5 4.2M7.4 16.7l9.2-3.3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C1 · Constellation</span>
+      <span class="la-cefr-card__name">Advanced</span>
+      <span class="la-cefr-card__tone">Nuance and style become second nature.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="c2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 10 6l3.5 6.5L16 9l5 10H3Z"/><path d="M10 6V3.5M10 3.5h3l-1 1.2 1 1.2h-3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C2 · Summit</span>
+      <span class="la-cefr-card__name">Mastery</span>
+      <span class="la-cefr-card__tone">The language no longer feels foreign at all.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  </div></div>
+  </div>
+  <div class="vp" data-w="834">
+    <span class="vp__chip">Tablet · 834px</span>
+    <div class="vp__frame" style="width:834px">
+  <div class="la-cefr-grid" role="radiogroup" aria-label="Choose your current English level">
+    
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="a2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.5-2.5 6.5-6 0-4-3.5-6-4.5-10-2.5 2-3 4.5-3 6.5-1.2-.8-2-2-2.2-3.5C7 9.5 5.5 12 5.5 15c0 3.5 2.6 6 6.5 6Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A2 · Ember</span>
+      <span class="la-cefr-card__name">Elementary</span>
+      <span class="la-cefr-card__tone">Everyday moments start to make sense.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b1"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="c1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="1.4"/><circle cx="12" cy="7" r="1.4"/><circle cx="18" cy="13" r="1.4"/><path d="m7.2 15.9 3.7-7M13.3 7.8l3.5 4.2M7.4 16.7l9.2-3.3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C1 · Constellation</span>
+      <span class="la-cefr-card__name">Advanced</span>
+      <span class="la-cefr-card__tone">Nuance and style become second nature.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="c2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 10 6l3.5 6.5L16 9l5 10H3Z"/><path d="M10 6V3.5M10 3.5h3l-1 1.2 1 1.2h-3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C2 · Summit</span>
+      <span class="la-cefr-card__name">Mastery</span>
+      <span class="la-cefr-card__tone">The language no longer feels foreign at all.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  </div></div>
+  </div>
+  <div class="vp" data-w="390">
+    <span class="vp__chip">Mobile · 390px</span>
+    <div class="vp__frame" style="width:390px">
+  <div class="la-cefr-grid" role="radiogroup" aria-label="Choose your current English level">
+    
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="a2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.5-2.5 6.5-6 0-4-3.5-6-4.5-10-2.5 2-3 4.5-3 6.5-1.2-.8-2-2-2.2-3.5C7 9.5 5.5 12 5.5 15c0 3.5 2.6 6 6.5 6Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A2 · Ember</span>
+      <span class="la-cefr-card__name">Elementary</span>
+      <span class="la-cefr-card__tone">Everyday moments start to make sense.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b1"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="c1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="1.4"/><circle cx="12" cy="7" r="1.4"/><circle cx="18" cy="13" r="1.4"/><path d="m7.2 15.9 3.7-7M13.3 7.8l3.5 4.2M7.4 16.7l9.2-3.3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C1 · Constellation</span>
+      <span class="la-cefr-card__name">Advanced</span>
+      <span class="la-cefr-card__tone">Nuance and style become second nature.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="c2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 10 6l3.5 6.5L16 9l5 10H3Z"/><path d="M10 6V3.5M10 3.5h3l-1 1.2 1 1.2h-3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C2 · Summit</span>
+      <span class="la-cefr-card__name">Mastery</span>
+      <span class="la-cefr-card__tone">The language no longer feels foreign at all.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  </div></div>
+  </div>
+    <h3 class="board-section__sub">State matrix</h3>
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <div class="demo-states demo-states--cards">
+    <div class="demo-state"><span class="demo-state__label">Default</span>
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button></div>
+    <div class="demo-state"><span class="demo-state__label">Hover</span>
+  <button type="button" class="la-cefr-card is-hover" data-level="b1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button></div>
+    <div class="demo-state"><span class="demo-state__label">Selected</span>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button></div>
+    <div class="demo-state"><span class="demo-state__label">Keyboard focus</span>
+  <button type="button" class="la-cefr-card demo-focus-card" data-level="c1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="1.4"/><circle cx="12" cy="7" r="1.4"/><circle cx="18" cy="13" r="1.4"/><path d="m7.2 15.9 3.7-7M13.3 7.8l3.5 4.2M7.4 16.7l9.2-3.3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C1 · Constellation</span>
+      <span class="la-cefr-card__name">Advanced</span>
+      <span class="la-cefr-card__tone">Nuance and style become second nature.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button></div>
+    <div class="demo-state"><span class="demo-state__label">Disabled</span>
+  <button type="button" class="la-cefr-card " data-level="c2"
+          role="radio" aria-checked="false" aria-disabled="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19 10 6l3.5 6.5L16 9l5 10H3Z"/><path d="M10 6V3.5M10 3.5h3l-1 1.2 1 1.2h-3"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">C2 · Summit</span>
+      <span class="la-cefr-card__name">Mastery</span>
+      <span class="la-cefr-card__tone">The language no longer feels foreign at all.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button></div>
+  </div></div>
+  </div>
+  </section>
+  
+  <section class="board-section" id="s2">
+    <div class="board-section__head">
+      <h2>2. Conversation Bubble</h2>
+      <p>Coach turns are glass with an iris presence dot; learner turns are iris-tinted and right-aligned. Includes streaming caret and typing indicator.</p>
+    </div>
+    
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <div class="demo-thread">
+    
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>Great to meet you, Aziz! Before we design your learning journey, I&rsquo;d love to know where your English is right now.</p><p>There&rsquo;s no wrong answer — this just sets our starting point.</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:02</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--learner ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>I can follow podcasts, but speaking still feels slow.</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">You</span><time>14:03</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--tuto la-bubble--streaming">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>That&rsquo;s a really common place to be — listening usually runs ahead of speaking. Let&rsquo;s use that as our anchor&hellip;</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:03</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><span class="la-bubble__typing" role="status" aria-label="Tuto is typing"><i></i><i></i><i></i></span></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>now</time></footer>
+  </article>
+  </div></div>
+  </div>
+  <div class="vp" data-w="1152">
+    <span class="vp__chip">Laptop · 1152px</span>
+    <div class="vp__frame" style="width:1152px">
+  <div class="demo-thread">
+    
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>Great to meet you, Aziz! Before we design your learning journey, I&rsquo;d love to know where your English is right now.</p><p>There&rsquo;s no wrong answer — this just sets our starting point.</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:02</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--learner ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>I can follow podcasts, but speaking still feels slow.</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">You</span><time>14:03</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--tuto la-bubble--streaming">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>That&rsquo;s a really common place to be — listening usually runs ahead of speaking. Let&rsquo;s use that as our anchor&hellip;</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:03</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><span class="la-bubble__typing" role="status" aria-label="Tuto is typing"><i></i><i></i><i></i></span></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>now</time></footer>
+  </article>
+  </div></div>
+  </div>
+  <div class="vp" data-w="834">
+    <span class="vp__chip">Tablet · 834px</span>
+    <div class="vp__frame" style="width:834px">
+  <div class="demo-thread">
+    
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>Great to meet you, Aziz! Before we design your learning journey, I&rsquo;d love to know where your English is right now.</p><p>There&rsquo;s no wrong answer — this just sets our starting point.</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:02</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--learner ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>I can follow podcasts, but speaking still feels slow.</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">You</span><time>14:03</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--tuto la-bubble--streaming">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>That&rsquo;s a really common place to be — listening usually runs ahead of speaking. Let&rsquo;s use that as our anchor&hellip;</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:03</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><span class="la-bubble__typing" role="status" aria-label="Tuto is typing"><i></i><i></i><i></i></span></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>now</time></footer>
+  </article>
+  </div></div>
+  </div>
+  <div class="vp" data-w="390">
+    <span class="vp__chip">Mobile · 390px</span>
+    <div class="vp__frame" style="width:390px">
+  <div class="demo-thread">
+    
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>Great to meet you, Aziz! Before we design your learning journey, I&rsquo;d love to know where your English is right now.</p><p>There&rsquo;s no wrong answer — this just sets our starting point.</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:02</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--learner ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>I can follow podcasts, but speaking still feels slow.</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">You</span><time>14:03</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--tuto la-bubble--streaming">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>That&rsquo;s a really common place to be — listening usually runs ahead of speaking. Let&rsquo;s use that as our anchor&hellip;</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:03</time></footer>
+  </article>
+    
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><span class="la-bubble__typing" role="status" aria-label="Tuto is typing"><i></i><i></i><i></i></span></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>now</time></footer>
+  </article>
+  </div></div>
+  </div>
+    
+  </section>
+  
+  <section class="board-section" id="s3">
+    <div class="board-section__head">
+      <h2>3. Tuto Hero</h2>
+      <p>Tuto&rsquo;s presence: a living orb plus greeting. Side-by-side in wide containers, stacked and centered in narrow ones. The scene&rsquo;s state machine drives the orb.</p>
+    </div>
+    
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <section class="la-tuto-hero" data-state="idle">
+    <div class="la-tuto-hero__grid">
+      <div class="la-tuto-hero__stage" aria-hidden="true">
+        <span class="la-tuto-hero__halo"></span>
+        <span class="la-tuto-hero__orb"></span>
+      </div>
+      <div class="la-tuto-hero__copy">
+        <span class="la-tuto-hero__eyebrow">Tuto · your English coach</span>
+        <h1 class="la-tuto-hero__title">Let&rsquo;s find your starting point.</h1>
+        <p class="la-tuto-hero__sub">Choose the level that feels closest — your Adaptive Assessment will fine-tune it afterwards.</p>
+      </div>
+    </div>
+  </section></div>
+  </div>
+  <div class="vp" data-w="1152">
+    <span class="vp__chip">Laptop · 1152px</span>
+    <div class="vp__frame" style="width:1152px">
+  <section class="la-tuto-hero" data-state="idle">
+    <div class="la-tuto-hero__grid">
+      <div class="la-tuto-hero__stage" aria-hidden="true">
+        <span class="la-tuto-hero__halo"></span>
+        <span class="la-tuto-hero__orb"></span>
+      </div>
+      <div class="la-tuto-hero__copy">
+        <span class="la-tuto-hero__eyebrow">Tuto · your English coach</span>
+        <h1 class="la-tuto-hero__title">Let&rsquo;s find your starting point.</h1>
+        <p class="la-tuto-hero__sub">Choose the level that feels closest — your Adaptive Assessment will fine-tune it afterwards.</p>
+      </div>
+    </div>
+  </section></div>
+  </div>
+  <div class="vp" data-w="834">
+    <span class="vp__chip">Tablet · 834px</span>
+    <div class="vp__frame" style="width:834px">
+  <section class="la-tuto-hero" data-state="idle">
+    <div class="la-tuto-hero__grid">
+      <div class="la-tuto-hero__stage" aria-hidden="true">
+        <span class="la-tuto-hero__halo"></span>
+        <span class="la-tuto-hero__orb"></span>
+      </div>
+      <div class="la-tuto-hero__copy">
+        <span class="la-tuto-hero__eyebrow">Tuto · your English coach</span>
+        <h1 class="la-tuto-hero__title">Let&rsquo;s find your starting point.</h1>
+        <p class="la-tuto-hero__sub">Choose the level that feels closest — your Adaptive Assessment will fine-tune it afterwards.</p>
+      </div>
+    </div>
+  </section></div>
+  </div>
+  <div class="vp" data-w="390">
+    <span class="vp__chip">Mobile · 390px</span>
+    <div class="vp__frame" style="width:390px">
+  <section class="la-tuto-hero" data-state="idle">
+    <div class="la-tuto-hero__grid">
+      <div class="la-tuto-hero__stage" aria-hidden="true">
+        <span class="la-tuto-hero__halo"></span>
+        <span class="la-tuto-hero__orb"></span>
+      </div>
+      <div class="la-tuto-hero__copy">
+        <span class="la-tuto-hero__eyebrow">Tuto · your English coach</span>
+        <h1 class="la-tuto-hero__title">Let&rsquo;s find your starting point.</h1>
+        <p class="la-tuto-hero__sub">Choose the level that feels closest — your Adaptive Assessment will fine-tune it afterwards.</p>
+      </div>
+    </div>
+  </section></div>
+  </div>
+    <h3 class="board-section__sub">State matrix</h3>
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <div class="demo-states demo-states--orbs">
+    
+      <div class="demo-state">
+        <span class="demo-state__label">idle</span>
+        <section class="la-tuto-hero" data-state="idle" style="width:9rem">
+          <div class="la-tuto-hero__stage" style="width:7rem" aria-hidden="true">
+            <span class="la-tuto-hero__halo"></span>
+            <span class="la-tuto-hero__orb"></span>
+          </div>
+        </section>
+      </div>
+      <div class="demo-state">
+        <span class="demo-state__label">listening</span>
+        <section class="la-tuto-hero" data-state="listening" style="width:9rem">
+          <div class="la-tuto-hero__stage" style="width:7rem" aria-hidden="true">
+            <span class="la-tuto-hero__halo"></span>
+            <span class="la-tuto-hero__orb"></span>
+          </div>
+        </section>
+      </div>
+      <div class="demo-state">
+        <span class="demo-state__label">thinking</span>
+        <section class="la-tuto-hero" data-state="thinking" style="width:9rem">
+          <div class="la-tuto-hero__stage" style="width:7rem" aria-hidden="true">
+            <span class="la-tuto-hero__halo"></span>
+            <span class="la-tuto-hero__orb"></span>
+          </div>
+        </section>
+      </div>
+      <div class="demo-state">
+        <span class="demo-state__label">speaking</span>
+        <section class="la-tuto-hero" data-state="speaking" style="width:9rem">
+          <div class="la-tuto-hero__stage" style="width:7rem" aria-hidden="true">
+            <span class="la-tuto-hero__halo"></span>
+            <span class="la-tuto-hero__orb"></span>
+          </div>
+        </section>
+      </div>
+      <div class="demo-state">
+        <span class="demo-state__label">celebrating</span>
+        <section class="la-tuto-hero" data-state="celebrating" style="width:9rem">
+          <div class="la-tuto-hero__stage" style="width:7rem" aria-hidden="true">
+            <span class="la-tuto-hero__halo"></span>
+            <span class="la-tuto-hero__orb"></span>
+          </div>
+        </section>
+      </div>
+  </div></div>
+  </div>
+  </section>
+  
+  <section class="board-section" id="s4">
+    <div class="board-section__head">
+      <h2>4. Orb CTA</h2>
+      <p>The primary action of a scene — a pill carrying a small living orb. One primary per view; quiet variant for secondary paths.</p>
+    </div>
+    
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <div class="demo-row">
+    <button type="button" class="la-orb-cta la-orb-cta--lg" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Start my Discovery Session</span>
+   </button>
+    <button type="button" class="la-orb-cta " >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Continue</span>
+   </button>
+    <button type="button" class="la-orb-cta la-orb-cta--quiet" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Not now</span>
+   </button>
+  </div></div>
+  </div>
+  <div class="vp" data-w="1152">
+    <span class="vp__chip">Laptop · 1152px</span>
+    <div class="vp__frame" style="width:1152px">
+  <div class="demo-row">
+    <button type="button" class="la-orb-cta la-orb-cta--lg" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Start my Discovery Session</span>
+   </button>
+    <button type="button" class="la-orb-cta " >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Continue</span>
+   </button>
+    <button type="button" class="la-orb-cta la-orb-cta--quiet" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Not now</span>
+   </button>
+  </div></div>
+  </div>
+  <div class="vp" data-w="834">
+    <span class="vp__chip">Tablet · 834px</span>
+    <div class="vp__frame" style="width:834px">
+  <div class="demo-row">
+    <button type="button" class="la-orb-cta la-orb-cta--lg" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Start my Discovery Session</span>
+   </button>
+    <button type="button" class="la-orb-cta " >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Continue</span>
+   </button>
+    <button type="button" class="la-orb-cta la-orb-cta--quiet" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Not now</span>
+   </button>
+  </div></div>
+  </div>
+  <div class="vp" data-w="390">
+    <span class="vp__chip">Mobile · 390px</span>
+    <div class="vp__frame" style="width:390px">
+  <div class="demo-row">
+    <button type="button" class="la-orb-cta la-orb-cta--lg" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Start my Discovery Session</span>
+   </button>
+    <button type="button" class="la-orb-cta " >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Continue</span>
+   </button>
+    <button type="button" class="la-orb-cta la-orb-cta--quiet" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Not now</span>
+   </button>
+  </div></div>
+  </div>
+    <h3 class="board-section__sub">State matrix</h3>
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <div class="demo-states">
+    <div class="demo-state"><span class="demo-state__label">Default</span><button type="button" class="la-orb-cta " >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Continue</span>
+   </button></div>
+    <div class="demo-state"><span class="demo-state__label">Hover</span><button type="button" class="la-orb-cta is-hover" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Continue</span>
+   </button></div>
+    <div class="demo-state"><span class="demo-state__label">Focus</span><button type="button" class="la-orb-cta demo-focus-pill" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Continue</span>
+   </button></div>
+    <div class="demo-state"><span class="demo-state__label">Loading</span><button type="button" class="la-orb-cta " aria-busy="true">
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Saving your level…</span>
+   </button></div>
+    <div class="demo-state"><span class="demo-state__label">Disabled</span><button type="button" class="la-orb-cta " disabled>
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Continue</span>
+   </button></div>
+    <div class="demo-state"><span class="demo-state__label">Quiet · hover</span><button type="button" class="la-orb-cta la-orb-cta--quiet is-hover" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Skip for now</span>
+   </button></div>
+  </div></div>
+  </div>
+  </section>
+  
+  <section class="board-section" id="s5">
+    <div class="board-section__head">
+      <h2>5. Section Heading</h2>
+      <p>Eyebrow &middot; title &middot; lede &middot; meta. Meta joins the right edge on wide containers; the centered variant serves conversational moments.</p>
+    </div>
+    
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <header class="la-section-heading">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Discovery Session</span>
+      <h2 class="la-section-heading__title">Where is your English today?</h2>
+      <p class="la-section-heading__lede">Pick the level that feels closest. Tuto adjusts everything else around it — nothing here is a test.</p>
+      <div class="la-section-heading__meta">Step 2 of 5</div>
+    </div>
+  </header><div style="height:40px"></div>
+  <header class="la-section-heading la-section-heading--center">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Adaptive Assessment</span>
+      <h2 class="la-section-heading__title">Let&rsquo;s hear you think out loud</h2>
+      <p class="la-section-heading__lede">Answer in your own words. Tuto listens for how you build sentences, not for mistakes.</p>
+    </div>
+  </header></div>
+  </div>
+  <div class="vp" data-w="1152">
+    <span class="vp__chip">Laptop · 1152px</span>
+    <div class="vp__frame" style="width:1152px">
+  <header class="la-section-heading">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Discovery Session</span>
+      <h2 class="la-section-heading__title">Where is your English today?</h2>
+      <p class="la-section-heading__lede">Pick the level that feels closest. Tuto adjusts everything else around it — nothing here is a test.</p>
+      <div class="la-section-heading__meta">Step 2 of 5</div>
+    </div>
+  </header><div style="height:40px"></div>
+  <header class="la-section-heading la-section-heading--center">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Adaptive Assessment</span>
+      <h2 class="la-section-heading__title">Let&rsquo;s hear you think out loud</h2>
+      <p class="la-section-heading__lede">Answer in your own words. Tuto listens for how you build sentences, not for mistakes.</p>
+    </div>
+  </header></div>
+  </div>
+  <div class="vp" data-w="834">
+    <span class="vp__chip">Tablet · 834px</span>
+    <div class="vp__frame" style="width:834px">
+  <header class="la-section-heading">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Discovery Session</span>
+      <h2 class="la-section-heading__title">Where is your English today?</h2>
+      <p class="la-section-heading__lede">Pick the level that feels closest. Tuto adjusts everything else around it — nothing here is a test.</p>
+      <div class="la-section-heading__meta">Step 2 of 5</div>
+    </div>
+  </header><div style="height:40px"></div>
+  <header class="la-section-heading la-section-heading--center">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Adaptive Assessment</span>
+      <h2 class="la-section-heading__title">Let&rsquo;s hear you think out loud</h2>
+      <p class="la-section-heading__lede">Answer in your own words. Tuto listens for how you build sentences, not for mistakes.</p>
+    </div>
+  </header></div>
+  </div>
+  <div class="vp" data-w="390">
+    <span class="vp__chip">Mobile · 390px</span>
+    <div class="vp__frame" style="width:390px">
+  <header class="la-section-heading">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Discovery Session</span>
+      <h2 class="la-section-heading__title">Where is your English today?</h2>
+      <p class="la-section-heading__lede">Pick the level that feels closest. Tuto adjusts everything else around it — nothing here is a test.</p>
+      <div class="la-section-heading__meta">Step 2 of 5</div>
+    </div>
+  </header><div style="height:40px"></div>
+  <header class="la-section-heading la-section-heading--center">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Adaptive Assessment</span>
+      <h2 class="la-section-heading__title">Let&rsquo;s hear you think out loud</h2>
+      <p class="la-section-heading__lede">Answer in your own words. Tuto listens for how you build sentences, not for mistakes.</p>
+    </div>
+  </header></div>
+  </div>
+    
+  </section>
+  
+  <section class="board-section" id="s6">
+    <div class="board-section__head">
+      <h2>6. Conversation Canvas</h2>
+      <p>The stage itself: aurora-lit field with header, scrollable stage and docked actions. Shown in focus density (Discovery Session composition) at a fixed 640px shell height.</p>
+    </div>
+    
+  <div class="vp" data-w="1440">
+    <span class="vp__chip">Desktop · 1440px</span>
+    <div class="vp__frame" style="width:1440px">
+  <main class="la-canvas la-canvas--focus la-canvas--scroll" style="height:640px" aria-label="Discovery Session">
+    <div class="la-canvas__inner">
+      <div class="la-canvas__header">
+  <header class="la-section-heading la-section-heading--center">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Adaptive Assessment</span>
+      <h2 class="la-section-heading__title">Let&rsquo;s hear you think out loud</h2>
+      <p class="la-section-heading__lede">Answer in your own words. Tuto listens for how you build sentences, not for mistakes.</p>
+    </div>
+  </header></div>
+      <div class="la-canvas__stage">
+        
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>Ready when you are. Which of these feels most like you today?</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:05</time></footer>
+  </article>
+        <div class="la-cefr-grid" role="radiogroup" aria-label="Choose your current English level">
+          
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="a2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.5-2.5 6.5-6 0-4-3.5-6-4.5-10-2.5 2-3 4.5-3 6.5-1.2-.8-2-2-2.2-3.5C7 9.5 5.5 12 5.5 15c0 3.5 2.6 6 6.5 6Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A2 · Ember</span>
+      <span class="la-cefr-card__name">Elementary</span>
+      <span class="la-cefr-card__tone">Everyday moments start to make sense.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b1"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+        </div>
+      </div>
+      <div class="la-canvas__dock">
+        <button type="button" class="la-orb-cta la-orb-cta--quiet" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Not sure yet</span>
+   </button>
+        <button type="button" class="la-orb-cta la-orb-cta--lg" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">This feels right</span>
+   </button>
+      </div>
+    </div>
+  </main></div>
+  </div>
+  <div class="vp" data-w="1152">
+    <span class="vp__chip">Laptop · 1152px</span>
+    <div class="vp__frame" style="width:1152px">
+  <main class="la-canvas la-canvas--focus la-canvas--scroll" style="height:640px" aria-label="Discovery Session">
+    <div class="la-canvas__inner">
+      <div class="la-canvas__header">
+  <header class="la-section-heading la-section-heading--center">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Adaptive Assessment</span>
+      <h2 class="la-section-heading__title">Let&rsquo;s hear you think out loud</h2>
+      <p class="la-section-heading__lede">Answer in your own words. Tuto listens for how you build sentences, not for mistakes.</p>
+    </div>
+  </header></div>
+      <div class="la-canvas__stage">
+        
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>Ready when you are. Which of these feels most like you today?</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:05</time></footer>
+  </article>
+        <div class="la-cefr-grid" role="radiogroup" aria-label="Choose your current English level">
+          
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="a2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.5-2.5 6.5-6 0-4-3.5-6-4.5-10-2.5 2-3 4.5-3 6.5-1.2-.8-2-2-2.2-3.5C7 9.5 5.5 12 5.5 15c0 3.5 2.6 6 6.5 6Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A2 · Ember</span>
+      <span class="la-cefr-card__name">Elementary</span>
+      <span class="la-cefr-card__tone">Everyday moments start to make sense.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b1"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+        </div>
+      </div>
+      <div class="la-canvas__dock">
+        <button type="button" class="la-orb-cta la-orb-cta--quiet" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Not sure yet</span>
+   </button>
+        <button type="button" class="la-orb-cta la-orb-cta--lg" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">This feels right</span>
+   </button>
+      </div>
+    </div>
+  </main></div>
+  </div>
+  <div class="vp" data-w="834">
+    <span class="vp__chip">Tablet · 834px</span>
+    <div class="vp__frame" style="width:834px">
+  <main class="la-canvas la-canvas--focus la-canvas--scroll" style="height:640px" aria-label="Discovery Session">
+    <div class="la-canvas__inner">
+      <div class="la-canvas__header">
+  <header class="la-section-heading la-section-heading--center">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Adaptive Assessment</span>
+      <h2 class="la-section-heading__title">Let&rsquo;s hear you think out loud</h2>
+      <p class="la-section-heading__lede">Answer in your own words. Tuto listens for how you build sentences, not for mistakes.</p>
+    </div>
+  </header></div>
+      <div class="la-canvas__stage">
+        
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>Ready when you are. Which of these feels most like you today?</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:05</time></footer>
+  </article>
+        <div class="la-cefr-grid" role="radiogroup" aria-label="Choose your current English level">
+          
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="a2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.5-2.5 6.5-6 0-4-3.5-6-4.5-10-2.5 2-3 4.5-3 6.5-1.2-.8-2-2-2.2-3.5C7 9.5 5.5 12 5.5 15c0 3.5 2.6 6 6.5 6Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A2 · Ember</span>
+      <span class="la-cefr-card__name">Elementary</span>
+      <span class="la-cefr-card__tone">Everyday moments start to make sense.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b1"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+        </div>
+      </div>
+      <div class="la-canvas__dock">
+        <button type="button" class="la-orb-cta la-orb-cta--quiet" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Not sure yet</span>
+   </button>
+        <button type="button" class="la-orb-cta la-orb-cta--lg" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">This feels right</span>
+   </button>
+      </div>
+    </div>
+  </main></div>
+  </div>
+  <div class="vp" data-w="390">
+    <span class="vp__chip">Mobile · 390px</span>
+    <div class="vp__frame" style="width:390px">
+  <main class="la-canvas la-canvas--focus la-canvas--scroll" style="height:640px" aria-label="Discovery Session">
+    <div class="la-canvas__inner">
+      <div class="la-canvas__header">
+  <header class="la-section-heading la-section-heading--center">
+    <div class="la-section-heading__grid">
+      <span class="la-section-heading__eyebrow">Adaptive Assessment</span>
+      <h2 class="la-section-heading__title">Let&rsquo;s hear you think out loud</h2>
+      <p class="la-section-heading__lede">Answer in your own words. Tuto listens for how you build sentences, not for mistakes.</p>
+    </div>
+  </header></div>
+      <div class="la-canvas__stage">
+        
+  <article class="la-bubble la-bubble--tuto ">
+    <span class="la-bubble__avatar" aria-hidden="true"></span>
+    <div class="la-bubble__body"><p>Ready when you are. Which of these feels most like you today?</p></div>
+    <footer class="la-bubble__meta"><span class="la-bubble__name">Tuto</span><time>14:05</time></footer>
+  </article>
+        <div class="la-cefr-grid" role="radiogroup" aria-label="Choose your current English level">
+          
+  <button type="button" class="la-cefr-card " data-level="a1"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/><circle cx="12" cy="12" r="2.2"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A1 · Spark</span>
+      <span class="la-cefr-card__name">Beginner</span>
+      <span class="la-cefr-card__tone">Every word you learn is a door opening.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="a2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21c3.9 0 6.5-2.5 6.5-6 0-4-3.5-6-4.5-10-2.5 2-3 4.5-3 6.5-1.2-.8-2-2-2.2-3.5C7 9.5 5.5 12 5.5 15c0 3.5 2.6 6 6.5 6Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">A2 · Ember</span>
+      <span class="la-cefr-card__name">Elementary</span>
+      <span class="la-cefr-card__tone">Everyday moments start to make sense.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b1"
+          role="radio" aria-checked="true">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21v-8"/><path d="M12 13c0-4 2.5-7 6.5-7 0 4-2.5 7-6.5 7Z"/><path d="M12 13c0-3-2-5.5-5.5-5.5 0 3.2 2 5.5 5.5 5.5Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B1 · Bloom</span>
+      <span class="la-cefr-card__name">Intermediate</span>
+      <span class="la-cefr-card__tone">Conversations begin to flow on their own.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+  <button type="button" class="la-cefr-card " data-level="b2"
+          role="radio" aria-checked="false">
+    <span class="la-cefr-card__glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg></span>
+    <span class="la-cefr-card__text">
+      <span class="la-cefr-card__code">B2 · Momentum</span>
+      <span class="la-cefr-card__name">Upper Intermediate</span>
+      <span class="la-cefr-card__tone">You joke, argue, and think on your feet.</span>
+    </span>
+    <span class="la-cefr-card__check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+  </button>
+        </div>
+      </div>
+      <div class="la-canvas__dock">
+        <button type="button" class="la-orb-cta la-orb-cta--quiet" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">Not sure yet</span>
+   </button>
+        <button type="button" class="la-orb-cta la-orb-cta--lg" >
+     <span class="la-orb-cta__orb" aria-hidden="true"></span>
+     <span class="la-orb-cta__label">This feels right</span>
+   </button>
+      </div>
+    </div>
+  </main></div>
+  </div>
+    
+  </section>
+
+  <footer class="board-foot">
+    Meridian DS v1 &middot; tokens in <code>src/design-system/tokens.css</code> &middot; regenerate this board with <code>node scripts/build-review-board.mjs</code>. Sora/Inter render via system fallbacks here; product builds self-host the primary faces.
+  </footer>
+</div>
+<script>
+  document.querySelectorAll('.vp').forEach((vp) => {
+    const f = vp.querySelector('.vp__frame');
+    const w = +vp.dataset.w;
+    const fit = () => {
+      const s = Math.min(1, vp.clientWidth / w);
+      f.style.transform = 'scale(' + s + ')';
+      vp.style.height = f.getBoundingClientRect().height + 'px';
+    };
+    new ResizeObserver(fit).observe(vp);
+    requestAnimationFrame(fit);
+  });
+</script>
+
+</body>
+</html>

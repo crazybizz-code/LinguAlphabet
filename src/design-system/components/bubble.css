@@ -1,0 +1,128 @@
+/* ============================================================
+   la-bubble — one conversational turn.
+   `--tuto`   : coach speaks — glass surface, aurora presence dot.
+   `--learner`: learner speaks — iris-tinted, right-aligned.
+   Supports meta row, typing indicator, streaming cursor.
+   ============================================================ */
+
+/* Bubbles expect a column flex parent (the canvas stage is one);
+   they shrink to their content up to the reading measure. */
+.la-bubble {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--la-space-3);
+  width: fit-content;
+  max-width: min(var(--la-col-reading), 88%);
+  font-family: var(--la-font-body);
+  animation: la-bubble-enter var(--la-dur-med) var(--la-ease) both;
+}
+
+@keyframes la-bubble-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Presence dot — who is speaking, in one glance. */
+.la-bubble__avatar {
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  align-self: end;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.85),
+      var(--la-iris) 55%, #2c2168 100%);
+  box-shadow: 0 0 14px rgba(124, 92, 255, 0.45);
+}
+
+.la-bubble__body {
+  min-width: 0;
+  padding: var(--la-space-4) var(--la-space-5);
+  border: 1px solid var(--la-stroke-1);
+  border-radius: var(--la-radius-lg);
+  border-end-start-radius: 6px;
+  background: var(--la-surface-2);
+  color: var(--la-ink-hi);
+  font-size: var(--la-text-md);
+  line-height: var(--la-leading-body);
+  box-shadow: var(--la-shadow-1);
+}
+
+.la-bubble__body p { margin: 0; }
+.la-bubble__body p + p { margin-top: var(--la-space-3); }
+
+.la-bubble__meta {
+  grid-column: 2;
+  display: flex;
+  gap: var(--la-space-2);
+  margin-top: var(--la-space-1);
+  font-size: var(--la-text-xs);
+  color: var(--la-ink-low);
+}
+
+.la-bubble__name { font-weight: 600; color: var(--la-ink-mid); }
+
+/* ---- Learner variant -------------------------------------- */
+.la-bubble--learner {
+  grid-template-columns: 1fr;
+  margin-inline-start: auto;
+  justify-items: end;
+}
+.la-bubble--learner .la-bubble__avatar { display: none; }
+.la-bubble--learner .la-bubble__body {
+  background: linear-gradient(160deg,
+    rgba(124, 92, 255, 0.28), rgba(124, 92, 255, 0.16));
+  border-color: rgba(124, 92, 255, 0.35);
+  border-radius: var(--la-radius-lg);
+  border-end-end-radius: 6px;
+}
+.la-bubble--learner .la-bubble__meta {
+  grid-column: 1;
+  justify-content: end;
+}
+
+/* ---- Typing indicator -------------------------------------- */
+.la-bubble__typing {
+  display: inline-flex;
+  gap: 5px;
+  padding-block: 2px;
+}
+.la-bubble__typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--la-ink-mid);
+  animation: la-bubble-typing 1.1s var(--la-ease) infinite;
+}
+.la-bubble__typing i:nth-child(2) { animation-delay: 0.15s; }
+.la-bubble__typing i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes la-bubble-typing {
+  0%, 60%, 100% { transform: none; opacity: 0.45; }
+  30%           { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Streaming cursor — text arriving live from the coach. */
+.la-bubble--streaming .la-bubble__body > p:last-of-type::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--la-cyan);
+  animation: la-bubble-caret 1s steps(2) infinite;
+}
+@keyframes la-bubble-caret { 50% { opacity: 0; } }
+
+/* Compact containers (side panels, mobile): full-width turns. */
+@container (max-width: 30rem) {
+  .la-bubble { max-width: 100%; }
+  .la-bubble__avatar { width: 1.5rem; height: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .la-bubble { animation: none; }
+  .la-bubble__typing i { animation: none; opacity: 0.7; }
+  .la-bubble--streaming .la-bubble__body > p:last-of-type::after { animation: none; }
+}

@@ -1,0 +1,89 @@
+/* ============================================================
+   la-section-heading — the voice of every scene.
+   Eyebrow · Title · Lede · optional Meta slot (right on desktop).
+   Container-query responsive: adapts to wherever it is placed.
+   ============================================================ */
+
+.la-section-heading {
+  container-type: inline-size;
+  font-family: var(--la-font-body);
+  color: var(--la-ink-hi);
+}
+
+.la-section-heading__grid {
+  display: grid;
+  gap: var(--la-space-3);
+  align-items: end;
+}
+
+.la-section-heading__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--la-space-2);
+  font-size: var(--la-text-xs);
+  font-weight: 600;
+  letter-spacing: var(--la-tracking-caps);
+  text-transform: uppercase;
+  color: var(--la-ink-mid);
+}
+
+/* The eyebrow tick — a short bar of aurora light. */
+.la-section-heading__eyebrow::before {
+  content: "";
+  width: 1.25rem;
+  height: 3px;
+  border-radius: var(--la-radius-full);
+  background: var(--la-aurora);
+}
+
+.la-section-heading__title {
+  margin: 0;
+  font-family: var(--la-font-display);
+  font-size: clamp(var(--la-text-2xl), 4.5cqw + 0.9rem, var(--la-text-3xl));
+  font-weight: 600;
+  line-height: var(--la-leading-tight);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.la-section-heading__lede {
+  margin: 0;
+  max-width: 58ch;
+  font-size: var(--la-text-md);
+  line-height: var(--la-leading-body);
+  color: var(--la-ink-mid);
+}
+
+.la-section-heading__meta {
+  color: var(--la-ink-low);
+  font-size: var(--la-text-sm);
+}
+
+/* Centered variant — Discovery Session, Assessment prompts. */
+.la-section-heading--center .la-section-heading__grid {
+  justify-items: center;
+  text-align: center;
+}
+.la-section-heading--center .la-section-heading__lede {
+  margin-inline: auto;
+}
+
+/* Wide containers: meta slot sits on the same baseline, right side. */
+@container (min-width: 56rem) {
+  .la-section-heading:not(.la-section-heading--center)
+    .la-section-heading__grid:has(.la-section-heading__meta) {
+    grid-template-columns: 1fr auto;
+  }
+  .la-section-heading:not(.la-section-heading--center)
+    .la-section-heading__grid:has(.la-section-heading__meta)
+    > :not(.la-section-heading__meta) {
+    grid-column: 1;
+  }
+  .la-section-heading:not(.la-section-heading--center)
+    .la-section-heading__meta {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    text-align: right;
+  }
+}
