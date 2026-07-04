@@ -5153,6 +5153,10 @@ button,
   --ds-reply-input: clamp(180px, 20vw, 420px);
   --ds-orb-size: clamp(60px, 3vw + 48px, 100px);
   --ds-orb-bottom: clamp(56px, 8vh, 120px);
+  /* Scene 2's card grid needs its own width ceiling — --ds-line-max
+     is tuned for prose, not a six-way card choice, and would squeeze
+     a premium desktop grid into a narrow text column. */
+  --ds-grid-max: clamp(320px, 74vw, 1080px);
 
   position: relative;
   overflow: hidden;
@@ -5646,6 +5650,129 @@ button,
   100% { transform: translateX(-50%) scale(0.25); opacity: 0; }
 }
 
+/* ---------- Reusable panel reveal/dissolve ---------- */
+/* Any non-Tuto-line block that needs to condense in and dissolve out
+   the same way lines do (Scene 2's card grid + reassurance caption).
+   Shares .ds-line's keyframes rather than duplicating them. */
+
+.ds-panel--reveal {
+  animation: ds-line-condense 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ds-panel--dissolve {
+  animation: ds-line-dissolve 600ms cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+  pointer-events: none;
+}
+
+/* ---------- Scene 2: the level grid ---------- */
+/* A native radiogroup of six premium cards — the right surface for a
+   six-way choice, where Scene 1's reply bubble (right for one name)
+   would be wrong. There are always exactly six cards, so the column
+   count is set explicitly per tier (2 → 3 → 6) rather than left to
+   auto-fit: auto-fit packs greedily by available width and leaves an
+   orphaned sixth card alone on its own row the moment five columns
+   fit before a sixth does — an accident of arithmetic, not a designed
+   grid. 2×3 on a phone, 3×2 on a tablet, a full 6-across row from
+   min-width: 880px (the same threshold Scene 1's composition shifts
+   at) reads as composed at every size instead of merely resized. */
+
+.ds-level-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(10px, 1.6vw, 22px);
+  width: 100%;
+  max-width: var(--ds-grid-max);
+  margin-top: 8px;
+}
+
+@media (min-width: 560px) {
+  .ds-level-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 880px) {
+  .ds-level-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.ds-level-grid.ds-hidden {
+  display: none;
+}
+
+.ds-level-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: clamp(84px, 8vw, 128px);
+  padding: clamp(12px, 1.4vw, 20px) clamp(8px, 1vw, 14px);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg, 20px);
+  background: rgba(255, 253, 250, 0.92);
+  box-shadow: 0 2px 10px rgba(26, 26, 46, 0.05);
+  cursor: pointer;
+  transition: transform 220ms var(--ease), box-shadow 220ms var(--ease), border-color 220ms var(--ease);
+}
+
+.ds-level-card:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 140, 66, 0.18);
+  border-color: rgba(255, 170, 110, 0.6);
+}
+
+.ds-level-card:focus-visible {
+  outline: 2px solid rgba(255, 150, 80, 0.8);
+  outline-offset: 3px;
+}
+
+.ds-level-card:disabled {
+  cursor: default;
+}
+
+.ds-level-card--selected {
+  border-color: var(--primary);
+  box-shadow:
+    0 0 0 2px rgba(255, 107, 53, 0.55),
+    0 8px 24px rgba(255, 140, 66, 0.3);
+  transform: scale(1.03);
+}
+
+.ds-level-code {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 1.4vw + 14px, 32px);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.ds-level-label {
+  font-size: clamp(11px, 0.5vw + 10px, 14px);
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.ds-reassurance {
+  position: relative;
+  z-index: 1;
+  margin: clamp(14px, 2vh, 22px) 0 0;
+  max-width: var(--ds-line-max);
+  font-size: clamp(12.5px, 0.4vw + 11px, 15px);
+  color: var(--text-secondary);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.ds-reassurance.ds-hidden {
+  display: none;
+}
+
 /* Small viewports need no dedicated breakpoint any more — every
    scale-bearing rule above reads its size from a --ds-* clamp() token
    whose minimum already equals the old fixed mobile values (stage
@@ -5723,12 +5850,16 @@ button,
   .ds-reply--reveal,
   .ds-reply--sway,
   .ds-reply--dissolve,
+  .ds-panel--reveal,
+  .ds-panel--dissolve,
   .ds-orb--arriving,
   .ds-orb--settled,
   .ds-eye--blink {
     animation: none;
   }
   .ds-reply--dissolve { opacity: 0; }
+  .ds-panel--dissolve { opacity: 0; }
+  .ds-level-card { transition: none; }
   /* Without its animation the bloom would freeze as a stray glow at
      the wake point — remove it; the veil's opacity crossfade carries
      the transition alone. */

@@ -1,8 +1,14 @@
 # Scene 1 — "First Light"
 ## A design review and complete reconception of the first meeting with Tuto
 
-**Status:** Approved with Founder Overrides (v1.1) — implemented.
-**Scope:** Scene 1 only. The Engineering Specification, state machine, adaptive engine, Learning Brain, and the scene's `mount(ctx)` / `ctx.onReady()` contract are untouched by everything in this document.
+**Status:** Scene 1 approved and frozen. Scene 2 ("Self Level Reflection") implemented on top of it — see note below. The Engineering Specification, state machine, adaptive engine, Learning Brain, and the scene contract (`mount(ctx)` / `ctx.onReady(payload)`) are untouched by everything in this document.
+
+> ### Founder Decision (v1.5) — Scene 2 renumbered; Identity Conversation dropped as redundant
+> The originally requested "Scene 2: Identity Conversation" (Tuto asks how to be addressed, conversational input, `preferredName` saved separately from the account name, Tuto acknowledges it) is **word-for-word what Scene 1's "the ask" already does** (v1.2 above) — same question, same reply-bubble mechanic, same acknowledgement, same `onReady({ preferredName })` payload. Building a second identity conversation would ask the learner their name twice in one sitting, which directly violates "one continuous conversation" and "no chat-app feeling." Founder-confirmed resolution: drop it, renumber.
+>
+> **Scene 2 is now "Self Level Reflection"** (`src/discovery/scenes/selfLevelReflection.js`, scene id `self-level-reflection`): Tuto asks *"Where do you think your English is today?"*, presents A1–C2 as a six-card radiogroup, reassures the learner that the upcoming Discovery Session finds the real level, and reacts naturally to whichever card is picked. It receives `ctx.initialData.preferredName` from Scene 1's payload and continues the same conversation — no re-wake, no veil, no ember; Tuto is already present and simply continues talking. It hands `onReady({ selfAssessedLevel })` forward the same way Scene 1 hands `{ preferredName }`.
+>
+> Selection auto-advances (Founder Decision 5: selections may auto-advance; only typed replies require explicit confirmation) — tapping a card is the confirmation. The six-card grid uses **explicit per-tier column counts (2 → 3 → 6)**, not `auto-fit`: with exactly six fixed items, `auto-fit` packs greedily by available width and orphans the sixth card alone on a leftover row the instant five columns fit before six do — an accident of arithmetic that fails the four-breakpoint policy's "intentionally designed, not merely resized" bar. Verified at all four canonical breakpoints (v1.4): 2×3 grid on mobile, 3×2 on tablet, a full 6-across row on laptop/desktop.
 
 > ### Founder Principle (v1.4) — mandatory four-breakpoint review
 > No scene is complete until it has been reviewed **simultaneously** on Desktop, Laptop, Tablet, and Mobile — not spot-checked on one size and assumed to scale. The desktop version must never read as a centered mobile card; **each breakpoint must feel intentionally designed, not merely resized.** This is a standing Definition-of-Done for every scene from here forward, not a one-time fix to Scene 1.
