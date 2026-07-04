@@ -5418,6 +5418,119 @@ button,
   100% { opacity: 0; transform: translate(var(--ds-mote-drift, -40px), -72px) scale(1.1); }
 }
 
+/* ---------- The ask: the reply bubble ---------- */
+/* The learner's half of the conversation — a soft vessel of the same
+   warm light, not a form field. A real <form> (labeled input + submit
+   button) so typing, Enter, tap, and AT all reply identically;
+   submission is always explicit (Founder Decision 5). */
+
+.ds-reply {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 8px 8px 8px 26px;
+  border-radius: 999px;
+  background: rgba(255, 253, 250, 0.92);
+  box-shadow:
+    0 2px 14px rgba(255, 140, 66, 0.18),
+    0 10px 40px rgba(26, 26, 46, 0.08),
+    inset 0 0 0 1.5px rgba(255, 170, 110, 0.35);
+  animation: ds-reply-breathe 4.8s ease-in-out infinite;
+}
+
+.ds-reply.ds-hidden {
+  display: none;
+}
+
+.ds-reply--reveal {
+  animation:
+    ds-line-condense 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    ds-reply-breathe 4.8s ease-in-out 420ms infinite;
+}
+
+@keyframes ds-reply-breathe {
+  0%, 100% { box-shadow: 0 2px 14px rgba(255, 140, 66, 0.14), 0 10px 40px rgba(26, 26, 46, 0.08), inset 0 0 0 1.5px rgba(255, 170, 110, 0.28); }
+  50% { box-shadow: 0 2px 18px rgba(255, 140, 66, 0.26), 0 10px 44px rgba(26, 26, 46, 0.09), inset 0 0 0 1.5px rgba(255, 170, 110, 0.45); }
+}
+
+.ds-reply-input {
+  width: min(52vw, 200px);
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary);
+  caret-color: var(--primary);
+}
+
+.ds-reply-input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+/* The send affordance is a small ember — the learner answers light
+   with light. */
+.ds-reply-send {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle, #ffd9b0 0%, var(--primary) 60%, rgba(255, 107, 53, 0.55) 100%);
+  box-shadow: 0 0 14px 4px rgba(255, 140, 66, 0.4);
+}
+
+/* The bubble itself is the focus indicator: while it's listening it
+   holds its breath and glows steadily. A rectangle outline inside the
+   pill would collapse it back into a form field. */
+.ds-reply-input:focus,
+.ds-reply-input:focus-visible {
+  outline: none;
+}
+
+.ds-reply:focus-within {
+  animation: none;
+  box-shadow:
+    0 2px 20px rgba(255, 140, 66, 0.34),
+    0 10px 44px rgba(26, 26, 46, 0.09),
+    inset 0 0 0 2px rgba(255, 150, 80, 0.65);
+}
+
+.ds-reply-send:focus-visible {
+  outline: 2px solid rgba(255, 150, 80, 0.8);
+  outline-offset: 4px;
+}
+
+.ds-reply-send:active {
+  transform: scale(0.94);
+}
+
+/* An empty reply sways the bubble — a held-out hand, still waiting.
+   Nothing scolds, nothing turns red. */
+.ds-reply--sway {
+  animation: ds-reply-sway 320ms ease-in-out;
+}
+
+@keyframes ds-reply-sway {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-7px); }
+  70% { transform: translateX(6px); }
+}
+
+.ds-reply--dissolve {
+  animation: ds-line-dissolve 600ms cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+  pointer-events: none;
+}
+
 /* ---------- The threshold: the orb ---------- */
 /* No pill button. Tuto's aura sheds a small orb of the first light;
    it descends into the thumb zone and waits. A real <button>:
@@ -5522,11 +5635,16 @@ button,
   .ds-line,
   .ds-line--dissolve,
   .ds-mote,
+  .ds-reply,
+  .ds-reply--reveal,
+  .ds-reply--sway,
+  .ds-reply--dissolve,
   .ds-orb--arriving,
   .ds-orb--settled,
   .ds-eye--blink {
     animation: none;
   }
+  .ds-reply--dissolve { opacity: 0; }
   /* Without its animation the bloom would freeze as a stray glow at
      the wake point — remove it; the veil's opacity crossfade carries
      the transition alone. */

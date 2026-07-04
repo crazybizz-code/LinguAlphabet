@@ -6,12 +6,13 @@ const T = SCENE_TIMINGS;
 
 // Absolute beat times from the wake touch (T0), derived from the
 // exported timings so the tests and the scene can never drift apart.
-const LINE_1_AT = T.firstLineAtMs; // 1900
-const LINE_2_AT = LINE_1_AT + T.lineHoldMs + T.lineDissolveMs; // 4200
-const LINE_3_AT = LINE_2_AT + T.lineHoldMs + T.lineDissolveMs; // 6500
-const ORB_AT = LINE_3_AT + T.lineHoldMs + T.lineDissolveMs + T.orbReleaseGapMs; // 9100
-const ORB_SETTLED_AT = ORB_AT + T.orbDescentMs; // 10000
-const LABEL_AT = ORB_SETTLED_AT + T.orbLabelDelayMs; // 10800
+const LINE_1_AT = T.firstLineAtMs; // "Oh— hello."
+const LINE_2_AT = LINE_1_AT + T.lineHoldMs + T.lineDissolveMs; // "I'm Tuto."
+const QUESTION_AT = LINE_2_AT + T.lineHoldMs + T.lineDissolveMs; // the ask
+const REPLY_AT = QUESTION_AT + T.replyRevealDelayMs; // the reply bubble
+// From the submit (S): dissolve → thinking breath → Tuto answers.
+const RESPONSE_AFTER_SUBMIT = T.lineDissolveMs + T.thinkingMs;
+const ORB_AFTER_SUBMIT = RESPONSE_AFTER_SUBMIT + T.lineHoldMs + T.lineDissolveMs + T.orbReleaseGapMs;
 
 let container;
 
@@ -35,12 +36,24 @@ function wake() {
   container.querySelector('.ds-ember').click();
 }
 
+function runToQuestion() {
+  wake();
+  vi.advanceTimersByTime(REPLY_AT);
+}
+
+function reply(name) {
+  container.querySelector('.ds-reply-input').value = name;
+  container
+    .querySelector('.ds-reply')
+    .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+}
+
 describe('meetTutoScene — the veil (State I)', () => {
   it('has the expected id', () => {
     expect(meetTutoScene.id).toBe('meet-tuto');
   });
 
-  it('opens veiled: ember button + whisper visible, Tuto hidden, no lines, no orb', () => {
+  it('opens veiled: ember button + whisper visible, Tuto hidden, no lines, no reply, no orb', () => {
     meetTutoScene.mount({ container });
     expect(container.querySelector('.ds-veil')).not.toBeNull();
     const ember = container.querySelector('button.ds-ember');
@@ -49,6 +62,7 @@ describe('meetTutoScene — the veil (State I)', () => {
     expect(container.querySelector('.ds-whisper').textContent).toBe('touch the light');
     expect(container.querySelector('.ds-stage').classList.contains('ds-stage--veiled')).toBe(true);
     expect(lineTexts()).toEqual([]);
+    expect(container.querySelector('.ds-reply').classList.contains('ds-hidden')).toBe(true);
     expect(container.querySelector('.ds-orb').classList.contains('ds-hidden')).toBe(true);
   });
 
@@ -108,15 +122,8 @@ describe('meetTutoScene — the wake (T0)', () => {
   });
 });
 
-describe('meetTutoScene — the exchange', () => {
-  it('greets the learner by name', () => {
-    meetTutoScene.mount({ container, initialData: { displayName: 'Yodgor' } });
-    wake();
-    vi.advanceTimersByTime(LINE_1_AT);
-    expect(lineTexts()).toEqual(['Oh— hello, Yodgor.']);
-  });
-
-  it('greets warmly without a name', () => {
+describe('meetTutoScene — the introduction', () => {
+  it('says hello without a name — he does not know it yet', () => {
     meetTutoScene.mount({ container });
     wake();
     vi.advanceTimersByTime(LINE_1_AT);
@@ -135,14 +142,7 @@ describe('meetTutoScene — the exchange', () => {
     expect(container.querySelectorAll('.ds-mote')).toHaveLength(0);
   });
 
-  it('plays all three beats on schedule', () => {
-    meetTutoScene.mount({ container, initialData: { displayName: 'Yodgor' } });
-    wake();
-    vi.advanceTimersByTime(LINE_3_AT);
-    expect(lineTexts()).toEqual(["From here on, it's you and me."]);
-  });
-
-  it('impatience is obeyed: a press advances the exchange immediately', () => {
+  it('impatience is obeyed: a press advances the intro immediately', () => {
     meetTutoScene.mount({ container });
     wake();
     vi.advanceTimersByTime(LINE_1_AT + T.advanceGuardMs); // line 1 landed, guard released
@@ -160,29 +160,97 @@ describe('meetTutoScene — the exchange', () => {
     container.querySelector('.ds-scene').dispatchEvent(new Event('pointerdown', { bubbles: true }));
     expect(container.querySelector('.ds-line--dissolve')).toBeNull();
   });
+});
 
-  it('Enter advances the exchange — keyboard parity', () => {
+describe('meetTutoScene — the ask', () => {
+  it('asks for a name and reveals the reply bubble just after, with focus handed over', () => {
     meetTutoScene.mount({ container });
     wake();
-    vi.advanceTimersByTime(LINE_1_AT + T.advanceGuardMs);
+    vi.advanceTimersByTime(QUESTION_AT);
+    expect(lineTexts()).toEqual(['Before we continue… what should I call you?']);
+    expect(container.querySelector('.ds-reply').classList.contains('ds-hidden')).toBe(true);
+
+    vi.advanceTimersByTime(T.replyRevealDelayMs);
+    const replyForm = container.querySelector('.ds-reply');
+    expect(replyForm.classList.contains('ds-hidden')).toBe(false);
+    expect(document.activeElement).toBe(container.querySelector('.ds-reply-input'));
+    expect(container.querySelector('.ds-reply-input').getAttribute('aria-label')).toBe(
+      'What should I call you?'
+    );
+  });
+
+  it('the question cannot be skipped — taps and Enter do not advance past it', () => {
+    meetTutoScene.mount({ container });
+    runToQuestion();
+    vi.advanceTimersByTime(60_000); // and it never auto-advances either
+    container.querySelector('.ds-scene').dispatchEvent(new Event('pointerdown', { bubbles: true }));
     container
       .querySelector('.ds-scene')
       .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    expect(lineTexts()).toEqual(['Before we continue… what should I call you?']);
+  });
+
+  it('an empty reply sways the bubble and keeps waiting — nothing scolds', () => {
+    meetTutoScene.mount({ container });
+    runToQuestion();
+    reply('   ');
+    expect(container.querySelector('.ds-reply').classList.contains('ds-reply--sway')).toBe(true);
+    expect(lineTexts()).toEqual(['Before we continue… what should I call you?']);
+    expect(document.activeElement).toBe(container.querySelector('.ds-reply-input'));
+  });
+
+  it('a submitted name dissolves the question and the bubble together', () => {
+    meetTutoScene.mount({ container });
+    runToQuestion();
+    reply('Zafar');
     expect(container.querySelector('.ds-line--dissolve')).not.toBeNull();
+    expect(container.querySelector('.ds-reply').classList.contains('ds-reply--dissolve')).toBe(true);
+  });
+
+  it('Tuto takes the name in for a breath, then answers with it', () => {
+    meetTutoScene.mount({ container });
+    runToQuestion();
+    reply('Zafar');
+    vi.advanceTimersByTime(T.lineDissolveMs); // question gone, still thinking
+    expect(lineTexts()).toEqual([]);
+
+    vi.advanceTimersByTime(T.thinkingMs);
+    expect(lineTexts()).toEqual(["Zafar — it's really good to meet you."]);
+  });
+
+  it('normalizes the reply: whitespace collapsed and trimmed, length capped', () => {
+    meetTutoScene.mount({ container });
+    runToQuestion();
+    reply('  Zafar   khan  ');
+    vi.advanceTimersByTime(RESPONSE_AFTER_SUBMIT);
+    expect(lineTexts()).toEqual(["Zafar khan — it's really good to meet you."]);
+  });
+
+  it('the send button is a labeled submit control — tap parity with Enter', () => {
+    meetTutoScene.mount({ container });
+    runToQuestion();
+    const send = container.querySelector('.ds-reply-send');
+    expect(send.getAttribute('aria-label')).toBe('Tell Tuto');
+    container.querySelector('.ds-reply-input').value = 'Aziza';
+    send.click(); // jsdom fires the form's submit event; our handler prevents default
+    vi.advanceTimersByTime(RESPONSE_AFTER_SUBMIT);
+    expect(lineTexts()).toEqual(["Aziza — it's really good to meet you."]);
   });
 });
 
 describe('meetTutoScene — the threshold (the orb)', () => {
-  function runToOrb() {
+  function runToOrb(name = 'Zafar') {
     meetTutoScene.mount({ container });
-    wake();
-    vi.advanceTimersByTime(ORB_AT);
+    runToQuestion();
+    reply(name);
+    vi.advanceTimersByTime(ORB_AFTER_SUBMIT);
   }
 
-  it('the orb stays hidden until the last line has dissolved', () => {
+  it('the orb appears only after Tuto has answered with the name', () => {
     meetTutoScene.mount({ container });
-    wake();
-    vi.advanceTimersByTime(LINE_3_AT + T.lineHoldMs); // final dissolve just starting
+    runToQuestion();
+    reply('Zafar');
+    vi.advanceTimersByTime(RESPONSE_AFTER_SUBMIT + T.lineHoldMs); // response dissolving
     expect(container.querySelector('.ds-orb').classList.contains('ds-hidden')).toBe(true);
   });
 
@@ -202,11 +270,12 @@ describe('meetTutoScene — the threshold (the orb)', () => {
     expect(orb.querySelector('.ds-orb-label').textContent).toBe('Begin');
   });
 
-  it('taking the light fires onReady exactly once, ever', () => {
+  it('taking the light fires onReady exactly once with the chosen name', () => {
     const onReady = vi.fn();
     meetTutoScene.mount({ container, onReady });
-    wake();
-    vi.advanceTimersByTime(LABEL_AT);
+    runToQuestion();
+    reply('Zafar');
+    vi.advanceTimersByTime(ORB_AFTER_SUBMIT + T.orbDescentMs + T.orbLabelDelayMs);
 
     const orb = container.querySelector('.ds-orb');
     orb.click();
@@ -214,13 +283,14 @@ describe('meetTutoScene — the threshold (the orb)', () => {
     orb.click();
 
     expect(onReady).toHaveBeenCalledTimes(1);
+    expect(onReady).toHaveBeenCalledWith({ preferredName: 'Zafar' });
     expect(orb.classList.contains('ds-orb--taken')).toBe(true);
   });
 });
 
 describe('meetTutoScene — invariants', () => {
   it('never exposes test/exam/score/grade/difficulty/algorithm/confidence language', () => {
-    meetTutoScene.mount({ container, initialData: { displayName: 'Yodgor' } });
+    meetTutoScene.mount({ container });
     const forbidden = ['test', 'exam', 'score', 'grade', 'difficulty', 'algorithm', 'confidence'];
     const check = () => {
       const text = container.textContent.toLowerCase();
@@ -229,10 +299,13 @@ describe('meetTutoScene — invariants', () => {
 
     check(); // the veil
     wake();
-    for (const at of [LINE_1_AT, LINE_2_AT, LINE_3_AT, LABEL_AT]) {
-      vi.advanceTimersByTime(at); // cumulative overshoot is fine — we only read text
-      check();
-    }
+    vi.advanceTimersByTime(LINE_1_AT);
+    check();
+    vi.advanceTimersByTime(REPLY_AT);
+    check();
+    reply('Zafar');
+    vi.advanceTimersByTime(ORB_AFTER_SUBMIT + T.orbDescentMs + T.orbLabelDelayMs);
+    check();
   });
 
   it('unmount mid-wake clears the DOM and strands no timers', () => {
@@ -254,15 +327,13 @@ describe('createMeetTutoScene (factory)', () => {
     const containerB = document.createElement('div');
     document.body.append(containerA, containerB);
 
-    instanceA.mount({ container: containerA, initialData: { displayName: 'Alice' } });
-    instanceB.mount({ container: containerB, initialData: { displayName: 'Bob' } });
+    instanceA.mount({ container: containerA });
+    instanceB.mount({ container: containerB });
 
     containerA.querySelector('.ds-ember').click(); // only A wakes
     vi.advanceTimersByTime(LINE_1_AT);
 
-    expect([...containerA.querySelectorAll('.ds-line')].map(el => el.textContent)).toEqual([
-      'Oh— hello, Alice.',
-    ]);
+    expect(containerA.querySelectorAll('.ds-line')).toHaveLength(1);
     expect(containerB.querySelectorAll('.ds-line')).toHaveLength(0);
 
     instanceA.unmount();

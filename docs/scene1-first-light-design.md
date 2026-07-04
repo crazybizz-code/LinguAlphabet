@@ -4,6 +4,9 @@
 **Status:** Approved with Founder Overrides (v1.1) — implemented.
 **Scope:** Scene 1 only. The Engineering Specification, state machine, adaptive engine, Learning Brain, and the scene's `mount(ctx)` / `ctx.onReady()` contract are untouched by everything in this document.
 
+> ### Founder Correction (v1.2) — the ask
+> Scene 1 does not end at the introduction: it contains the first real conversation. After "I'm Tuto." the exchange becomes: **"Before we continue… what should I call you?"** → a conversational reply bubble appears (the learner's half of the conversation — a soft vessel of the same warm light with an ember send-button, *never* a form field; the bubble itself is the focus indicator: it holds its breath and glows steadily while listening) → the learner types a preferred name or nickname and confirms explicitly (Enter or the ember — Founder Decision 5) → the question and reply dissolve together, Tuto takes the name in for a breath, and answers with it: *"‹Name› — it's really good to meet you."* → only then does the aura shed the orb. Consequences: the intro greeting is nameless by design (he doesn't know it yet); the name is no longer read from `initialData`; `onReady({ preferredName })` now carries it and the caller persists it (Learning Brain identity) for every scene after. An empty reply just sways the bubble — nothing scolds, nothing turns red.
+>
 > ### Founder Overrides (v1.1) — these amend everything below
 > 1. **No dark visual identity.** State I is not darkness: it is the app's own warm cream world dimmed to a golden dusk (a honey veil), so the arc is *hushed → vivid*, never *black → light*. Every reference to "dark"/"darkness" below reads as this warm veil.
 > 2. **Sound is optional.** The wake tone is a grace note behind capability checks; the scene is complete and equally magical muted.
