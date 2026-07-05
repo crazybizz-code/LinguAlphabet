@@ -1,8 +1,8 @@
 /* ============================================================
    LINGUAALPHABET — Design Tokens & Base Reset
-   V2 reset: all V1 screen/component CSS has been removed. This file
-   now holds only the reusable design tokens, CSS reset, and base
-   typography utilities for the next product experience to build on.
+   The only source of raw design values (color/radius/shadow/spacing/
+   type/motion). Components and screens consume these via var(...) —
+   never hard-code a color or radius outside this file.
    ============================================================ */
 
 /* ======================== TOKENS ======================== */
@@ -49,6 +49,8 @@
   --sh-lg: 0 10px 30px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.05);
   --sh-xl: 0 20px 60px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.08);
   --sh-player: 0 -4px 24px rgba(0,0,0,0.12);
+  /* Soft "floating card" elevation per docs/design-system.md */
+  --sh-card: 0 8px 30px rgba(0,0,0,0.08);
 
   /* Border Radius */
   --r-xs: 6px;
@@ -58,6 +60,9 @@
   --r-xl: 28px;
   --r-2xl: 36px;
   --r-full: 999px;
+  /* Semantic radii matching docs/design-system.md exactly (Cards 24 / Sheets 32) */
+  --r-card: 24px;
+  --r-sheet: 32px;
 
   /* Spacing */
   --sp-xs: 4px;
@@ -104,13 +109,21 @@
   --ls-body: 0em;
 
 
-  /* Transitions */
+  /* Transitions — see src/animation.js, keep JS/CSS in sync */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --dur-fast: 150ms;
   --dur-normal: 250ms;
   --dur-slow: 400ms;
+
+  /* Responsive breakpoints (desktop-first: these are documented for
+     consistency across files — media queries still need literal px
+     values since CSS custom properties can't be used inside an
+     @media condition). Author base styles for desktop/wide viewports
+     first, then narrow with `@media (max-width: ...)`. */
+  /* --bp-tablet: 768px */
+  /* --bp-mobile: 430px */
 }
 
 /* ======================== RESET ======================== */
@@ -123,7 +136,6 @@
 
 html {
   height: 100%;
-  overflow: hidden;
 }
 
 body {
@@ -131,9 +143,8 @@ body {
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-primary);
-  background: #E5E5E5;
+  background: var(--bg);
   height: 100%;
-  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -1,0 +1,262 @@
+/* ============================================================
+   components.css — Shared component visual language
+   One canonical class per component family. Screens compose these;
+   they never invent one-off component styles of their own.
+   Desktop First: base rules assume a wide viewport; mobile overrides
+   live in `@media (max-width: 768px | 430px)` blocks per component.
+   ============================================================ */
+
+/* ======================== BUTTON ======================== */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  height: 52px;
+  padding: 0 32px;
+  border-radius: var(--r-lg);
+  font-size: 16px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: -0.01em;
+  transition: transform var(--dur-fast) var(--ease-spring),
+              box-shadow var(--dur-normal) var(--ease),
+              opacity var(--dur-normal) var(--ease);
+}
+
+.ds-btn:active {
+  transform: scale(0.97);
+}
+
+.ds-btn:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+  cursor: default;
+}
+
+.ds-btn--primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--text-on-primary);
+  box-shadow: 0 16px 32px rgba(255,107,53,0.26), 0 3px 10px rgba(255,107,53,0.16);
+}
+
+.ds-btn--primary:active {
+  box-shadow: 0 8px 18px rgba(255,107,53,0.20), 0 2px 6px rgba(255,107,53,0.12);
+}
+
+.ds-btn--secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border);
+}
+
+.ds-btn--ghost {
+  background: transparent;
+  color: var(--primary);
+  height: auto;
+  padding: 8px 12px;
+}
+
+/* Full-width CTA — an explicit opt-in, not the default, since a
+   desktop-first button should not assume it owns the full row. */
+.ds-btn--block {
+  width: 100%;
+}
+
+@media (max-width: 430px) {
+  .ds-btn {
+    height: 56px;
+    font-size: 17px;
+  }
+}
+
+/* ======================== CARD ======================== */
+.ds-card {
+  background: var(--bg-card);
+  border-radius: var(--r-card);
+  padding: var(--sp-2xl);
+  box-shadow: var(--sh-card);
+}
+
+/* ======================== PROGRESS DOTS ======================== */
+/* Subtle onboarding/step progress. Never render a percentage next to
+   this — see docs/design-system.md ("Assessment... never display
+   percentages"). */
+.ds-progress-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+}
+
+.ds-progress-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--border);
+  transition: background var(--dur-normal) var(--ease), transform var(--dur-normal) var(--ease-spring);
+}
+
+.ds-progress-dot.is-active {
+  background: var(--primary);
+  transform: scale(1.3);
+}
+
+.ds-progress-dot.is-complete {
+  background: var(--primary-light);
+}
+
+/* ======================== TUTO ======================== */
+.ds-tuto {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ds-tuto-size, 160px);
+  height: var(--ds-tuto-size, 160px);
+}
+
+.ds-tuto-avatar {
+  position: relative;
+  z-index: 1;
+  width: 90%;
+  height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ds-tuto-avatar svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ds-tuto-body {
+  transform-origin: center;
+  animation: dsTutoBreathe 3s ease-in-out infinite;
+}
+
+.ds-tuto-glow {
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,107,53,0.24) 0%, rgba(255,107,53,0.10) 45%, rgba(255,107,53,0) 72%);
+  z-index: 0;
+}
+
+@keyframes dsTutoBreathe {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -2px, 0); }
+}
+
+@keyframes dsTutoBlink {
+  0%, 85%, 100% { transform: scaleY(1); }
+  92% { transform: scaleY(0.05); }
+}
+
+/* ======================== TOAST ======================== */
+.ds-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translate3d(-50%, 16px, 0);
+  opacity: 0;
+  pointer-events: none;
+  background: var(--bg-dark);
+  color: var(--text-on-dark);
+  padding: 14px 22px;
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: var(--fw-semibold);
+  box-shadow: var(--sh-lg);
+  z-index: 1000;
+  transition: opacity var(--dur-normal) var(--ease-out), transform var(--dur-normal) var(--ease-out);
+}
+
+.ds-toast.is-visible {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0);
+}
+
+/* ======================== SHEET / DIALOG ======================== */
+.ds-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  opacity: 0;
+  transition: opacity var(--dur-normal) var(--ease);
+  z-index: 900;
+}
+
+.ds-sheet-overlay.is-open {
+  opacity: 1;
+}
+
+/* Default (desktop-first): centered dialog, rounded on all corners. */
+.ds-sheet {
+  background: var(--bg-card);
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-xl);
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: var(--sp-2xl);
+  transform: scale(0.96) translateY(8px);
+  transition: transform var(--dur-normal) var(--ease-spring);
+}
+
+.ds-sheet-overlay.is-open .ds-sheet {
+  transform: scale(1) translateY(0);
+}
+
+/* On phones, presenting as a bottom sheet feels more native than a
+   centered dialog. */
+@media (max-width: 430px) {
+  .ds-sheet-overlay {
+    align-items: flex-end;
+  }
+
+  .ds-sheet {
+    max-width: 100%;
+    max-height: 86vh;
+    border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+    padding: var(--sp-2xl) var(--sp-xl) calc(var(--sp-xl) + var(--safe-bottom));
+    transform: translate3d(0, 100%, 0);
+  }
+
+  .ds-sheet-overlay.is-open .ds-sheet {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ======================== REVEAL / EXIT UTILITIES ======================== */
+/* Shared staged-reveal convention (see src/animation.js:revealSequence).
+   Author an element's resting state under `.is-revealed`; its hidden
+   state is the plain `.ds-reveal` base rule. */
+.ds-reveal {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+  transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+}
+
+.ds-reveal.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Use on any element carrying an `animation: ... forwards` entrance
+   (e.g. .ds-tuto-avatar's own animation) to cancel it before a class
+   toggle can transition the same property back out — a completed
+   forwards-fill animation otherwise silently wins over a later plain
+   CSS transition on that property. Every declaration here is
+   `!important`: `.is-exiting` must always win, including over
+   `.ds-reveal.is-revealed`'s higher-specificity compound selector. */
+.is-exiting {
+  animation: none !important;
+  transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease) !important;
+  opacity: 0 !important;
+  transform: translate3d(0, -14px, 0) !important;
+}

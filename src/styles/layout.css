@@ -1,0 +1,60 @@
+/* ============================================================
+   layout.css — App shell + generic screen containers
+   Desktop First: base rules below assume a wide viewport. Mobile
+   adaptation happens via `@media (max-width: ...)` overrides, never
+   the other way around. Breakpoints: 768px (tablet), 430px (phone).
+   ============================================================ */
+
+#app {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+/* The router mounts each screen's root element into one of these slots. */
+.ds-screen-slot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* Narrow, centered layout for single-task screens (auth, onboarding).
+   Desktop: a comfortable fixed reading width, generous margins.
+   Mobile: full-bleed with safe-area-aware padding. */
+.ds-screen--centered {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 64px 48px;
+}
+
+@media (max-width: 768px) {
+  .ds-screen--centered {
+    max-width: 100%;
+    padding: calc(32px + var(--safe-top)) 28px calc(24px + var(--safe-bottom));
+  }
+}
+
+/* Wide layout for multi-column screens (dashboard, library, explore).
+   Desktop: generous max-width so content doesn't stretch edge to edge.
+   Mobile: collapses to a single column via the screen's own grid rules. */
+.ds-screen--wide {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 48px 40px;
+}
+
+@media (max-width: 768px) {
+  .ds-screen--wide {
+    padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));
+  }
+}
