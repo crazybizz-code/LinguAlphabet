@@ -27,7 +27,7 @@ import { Card } from '../../components/card.js';
 import { Button } from '../../components/button.js';
 import { replace } from '../../router.js';
 import { fadeSlideIn, slidePush, prefersReducedMotion, EASE } from '../../animation.js';
-import * as Phase03 from './_phase03Placeholder.js';
+import * as Phase03 from './displayName.js';
 
 // Each run is { t: text, accent: true|false }. Split into lines so the
 // greeting/body render as separate block lines, matching the reference.

@@ -195,8 +195,8 @@
   font-weight: var(--fw-bold);
 }
 
-.ds-step-badge::before,
-.ds-step-badge::after {
+.ds-step-badge--bracketed::before,
+.ds-step-badge--bracketed::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -207,18 +207,29 @@
   transform: translateY(-50%);
 }
 
-.ds-step-badge::before {
+.ds-step-badge--bracketed::before {
   left: -9px;
   border-right: none;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
 
-.ds-step-badge::after {
+.ds-step-badge--bracketed::after {
   right: -9px;
   border-left: none;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+}
+
+/* 03-display-name's own reference: completed-step badges are a smaller
+   solid circle with a white checkmark, no number, no bracket arcs. */
+.ds-step-badge--done {
+  width: 24px;
+  height: 24px;
+}
+
+.ds-step-badge--done svg {
+  color: var(--text-on-primary);
 }
 
 .ds-step-dot {
