@@ -23,7 +23,6 @@ import { Button, setButtonLoading } from '../../components/button.js';
 import { Card } from '../../components/card.js';
 import { MascotHero } from '../../components/mascotHero.js';
 import { FormInput } from '../../components/formInput.js';
-import { SocialButton } from '../../components/socialButton.js';
 import { supabase, UserState } from '../../db.js';
 import { fadeSlideIn, shake, slidePush, prefersReducedMotion } from '../../animation.js';
 import { replace } from '../../router.js';
@@ -165,24 +164,6 @@ export function mount(container) {
 
   const submitBtn = Button({ label: 'Sign Up', variant: 'primary', block: true, arrow: true, disabled: true });
 
-  const divider = document.createElement('div');
-  divider.className = 'auth-divider';
-  divider.innerHTML = `<span>or continue with</span>`;
-
-  const ssoDesktop = document.createElement('div');
-  ssoDesktop.className = 'ds-social-group ds-hide-mobile';
-  ssoDesktop.append(
-    SocialButton({ provider: 'google', variant: 'icon', onClick: () => handleSsoStub('Google') }),
-    SocialButton({ provider: 'apple', variant: 'icon', onClick: () => handleSsoStub('Apple') })
-  );
-
-  const ssoMobile = document.createElement('div');
-  ssoMobile.className = 'ds-social-group ds-social-group--stacked ds-hide-desktop';
-  ssoMobile.append(
-    SocialButton({ provider: 'google', variant: 'full', onClick: () => handleSsoStub('Google') }),
-    SocialButton({ provider: 'apple', variant: 'full', onClick: () => handleSsoStub('Apple') })
-  );
-
   const loginRow = document.createElement('p');
   loginRow.className = 'auth-signup-row';
   loginRow.innerHTML = `Already have an account? <button type="button" class="auth-link-btn" id="signup-to-login">Sign In</button>`;
@@ -191,7 +172,6 @@ export function mount(container) {
     headingDesktop, headingMobile,
     email.el, password.el, confirmPassword.el,
     errorBanner, submitBtn,
-    divider, ssoDesktop, ssoMobile,
     loginRow
   );
 
@@ -224,10 +204,6 @@ export function mount(container) {
 
   function clearFormError() {
     errorBanner.classList.add('hidden');
-  }
-
-  function handleSsoStub(provider) {
-    showFormError(`${provider} sign-up isn't wired up yet — no OAuth backend exists for it in this project.`);
   }
 
   card.querySelector('#signup-to-login')?.addEventListener('click', () => {

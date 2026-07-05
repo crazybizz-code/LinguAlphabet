@@ -4,8 +4,8 @@
 // Pixel spec: 01-authentication/{design,desktop,mobile}.png,
 // prompt.md, interaction.md, notes.md (v1.1).
 //
-// Out of scope for Authentication V1 (explicit instruction):
-//   - Real Google/Apple OAuth (no backend wiring exists for it yet)
+// Authentication V1 is email/password only — Google/Apple OAuth
+// buttons were removed entirely (not stubbed) per explicit instruction.
 // ============================================================
 
 import './login.css';
@@ -13,7 +13,6 @@ import { Button, setButtonLoading } from '../../components/button.js';
 import { Card } from '../../components/card.js';
 import { MascotHero } from '../../components/mascotHero.js';
 import { FormInput } from '../../components/formInput.js';
-import { SocialButton } from '../../components/socialButton.js';
 import { supabase, UserState } from '../../db.js';
 import { fadeSlideIn, shake, slidePush, prefersReducedMotion } from '../../animation.js';
 import { replace } from '../../router.js';
@@ -158,24 +157,6 @@ export function mount(container) {
 
   const submitBtn = Button({ label: 'Sign In', variant: 'primary', block: true, arrow: true, disabled: true });
 
-  const divider = document.createElement('div');
-  divider.className = 'auth-divider';
-  divider.innerHTML = `<span>or continue with</span>`;
-
-  const ssoDesktop = document.createElement('div');
-  ssoDesktop.className = 'ds-social-group ds-hide-mobile';
-  ssoDesktop.append(
-    SocialButton({ provider: 'google', variant: 'icon', onClick: () => handleSsoStub('Google') }),
-    SocialButton({ provider: 'apple', variant: 'icon', onClick: () => handleSsoStub('Apple') })
-  );
-
-  const ssoMobile = document.createElement('div');
-  ssoMobile.className = 'ds-social-group ds-social-group--stacked ds-hide-desktop';
-  ssoMobile.append(
-    SocialButton({ provider: 'google', variant: 'full', onClick: () => handleSsoStub('Google') }),
-    SocialButton({ provider: 'apple', variant: 'full', onClick: () => handleSsoStub('Apple') })
-  );
-
   const signupRow = document.createElement('p');
   signupRow.className = 'auth-signup-row';
   signupRow.innerHTML = `Don’t have an account? <button type="button" class="auth-link-btn" id="auth-signup">Sign Up</button>`;
@@ -184,7 +165,6 @@ export function mount(container) {
     headingDesktop, headingMobile,
     email.el, password.el,
     optionsRow, errorBanner, submitBtn,
-    divider, ssoDesktop, ssoMobile,
     signupRow
   );
 
@@ -215,11 +195,6 @@ export function mount(container) {
 
   function clearFormError() {
     errorBanner.classList.add('hidden');
-  }
-
-  // ---- Google/Apple OAuth: explicitly out of scope for Authentication V1 ----
-  function handleSsoStub(provider) {
-    showFormError(`${provider} sign-in isn't wired up yet — no OAuth backend exists for it in this project.`);
   }
 
   card.querySelector('#auth-forgot')?.addEventListener('click', () => {
