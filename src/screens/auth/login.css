@@ -58,30 +58,12 @@
   max-width: 380px;
 }
 
+/* .ds-mascot-hero / .ds-mascot-badge (shared badge positioning + Tuto
+   stacking fix) live in components.css — this screen only adds its own
+   margin/centering on top of that shared base. */
 .auth-mascot-wrap {
-  position: relative;
   margin: var(--sp-xl) 0;
   align-self: center;
-}
-
-.auth-floating-badge {
-  position: absolute;
-  /* .ds-tuto-avatar uses z-index:1 and .ds-tuto has no z-index of its own,
-     so that 1 escapes into this shared stacking context — badges need to
-     beat it explicitly or they silently render underneath the mascot
-     wherever their box happens to overlap its opaque pixels. */
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--r-full);
-  background: var(--bg-card);
-  box-shadow: var(--sh-sm);
-  font-size: 16px;
-  font-weight: var(--fw-bold);
-  color: var(--primary);
 }
 
 .auth-value-cards {

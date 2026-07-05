@@ -134,11 +134,106 @@
   padding: var(--sp-2xl);
 }
 
+/* design-tokens.md: sh-card-hero is for "welcome, confidence, ai-plan,
+   dashboard" specifically — heavier ambient elevation than the default
+   sh-card-ambient every other card uses. */
+.ds-card--hero-shadow {
+  box-shadow: var(--sh-card-hero);
+}
+
 @media (max-width: 767px) {
   .ds-card,
   .ds-card--spacious {
     padding: var(--sp-lg);
   }
+}
+
+/* ======================== ONBOARDING HEADER ======================== */
+.ds-onboarding-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ds-onboarding-logo {
+  font-size: 22px;
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.ds-onboarding-logo span {
+  color: var(--primary);
+}
+
+.ds-onboarding-tagline {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+.ds-step-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+/* The current-step badge: filled circle + two thin bracket arcs either
+   side, per the reference (a subtle "you are here" pulse-ring motif,
+   not literal parentheses text). */
+.ds-step-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-full);
+  background: var(--primary);
+  color: var(--text-on-primary);
+  font-size: 13px;
+  font-weight: var(--fw-bold);
+}
+
+.ds-step-badge::before,
+.ds-step-badge::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 20px;
+  border: 1.5px solid var(--primary);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.ds-step-badge::before {
+  left: -9px;
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.ds-step-badge::after {
+  right: -9px;
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.ds-step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-full);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* Only the step immediately following the current one renders solid —
+   observed directly in 02-tuto-welcome's reference (current badge + one
+   solid dot + the rest hollow), not documented in writing anywhere;
+   re-check against each later phase's own reference as it's built. */
+.ds-step-dot.is-next {
+  background: var(--primary);
 }
 
 /* Horizontal shake for invalid form submission — interaction.md:
@@ -369,6 +464,35 @@
 @keyframes dsTutoFloat {
   0%, 100% { transform: translate3d(0, 0, 0); }
   50% { transform: translate3d(0, -8px, 0); }
+}
+
+/* ======================== MASCOT HERO ======================== */
+/* Shared by every phase that stages Tuto with surrounding floating
+   badges (components/mascotHero.js) — position:relative here is what
+   lets badges below position themselves against the mascot. */
+.ds-mascot-hero {
+  position: relative;
+}
+
+.ds-mascot-badge {
+  position: absolute;
+  /* .ds-tuto-avatar carries z-index:1 which escapes into this shared
+     stacking context (.ds-tuto has no z-index of its own to contain
+     it) — badges must beat that explicitly or they silently render
+     underneath the mascot wherever their box overlaps its opaque
+     pixels. */
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-full);
+  background: var(--bg-card);
+  box-shadow: var(--sh-sm);
+  font-size: 16px;
+  font-weight: var(--fw-bold);
+  color: var(--primary);
 }
 
 /* ======================== TOAST ======================== */

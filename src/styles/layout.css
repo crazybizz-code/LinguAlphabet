@@ -155,3 +155,46 @@
     padding: 16px 20px calc(24px + var(--safe-bottom));
   }
 }
+
+/* ======================== ONBOARDING SHELL ======================== */
+/* Phases 02-09 share this shape: a full-width header (brand + step
+   progress) above the mascot/card split body — unlike 01-authentication,
+   whose header nests inside its left column only (own layout.md calls
+   for an even 2-column split with no shared top bar). components.md's
+   <OnboardingLayout> -> <HeaderNav> + (<MascotHero>, <SpeechCard>) tree
+   is what this and .ds-onboarding-header below implement. */
+.ds-onboarding-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+}
+
+.ds-onboarding-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 32px 48px 0;
+}
+
+/* The split body fills whatever height the header doesn't use — plain
+   .ds-screen--split assumes it owns the full slot height itself
+   (min-height:100%), which collapses when nested as a flex child here. */
+.ds-onboarding-body {
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 767px) {
+  .ds-onboarding-header {
+    /* Reference stacks the step-dot row below the brand lockup on
+       mobile (left-aligned), rather than side-by-side as on desktop. */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: calc(16px + var(--safe-top)) 20px 0;
+  }
+  .ds-step-dots {
+    padding-top: 0;
+  }
+}

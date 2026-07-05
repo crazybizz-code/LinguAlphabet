@@ -6,24 +6,21 @@
 //
 // Out of scope for this phase (no pixel-perfect spec exists for
 // these — see the Phase 01 completion report's "Known differences"):
-//   - Sign Up / Forgot Password destination screens
+//   - Sign Up / Forgot Password destination screens (not in the
+//     Design Handoff at all — no design.png/prompt.md for either)
 //   - Real Google/Apple OAuth (no backend wiring exists for it yet)
-//   - Phase 02 (Tuto Welcome) — a minimal placeholder stands in for it
-//     so the documented screen-push transition is still real and
-//     testable, per notes.md: "On valid submission ... route to
-//     Phase 2: Tuto Welcome."
 // ============================================================
 
 import './login.css';
 import { Button, setButtonLoading } from '../../components/button.js';
 import { Card } from '../../components/card.js';
-import { Tuto } from '../../components/tuto.js';
+import { MascotHero } from '../../components/mascotHero.js';
 import { FormInput } from '../../components/formInput.js';
 import { SocialButton } from '../../components/socialButton.js';
 import { supabase, UserState } from '../../db.js';
 import { fadeSlideIn, shake, slidePush, prefersReducedMotion } from '../../animation.js';
 import { replace } from '../../router.js';
-import * as Phase02Placeholder from '../onboarding/_phase02Placeholder.js';
+import * as Phase02 from '../onboarding/tutoWelcome.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -31,14 +28,6 @@ const MAIL_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><
 const LOCK_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><rect x="4.5" y="9" width="11" height="8" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M7 9V6.5a3 3 0 0 1 6 0V9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
 const EYE_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M1.5 10S4.5 4.5 10 4.5 18.5 10 18.5 10 15.5 15.5 10 15.5 1.5 10 1.5 10z" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="2.4" stroke="currentColor" stroke-width="1.6"/></svg>`;
 const EYE_OFF_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M2.5 2.5l15 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M1.5 10S4.5 4.5 10 4.5c1.4 0 2.6.35 3.6.87M18.5 10S16.9 12.9 14 14.4M6.6 6.9C4.6 8 1.5 10 1.5 10s3 5.5 8.5 5.5c1.05 0 2-.18 2.85-.48" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-// Badge icons are SVG (not emoji): emoji glyph availability/style varies
-// by OS and browser font stack, which both breaks rendering in some
-// environments and can't match the reference's consistent orange
-// outline-icon language the way a hand-drawn stroke icon can.
-const HEADPHONE_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M3 11v-1a7 7 0 0 1 14 0v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="2" y="11" width="4" height="5.5" rx="1.6" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="11" width="4" height="5.5" rx="1.6" stroke="currentColor" stroke-width="1.6"/></svg>`;
-const BOOK_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M10 5.2C8.8 4.3 7 3.8 5 3.8c-.9 0-1.6.08-2 .16v10.5c.4-.08 1.1-.16 2-.16 2 0 3.8.5 5 1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 5.2c1.2-.9 3-1.4 5-1.4.9 0 1.6.08 2 .16v10.5c-.4-.08-1.1-.16-2-.16-2 0-3.8.5-5 1.4V5.2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const MIC_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><rect x="7" y="2.5" width="6" height="9.5" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 10.5a5.5 5.5 0 0 0 11 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 16v1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
 
 function ValueCard(icon, title, desc) {
   const el = document.createElement('div');
@@ -48,14 +37,6 @@ function ValueCard(icon, title, desc) {
     <span class="auth-value-card__title">${title}</span>
     <span class="auth-value-card__desc">${desc}</span>
   `;
-  return el;
-}
-
-function FloatingBadge(content, position) {
-  const el = document.createElement('div');
-  el.className = 'auth-floating-badge';
-  el.style.cssText = position;
-  el.innerHTML = content;
   return el;
 }
 
@@ -80,24 +61,16 @@ export function mount(container) {
     <p class="auth-subheadline">Continue your English journey with your AI coach.</p>
   `;
 
-  const mascotWrap = document.createElement('div');
-  mascotWrap.className = 'auth-mascot-wrap ds-hide-mobile';
   // Measured against the reference: at size 220 the rendered character
   // was ~24.5% of the panel's content height; mascot-guidelines.md /
-  // asset-specification.md both call for 35-40%. 375 (~17% up from the
-  // prior 320) better matches the reference's hero composition weight.
-  const tuto = Tuto({ pose: 'wave', size: 375, glow: true, altText: 'Tuto waving hello' });
-  mascotWrap.append(
-    tuto,
-    // Positions tuned to sit close against the mascot's silhouette,
-    // matching the reference (previously too far out toward the wrap's
-    // edges). Also restores the 4th "mic" badge visible in the
-    // reference that the original pass missed (only 3 were built).
-    FloatingBadge('Aa', 'top: 14%; left: 10%;'),
-    FloatingBadge(HEADPHONE_ICON, 'top: 36%; right: 8%;'),
-    FloatingBadge(MIC_ICON, 'bottom: 22%; right: 4%;'),
-    FloatingBadge(BOOK_ICON, 'top: 54%; right: 6%;')
-  );
+  // asset-specification.md both call for 35-40%. 375 measures at ~40%.
+  const mascotWrap = MascotHero({
+    pose: 'wave',
+    size: 375,
+    glow: true,
+    altText: 'Tuto waving hello',
+    className: 'auth-mascot-wrap ds-hide-mobile'
+  });
 
   const valueCards = document.createElement('div');
   valueCards.className = 'auth-value-cards ds-hide-mobile';
@@ -285,7 +258,7 @@ export function mount(container) {
       card.style.opacity = '0';
 
       setTimeout(() => {
-        replace(Phase02Placeholder, {}, { transition: slidePush });
+        replace(Phase02, {}, { transition: slidePush });
       }, prefersReducedMotion() ? 0 : 150);
     } catch (err) {
       setButtonLoading(submitBtn, false);
