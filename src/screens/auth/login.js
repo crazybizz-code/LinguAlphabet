@@ -74,7 +74,10 @@ export function mount(container) {
 
   const mascotWrap = document.createElement('div');
   mascotWrap.className = 'auth-mascot-wrap ds-hide-mobile';
-  const tuto = Tuto({ pose: 'wave', size: 220, glow: true, altText: 'Tuto waving hello' });
+  // Measured against the reference: at size 220 the rendered character
+  // was ~24.5% of the panel's content height; mascot-guidelines.md /
+  // asset-specification.md both call for 35-40%. 320 targets ~35%.
+  const tuto = Tuto({ pose: 'wave', size: 320, glow: true, altText: 'Tuto waving hello' });
   mascotWrap.append(
     tuto,
     FloatingBadge('Aa', 'top: 6%; left: 4%;'),

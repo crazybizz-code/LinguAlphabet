@@ -5,8 +5,14 @@
    redefines those.
    ============================================================ */
 
+/* Reference composition is edge-to-edge (logo pinned near the top,
+   value cards pinned near the bottom), not a single block vertically
+   centered in the panel — .ds-split-hero's shared `justify-content:
+   center` gets overridden here; the value cards' own margin-top:auto
+   below does the bottom-pinning. */
 .auth-hero {
   align-items: flex-start;
+  justify-content: flex-start;
   gap: var(--sp-lg);
 }
 
@@ -77,6 +83,7 @@
   display: flex;
   gap: var(--sp-md);
   width: 100%;
+  margin-top: auto; /* pins to the bottom of .auth-hero, per the reference */
 }
 
 .auth-value-card {
@@ -199,16 +206,25 @@
   color: var(--text-secondary);
 }
 
+/* Deliberately NOT flex: this is a paragraph of text with inline links
+   (<a>), and flex turns each inline child into its own row item with a
+   forced `gap` between them, breaking normal text wrapping (confirmed
+   during Phase 01 visual review — words were wrapping individually
+   with large gaps instead of flowing as one paragraph). Plain block +
+   text-align lets it wrap like text because it IS text. */
 .auth-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
   max-width: 480px;
-  margin-top: var(--sp-lg);
+  margin: var(--sp-lg) auto 0;
   font-size: 12px;
+  line-height: 1.6;
   color: var(--text-secondary);
   text-align: center;
+}
+
+.auth-footer svg {
+  display: inline-block;
+  vertical-align: -3px;
+  margin-right: 4px;
 }
 
 .auth-footer a {
