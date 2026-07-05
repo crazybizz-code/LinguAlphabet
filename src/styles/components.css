@@ -183,7 +183,12 @@
   gap: var(--sp-sm);
   height: 56px;
   padding: 0 18px;
-  background: var(--bg-card);
+  /* Not a named token in design-tokens.md/color-system.md, but every
+     reference PNG (01-authentication desktop.png/mobile.png) renders
+     inputs with a visibly distinct light-gray fill vs. the white card
+     behind them (measured rgb(245,245,245) from the reference exports) —
+     PNG references outrank docs per the priority order when they conflict. */
+  background: #F5F5F5;
   border: 1.5px solid var(--border);
   border-radius: var(--r-lg);
   transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease);

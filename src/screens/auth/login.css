@@ -66,6 +66,11 @@
 
 .auth-floating-badge {
   position: absolute;
+  /* .ds-tuto-avatar uses z-index:1 and .ds-tuto has no z-index of its own,
+     so that 1 escapes into this shared stacking context — badges need to
+     beat it explicitly or they silently render underneath the mascot
+     wherever their box happens to overlap its opaque pixels. */
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -136,6 +141,10 @@
 .auth-eye-toggle {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
   color: var(--text-secondary);
   flex-shrink: 0;
 }
@@ -158,6 +167,7 @@
 .auth-checkbox input {
   width: 18px;
   height: 18px;
+  border-radius: 5px;
   accent-color: var(--primary);
 }
 

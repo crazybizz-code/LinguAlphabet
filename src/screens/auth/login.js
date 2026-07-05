@@ -32,6 +32,14 @@ const LOCK_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><
 const EYE_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M1.5 10S4.5 4.5 10 4.5 18.5 10 18.5 10 15.5 15.5 10 15.5 1.5 10 1.5 10z" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="2.4" stroke="currentColor" stroke-width="1.6"/></svg>`;
 const EYE_OFF_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M2.5 2.5l15 15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M1.5 10S4.5 4.5 10 4.5c1.4 0 2.6.35 3.6.87M18.5 10S16.9 12.9 14 14.4M6.6 6.9C4.6 8 1.5 10 1.5 10s3 5.5 8.5 5.5c1.05 0 2-.18 2.85-.48" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
+// Badge icons are SVG (not emoji): emoji glyph availability/style varies
+// by OS and browser font stack, which both breaks rendering in some
+// environments and can't match the reference's consistent orange
+// outline-icon language the way a hand-drawn stroke icon can.
+const HEADPHONE_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M3 11v-1a7 7 0 0 1 14 0v1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><rect x="2" y="11" width="4" height="5.5" rx="1.6" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="11" width="4" height="5.5" rx="1.6" stroke="currentColor" stroke-width="1.6"/></svg>`;
+const BOOK_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><path d="M10 5.2C8.8 4.3 7 3.8 5 3.8c-.9 0-1.6.08-2 .16v10.5c.4-.08 1.1-.16 2-.16 2 0 3.8.5 5 1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 5.2c1.2-.9 3-1.4 5-1.4.9 0 1.6.08 2 .16v10.5c-.4-.08-1.1-.16-2-.16-2 0-3.8.5-5 1.4V5.2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const MIC_ICON = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none"><rect x="7" y="2.5" width="6" height="9.5" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 10.5a5.5 5.5 0 0 0 11 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 16v1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
 function ValueCard(icon, title, desc) {
   const el = document.createElement('div');
   el.className = 'auth-value-card';
@@ -76,13 +84,19 @@ export function mount(container) {
   mascotWrap.className = 'auth-mascot-wrap ds-hide-mobile';
   // Measured against the reference: at size 220 the rendered character
   // was ~24.5% of the panel's content height; mascot-guidelines.md /
-  // asset-specification.md both call for 35-40%. 320 targets ~35%.
-  const tuto = Tuto({ pose: 'wave', size: 320, glow: true, altText: 'Tuto waving hello' });
+  // asset-specification.md both call for 35-40%. 375 (~17% up from the
+  // prior 320) better matches the reference's hero composition weight.
+  const tuto = Tuto({ pose: 'wave', size: 375, glow: true, altText: 'Tuto waving hello' });
   mascotWrap.append(
     tuto,
-    FloatingBadge('Aa', 'top: 6%; left: 4%;'),
-    FloatingBadge('🎧', 'top: 42%; right: 2%;'),
-    FloatingBadge('📖', 'bottom: 14%; right: 10%;')
+    // Positions tuned to sit close against the mascot's silhouette,
+    // matching the reference (previously too far out toward the wrap's
+    // edges). Also restores the 4th "mic" badge visible in the
+    // reference that the original pass missed (only 3 were built).
+    FloatingBadge('Aa', 'top: 14%; left: 10%;'),
+    FloatingBadge(HEADPHONE_ICON, 'top: 36%; right: 8%;'),
+    FloatingBadge(MIC_ICON, 'bottom: 22%; right: 4%;'),
+    FloatingBadge(BOOK_ICON, 'top: 54%; right: 6%;')
   );
 
   const valueCards = document.createElement('div');
@@ -127,11 +141,21 @@ export function mount(container) {
     autocomplete: 'current-password'
   });
 
-  // Mobile mockup drops the standalone label (field icon + placeholder
-  // carry the meaning instead) — see this file's header note and the
-  // Phase 01 report's "Known differences" for the placeholder-text caveat.
+  // Mobile mockup drops the standalone label AND uses a different
+  // placeholder ("Email address"/"Password" instead of desktop's
+  // "Enter your email"/"Enter your password") — a genuine content
+  // difference between the two mockups, not just a layout one.
   email.el.querySelector('.ds-input-label')?.classList.add('ds-hide-mobile');
   password.el.querySelector('.ds-input-label')?.classList.add('ds-hide-mobile');
+
+  const mobileQuery = window.matchMedia('(max-width: 767px)');
+  function applyResponsivePlaceholders() {
+    const isMobile = mobileQuery.matches;
+    email.input.placeholder = isMobile ? 'Email address' : 'Enter your email';
+    password.input.placeholder = isMobile ? 'Password' : 'Enter your password';
+  }
+  applyResponsivePlaceholders();
+  mobileQuery.addEventListener('change', applyResponsivePlaceholders);
 
   const eyeToggle = document.createElement('button');
   eyeToggle.type = 'button';
@@ -182,7 +206,7 @@ export function mount(container) {
 
   const signupRow = document.createElement('p');
   signupRow.className = 'auth-signup-row';
-  signupRow.innerHTML = `Don't have an account? <button type="button" class="auth-link-btn" id="auth-signup">Sign Up</button>`;
+  signupRow.innerHTML = `Don’t have an account? <button type="button" class="auth-link-btn" id="auth-signup">Sign Up</button>`;
 
   card.append(
     headingDesktop, headingMobile,
@@ -284,8 +308,7 @@ export function mount(container) {
 
   return {
     unmount() {
-      // No timers/subscriptions held beyond what fadeSlideIn's internal
-      // setTimeouts already self-resolve; nothing to tear down.
+      mobileQuery.removeEventListener('change', applyResponsivePlaceholders);
     }
   };
 }
