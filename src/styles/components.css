@@ -7,24 +7,33 @@
    ============================================================ */
 
 /* ======================== BUTTON ======================== */
+/* Dimensions/colors: component-library.md ("Primary Button (ContinueButton):
+   56px height, 20px radius..."). Motion: interaction.md, repeated
+   verbatim across every phase ("Hover: TranslateY -2px, Scale 1.015,
+   elevation shadow expands (180ms)... Press: Scale 0.975 (80ms)"). */
 .ds-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--sp-sm);
-  height: 52px;
+  height: 56px;
   padding: 0 32px;
   border-radius: var(--r-lg);
   font-size: 16px;
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
-  transition: transform var(--dur-fast) var(--ease-spring),
-              box-shadow var(--dur-normal) var(--ease),
-              opacity var(--dur-normal) var(--ease);
+  transition: box-shadow 180ms var(--ease), opacity var(--dur-normal) var(--ease);
 }
 
-.ds-btn:active {
-  transform: scale(0.97);
+.ds-btn:hover:not(:disabled) {
+  transition: transform 180ms var(--ease), box-shadow 180ms var(--ease), opacity var(--dur-normal) var(--ease);
+  transform: translateY(-2px) scale(1.015);
+}
+
+.ds-btn:active:not(:disabled) {
+  transition: transform 80ms var(--ease);
+  transform: scale(0.975);
 }
 
 .ds-btn:disabled {
@@ -33,14 +42,21 @@
   cursor: default;
 }
 
-.ds-btn--primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: var(--text-on-primary);
-  box-shadow: 0 16px 32px rgba(255,107,53,0.26), 0 3px 10px rgba(255,107,53,0.16);
+.ds-btn__arrow {
+  transition: transform 180ms var(--ease);
 }
 
-.ds-btn--primary:active {
-  box-shadow: 0 8px 18px rgba(255,107,53,0.20), 0 2px 6px rgba(255,107,53,0.12);
+.ds-btn:hover:not(:disabled) .ds-btn__arrow {
+  transform: translateX(4px);
+}
+
+.ds-btn--primary {
+  background: var(--primary);
+  color: var(--text-on-primary);
+}
+
+.ds-btn--primary:hover:not(:disabled) {
+  box-shadow: var(--sh-button-hover);
 }
 
 .ds-btn--secondary {
@@ -62,19 +78,207 @@
   width: 100%;
 }
 
-@media (max-width: 430px) {
-  .ds-btn {
-    height: 56px;
-    font-size: 17px;
+/* Loading state: label + arrow fade out, a centered spinner fades in.
+   interaction.md: "Button text fades, white circular spinner rotates
+   (600ms loop)". */
+.ds-btn.is-loading .ds-btn__label,
+.ds-btn.is-loading .ds-btn__arrow {
+  opacity: 0;
+}
+
+.ds-btn__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: #FFFFFF;
+  border-radius: 50%;
+  animation: dsBtnSpin 600ms linear infinite;
+}
+
+.ds-btn--secondary .ds-btn__spinner,
+.ds-btn--ghost .ds-btn__spinner {
+  border-color: rgba(255,107,74,0.25);
+  border-top-color: var(--primary);
+}
+
+@keyframes dsBtnSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-btn,
+  .ds-btn:hover:not(:disabled),
+  .ds-btn:active:not(:disabled) {
+    transition: opacity 200ms var(--ease);
+    transform: none;
   }
 }
 
 /* ======================== CARD ======================== */
+/* Default padding is 36px (the value used by most onboarding phases'
+   speech/selection cards per their prompt.md). Screens whose own spec
+   calls for 48px (currently only 01-authentication) use
+   .ds-card--spacious. Mobile always drops to 24px per spacing-system.md. */
 .ds-card {
   background: var(--bg-card);
   border-radius: var(--r-card);
-  padding: var(--sp-2xl);
+  padding: var(--sp-xl);
   box-shadow: var(--sh-card);
+}
+
+.ds-card--spacious {
+  padding: var(--sp-2xl);
+}
+
+@media (max-width: 767px) {
+  .ds-card,
+  .ds-card--spacious {
+    padding: var(--sp-lg);
+  }
+}
+
+/* Horizontal shake for invalid form submission — interaction.md:
+   "card shakes horizontally (-6px -> +6px, 300ms)". Generic utility,
+   not card-specific, so it can be reused wherever the spec calls for it. */
+@keyframes dsShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.ds-shake {
+  animation: dsShake 300ms var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-shake {
+    animation: none;
+  }
+}
+
+/* ======================== FORM INPUT ======================== */
+/* prompt.md: "Height: 56px | Corner Radius: 20px | Surface #FFFFFF with
+   rgba(0,0,0,0.05) border and leading icons". interaction.md: focus
+   border -> coral (180ms), coral glow (0 0 0 4px rgba(255,107,74,0.20));
+   invalid -> red border + red glow. */
+.ds-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.ds-input-label {
+  font-size: var(--fs-small);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.ds-input-field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  height: 56px;
+  padding: 0 18px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  transition: border-color 180ms var(--ease), box-shadow 180ms var(--ease);
+}
+
+.ds-input-field:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(255, 107, 74, 0.20);
+}
+
+.ds-input-field.is-error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.20);
+}
+
+.ds-input-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.ds-input {
+  flex: 1;
+  height: 100%;
+  font-size: 16px; /* prevents iOS auto-zoom on focus, per notes.md */
+  color: var(--text-primary);
+}
+
+.ds-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.ds-input-error {
+  font-size: var(--fs-caption);
+  color: var(--danger);
+  font-weight: var(--fw-medium);
+}
+
+/* ======================== RESPONSIVE VISIBILITY ======================== */
+/* Generic utilities for the (confirmed, not assumed) cases where a
+   phase's mobile mockup shows genuinely different content — not just a
+   restyled layout — from its desktop mockup (01-authentication: card
+   heading text, SSO button labels, footer icon). Breakpoint matches
+   each phase's own stated mobile threshold (notes.md: "viewport < 768px"). */
+@media (max-width: 767px) {
+  .ds-hide-mobile { display: none !important; }
+}
+
+@media (min-width: 768px) {
+  .ds-hide-desktop { display: none !important; }
+}
+
+/* ======================== SOCIAL AUTH BUTTON ======================== */
+/* prompt.md: "Side-by-side white squircle buttons for Continue with
+   Google / Continue with Apple". */
+.ds-social-group {
+  display: flex;
+  gap: var(--sp-md);
+}
+
+.ds-social-group--stacked {
+  flex-direction: column;
+}
+
+.ds-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  height: 56px;
+  padding: 0 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+  font-size: 15px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  transition: transform 180ms var(--ease), box-shadow 180ms var(--ease);
+}
+
+.ds-social-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-sm);
+}
+
+.ds-social-btn:active {
+  transform: scale(0.975);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-social-btn:hover,
+  .ds-social-btn:active {
+    transform: none;
+  }
 }
 
 /* ======================== PROGRESS DOTS ======================== */
@@ -106,6 +310,10 @@
 }
 
 /* ======================== TUTO ======================== */
+/* Container is a square box (--ds-tuto-size); the official renders are
+   not uniformly square (see components/tuto.js), so object-fit: contain
+   is load-bearing here, not cosmetic — it's what makes any source
+   aspect ratio safe to drop in without distortion or cropping. */
 .ds-tuto {
   position: relative;
   display: inline-flex;
@@ -118,39 +326,44 @@
 .ds-tuto-avatar {
   position: relative;
   z-index: 1;
-  width: 90%;
-  height: 90%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ds-tuto-avatar svg {
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  /* animation-guide.md §2.A: 4.0s continuous sine loop */
+  animation: dsTutoFloat 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
-.ds-tuto-body {
-  transform-origin: center;
-  animation: dsTutoBreathe 3s ease-in-out infinite;
+/* Ground contact shadow, per tuto-asset-specification.md §3 */
+.ds-tuto-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  width: 55%;
+  height: 10%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,0,0,0.06) 0%, transparent 70%);
+  z-index: 0;
 }
 
 .ds-tuto-glow {
   position: absolute;
   inset: -12%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,107,53,0.24) 0%, rgba(255,107,53,0.10) 45%, rgba(255,107,53,0) 72%);
+  background: radial-gradient(circle, var(--primary-soft) 0%, var(--primary-soft2) 45%, rgba(255,107,74,0) 72%);
   z-index: 0;
 }
 
-@keyframes dsTutoBreathe {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -2px, 0); }
+@media (prefers-reduced-motion: reduce) {
+  .ds-tuto-avatar {
+    animation: none;
+  }
 }
 
-@keyframes dsTutoBlink {
-  0%, 85%, 100% { transform: scaleY(1); }
-  92% { transform: scaleY(0.05); }
+/* Idle breathing float — animation-guide.md §2.A (tutoFloat) */
+@keyframes dsTutoFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -8px, 0); }
 }
 
 /* ======================== TOAST ======================== */
@@ -223,7 +436,7 @@
     max-width: 100%;
     max-height: 86vh;
     border-radius: var(--r-sheet) var(--r-sheet) 0 0;
-    padding: var(--sp-2xl) var(--sp-xl) calc(var(--sp-xl) + var(--safe-bottom));
+    padding: var(--sp-lg) var(--sp-lg) calc(var(--sp-lg) + var(--safe-bottom));
     transform: translate3d(0, 100%, 0);
   }
 

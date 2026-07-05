@@ -1,8 +1,13 @@
 /* ============================================================
    layout.css — App shell + generic screen containers
-   Desktop First: base rules below assume a wide viewport. Mobile
-   adaptation happens via `@media (max-width: ...)` overrides, never
-   the other way around. Breakpoints: 768px (tablet), 430px (phone).
+   Desktop First: base rules below assume the 1440px desktop canvas.
+   Mobile adaptation happens via `@media (max-width: ...)` overrides,
+   never the other way around. Four tiers per
+   00-design-system/responsive-system.md:
+     Desktop 1440px+ (base, no query)
+     Laptop  1024-1439px → max-width: 1439px
+     Tablet  768-1023px  → max-width: 1023px
+     Mobile  <768px      → max-width: 767px
    ============================================================ */
 
 #app {
@@ -14,13 +19,22 @@
   overflow-x: hidden;
 }
 
-/* The router mounts each screen's root element into one of these slots. */
+/* The router mounts each screen's root element into one of these slots.
+   `position: absolute; inset: 0` is required so outgoing/incoming
+   slots can stack during a transition — but that also pins the slot's
+   height to the viewport, so it needs its own scroll container:
+   without `overflow-y: auto` here, any screen taller than the viewport
+   (any stacked mobile/tablet layout, any content-heavy screen) would
+   silently clip instead of scrolling, since an absolutely-positioned
+   box doesn't grow its containing block's scrollable area. */
 .ds-screen-slot {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Narrow, centered layout for single-task screens (auth, onboarding).
@@ -56,5 +70,88 @@
 @media (max-width: 768px) {
   .ds-screen--wide {
     padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom));
+  }
+}
+
+/* ======================== SPLIT LAYOUT (mascot + card) ======================== */
+/* The universal onboarding composition: Tuto hero panel + floating
+   content card. Used by every one of the 9 onboarding phases.
+   Default split is 5:7 columns (~42/58), matching phases 02-09's
+   "12-column grid, 5 col mascot / 7 col card" spec. 01-authentication's
+   own layout.md specifies an even 50/50 split — screens override via
+   `--ds-split-ratio` inline or a dedicated modifier class, they should
+   not fork this primitive. */
+.ds-screen--split {
+  --ds-split-ratio: 5fr 7fr;
+  display: grid;
+  grid-template-columns: var(--ds-split-ratio);
+  align-items: stretch;
+  min-height: 100%;
+  width: 100%;
+}
+
+.ds-screen--split-even {
+  --ds-split-ratio: 1fr 1fr;
+}
+
+.ds-split-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 64px 48px;
+  position: relative;
+}
+
+.ds-split-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 64px 48px;
+}
+
+/* 01-authentication's right column is a white canvas (not warm paper)
+   with the form card floating inside it — every other phase keeps the
+   warm paper background here, per each phase's own prompt.md. */
+.ds-split-panel--canvas {
+  background: var(--bg-card);
+}
+
+/* Laptop: 40/60, per 01-authentication/responsive.md — used as the
+   general laptop tier for every split screen absent a more specific
+   per-phase override. */
+@media (max-width: 1439px) {
+  .ds-screen--split {
+    --ds-split-ratio: 2fr 3fr;
+  }
+}
+
+/* Tablet: single column; the mascot becomes a compact top hero instead
+   of a full-height side panel. */
+@media (max-width: 1023px) {
+  .ds-screen--split {
+    grid-template-columns: 1fr;
+  }
+  .ds-split-hero {
+    padding: 40px 32px 24px;
+  }
+  .ds-split-panel {
+    padding: 24px 32px 48px;
+  }
+}
+
+/* Mobile: whether .ds-split-hero renders at all is a per-phase decision
+   (auth omits Tuto entirely below 768px; every other onboarding phase
+   keeps it centered above the card) — this primitive only owns the
+   structural single-column collapse and safe-area-aware padding. */
+@media (max-width: 767px) {
+  .ds-split-hero {
+    padding: calc(24px + var(--safe-top)) 20px 16px;
+  }
+  .ds-split-panel {
+    padding: 16px 20px calc(24px + var(--safe-bottom));
   }
 }

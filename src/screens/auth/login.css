@@ -1,0 +1,258 @@
+/* ============================================================
+   screens/auth/login.css — Phase 01: Authentication (Login view)
+   Screen-specific layout only. Shared visual language (buttons, cards,
+   inputs, mascot) lives in styles/components.css — nothing here
+   redefines those.
+   ============================================================ */
+
+.auth-hero {
+  align-items: flex-start;
+  gap: var(--sp-lg);
+}
+
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.auth-logo {
+  font-size: 22px;
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.auth-logo span {
+  color: var(--primary);
+}
+
+.auth-tagline {
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+.auth-hero-copy {
+  margin-top: var(--sp-lg);
+}
+
+.auth-headline {
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-hero);
+  color: var(--text-primary);
+  margin-bottom: var(--sp-sm);
+}
+
+.auth-subheadline {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+  max-width: 380px;
+}
+
+.auth-mascot-wrap {
+  position: relative;
+  margin: var(--sp-xl) 0;
+  align-self: center;
+}
+
+.auth-floating-badge {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-full);
+  background: var(--bg-card);
+  box-shadow: var(--sh-sm);
+  font-size: 16px;
+  font-weight: var(--fw-bold);
+  color: var(--primary);
+}
+
+.auth-value-cards {
+  display: flex;
+  gap: var(--sp-md);
+  width: 100%;
+}
+
+.auth-value-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  padding: var(--sp-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.auth-value-card__icon {
+  font-size: 18px;
+}
+
+.auth-value-card__title {
+  font-size: 13px;
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.auth-value-card__desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: var(--lh-caption);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+
+.auth-card-heading {
+  font-size: var(--fs-heading);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.auth-card-heading-mobile {
+  font-size: 18px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.auth-eye-toggle {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.auth-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: calc(-1 * var(--sp-md));
+}
+
+.auth-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  font-size: var(--fs-caption);
+  color: var(--text-primary);
+}
+
+.auth-checkbox input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+.auth-link-btn {
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semibold);
+  color: var(--primary);
+}
+
+.auth-error-banner {
+  font-size: var(--fs-caption);
+  color: var(--danger);
+  background: rgba(255, 59, 48, 0.08);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  border-radius: var(--r-sm);
+  padding: var(--sp-sm) var(--sp-md);
+  margin-top: calc(-1 * var(--sp-sm));
+}
+
+.auth-divider {
+  position: relative;
+  text-align: center;
+  margin: 4px 0;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px solid var(--border);
+}
+
+.auth-divider span {
+  position: relative;
+  background: var(--bg-card);
+  padding: 0 var(--sp-md);
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+.auth-signup-row {
+  text-align: center;
+  font-size: var(--fs-caption);
+  color: var(--text-secondary);
+}
+
+.auth-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  max-width: 480px;
+  margin-top: var(--sp-lg);
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.auth-footer a {
+  color: var(--primary);
+  font-weight: var(--fw-medium);
+}
+
+/* Laptop 40/60 (see .ds-screen--split's own laptop tier) keeps this
+   screen's 50/50 override at parity with 01-authentication/layout.md,
+   which explicitly calls out 40/60 for laptop like every other split
+   screen — no auth-specific override needed here. */
+
+/* Tablet: hero becomes a compact top block; mascot + value cards still
+   render (only true mobile omits Tuto, per notes.md). */
+@media (max-width: 1023px) {
+  .auth-hero {
+    align-items: center;
+    text-align: center;
+  }
+  .auth-header {
+    align-items: center;
+  }
+  .auth-hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+/* Mobile: Tuto + value cards omitted entirely (notes.md: "viewport <
+   768px, do NOT render the owl mascot ... keep the screen lightweight"). */
+@media (max-width: 767px) {
+  .auth-hero {
+    align-items: center;
+    text-align: center;
+    padding-bottom: 8px;
+  }
+  .auth-header {
+    align-items: center;
+  }
+  .auth-headline {
+    font-size: 28px;
+  }
+  .auth-card {
+    gap: var(--sp-md);
+  }
+}
