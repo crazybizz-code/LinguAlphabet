@@ -1,11 +1,21 @@
 // ============================================================
-// screens/auth/login.js — Phase 01: Authentication (Login view)
+// screens/auth/signup.js — Authentication V1: Sign Up
 //
-// Pixel spec: 01-authentication/{design,desktop,mobile}.png,
-// prompt.md, interaction.md, notes.md (v1.1).
+// Mirrors login.js's structure/components/CSS exactly per explicit
+// instruction ("match existing Login UI, reuse the same components,
+// do not redesign") — no shared abstraction extracted between the two
+// screens, by explicit instruction not to refactor.
 //
-// Out of scope for Authentication V1 (explicit instruction):
-//   - Real Google/Apple OAuth (no backend wiring exists for it yet)
+// No design.png/prompt.md exists for this screen (confirmed: not in
+// the Design Handoff at all) — layout/components/styling are 1:1
+// reused from 01-authentication's approved Login screen; only copy
+// and field set differ since this is a different form.
+//
+// Supabase wiring: calls the same supabase.signUp() already
+// implemented in db.js. No real project credentials are configured
+// yet (by instruction, deferred to a separate approved step) — until
+// then this correctly surfaces "Supabase not configured" through the
+// same error-banner path Sign In already uses, not a special stub.
 // ============================================================
 
 import './login.css';
@@ -17,9 +27,8 @@ import { SocialButton } from '../../components/socialButton.js';
 import { supabase, UserState } from '../../db.js';
 import { fadeSlideIn, shake, slidePush, prefersReducedMotion } from '../../animation.js';
 import { replace } from '../../router.js';
+import * as LoginScreen from './login.js';
 import * as Phase02 from '../onboarding/tutoWelcome.js';
-import * as SignUpScreen from './signup.js';
-import * as ForgotPasswordScreen from './forgotPassword.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -42,7 +51,7 @@ function ValueCard(icon, title, desc) {
 export function mount(container) {
   container.classList.add('ds-screen--split', 'ds-screen--split-even');
 
-  // ---- Left: Tuto hero panel ----
+  // ---- Left: Tuto hero panel (identical to login.js) ----
   const hero = document.createElement('div');
   hero.className = 'ds-split-hero auth-hero';
 
@@ -56,13 +65,10 @@ export function mount(container) {
   const heroCopy = document.createElement('div');
   heroCopy.className = 'auth-hero-copy';
   heroCopy.innerHTML = `
-    <h1 class="auth-headline">Welcome back!</h1>
-    <p class="auth-subheadline">Continue your English journey with your AI coach.</p>
+    <h1 class="auth-headline">Join us!</h1>
+    <p class="auth-subheadline">Start your English journey with your AI coach.</p>
   `;
 
-  // Measured against the reference: at size 220 the rendered character
-  // was ~24.5% of the panel's content height; mascot-guidelines.md /
-  // asset-specification.md both call for 35-40%. 375 measures at ~40%.
   const mascotWrap = MascotHero({
     pose: 'wave',
     size: 375,
@@ -89,14 +95,14 @@ export function mount(container) {
 
   const headingDesktop = document.createElement('h2');
   headingDesktop.className = 'auth-card-heading ds-hide-mobile';
-  headingDesktop.textContent = 'Sign In';
+  headingDesktop.textContent = 'Sign Up';
 
   const headingMobile = document.createElement('p');
   headingMobile.className = 'auth-card-heading-mobile ds-hide-desktop';
-  headingMobile.textContent = 'Enter your credentials to continue';
+  headingMobile.textContent = 'Create your account to continue';
 
   const email = FormInput({
-    id: 'auth-email',
+    id: 'signup-email',
     label: 'Email address',
     type: 'email',
     placeholder: 'Enter your email',
@@ -105,58 +111,59 @@ export function mount(container) {
   });
 
   const password = FormInput({
-    id: 'auth-password',
+    id: 'signup-password',
     label: 'Password',
     type: 'password',
-    placeholder: 'Enter your password',
+    placeholder: 'Create a password',
     iconSvg: LOCK_ICON,
-    autocomplete: 'current-password'
+    autocomplete: 'new-password'
   });
 
-  // Mobile mockup drops the standalone label AND uses a different
-  // placeholder ("Email address"/"Password" instead of desktop's
-  // "Enter your email"/"Enter your password") — a genuine content
-  // difference between the two mockups, not just a layout one.
+  const confirmPassword = FormInput({
+    id: 'signup-confirm-password',
+    label: 'Confirm password',
+    type: 'password',
+    placeholder: 'Re-enter your password',
+    iconSvg: LOCK_ICON,
+    autocomplete: 'new-password'
+  });
+
   email.el.querySelector('.ds-input-label')?.classList.add('ds-hide-mobile');
   password.el.querySelector('.ds-input-label')?.classList.add('ds-hide-mobile');
+  confirmPassword.el.querySelector('.ds-input-label')?.classList.add('ds-hide-mobile');
 
   const mobileQuery = window.matchMedia('(max-width: 767px)');
   function applyResponsivePlaceholders() {
     const isMobile = mobileQuery.matches;
     email.input.placeholder = isMobile ? 'Email address' : 'Enter your email';
-    password.input.placeholder = isMobile ? 'Password' : 'Enter your password';
+    password.input.placeholder = isMobile ? 'Password' : 'Create a password';
+    confirmPassword.input.placeholder = isMobile ? 'Confirm password' : 'Re-enter your password';
   }
   applyResponsivePlaceholders();
   mobileQuery.addEventListener('change', applyResponsivePlaceholders);
 
-  const eyeToggle = document.createElement('button');
-  eyeToggle.type = 'button';
-  eyeToggle.className = 'auth-eye-toggle';
-  eyeToggle.innerHTML = EYE_ICON;
-  eyeToggle.setAttribute('aria-label', 'Show password');
-  eyeToggle.addEventListener('click', () => {
-    const showing = password.input.type === 'text';
-    password.input.type = showing ? 'password' : 'text';
-    eyeToggle.innerHTML = showing ? EYE_ICON : EYE_OFF_ICON;
-    eyeToggle.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
-  });
-  password.el.querySelector('.ds-input-field').appendChild(eyeToggle);
-
-  const optionsRow = document.createElement('div');
-  optionsRow.className = 'auth-options-row';
-  optionsRow.innerHTML = `
-    <label class="auth-checkbox">
-      <input type="checkbox" id="auth-remember" />
-      <span>Remember me</span>
-    </label>
-    <button type="button" class="auth-link-btn" id="auth-forgot">Forgot password?</button>
-  `;
+  function makeEyeToggle(forInput) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'auth-eye-toggle';
+    btn.innerHTML = EYE_ICON;
+    btn.setAttribute('aria-label', 'Show password');
+    btn.addEventListener('click', () => {
+      const showing = forInput.input.type === 'text';
+      forInput.input.type = showing ? 'password' : 'text';
+      btn.innerHTML = showing ? EYE_ICON : EYE_OFF_ICON;
+      btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    });
+    return btn;
+  }
+  password.el.querySelector('.ds-input-field').appendChild(makeEyeToggle(password));
+  confirmPassword.el.querySelector('.ds-input-field').appendChild(makeEyeToggle(confirmPassword));
 
   const errorBanner = document.createElement('p');
   errorBanner.className = 'auth-error-banner hidden';
   errorBanner.setAttribute('role', 'alert');
 
-  const submitBtn = Button({ label: 'Sign In', variant: 'primary', block: true, arrow: true, disabled: true });
+  const submitBtn = Button({ label: 'Sign Up', variant: 'primary', block: true, arrow: true, disabled: true });
 
   const divider = document.createElement('div');
   divider.className = 'auth-divider';
@@ -176,16 +183,16 @@ export function mount(container) {
     SocialButton({ provider: 'apple', variant: 'full', onClick: () => handleSsoStub('Apple') })
   );
 
-  const signupRow = document.createElement('p');
-  signupRow.className = 'auth-signup-row';
-  signupRow.innerHTML = `Don’t have an account? <button type="button" class="auth-link-btn" id="auth-signup">Sign Up</button>`;
+  const loginRow = document.createElement('p');
+  loginRow.className = 'auth-signup-row';
+  loginRow.innerHTML = `Already have an account? <button type="button" class="auth-link-btn" id="signup-to-login">Sign In</button>`;
 
   card.append(
     headingDesktop, headingMobile,
-    email.el, password.el,
-    optionsRow, errorBanner, submitBtn,
+    email.el, password.el, confirmPassword.el,
+    errorBanner, submitBtn,
     divider, ssoDesktop, ssoMobile,
-    signupRow
+    loginRow
   );
 
   const footer = document.createElement('p');
@@ -200,12 +207,14 @@ export function mount(container) {
   function validate() {
     const emailValid = EMAIL_RE.test(email.input.value.trim());
     const passwordValid = password.input.value.length >= 8;
-    submitBtn.disabled = !(emailValid && passwordValid);
-    return { emailValid, passwordValid };
+    const confirmValid = confirmPassword.input.value.length > 0 && confirmPassword.input.value === password.input.value;
+    submitBtn.disabled = !(emailValid && passwordValid && confirmValid);
+    return { emailValid, passwordValid, confirmValid };
   }
 
   email.input.addEventListener('input', () => { email.setError(null); validate(); });
   password.input.addEventListener('input', () => { password.setError(null); validate(); });
+  confirmPassword.input.addEventListener('input', () => { confirmPassword.setError(null); validate(); });
 
   function showFormError(message) {
     errorBanner.textContent = message;
@@ -217,30 +226,27 @@ export function mount(container) {
     errorBanner.classList.add('hidden');
   }
 
-  // ---- Google/Apple OAuth: explicitly out of scope for Authentication V1 ----
   function handleSsoStub(provider) {
-    showFormError(`${provider} sign-in isn't wired up yet — no OAuth backend exists for it in this project.`);
+    showFormError(`${provider} sign-up isn't wired up yet — no OAuth backend exists for it in this project.`);
   }
 
-  card.querySelector('#auth-forgot')?.addEventListener('click', () => {
-    replace(ForgotPasswordScreen, {});
-  });
-
-  const signupBtn = card.querySelector('#auth-signup');
-  signupBtn?.addEventListener('click', () => {
-    replace(SignUpScreen, {});
+  card.querySelector('#signup-to-login')?.addEventListener('click', () => {
+    replace(LoginScreen, {});
   });
 
   // ---- Submit ----
   async function handleSubmit() {
-    const { emailValid, passwordValid } = validate();
+    const { emailValid, passwordValid, confirmValid } = validate();
     if (!emailValid) {
       email.setError('Enter a valid email address.');
     }
     if (!passwordValid) {
       password.setError('Password must be at least 8 characters.');
     }
-    if (!emailValid || !passwordValid) {
+    if (passwordValid && !confirmValid) {
+      confirmPassword.setError('Passwords do not match.');
+    }
+    if (!emailValid || !passwordValid || !confirmValid) {
       showFormError('Please fix the highlighted fields.');
       return;
     }
@@ -249,10 +255,9 @@ export function mount(container) {
     setButtonLoading(submitBtn, true);
 
     try {
-      await supabase.signIn(email.input.value.trim(), password.input.value);
+      await supabase.signUp(email.input.value.trim(), password.input.value);
       UserState.update({ userId: supabase.currentUser?.id, email: email.input.value.trim(), isGuest: false });
 
-      // interaction.md: "Form card fades (150ms), screen pushes left (450ms)"
       card.style.transition = 'opacity 150ms ease';
       card.style.opacity = '0';
 
@@ -261,20 +266,16 @@ export function mount(container) {
       }, prefersReducedMotion() ? 0 : 150);
     } catch (err) {
       setButtonLoading(submitBtn, false);
-      showFormError(err.message || 'Incorrect email or password.');
+      showFormError(err.message || 'Could not create your account.');
     }
   }
 
   submitBtn.addEventListener('click', handleSubmit);
-  password.input.addEventListener('keydown', (e) => {
+  confirmPassword.input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !submitBtn.disabled) handleSubmit();
   });
 
-  // ---- Entrance animation (interaction.md) ----
-  // The root container's own "Background: Opacity 0 -> 1 (300ms)" fade is
-  // handled by the router's mount transition (see main.js), not here —
-  // duplicating it on `container` would fight the router's own opacity
-  // transition on the same element.
+  // ---- Entrance animation (matching login.js exactly) ----
   fadeSlideIn(hero, { delay: 150, duration: 450, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fromY: 24 });
   fadeSlideIn(card, { delay: 250, duration: 350, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fromY: 16, fromScale: 0.96 });
 

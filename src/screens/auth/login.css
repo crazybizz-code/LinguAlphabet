@@ -169,6 +169,18 @@
   margin-top: calc(-1 * var(--sp-sm));
 }
 
+/* Forgot Password's "reset link sent" confirmation state — same shape
+   as .auth-error-banner, success token instead of danger. */
+.auth-success-banner {
+  font-size: var(--fs-caption);
+  color: var(--success);
+  background: var(--success-soft);
+  border: 1px solid rgba(52, 199, 89, 0.2);
+  border-radius: var(--r-sm);
+  padding: var(--sp-sm) var(--sp-md);
+  margin-top: calc(-1 * var(--sp-sm));
+}
+
 .auth-divider {
   position: relative;
   text-align: center;
