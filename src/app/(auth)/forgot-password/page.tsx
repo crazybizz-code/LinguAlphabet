@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-white to-slate-50 px-5 py-12">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-white to-bg-muted px-5 py-12">
         <div className="w-full max-w-sm text-center">
           <Tuto pose="thinking" size="md" animation="breathe" priority className="mx-auto mb-6" />
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-success-soft">
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-white to-slate-50 px-5 py-12">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-white to-bg-muted px-5 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link href="/login" className="mb-6 inline-flex items-center gap-2">

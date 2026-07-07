@@ -37,19 +37,24 @@
 
   --color-bg: #FFFDFB;
   --color-bg-card: #FFFFFF;
+  /** Muted surface — input fills, auth-screen gradient endpoint (Base44's slate-50). */
+  --color-bg-muted: #F8FAFC;
   --color-bg-dark: #1A1A2E;
   --color-bg-dark-card: #252540;
   --color-bg-overlay: rgba(0, 0, 0, 0.5);
 
-  --color-text-primary: #121212;
-  --color-text-secondary: #6B7280;
-  --color-text-tertiary: #9CA3AF;
+  /* text-primary/secondary/tertiary use Base44's exact slate values
+     (verified against its compiled CSS, not just class names) — a
+     cooler blue-gray than this token set's original plain-gray values. */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #64748B;
+  --color-text-tertiary: #94A3B8;
   --color-text-on-primary: #FFFFFF;
   --color-text-on-dark: #FFFFFF;
   --color-text-on-dark-2: rgba(255, 255, 255, 0.7);
 
-  --color-border: rgba(0, 0, 0, 0.05);
-  --color-border-light: rgba(0, 0, 0, 0.05);
+  --color-border: #E5E7EB;
+  --color-border-light: #E5E7EB;
   --color-border-selected: #FF6B00;
 
   --color-success: #34C759;

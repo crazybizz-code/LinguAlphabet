@@ -72,7 +72,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ))}
         <div
           className={cn(
-            "flex items-center gap-2 rounded-lg border-[1.5px] bg-bg-card px-[18px]",
+            "flex items-center gap-2 rounded-lg border-[1.5px] bg-bg-muted px-[18px]",
             FIELD_HEIGHT[fieldSize],
             "transition-[border-color,box-shadow] duration-fast ease-standard",
             error

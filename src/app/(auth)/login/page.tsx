@@ -35,7 +35,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-white to-slate-50 px-5 py-12">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-white to-bg-muted px-5 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Link href="/login" className="mb-6 inline-flex items-center gap-2">
