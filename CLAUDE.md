@@ -26,14 +26,38 @@ screen/component.
 ## Workflow rules (current phase)
 
 - One screen = one task. Do not build multiple screens in parallel.
-- Do not design or invent new screens — implement only approved designs
-  ("Base44"). Ask if a design is unclear or missing rather than guessing.
-- Foundation (tokens, reusable components, routing, Supabase wiring) is
-  complete; screens are built one at a time, gated on review after each.
+- Do not design or invent new screens — implement only approved designs.
+  Ask if a design is unclear or missing rather than guessing.
+- **Base44 export is a visual reference only, not the product spec.** It
+  supplied real pixel/copy/interaction fidelity for the auth screens and
+  the onboarding wizard already built (see below), but its UX/data model
+  does not define the product. Where Base44 and the actual product
+  specification conflict, the product specification always wins — never
+  port a Base44 flow or field just because the export has it.
+- Foundation (tokens, reusable components, routing, Supabase wiring) and
+  the full Authentication + Onboarding flow are complete; screens are
+  built one at a time, gated on review after each.
 - Every screen must support Desktop / Tablet / Mobile and be production
   quality — no MVP/temporary screens.
 - No Google/Apple OAuth — Supabase Email Authentication only, per approved
   Authentication V1 scope.
+
+## Product model (post-onboarding) — do not confuse with Base44's model
+
+- **English only.** There is no native-language or target-language
+  selection anywhere in the product. Base44's export never had this
+  either — this note exists to head off ever adding it.
+- **"Exam Preparation"**, not "IELTS" — it represents all English exams
+  generically, not one specific test. Already correct in the built Goal
+  screen (`/goal`); never rename it to a specific exam.
+- **Learning Brain**: the user never manually picks lesson content. A
+  recommendation engine (not yet built) automatically curates what each
+  learner studies next — there is no "browse and choose a lesson" screen.
+- **Knowledge Hub**: the content-type surface, with only **Podcasts**
+  functional today. Articles, Videos, News, Stories, Conversations, and
+  Challenges are visible as "Coming Soon" placeholders, not real screens
+  to build yet, and not manual-selection UIs even once built — the
+  Learning Brain still drives what surfaces.
 
 ## Structure
 
