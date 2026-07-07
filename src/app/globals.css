@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+/* ============================================================
+   LinguAlphabet Design Tokens
+   Ported verbatim from the approved Design Handoff v1.1 token set
+   (docs/design-system.md is the philosophy doc; the exact values below
+   are what was actually approved and shipped in Phases 01-03 of the
+   prior implementation). Do not hand-tune a value here without a
+   reason documented in a commit message.
+
+   Breakpoints are intentionally desktop-first (see docs/coding-standards.md
+   for the full explanation): base/unprefixed styles target the 1440px
+   desktop canvas, and narrower tiers override via Tailwind's max-width
+   variants (max-xl:, max-lg:, max-md:) rather than the min-width
+   mobile-first convention Tailwind ships with by default.
+     Desktop: 1440px+   (base, no variant)
+     Laptop:  1024-1439px -> max-xl:
+     Tablet:  768-1023px  -> max-lg:
+     Mobile:  <768px      -> max-md:
+   ============================================================ */
+@theme {
+  /* ---- Breakpoints (desktop-first via max-*) ---- */
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1440px;
+
+  /* ---- Colors ---- */
+  --color-primary: #FF6B4A;
+  --color-primary-light: #FFE8DF;
+  --color-primary-dark: #E5521E;
+  --color-primary-soft: rgba(255, 107, 74, 0.15);
+  --color-primary-soft-2: rgba(255, 107, 74, 0.06);
+
+  --color-bg: #FFFDFB;
+  --color-bg-card: #FFFFFF;
+  --color-bg-dark: #1A1A2E;
+  --color-bg-dark-card: #252540;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  --color-text-primary: #121212;
+  --color-text-secondary: #6B7280;
+  --color-text-tertiary: #9CA3AF;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-dark: #FFFFFF;
+  --color-text-on-dark-2: rgba(255, 255, 255, 0.7);
+
+  --color-border: rgba(0, 0, 0, 0.05);
+  --color-border-light: rgba(0, 0, 0, 0.05);
+  --color-border-selected: #FF6B4A;
+
+  --color-success: #34C759;
+  --color-success-soft: rgba(52, 199, 89, 0.12);
+  --color-warning: #FF9500;
+  --color-danger: #FF3B30;
+  --color-info: #007AFF;
+
+  --color-focus-ring: rgba(255, 107, 74, 0.40);
+
+  /* CEFR level accents */
+  --color-level-a1: #34C759;
+  --color-level-a2: #30B0C7;
+  --color-level-b1: #007AFF;
+  --color-level-b2: #AF52DE;
+  --color-level-c1: #FF9500;
+  --color-level-c2: #FFCC00;
+
+  /* Dashboard metric accents */
+  --color-metric-level: #34C759;
+  --color-metric-goal: #AF52DE;
+  --color-metric-time: #FF6B4A;
+  --color-metric-progress: #30B0C7;
+
+  /* Category accents (not phase-specified; retained from prior scale) */
+  --color-cat-1: #FFD166;
+  --color-cat-2: #06D6A0;
+  --color-cat-3: #118AB2;
+  --color-cat-4: #EF476F;
+  --color-cat-5: #8338EC;
+
+  /* ---- Border radius ---- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;   /* button, input */
+  --radius-xl: 28px;   /* card */
+  --radius-2xl: 36px;
+  --radius-full: 9999px;
+  --radius-card: 28px;
+  --radius-sheet: 32px;
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.08);
+  --shadow-player: 0 -4px 24px rgba(0, 0, 0, 0.12);
+  --shadow-card-ambient: 0 12px 32px rgba(0, 0, 0, 0.04);   /* auth, level, goal, time */
+  --shadow-card-hero: 0 16px 40px rgba(0, 0, 0, 0.05);        /* welcome, confidence, ai-plan, dashboard */
+  --shadow-card-selected: 0 8px 24px rgba(255, 107, 74, 0.15);
+  --shadow-button-hover: 0 8px 20px rgba(255, 107, 74, 0.25);
+
+  /* ---- Spacing (8pt baseline grid) ----
+     No custom --spacing-* keys here on purpose: Tailwind v4 resolves
+     named max-width, width, and height utilities against the
+     --spacing-* namespace, so overriding it with letter-named keys
+     (xs/sm/md/lg/xl/2xl/3xl) silently hijacks those defaults (e.g.
+     max-w-md would resolve to 16px instead of ~448px). The approved
+     8pt-grid values are exact multiples of Tailwind's default 4px base
+     unit, so use the native numeric scale instead: xs=1 (4px),
+     sm=2 (8px), md=4 (16px), lg=6 (24px), xl=9 (36px), 2xl=12 (48px),
+     3xl=16 (64px). See docs/coding-standards.md for the full mapping. */
+
+  /* ---- Typography ----
+     --font-sans-loaded is set by next/font/google (Inter) in layout.tsx —
+     self-hosted at build time, not a runtime Google Fonts request. Falls
+     back to the system stack if that variable isn't present for any reason. */
+  --font-sans: var(--font-sans-loaded), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --text-hero: 40px;
+  --text-hero--line-height: 1.2;
+  --text-heading: 30px;
+  --text-heading--line-height: 1.25;
+  --text-display: 32px;
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em;
+  --text-h1: 24px;
+  --text-h1--line-height: 1.25;
+  --text-h1--letter-spacing: -0.01em;
+  --text-h2: 20px;
+  --text-h2--line-height: 1.25;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h3: 16px;
+  --text-h3--line-height: 1.25;
+  --text-body: 16px;
+  --text-body--line-height: 1.6;
+  --text-small: 14px;
+  --text-small--line-height: 1.6;
+  --text-caption: 14px;
+  --text-caption--line-height: 1.4;
+  --text-badge: 12px;
+  --text-badge--line-height: 1.4;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ---- Motion ---- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-push: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-push: 450ms;
+
+  /* Tuto's idle breathing float (animation-guide.md §2.A) */
+  --animate-tuto-float: tuto-float 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+@keyframes tuto-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
+}
+
+/* ======================== BASE RESET ======================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* accessibility.md: "Focus Indicators: 3px outer ring
+   (rgba(255, 107, 74, 0.40)) on all interactive controls." Global, not
+   per-component, since it applies to every focusable element. */
+:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}

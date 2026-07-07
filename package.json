@@ -1,29 +1,31 @@
 {
-  "name": "podcat-app",
-  "version": "0.0.0",
+  "name": "lingualphabet",
+  "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:host": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview",
-    "preview:host": "vite preview --host 0.0.0.0",
-    "import:bbc:new": "node scripts/import-new-bbc-lessons.mjs",
-    "validate:bbc:new": "node scripts/validate-new-bbc-lessons.mjs",
-    "align:bbc": "node scripts/align-bbc-transcripts.mjs",
-    "publish:lesson": "node scripts/publish-remote-lesson.mjs",
-    "cap:sync": "npm run build && npx cap sync android",
-    "android:debug": "cd android && gradlew.bat assembleDebug",
-    "android:open": "npx cap open android"
-  },
-  "devDependencies": {
-    "vite": "^8.1.0"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
   "dependencies": {
-    "@capacitor/android": "^8.4.1",
-    "@capacitor/cli": "^8.4.1",
-    "@capacitor/core": "^8.4.1",
-    "pdf-parse": "^2.4.5"
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
