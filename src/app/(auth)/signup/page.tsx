@@ -53,7 +53,7 @@ export default function SignUpPage() {
               <span className="text-xl font-bold text-text-on-primary">L</span>
             </div>
           </Link>
-          <Tuto pose="celebrating" size="md" animation="breathe" className="mx-auto mb-4" />
+          <Tuto pose="celebrating" size="md" animation="breathe" priority className="mx-auto mb-4" />
           <h1 className="font-heading text-h1 font-extrabold text-text-primary">Create your account</h1>
           <p className="mt-1 text-small text-text-secondary">Start your English journey today</p>
         </div>
