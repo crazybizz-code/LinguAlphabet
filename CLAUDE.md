@@ -39,12 +39,14 @@ screen/component.
 
 - `src/app/` — Next.js App Router routes. Route groups `(auth)` and
   `(onboarding)` are organizational only (no URL segment): `/login`,
-  `/signup`, `/forgot-password`, `/welcome`, `/name`, `/level`,
-  `/confidence`, `/goal`, `/daily-time`, `/ai-plan`, `/dashboard`.
+  `/signup`, `/forgot-password`, `/reset-password`, `/welcome`, `/name`,
+  `/level`, `/goal`, `/daily-time`, `/interests`, `/ready`, `/ai-plan`,
+  `/dashboard`.
 - `src/components/ui/` — reusable primitives (`Button`, `Card`, `Input`,
   `Checkbox`, `ProgressDots`).
 - `src/components/layout/` — page composition (`SplitScreen`,
-  `OnboardingHeader`).
+  `OnboardingLayout` + `OnboardingNav` — bottom step-dots + Back/Continue
+  nav for the onboarding wizard).
 - `src/components/mascot/` — Tuto (`Tuto`, `FloatingBadge`, `MascotHero`).
 - `src/lib/supabase/` — `client.ts` (browser), `server.ts` (Server
   Components), `proxy.ts` (session refresh, wired from `src/proxy.ts`; note

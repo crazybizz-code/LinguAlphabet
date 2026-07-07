@@ -105,6 +105,13 @@ export function Tuto({
         }}
         aria-hidden="true"
       />
+      {/* The source PNGs have an opaque white backdrop, removed via
+          mix-blend-mode: multiply — but blend-mode only sees backdrops
+          painted within its own stacking context, and this component's
+          transform-animated wrapper creates one, cutting it off from the
+          real page background. This filler (matching the near-white bg
+          every screen uses) gives it something to blend against. */}
+      <div className="absolute inset-0 rounded-full bg-bg" aria-hidden="true" />
       <Image
         src={`${MASCOT_BASE_PATH}${POSE_FILE[pose]}.png`}
         alt={alt}
@@ -112,6 +119,7 @@ export function Tuto({
         priority={priority}
         sizes="320px"
         className="relative z-[1] object-contain"
+        style={{ mixBlendMode: "multiply" }}
       />
     </motion.div>
   );
