@@ -27,6 +27,12 @@ export interface Database {
           last_study_date: string | null;
           total_minutes: number;
           tuto_name: string;
+          /** CEFR code (A1-C2) collected by onboarding — see supabase/onboarding-fields.sql. */
+          english_level: string | null;
+          goal: string | null;
+          daily_time_minutes: number | null;
+          interests: string[];
+          onboarding_completed: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -42,10 +48,16 @@ export interface Database {
           last_study_date?: string | null;
           total_minutes?: number;
           tuto_name?: string;
+          english_level?: string | null;
+          goal?: string | null;
+          daily_time_minutes?: number | null;
+          interests?: string[];
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
       };
       progress: {
         Row: {
@@ -67,6 +79,7 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["progress"]["Insert"]>;
+        Relationships: [];
       };
       notes: {
         Row: {
@@ -88,6 +101,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["notes"]["Insert"]>;
+        Relationships: [];
       };
       bookmarks: {
         Row: {
@@ -109,6 +123,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["bookmarks"]["Insert"]>;
+        Relationships: [];
       };
       vocabulary: {
         Row: {
@@ -136,6 +151,7 @@ export interface Database {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["vocabulary"]["Insert"]>;
+        Relationships: [];
       };
       achievements: {
         Row: {
@@ -151,6 +167,7 @@ export interface Database {
           earned_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["achievements"]["Insert"]>;
+        Relationships: [];
       };
     };
     Views: {
@@ -163,7 +180,9 @@ export interface Database {
           avatar_url: string | null;
           rank: number;
         };
+        Relationships: [];
       };
     };
+    Functions: Record<string, never>;
   };
 }
