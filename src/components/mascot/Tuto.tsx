@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { tutoIdleAnimation, type TutoAnimation } from "@/lib/motion/variants";
 
 export type TutoPose =
   | "wave"
@@ -36,10 +40,21 @@ const POSE_FILE: Record<TutoPose, string> = {
   "typing-laptop": "pointing",
 };
 
+const SIZE_CLASSES = {
+  sm: "w-28 h-28 sm:w-36 sm:h-36",
+  md: "w-40 h-40 sm:w-48 sm:h-48",
+  lg: "w-52 h-52 sm:w-64 sm:h-64",
+  xl: "w-64 h-64 sm:w-80 sm:h-80",
+} as const;
+
+export type TutoSize = keyof typeof SIZE_CLASSES;
+
 export interface TutoProps {
   pose?: TutoPose;
-  /** Pixel size of the square container Tuto is rendered in. */
-  size?: number;
+  /** Responsive preset size (matches the approved Base44 spec exactly). */
+  size?: TutoSize;
+  /** Idle-loop animation — see lib/motion/variants.ts for exact timings. */
+  animation?: TutoAnimation;
   /** Soft ambient glow behind Tuto, used for hero moments. */
   glow?: boolean;
   alt?: string;
@@ -49,29 +64,35 @@ export interface TutoProps {
 
 /**
  * Renders the official LinguAlphabet Tuto mascot renders exactly as
- * provided — never recreate, redraw, or vectorize Tuto. The source
- * renders are not uniformly square, so object-fit: contain (Next/Image
- * with `fill`) letterboxes them safely regardless of aspect ratio.
+ * provided — never recreate, redraw, mirror, crop, recolor, or vectorize
+ * Tuto, and never synthesize a pose we don't have a real render for.
+ * The source renders are not uniformly square, so object-fit: contain
+ * (Next/Image with `fill`) letterboxes them safely regardless of aspect
+ * ratio.
  */
 export function Tuto({
   pose = "wave",
-  size = 160,
+  size = "md",
+  animation = "float",
   glow = false,
   alt = "Tuto, the AI English Coach",
   className,
   priority = false,
 }: TutoProps) {
+  const idle = tutoIdleAnimation[animation];
+
   return (
-    <div
-      className={cn("relative inline-flex items-center justify-center", className)}
-      style={{ width: size, height: size }}
+    <motion.div
+      className={cn("relative flex items-center justify-center", SIZE_CLASSES[size], className)}
+      animate={idle.animate}
+      transition={idle.transition}
     >
       {glow && (
         <div
           className="absolute -inset-[12%] rounded-full"
           style={{
             background:
-              "radial-gradient(circle, var(--color-primary-soft) 0%, var(--color-primary-soft-2) 45%, rgba(255,107,74,0) 72%)",
+              "radial-gradient(circle, var(--color-primary-soft) 0%, var(--color-primary-soft-2) 45%, rgba(255,107,0,0) 72%)",
           }}
           aria-hidden="true"
         />
@@ -89,9 +110,9 @@ export function Tuto({
         alt={alt}
         fill
         priority={priority}
-        sizes={`${size}px`}
-        className="relative z-[1] object-contain motion-safe:animate-tuto-float"
+        sizes="320px"
+        className="relative z-[1] object-contain"
       />
-    </div>
+    </motion.div>
   );
 }

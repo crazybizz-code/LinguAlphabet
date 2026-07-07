@@ -5,7 +5,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   /** 36px padding (default, per prompt.md for most onboarding speech/selection cards). */
   padding?: "default" | "spacious" | "none";
   /** Heavier ambient elevation used by welcome/confidence/ai-plan/dashboard cards. */
-  shadow?: "ambient" | "hero";
+  shadow?: "ambient" | "hero" | "soft";
 }
 
 const PADDING_CLASSES: Record<NonNullable<CardProps["padding"]>, string> = {
@@ -17,6 +17,8 @@ const PADDING_CLASSES: Record<NonNullable<CardProps["padding"]>, string> = {
 const SHADOW_CLASSES: Record<NonNullable<CardProps["shadow"]>, string> = {
   ambient: "shadow-card-ambient",
   hero: "shadow-card-hero",
+  /** Bordered + subtle elevation — the stat/schedule/roadmap tiles on the plan-reveal screen. */
+  soft: "border border-border shadow-soft",
 };
 
 /**

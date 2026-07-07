@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans-loaded",
+  display: "swap",
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-heading-loaded",
   display: "swap",
 });
 
@@ -24,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${inter.variable} h-full min-h-full antialiased`}>
+      <body className={`${inter.variable} ${plusJakartaSans.variable} h-full min-h-full antialiased`}>
         {children}
       </body>
     </html>

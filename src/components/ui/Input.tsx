@@ -8,27 +8,38 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   /** Hides the <label> visually on mobile but keeps it for screen readers — set false to omit the label entirely instead. */
   hideLabelOnMobile?: boolean;
+  /** Rendered at the end of the label row (e.g. a "Forgot password?" link). */
+  labelExtra?: ReactNode;
   icon?: ReactNode;
   /** Rendered after the field (e.g. a password show/hide toggle). */
   trailing?: ReactNode;
   error?: string;
+  /** Field height: 56px (default, e.g. the /name onboarding step) or 48px (auth screens). */
+  fieldSize?: "default" | "compact";
 }
 
+const FIELD_HEIGHT: Record<NonNullable<InputProps["fieldSize"]>, string> = {
+  default: "h-14",
+  compact: "h-12",
+};
+
 /**
- * Labeled text input with a leading icon and focus glow — 56px height,
- * 20px squircle radius per every phase's prompt.md. Error state renders
- * a red border/ring plus the message below the field.
+ * Labeled text input with a leading icon and focus glow — 56px height by
+ * default, 48px via `fieldSize="compact"` (auth screens). Error state
+ * renders a red border/ring plus the message below the field.
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       label,
       hideLabelOnMobile = false,
+      labelExtra,
       icon,
       trailing,
       error,
       id,
       className,
+      fieldSize = "default",
       ...rest
     },
     ref,
@@ -36,26 +47,37 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const generatedId = useId();
     const inputId = id ?? generatedId;
 
-    return (
-      <div className="flex flex-col gap-1">
-        {label && (
-          <label
-            htmlFor={inputId}
-            className={cn(
-              "text-small font-semibold text-text-primary",
-              hideLabelOnMobile && "max-md:hidden",
-            )}
-          >
-            {label}
-          </label>
+    const labelEl = label && (
+      <label
+        htmlFor={inputId}
+        className={cn(
+          "text-small font-semibold text-text-primary",
+          hideLabelOnMobile && "max-md:hidden",
         )}
+      >
+        {label}
+      </label>
+    );
+
+    return (
+      <div className="flex flex-col gap-1.5">
+        {label &&
+          (labelExtra ? (
+            <div className="flex items-center justify-between">
+              {labelEl}
+              {labelExtra}
+            </div>
+          ) : (
+            labelEl
+          ))}
         <div
           className={cn(
-            "flex h-14 items-center gap-2 rounded-lg border-[1.5px] bg-bg-card px-[18px]",
+            "flex items-center gap-2 rounded-lg border-[1.5px] bg-bg-card px-[18px]",
+            FIELD_HEIGHT[fieldSize],
             "transition-[border-color,box-shadow] duration-fast ease-standard",
             error
               ? "border-danger shadow-[0_0_0_4px_rgba(255,59,48,0.20)]"
-              : "border-border focus-within:border-primary focus-within:shadow-[0_0_0_4px_rgba(255,107,74,0.20)]",
+              : "border-border focus-within:border-primary-focus focus-within:shadow-[0_0_0_4px_rgba(255,138,51,0.20)]",
           )}
         >
           {icon && (

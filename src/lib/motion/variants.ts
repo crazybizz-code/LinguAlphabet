@@ -1,4 +1,4 @@
-import type { Transition, Variants } from "framer-motion";
+import type { TargetAndTransition, Transition, Variants } from "framer-motion";
 
 /**
  * Durations/easings mirror the CSS custom properties in globals.css
@@ -100,4 +100,19 @@ export const crossFade = {
   initial: { opacity: 0 },
   animate: { opacity: 1, transition: { duration: DURATION.normal, ease: EASE.standard } },
   exit: { opacity: 0, transition: { duration: DURATION.normal, ease: EASE.standard } },
+};
+
+export type TutoAnimation = "float" | "floatSm" | "breathe" | "none";
+
+/**
+ * Tuto's idle-loop animations — three distinct intensities used across
+ * different screens (Base44 export): a big float for hero moments, a
+ * smaller float for inline/compact moments, and a breathing scale for
+ * "thinking/waiting" moments. `none` renders Tuto perfectly still.
+ */
+export const tutoIdleAnimation: Record<TutoAnimation, { animate: TargetAndTransition; transition?: Transition }> = {
+  float: { animate: { y: [0, -12, 0] }, transition: { duration: 4, repeat: Infinity, ease: "easeInOut" } },
+  floatSm: { animate: { y: [0, -6, 0] }, transition: { duration: 3, repeat: Infinity, ease: "easeInOut" } },
+  breathe: { animate: { scale: [1, 1.04, 1] }, transition: { duration: 3.5, repeat: Infinity, ease: "easeInOut" } },
+  none: { animate: {} },
 };
