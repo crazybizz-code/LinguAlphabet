@@ -30,26 +30,26 @@ unnecessary borders. One screen = one task, never overloaded.
 
 | Token | Value |
 |---|---|
-| Primary | `#FF6B4A` |
+| Primary | `#FF6B00` |
 | Background | `#FFFDFB` |
 | Surface (cards) | `#FFFFFF` |
-| Primary text | `#111111` |
-| Secondary text | `#6B7280` |
-| Border | `rgba(0,0,0,0.05)` |
+| Muted surface (input fill) | `#F8FAFC` |
+| Primary text | `#0F172A` |
+| Secondary text | `#64748B` |
+| Tertiary text | `#94A3B8` |
+| Border | `#E5E7EB` |
 | Success | `#34C759` |
 | Warning | `#FF9500` |
 | Error | `#FF3B30` |
 
-Avoid saturated colors; accent is a soft orange gradient, never harsh.
-
-> Note: current `src/style.css` tokens (`--primary: #FF6B35`, `--bg: #FAFAF8`,
-> radius scale `6–36px`) predate this constitution and need reconciling —
-> confirm before repainting the whole token set.
+Avoid saturated colors; accent is a soft orange gradient, never harsh. Text/
+border/muted-surface values are the exact Base44-verified slate palette — see
+`docs/coding-standards.md` for the full token list and rationale.
 
 ## Border Radius
 
-Cards `24px` · Buttons `20px` · Inputs `20px` · Dialogs `28px` · Sheets `32px`.
-Everything should feel soft.
+Cards `32px` · Buttons `24px` · Inputs `24px` · Icon chips `12px` · Sheets
+`32px`. Everything should feel soft.
 
 ## Shadows
 
@@ -62,7 +62,8 @@ never flashy.
 
 ## Typography
 
-Font: Inter. Comfortable line height, minimal, readable.
+Inter for body text, Plus Jakarta Sans for headings (both Base44-verified).
+Comfortable line height, minimal, readable.
 
 | Level | Size |
 |---|---|
@@ -92,7 +93,8 @@ spacing, never overloaded with content.
 
 ## Icons
 
-Heroicons, chosen to resemble SF Symbols. Simple, never decorative.
+`lucide-react` (Base44-verified), chosen to resemble SF Symbols. Simple,
+never decorative.
 
 ## Animation
 
@@ -102,28 +104,42 @@ smooth, elegant, never sudden.
 
 ## Tuto (the mascot)
 
-Tuto is NOT a chatbot — Tuto is the face of the company and the emotional
-connection to the product. Every onboarding screen should feel like a
+Tuto is not decoration and not a chatbot — Tuto **is** the AI coach, the
+product's emotional center. Whenever possible, the interface should feel like
+Tuto is personally guiding the learner, not like a UI that happens to have a
+mascot on it. Animations exist to reinforce that Tuto is alive, friendly, and
+intelligent (idle float/breathe loops, reacting poses per moment) — never
+purely decorative motion. Every onboarding screen should feel like a
 conversation with Tuto, never like filling out a form.
+
+## Learning Philosophy
+
+LinguAlphabet is not a traditional language-learning app with lessons to
+browse. The learner should never feel like they're navigating a content
+library or manually deciding what to study — the **Learning Brain** decides
+that for them. The interface's job is to minimize decisions, not multiply
+them: every screen should reinforce "I have an intelligent coach," not
+"I have a course catalog." See `CLAUDE.md`'s Product Model section for how
+this maps to the Knowledge Hub (Podcasts live today; Articles, Videos, News,
+Stories, Conversations, Challenges are Coming Soon, never manual-pick UIs).
+
+Emotion over density, always: generous whitespace, large type, one clear
+focal point per screen, premium motion. Every onboarding screen should read
+like Apple onboarding, never like a registration form.
 
 ## Onboarding Flow
 
 One screen, one action, never ask multiple things at once:
 
 ```
-Welcome → Name → Level → Confidence → Assessment → Analysis → Learning Plan → Dashboard
+Welcome → Name → Level → Goal → Daily Time → Interests → Ready → Learning Plan → Dashboard
 ```
-
-## Assessment
-
-Must never feel like an exam — feels like a conversation. Progress indicator is
-subtle. Never show percentages. Never scare the user.
 
 ## Dashboard
 
 Peaceful, not crowded, large cards. "Today's Mission" is the hero section,
 "Recommended Podcast" comes second, progress appears naturally (not as a wall of
-stats).
+stats). The Learning Brain — not the learner — chooses what fills these cards.
 
 ## Responsive
 
