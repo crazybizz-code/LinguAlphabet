@@ -1,12 +1,11 @@
 /**
- * Hand-written from supabase-schema.sql — covers every table currently
- * defined there. Regenerate this for real once the Supabase project is
- * linked via the CLI:
+ * Hand-written from supabase-schema.sql + supabase/onboarding-fields.sql +
+ * supabase/content-schema.sql. Regenerate this for real once the Supabase
+ * project is linked via the CLI:
  *
  *   npx supabase gen types typescript --project-id <ref> > src/types/supabase.ts
  *
- * Until then, keep this in sync by hand whenever supabase-schema.sql
- * changes.
+ * Until then, keep this in sync by hand whenever those files change.
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
@@ -59,11 +58,81 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
         Relationships: [];
       };
+      content_items: {
+        Row: {
+          id: string;
+          content_type: "podcast" | "article" | "story" | "video" | "news" | "conversation" | "challenge";
+          title: string;
+          description: string | null;
+          cefr_level_min: string;
+          cefr_level_max: string;
+          topics: string[];
+          skills: string[];
+          goal_alignment: string[];
+          tags: string[];
+          estimated_time_minutes: number;
+          thumbnail_url: string | null;
+          status: "draft" | "published" | "coming_soon";
+          featured: boolean;
+          premium: boolean;
+          published_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          content_type: Database["public"]["Tables"]["content_items"]["Row"]["content_type"];
+          title: string;
+          description?: string | null;
+          cefr_level_min: string;
+          cefr_level_max: string;
+          topics?: string[];
+          skills?: string[];
+          goal_alignment?: string[];
+          tags?: string[];
+          estimated_time_minutes: number;
+          thumbnail_url?: string | null;
+          status?: Database["public"]["Tables"]["content_items"]["Row"]["status"];
+          featured?: boolean;
+          premium?: boolean;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["content_items"]["Insert"]>;
+        Relationships: [];
+      };
+      podcast_details: {
+        Row: {
+          content_item_id: string;
+          audio_url: string;
+          duration_seconds: number;
+          transcript: Json;
+          summary: string | null;
+          takeaways: Json;
+          vocabulary: Json;
+          quiz: Json;
+          reflection: string | null;
+        };
+        Insert: {
+          content_item_id: string;
+          audio_url: string;
+          duration_seconds: number;
+          transcript?: Json;
+          summary?: string | null;
+          takeaways?: Json;
+          vocabulary?: Json;
+          quiz?: Json;
+          reflection?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["podcast_details"]["Insert"]>;
+        Relationships: [];
+      };
       progress: {
         Row: {
           id: string;
           user_id: string;
-          podcast_id: string;
+          content_item_id: string;
           position_seconds: number;
           completed: boolean;
           created_at: string;
@@ -72,7 +141,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          podcast_id: string;
+          content_item_id: string;
           position_seconds?: number;
           completed?: boolean;
           created_at?: string;
@@ -85,8 +154,8 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          podcast_id: string | null;
-          podcast_title: string | null;
+          content_item_id: string | null;
+          content_item_title: string | null;
           content: string;
           timestamp_seconds: number | null;
           created_at: string;
@@ -94,8 +163,8 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          podcast_id?: string | null;
-          podcast_title?: string | null;
+          content_item_id?: string | null;
+          content_item_title?: string | null;
           content: string;
           timestamp_seconds?: number | null;
           created_at?: string;
@@ -107,8 +176,8 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
-          podcast_id: string;
-          podcast_title: string | null;
+          content_item_id: string;
+          content_item_title: string | null;
           position_seconds: number;
           label: string | null;
           created_at: string;
@@ -116,8 +185,8 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
-          podcast_id: string;
-          podcast_title?: string | null;
+          content_item_id: string;
+          content_item_title?: string | null;
           position_seconds: number;
           label?: string | null;
           created_at?: string;
@@ -135,7 +204,7 @@ export interface Database {
           pos: string | null;
           translations: Json | null;
           example: string | null;
-          source_podcast_id: string | null;
+          source_content_item_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -147,7 +216,7 @@ export interface Database {
           pos?: string | null;
           translations?: Json | null;
           example?: string | null;
-          source_podcast_id?: string | null;
+          source_content_item_id?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["vocabulary"]["Insert"]>;
