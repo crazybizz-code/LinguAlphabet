@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { PodcastCard } from "@/components/content/PodcastCard";
-import { searchContent } from "@/lib/content/search";
+import { searchService } from "@/lib/content/search";
 import { CEFR_ORDER } from "@/lib/learning-brain/cefr";
 import type { PodcastContent } from "@/types/content";
 
@@ -58,12 +58,27 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
     [podcasts],
   );
 
+  // Universal Search is async (searchService.rank returns a Promise) so a
+  // future AI-powered ranker is a drop-in here — today's deterministic
+  // ranker resolves in the same tick, but the seam is already real.
+  const [searchResults, setSearchResults] = useState<PodcastContent[]>(podcasts);
+
+  useEffect(() => {
+    let cancelled = false;
+    searchService.rank(podcasts, query).then((results) => {
+      if (!cancelled) setSearchResults(results);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [podcasts, query]);
+
   const filtered = useMemo(() => {
-    let result = searchContent(podcasts, query);
+    let result = searchResults;
     if (levelFilter) result = result.filter((podcast) => podcast.cefrLevelMin === levelFilter);
     if (topicFilter) result = result.filter((podcast) => podcast.topics.includes(topicFilter));
     return result;
-  }, [podcasts, query, levelFilter, topicFilter]);
+  }, [searchResults, levelFilter, topicFilter]);
 
   const isBrowsing = query.trim() === "" && !levelFilter && !topicFilter;
   const activeChip = KNOWLEDGE_HUB_TABS.find((tab) => tab.id === activeTab);
@@ -82,9 +97,12 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
         </p>
       </motion.header>
 
-      {/* Universal Search — always the first section (product decision). Matches
-          title/description/topics, the fields every content type shares, so this
-          already supports whatever's added to the Knowledge Hub next. */}
+      {/* Universal Search — always the first section (product decision). Field
+          coverage is dispatched by content type (src/lib/content/search/extract.ts):
+          title/description/topics/tags for every type today, plus transcript,
+          vocabulary, and takeaways for podcasts. Article body, story text, video
+          transcript, and conversation text each add their own case there when
+          those types ship — this component never changes. */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
