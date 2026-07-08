@@ -18,8 +18,26 @@ export interface LearningProfileUpdate {
  * The one write path for the Learning Profile (docs/domain-model.md §2):
  * "a learner can revise their level/goal/interests later (Profile tab), and
  * any change is a first-class input the Learning Brain picks up on its next
- * run." Revalidating /dashboard is what makes that true in practice — the
- * next Home render re-reads these columns and re-computes fresh.
+ * run." Revalidating Home/Explore/Progress is what makes that true for
+ * Continue Learning, Tuto Recommends, Explore ranking and Difficulty
+ * Progression — none of those persist anything, they're all computed live
+ * from the Learning Profile on every render, so a fresh render is all they
+ * need.
+ *
+ * Today's Mission is the one exception: it's deliberately locked for the
+ * calendar day once assigned (content-lifecycle.md §5), so simply
+ * revalidating the page wouldn't change it. A learner explicitly editing
+ * their Learning Profile is a deliberate signal, not passive background
+ * drift, so it's treated as grounds to drop today's assignment and let it
+ * be re-picked fresh from the new context on the next Home render.
+ * `todaysMissionStrategy.decide` still checks Continue Learning first, so
+ * an in-progress podcast is never yanked away by this — only a
+ * not-yet-started mission is re-picked. And if today's mission was already
+ * completed, the row is left alone — Home's "Today's Mission Complete"
+ * acknowledgment reads its title from that row, and the next mission it
+ * shows already recomputes live from the new context on every render
+ * regardless (see daily-mission-generator.ts's `assignmentStillValid`
+ * branch), so nothing is lost by not touching it.
  */
 export async function updateLearningProfile(update: LearningProfileUpdate): Promise<void> {
   const supabase = await createClient();
@@ -34,7 +52,25 @@ export async function updateLearningProfile(update: LearningProfileUpdate): Prom
   if (update.dailyTimeMinutes !== undefined) patch.daily_time_minutes = update.dailyTimeMinutes;
   if (update.interests !== undefined) patch.interests = update.interests;
 
-  await supabase.from("profiles").update(patch).eq("user_id", user.id);
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [, { data: existingAssignment }] = await Promise.all([
+    supabase.from("profiles").update(patch).eq("user_id", user.id),
+    supabase.from("daily_missions").select("content_item_id").eq("user_id", user.id).eq("mission_date", today).maybeSingle(),
+  ]);
+
+  if (existingAssignment) {
+    const { data: progressRow } = await supabase
+      .from("progress")
+      .select("completed")
+      .eq("user_id", user.id)
+      .eq("content_item_id", existingAssignment.content_item_id)
+      .maybeSingle();
+
+    if (!progressRow?.completed) {
+      await supabase.from("daily_missions").delete().eq("user_id", user.id).eq("mission_date", today);
+    }
+  }
 
   revalidatePath("/profile");
   revalidatePath("/dashboard");

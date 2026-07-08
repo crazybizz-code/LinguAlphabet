@@ -120,7 +120,10 @@ export function ProfileView({
         transition={{ duration: 0.5, delay: 0.1 }}
         className="mt-6 flex flex-col items-center text-center"
       >
-        <Tuto pose="wave" size="md" animation="float" priority />
+        {/* `wave` is reserved for Welcome/first-time onboarding — Profile is a
+            returning-learner surface, so it gets Tuto's normal presence
+            instead of a greeting gesture. */}
+        <Tuto pose="neutral" size="md" animation="float" priority />
         <h2 className="mt-3 text-xl font-bold text-text-primary">{displayName}</h2>
         <p className="mt-0.5 text-sm text-text-tertiary">{email}</p>
       </motion.section>

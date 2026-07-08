@@ -13,21 +13,25 @@ export type TutoPose =
   | "pointing"
   | "holding-clock"
   | "typing-laptop"
-  | "celebrating";
+  | "celebrating"
+  | "neutral";
 
 const MASCOT_BASE_PATH = "/assets/mascot/";
 
 /**
  * The official asset package's own filenames don't match their content
- * for 3 of the 8 poses (found while building the prior implementation):
- * `thinking.png` is actually a cheering/confetti pose, `celebrating.png`
- * is actually a hand-on-chin thinking pose; `happy.png` holds a clock,
- * `holding-clock.png` is the big-smile happy pose; `pointing.png` is
- * sitting at a laptop, `typing-laptop.png` is a pointing gesture. This
- * maps the semantic pose every screen asks for to the file that
- * actually shows it, without renaming the underlying package files.
+ * for 3 of the 8 contextual poses (found while building the prior
+ * implementation): `thinking.png` is actually a cheering/confetti pose,
+ * `celebrating.png` is actually a hand-on-chin thinking pose; `happy.png`
+ * holds a clock, `holding-clock.png` is the big-smile happy pose;
+ * `pointing.png` is sitting at a laptop, `typing-laptop.png` is a pointing
+ * gesture. This maps the semantic pose every screen asks for to the file
+ * that actually shows it, without renaming the underlying package files.
  * `wave`/`listening` are visually similar (both a raised open hand) and
- * ambiguous which is "more correct" — left unmapped.
+ * ambiguous which is "more correct" — left unmapped. `neutral` is its own
+ * dedicated asset (`master-tuto.png`, correctly named) — Tuto simply
+ * standing, no gesture — reserved for surfaces that want Tuto's normal
+ * presence without invoking a greeting (`wave` is Welcome/onboarding-only).
  */
 const POSE_FILE: Record<TutoPose, string> = {
   wave: "wave",
@@ -38,6 +42,7 @@ const POSE_FILE: Record<TutoPose, string> = {
   "holding-clock": "happy",
   pointing: "typing-laptop",
   "typing-laptop": "pointing",
+  neutral: "master-tuto",
 };
 
 const SIZE_CLASSES = {
