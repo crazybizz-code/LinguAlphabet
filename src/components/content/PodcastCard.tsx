@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Clock, Sparkles } from "lucide-react";
@@ -18,7 +20,11 @@ function formatMinutes(minutes: number) {
 /** Podcast tile used by Home's "Recommended by Tuto" and Explore's grid. */
 export function PodcastCard({ podcast, tutosPick = false, index = 0 }: PodcastCardProps) {
   return (
-    <Link href={`/podcast/${podcast.id}`} className="group block">
+    // Podcast Detail (/podcast/[id]) isn't built yet (task #31) — the only
+    // real destination for a podcast today is the Learning Session itself,
+    // so this links straight there rather than to a page that doesn't
+    // exist. Revisit once Podcast Detail ships.
+    <Link href={`/podcast/${podcast.id}/learn`} className="group block">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

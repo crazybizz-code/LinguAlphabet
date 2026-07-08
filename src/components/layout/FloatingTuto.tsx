@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
@@ -14,10 +13,16 @@ import { Tuto } from "@/components/mascot/Tuto";
  * icon button, not a Tuto render, so it carries no avatar-cropping concern;
  * the expanded teaser uses the full Tuto mascot (never a cropped circular
  * avatar) sized to fit the card, per product decision.
+ *
+ * Tuto Chat itself isn't built yet (task #36), so the teaser's CTA is a
+ * same-card "coming soon" acknowledgment rather than a link to a route
+ * that doesn't exist — docs/dashboard-architecture.md's Coming Soon
+ * principle applies here too: "never a dead link, never hidden entirely."
  */
 export function FloatingTuto() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [notified, setNotified] = useState(false);
 
   if (pathname === "/tuto-chat") return null;
 
@@ -42,19 +47,25 @@ export function FloatingTuto() {
             </button>
 
             <div className="flex flex-col items-center text-center">
-              <Tuto pose="wave" size="sm" animation="float" />
+              {/* `wave` is reserved for Welcome/first-time onboarding — this
+                  teaser appears on every screen for returning learners, so
+                  it gets Tuto's normal presence instead. */}
+              <Tuto pose="neutral" size="sm" animation="float" />
               <p className="mt-2 text-sm font-bold text-text-primary">Ask Tuto</p>
               <p className="text-xs text-text-tertiary">Your English learning coach</p>
               <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                &ldquo;Have a question about grammar or vocabulary? I&apos;m here to help!&rdquo;
+                {notified
+                  ? "“I’ll let you know the moment chat is ready!”"
+                  : "“Have a question about grammar or vocabulary? I’m here to help!”"}
               </p>
-              <Link
-                href="/tuto-chat"
-                onClick={() => setOpen(false)}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-text-on-primary shadow-glow transition-transform active:scale-95"
+              <button
+                type="button"
+                onClick={() => setNotified(true)}
+                disabled={notified}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-text-on-primary shadow-glow transition-transform active:scale-95 disabled:opacity-60"
               >
-                Start Chatting
-              </Link>
+                {notified ? "We'll let you know!" : "Coming Soon — Notify Me"}
+              </button>
             </div>
           </motion.div>
         )}

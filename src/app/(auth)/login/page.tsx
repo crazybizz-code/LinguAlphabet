@@ -43,7 +43,9 @@ export default function LoginPage() {
               <span className="text-xl font-bold text-text-on-primary">L</span>
             </div>
           </Link>
-          <Tuto pose="wave" size="md" animation="float" glow priority className="mx-auto mb-4" />
+          {/* `wave` is reserved for Welcome/first-time onboarding — a
+              returning learner signing back in gets Tuto's normal presence. */}
+          <Tuto pose="neutral" size="md" animation="float" glow priority className="mx-auto mb-4" />
           <h1 className="font-heading text-h1 font-extrabold text-text-primary">Welcome back</h1>
           <p className="mt-1 text-small text-text-secondary">Sign in to continue learning</p>
         </div>
