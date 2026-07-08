@@ -186,7 +186,7 @@ export function HomeView({
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
             <h3 className="text-sm font-semibold text-text-primary">Recommended by Tuto</h3>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-md:grid-cols-1">
             {recommendations.map((podcast, index) => (
               <PodcastCard key={podcast.id} podcast={podcast} tutosPick index={index} />
             ))}

@@ -211,3 +211,14 @@ img {
   outline: 3px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
+
+/* Horizontal chip rows (Knowledge Hub selector, ...) scroll on overflow
+   without a visible scrollbar cluttering the premium visual language. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
