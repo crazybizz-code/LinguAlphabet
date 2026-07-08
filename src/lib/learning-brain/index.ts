@@ -1,13 +1,28 @@
-import { ruleBasedLearningBrain } from "./rule-engine";
-import type { LearningBrain } from "./types";
+import { dailyMissionGenerator } from "./strategies/daily-mission-generator";
+import { exploreRankingStrategy } from "./strategies/explore-ranking";
+import { difficultyProgressionStrategy } from "./strategies/difficulty-progression";
 
 /**
- * The one import every caller (Today's Mission, Tuto Recommends, Explore's
- * default sort, future Search ranking) uses — never `./rule-engine`
- * directly. Swapping V1 (rule-based) for V2 (a learned model) means
- * changing this one line; every caller, the UI, routing, and the database
- * schema stay untouched (docs/dashboard-architecture.md §8).
+ * The one import every caller uses — Home, Explore, and future Search
+ * ranking never import a strategy file directly, and never know which
+ * strategy produced a result. Each method here delegates to an
+ * independent, single-responsibility strategy (see ./strategies/):
+ *
+ *   - getHomeRecommendations → Daily Mission Generator, which composes
+ *     Continue Learning + Today's Mission + Tuto Recommends
+ *   - getExploreRanking      → Explore Ranking Strategy
+ *   - getEffectiveLevel      → Difficulty Progression Strategy
+ *
+ * Swapping any one strategy's internals (rule-based → a learned model)
+ * means editing that strategy's file, never this one, and never a
+ * caller (docs/dashboard-architecture.md §8).
  */
-export const learningBrain: LearningBrain = ruleBasedLearningBrain;
+export const learningBrain = {
+  getHomeRecommendations: dailyMissionGenerator.generate,
+  getExploreRanking: exploreRankingStrategy.rank,
+  getEffectiveLevel: difficultyProgressionStrategy.computeEffectiveLevel,
+};
 
-export type { LearnerContext, LearningBrain } from "./types";
+export type { LearnerContext, LearningBrainRanker, Mission, MissionKind } from "./types";
+export type { HomeRecommendations } from "./strategies/daily-mission-generator";
+export type { RecentCompletion } from "./strategies/difficulty-progression";

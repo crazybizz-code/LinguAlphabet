@@ -6,7 +6,8 @@ import { ArrowRight, Clock, Flame, Headphones, Sparkles } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { PodcastCard } from "@/components/content/PodcastCard";
 import type { PodcastContent } from "@/types/content";
-import type { HomeMission } from "@/lib/learning-brain/home-recommendations";
+import type { Mission } from "@/lib/learning-brain";
+import type { TutoNote } from "@/lib/tuto/messages";
 import { fadeSlideUp } from "@/lib/motion/variants";
 
 export interface HomeViewProps {
@@ -16,13 +17,9 @@ export interface HomeViewProps {
   level: number;
   weeklyMinutes: number;
   weeklyGoalMinutes: number;
-  todaysMission: HomeMission<PodcastContent> | null;
+  mission: Mission | null;
+  tutoNote: TutoNote | null;
   recommendations: PodcastContent[];
-}
-
-function missionSubtitle(podcast: PodcastContent) {
-  if (podcast.skills.length === 0) return "English Practice";
-  return `${podcast.skills.slice(0, 2).join(" & ")} Practice`;
 }
 
 export function HomeView({
@@ -32,14 +29,11 @@ export function HomeView({
   level,
   weeklyMinutes,
   weeklyGoalMinutes,
-  todaysMission,
+  mission,
+  tutoNote,
   recommendations,
 }: HomeViewProps) {
   const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
-  const missionProgressPercentage =
-    todaysMission?.isResume && todaysMission.resumePositionSeconds
-      ? Math.min(100, (todaysMission.resumePositionSeconds / todaysMission.content.durationSeconds) * 100)
-      : null;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -74,10 +68,10 @@ export function HomeView({
       </header>
 
       {/* Today's Mission — the hero. One card, one CTA (docs/dashboard-architecture.md §4.2).
-          When an unfinished item exists it takes priority and IS the mission
-          (docs/content-lifecycle.md §10) rather than competing with a separate
-          "continue" card further down the page. */}
-      {todaysMission ? (
+          Mission is a fully-formed, kind-agnostic shape from the Learning Brain — this
+          markup never branches on `mission.kind` and never needs to change when a new
+          kind (flashcard review, quiz retry, ...) starts being produced. */}
+      {mission ? (
         <motion.section
           initial={{ opacity: 0, y: 16, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -100,7 +94,7 @@ export function HomeView({
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70">Today&apos;s Mission</p>
                   <span className="whitespace-nowrap rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white">
-                    {todaysMission.isResume ? "In Progress" : "Prepared by Tuto"}
+                    {mission.badgeLabel}
                   </span>
                 </div>
                 <div className="mt-4 flex items-center gap-3">
@@ -108,42 +102,40 @@ export function HomeView({
                     <Headphones className="h-6 w-6 text-white" aria-hidden="true" />
                   </span>
                   <div>
-                    <h2 className="text-xl font-bold leading-tight text-white sm:text-2xl">
-                      {todaysMission.content.title}
-                    </h2>
-                    <p className="mt-0.5 text-sm text-white/80">{missionSubtitle(todaysMission.content)}</p>
+                    <h2 className="text-xl font-bold leading-tight text-white sm:text-2xl">{mission.title}</h2>
+                    <p className="mt-0.5 text-sm text-white/80">{mission.subtitle}</p>
                   </div>
                 </div>
                 <div className="mt-5 flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
-                    Level {todaysMission.content.cefrLevelMin}
+                    Level {mission.cefrLevel}
                   </span>
                   <span className="flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
                     <Clock className="h-3 w-3" aria-hidden="true" />
-                    {Math.round(todaysMission.content.estimatedTimeMinutes)} min
+                    {Math.round(mission.estimatedMinutes)} min
                   </span>
                   <span className="text-xs text-white/60">Estimated completion</span>
                 </div>
-                {missionProgressPercentage !== null && (
+                {mission.progressPercentage !== null && (
                   <div
                     className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/20"
                     role="progressbar"
-                    aria-label="Listening progress"
-                    aria-valuenow={Math.round(missionProgressPercentage)}
+                    aria-label="Mission progress"
+                    aria-valuenow={Math.round(mission.progressPercentage)}
                     aria-valuemin={0}
                     aria-valuemax={100}
                   >
                     <div
                       className="h-full rounded-full bg-white transition-all duration-500"
-                      style={{ width: `${missionProgressPercentage}%` }}
+                      style={{ width: `${mission.progressPercentage}%` }}
                     />
                   </div>
                 )}
                 <Link
-                  href={`/podcast/${todaysMission.content.id}/play`}
+                  href={mission.ctaHref}
                   className="group mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-4 text-base font-bold text-primary transition-all duration-300 hover:shadow-xl active:scale-[0.98] sm:w-auto sm:px-8"
                 >
-                  {todaysMission.isResume ? "Resume Learning" : "Start Learning"}
+                  {mission.ctaLabel}
                   <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
                 </Link>
               </div>
@@ -165,9 +157,10 @@ export function HomeView({
         </motion.section>
       )}
 
-      {/* Tuto's note — optional, contextual (docs/dashboard-architecture.md §4.3). Only
-          appears when there's something genuine to say; never forced on every visit. */}
-      {streak >= 3 && (
+      {/* Tuto's note — optional, contextual, generated from the learner's actual state
+          (docs/dashboard-architecture.md §4.3). Only appears when there's something
+          genuine to say; never a generic greeting or a random quote. */}
+      {tutoNote && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,10 +168,8 @@ export function HomeView({
           className="mt-5 px-5 sm:px-8"
         >
           <div className="flex items-start gap-3 rounded-2xl border border-border bg-bg-card p-4">
-            <Tuto pose="happy" size="sm" />
-            <p className="pt-0.5 text-sm leading-relaxed text-text-secondary">
-              {`“${streak} days in a row — you’re building real momentum. Keep it going today!”`}
-            </p>
+            <Tuto pose={tutoNote.pose} size="sm" />
+            <p className="pt-0.5 text-sm leading-relaxed text-text-secondary">{`“${tutoNote.message}”`}</p>
           </div>
         </motion.section>
       )}

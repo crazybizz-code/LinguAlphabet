@@ -1,5 +1,6 @@
 import type { ContentItem } from "@/types/content";
 import type { LearnerContext } from "./types";
+import { cefrDistance } from "./cefr";
 
 /**
  * Rule-based V1 scoring (docs/content-lifecycle.md §3):
@@ -23,15 +24,6 @@ const WEIGHTS = {
   varietyBonus: 10,
   repetitionPenaltyCompleted: 50,
 } as const;
-
-const CEFR_ORDER: ContentItem["cefrLevelMin"][] = ["A1", "A2", "B1", "B2", "C1", "C2"];
-
-function cefrDistance(a: string, b: string): number {
-  const indexA = CEFR_ORDER.indexOf(a as (typeof CEFR_ORDER)[number]);
-  const indexB = CEFR_ORDER.indexOf(b as (typeof CEFR_ORDER)[number]);
-  if (indexA === -1 || indexB === -1) return CEFR_ORDER.length;
-  return Math.abs(indexA - indexB);
-}
 
 function levelMatchScore(item: ContentItem, englishLevel: string | null): number {
   if (!englishLevel) return 0;

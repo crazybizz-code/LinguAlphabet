@@ -2,11 +2,13 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedPodcasts } from "@/lib/content/queries";
 import { buildWeeklyMinutes, getTimeGreeting } from "@/lib/content/home";
-import { getHomeRecommendations } from "@/lib/learning-brain/home-recommendations";
-import type { LearnerContext } from "@/lib/learning-brain/types";
+import { learningBrain } from "@/lib/learning-brain";
+import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
+import { buildTutoNote } from "@/lib/tuto/messages";
 import { HomeView } from "@/components/dashboard/HomeView";
 
 const DEFAULT_DAILY_MINUTES = 20;
+const RECENT_COMPLETION_WINDOW_MS = 6 * 60 * 60 * 1000;
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -31,25 +33,55 @@ export default async function DashboardPage() {
 
   const rows = progressRows ?? [];
   const dailyMinutes = profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES;
+  const byId = new Map(podcasts.map((podcast) => [podcast.id, podcast]));
 
-  const previousMissionContent = previousMission
-    ? podcasts.find((podcast) => podcast.id === previousMission.content_item_id)
-    : undefined;
+  const previousMissionContent = previousMission ? byId.get(previousMission.content_item_id) : undefined;
+
+  const completedRows = rows.filter((row) => row.completed);
+  const recentCompletions: RecentCompletion[] = completedRows
+    .map((row) => {
+      const podcast = byId.get(row.content_item_id);
+      return podcast ? { cefrLevel: podcast.cefrLevelMin, completedAt: row.updated_at } : null;
+    })
+    .filter((completion): completion is RecentCompletion => completion !== null);
+
+  const baseLevel = (profile?.english_level as LearnerContext["englishLevel"]) ?? null;
+  const effectiveLevel = learningBrain.getEffectiveLevel(baseLevel, recentCompletions);
 
   const context: LearnerContext = {
-    englishLevel: (profile?.english_level as LearnerContext["englishLevel"]) ?? null,
+    englishLevel: effectiveLevel,
     goal: profile?.goal ?? null,
     interests: profile?.interests ?? [],
-    completedContentIds: new Set(rows.filter((row) => row.completed).map((row) => row.content_item_id)),
+    completedContentIds: new Set(completedRows.map((row) => row.content_item_id)),
     previousMissionContentType: previousMissionContent?.contentType ?? null,
   };
 
-  const { todaysMission, tutoRecommends } = await getHomeRecommendations({
+  const { mission, tutoRecommends } = await learningBrain.getHomeRecommendations({
     supabase,
     userId: user.id,
     catalog: podcasts,
     progressRows: rows,
     context,
+  });
+
+  const now = new Date().getTime();
+  const recentCompletionRow = completedRows
+    .filter((row) => now - new Date(row.updated_at).getTime() <= RECENT_COMPLETION_WINDOW_MS)
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
+
+  const daysSinceLastStudy = profile?.last_study_date
+    ? Math.floor((now - new Date(profile.last_study_date).getTime()) / (24 * 60 * 60 * 1000))
+    : null;
+
+  const weeklyMinutes = buildWeeklyMinutes(podcasts, rows);
+  const weeklyGoalMinutes = dailyMinutes * 7;
+
+  const tutoNote = buildTutoNote({
+    streak: profile?.streak ?? 0,
+    weeklyMinutes,
+    weeklyGoalMinutes,
+    recentCompletionTitle: recentCompletionRow ? (byId.get(recentCompletionRow.content_item_id)?.title ?? null) : null,
+    daysSinceLastStudy,
   });
 
   return (
@@ -58,9 +90,10 @@ export default async function DashboardPage() {
       greeting={getTimeGreeting()}
       streak={profile?.streak ?? 0}
       level={profile?.level ?? 1}
-      weeklyMinutes={buildWeeklyMinutes(podcasts, rows)}
-      weeklyGoalMinutes={dailyMinutes * 7}
-      todaysMission={todaysMission}
+      weeklyMinutes={weeklyMinutes}
+      weeklyGoalMinutes={weeklyGoalMinutes}
+      mission={mission}
+      tutoNote={tutoNote}
       recommendations={tutoRecommends}
     />
   );
