@@ -23,15 +23,26 @@ export default function LoginPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (signInError) {
-      setError(signInError.message || "Invalid email or password");
+    if (signInError || !signInData.user) {
+      setError(signInError?.message || "Invalid email or password");
       setLoading(false);
       return;
     }
 
-    router.push("/welcome");
+    // A returning learner who already finished onboarding goes straight to
+    // Home — only a first-time or interrupted signup goes through the
+    // wizard. Previously this always sent every login to /welcome,
+    // re-running onboarding (and re-overwriting the learner's real
+    // level/goal/interests with the wizard's defaults) on every sign-in.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("user_id", signInData.user.id)
+      .single();
+
+    router.push(profile?.onboarding_completed ? "/dashboard" : "/welcome");
   }
 
   return (

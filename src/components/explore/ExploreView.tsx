@@ -189,7 +189,7 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
               >
                 <div className="mb-3 flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-                  <h2 className="text-sm font-semibold text-text-primary">Recommended by Tuto</h2>
+                  <h3 className="text-sm font-semibold text-text-primary">Recommended by Tuto</h3>
                 </div>
                 <div className="grid grid-cols-4 gap-4 max-xl:grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1">
                   {tutoRecommends.map((podcast, index) => (
@@ -201,9 +201,9 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
 
             {/* Filters — secondary, collapsed by default, never the primary path. */}
             <div className="mt-8 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-text-primary">
+              <h3 className="text-sm font-semibold text-text-primary">
                 All Podcasts <span className="text-text-tertiary">({filtered.length})</span>
-              </h2>
+              </h3>
               <button
                 type="button"
                 onClick={() => setFiltersOpen((open) => !open)}

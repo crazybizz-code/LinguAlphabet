@@ -14,7 +14,10 @@ export const config = {
      * Match all request paths except:
      * - _next/static, _next/image (Next.js internals)
      * - favicon.ico, static image files
+     * - robots.txt, sitemap.xml, manifest.webmanifest, opengraph-image,
+     *   apple-icon (unauthenticated metadata routes — a session refresh
+     *   on every crawler/link-preview-bot hit is pure wasted Supabase load)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|manifest.webmanifest|opengraph-image|apple-icon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

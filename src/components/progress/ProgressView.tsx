@@ -87,7 +87,7 @@ export function ProgressView({
         >
           <div className="mb-3 flex items-center gap-2">
             <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
-            <p className="text-sm font-semibold text-text-primary">Weekly Goal</p>
+            <h3 className="text-sm font-semibold text-text-primary">Weekly Goal</h3>
           </div>
           <p className="text-2xl font-bold text-text-primary">
             {Math.round(weeklyMinutes)} / {Math.round(weeklyGoalMinutes)}
@@ -123,7 +123,7 @@ export function ProgressView({
         >
           <div className="mb-3 flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-primary" aria-hidden="true" />
-            <p className="text-sm font-semibold text-text-primary">Completed Lessons</p>
+            <h3 className="text-sm font-semibold text-text-primary">Completed Lessons</h3>
           </div>
           <p className="text-2xl font-bold text-text-primary">{totalCompleted}</p>
           <p className="mt-0.5 text-xs text-text-tertiary">all-time lessons</p>
@@ -175,7 +175,7 @@ export function ProgressView({
       >
         <div className="mb-4 flex items-center gap-2">
           <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
-          <p className="text-sm font-semibold text-text-primary">Learning Calendar</p>
+          <h3 className="text-sm font-semibold text-text-primary">Learning Calendar</h3>
           <span className="ml-auto text-xs text-text-tertiary">{monthActivity.monthLabel}</span>
         </div>
         <div className="grid grid-cols-7 gap-1.5">
@@ -230,7 +230,7 @@ export function ProgressView({
       >
         <div className="mb-4 flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-          <h2 className="text-sm font-semibold text-text-primary">Milestones</h2>
+          <h3 className="text-sm font-semibold text-text-primary">Milestones</h3>
         </div>
         <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.45} />
       </motion.section>

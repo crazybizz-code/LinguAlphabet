@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -14,13 +14,41 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+// Required for absolute OG/Twitter image URLs and the sitemap/robots
+// canonical host — set NEXT_PUBLIC_SITE_URL to the real production domain
+// when deploying. Falls back to localhost so dev/build never breaks.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+const TITLE = "LinguAlphabet — AI Coach for Language Mastery";
+const DESCRIPTION =
+  "LinguAlphabet is an AI-powered English coaching platform that guides every learner through a personalized learning journey with Tuto, your AI English coach.";
+
 export const metadata: Metadata = {
-  title: "LinguAlphabet — AI Coach for Language Mastery",
-  description:
-    "LinguAlphabet is an AI-powered English coaching platform that guides every learner through a personalized learning journey with Tuto, your AI English coach.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: TITLE,
+    template: "%s — LinguAlphabet",
+  },
+  description: DESCRIPTION,
   icons: {
     icon: "/favicon.svg",
   },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: "LinguAlphabet",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#FF6B00",
 };
 
 export default function RootLayout({

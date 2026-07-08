@@ -52,6 +52,15 @@ const SIZE_CLASSES = {
   xl: "w-64 h-64 sm:w-80 sm:h-80",
 } as const;
 
+/** Matches SIZE_CLASSES' actual rendered widths so `next/image` requests an
+ * appropriately-sized source instead of always fetching the xl variant. */
+const SIZE_SIZES = {
+  sm: "(min-width: 640px) 144px, 112px",
+  md: "(min-width: 640px) 192px, 160px",
+  lg: "(min-width: 640px) 256px, 208px",
+  xl: "(min-width: 640px) 320px, 256px",
+} as const;
+
 export type TutoSize = keyof typeof SIZE_CLASSES;
 
 export interface TutoProps {
@@ -122,7 +131,7 @@ export function Tuto({
         alt={alt}
         fill
         priority={priority}
-        sizes="320px"
+        sizes={SIZE_SIZES[size]}
         className="relative z-[1] object-contain"
         style={{ mixBlendMode: "multiply" }}
       />
