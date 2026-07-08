@@ -23,6 +23,8 @@ export interface Database {
           xp: number;
           xp_to_next: number;
           streak: number;
+          /** docs/domain-model.md §19 — supabase/progress-schema.sql. */
+          longest_streak: number;
           last_study_date: string | null;
           total_minutes: number;
           tuto_name: string;
@@ -44,6 +46,7 @@ export interface Database {
           xp?: number;
           xp_to_next?: number;
           streak?: number;
+          longest_streak?: number;
           last_study_date?: string | null;
           total_minutes?: number;
           tuto_name?: string;

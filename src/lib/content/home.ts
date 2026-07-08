@@ -12,7 +12,8 @@ export function getTimeGreeting(date: Date = new Date()): string {
   return "Good evening";
 }
 
-function startOfWeek(date: Date): Date {
+/** Shared with src/lib/content/progress.ts — the "calendar week" definition must match everywhere it's used. */
+export function startOfWeek(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
   const diffToMonday = day === 0 ? -6 : 1 - day;
