@@ -2,8 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Award, CalendarDays, CheckCircle2, Clock, Flame, Sparkles } from "lucide-react";
-import { Tuto } from "@/components/mascot/Tuto";
-import { ACHIEVEMENT_CATALOG } from "@/lib/achievements/catalog";
+import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
+import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import type { WeekDay, MonthActivity, RecentActivityItem } from "@/lib/content/progress";
 import type { TutoNote } from "@/lib/tuto/messages";
 
@@ -232,33 +232,7 @@ export function ProgressView({
           <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-text-primary">Milestones</h2>
         </div>
-        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-          {ACHIEVEMENT_CATALOG.map((achievement, index) => {
-            const unlocked = earnedAchievementIds.has(achievement.id);
-            return (
-              <motion.div
-                key={achievement.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.45 + index * 0.05 }}
-                className={`flex items-center gap-3 rounded-2xl border p-4 transition-all ${
-                  unlocked ? "border-border bg-bg-card" : "border-border/60 bg-bg-muted/50 opacity-60"
-                }`}
-              >
-                <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${unlocked ? "bg-primary-lighter" : "bg-bg-muted"}`}>
-                  <span className="text-xl" aria-hidden="true">
-                    {achievement.icon}
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-text-primary">{achievement.title}</p>
-                  <p className="text-xs text-text-tertiary">{achievement.description}</p>
-                </div>
-                {unlocked && <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-hidden="true" />}
-              </motion.div>
-            );
-          })}
-        </div>
+        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.45} />
       </motion.section>
 
       {tutoNote && (
@@ -266,10 +240,9 @@ export function ProgressView({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
-          className="mb-4 mt-8 flex items-start gap-3 rounded-2xl border border-border bg-bg-card p-4"
+          className="mb-4 mt-8"
         >
-          <Tuto pose={tutoNote.pose} size="sm" />
-          <p className="pt-0.5 text-sm leading-relaxed text-text-secondary">{`“${tutoNote.message}”`}</p>
+          <TutoNoteCard note={tutoNote} />
         </motion.section>
       )}
     </div>

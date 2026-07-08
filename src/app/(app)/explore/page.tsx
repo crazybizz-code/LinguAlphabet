@@ -15,7 +15,7 @@ export default async function ExplorePage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, podcasts, { data: progressRows }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("user_id", user.id).single(),
+    supabase.from("profiles").select("english_level, goal, interests").eq("user_id", user.id).single(),
     getPublishedPodcasts(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
   ]);

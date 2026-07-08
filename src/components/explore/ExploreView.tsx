@@ -18,6 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
+import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { PodcastCard } from "@/components/content/PodcastCard";
 import { searchService } from "@/lib/content/search";
 import { CEFR_ORDER } from "@/lib/learning-brain/cefr";
@@ -332,12 +333,13 @@ function ComingSoonPanel({
         Tuto is working on bringing you {tab.label.toLowerCase()} that will fit right into your learning journey.
       </p>
 
-      <div className="mt-8 flex max-w-md items-start gap-3 rounded-2xl border border-border bg-bg-card p-4 text-left">
-        <Tuto pose="happy" size="sm" />
-        <p className="pt-0.5 text-sm leading-relaxed text-text-secondary">
-          {`“I'm working on something special for ${tab.label.toLowerCase()}. Stay tuned — it'll be worth the wait!”`}
-        </p>
-      </div>
+      <TutoNoteCard
+        note={{
+          pose: "happy",
+          message: `I'm working on something special for ${tab.label.toLowerCase()}. Stay tuned — it'll be worth the wait!`,
+        }}
+        className="mt-8 max-w-md text-left"
+      />
 
       <button
         type="button"

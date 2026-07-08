@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, KeyRound, LogOut, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { StatRow } from "@/components/ui/StatRow";
 import { signOutAction } from "@/lib/profile/actions";
 
 export interface SettingsViewProps {
@@ -67,33 +68,16 @@ export function SettingsView({ email }: SettingsViewProps) {
       >
         <h3 className="mb-3 text-sm font-semibold text-text-primary">Account</h3>
         <div className="flex flex-col gap-3">
-          <div className="flex w-full items-center gap-4 rounded-2xl border border-border bg-bg-card p-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter text-primary">
-              <Mail className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-text-tertiary">Email</p>
-              <p className="truncate text-sm font-bold text-text-primary">{email}</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
+          <StatRow icon={<Mail className="h-5 w-5" aria-hidden="true" />} label="Email" value={email} />
+          <StatRow
+            icon={<KeyRound className="h-5 w-5" aria-hidden="true" />}
+            label="Change Password"
+            value={resetState === "sent" ? `Reset link sent to ${email}` : "Send a reset link to your email"}
             onClick={sendPasswordReset}
             disabled={resetState !== "idle"}
-            className="flex w-full items-center gap-4 rounded-2xl border border-border bg-bg-card p-4 text-left transition-colors enabled:hover:bg-bg-muted disabled:cursor-default"
-          >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter text-primary">
-              <KeyRound className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-text-primary">Change Password</p>
-              <p className="text-xs text-text-tertiary" aria-live="polite">
-                {resetState === "sent" ? `Reset link sent to ${email}` : "Send a reset link to your email"}
-              </p>
-            </div>
-            {resetState === "sent" && <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-hidden="true" />}
-          </button>
+            liveValue
+            trailing={resetState === "sent" ? <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-hidden="true" /> : undefined}
+          />
         </div>
       </motion.section>
 

@@ -18,7 +18,11 @@ export default async function ProgressPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, podcasts, { data: progressRows }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("user_id", user.id).single(),
+    supabase
+      .from("profiles")
+      .select("streak, longest_streak, level, xp, xp_to_next, last_study_date, daily_time_minutes")
+      .eq("user_id", user.id)
+      .single(),
     getPublishedPodcasts(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
   ]);

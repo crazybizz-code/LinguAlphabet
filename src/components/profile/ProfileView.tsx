@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Check, ChevronRight, Clock, LogOut, Settings, Sparkles, Target } from "lucide-react";
+import { Check, Clock, LogOut, Settings, Sparkles, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tuto } from "@/components/mascot/Tuto";
 import { Button } from "@/components/ui/Button";
 import { SelectableCard } from "@/components/ui/SelectableCard";
-import { ACHIEVEMENT_CATALOG } from "@/lib/achievements/catalog";
+import { StatRow } from "@/components/ui/StatRow";
+import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { updateLearningProfile, signOutAction } from "@/lib/profile/actions";
 import { DAILY_TIME_ICON, DAILY_TIME_OPTIONS, GOAL_OPTIONS, INTEREST_OPTIONS, LEVEL_LABELS, LEVEL_OPTIONS } from "@/lib/profile/options";
 import { EditSheet } from "./EditSheet";
@@ -136,25 +137,25 @@ export function ProfileView({
       >
         <h3 className="mb-3 text-sm font-semibold text-text-primary">Learning Profile</h3>
         <div className="flex flex-col gap-3">
-          <ProfileStatRow
+          <StatRow
             icon={<span className="text-sm font-bold">{level ?? "—"}</span>}
             label="English Level"
             value={level ? `${level} — ${LEVEL_LABELS[level] ?? ""}` : "Not set"}
             onClick={() => setEditingField("level")}
           />
-          <ProfileStatRow
+          <StatRow
             icon={<Target className="h-5 w-5" aria-hidden="true" />}
             label="Learning Goal"
             value={currentGoal ?? "Not set"}
             onClick={() => setEditingField("goal")}
           />
-          <ProfileStatRow
+          <StatRow
             icon={<DailyTimeIcon className="h-5 w-5" aria-hidden="true" />}
             label="Daily Goal"
             value={`${dailyTimeLabel} / day`}
             onClick={() => setEditingField("dailyTime")}
           />
-          <ProfileStatRow
+          <StatRow
             icon={<Sparkles className="h-5 w-5" aria-hidden="true" />}
             label="Interests"
             value={interestsSummary}
@@ -170,38 +171,7 @@ export function ProfileView({
         className="mt-8"
       >
         <h3 className="mb-3 text-sm font-semibold text-text-primary">Achievements</h3>
-        <div className="grid grid-cols-2 gap-3 max-md:grid-cols-1">
-          {ACHIEVEMENT_CATALOG.map((achievement, index) => {
-            const unlocked = earnedAchievementIds.has(achievement.id);
-            return (
-              <motion.div
-                key={achievement.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.25 + index * 0.05 }}
-                className={cn(
-                  "flex items-center gap-3 rounded-2xl border p-4 transition-all",
-                  unlocked ? "border-border bg-bg-card" : "border-border/60 bg-bg-muted/50 opacity-60",
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-2xl",
-                    unlocked ? "bg-primary-lighter" : "bg-bg-muted",
-                  )}
-                >
-                  <span className="text-xl" aria-hidden="true">
-                    {achievement.icon}
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-text-primary">{achievement.title}</p>
-                  <p className="text-xs text-text-tertiary">{achievement.description}</p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.25} />
       </motion.section>
 
       <motion.section
@@ -299,32 +269,5 @@ export function ProfileView({
         </Button>
       </EditSheet>
     </div>
-  );
-}
-
-function ProfileStatRow({
-  icon,
-  label,
-  value,
-  onClick,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center gap-4 rounded-2xl border border-border bg-bg-card p-4 text-left transition-colors hover:bg-bg-muted"
-    >
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter text-primary">{icon}</div>
-      <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-text-tertiary">{label}</p>
-        <p className="truncate text-sm font-bold text-text-primary">{value}</p>
-      </div>
-      <ChevronRight className="h-5 w-5 shrink-0 text-text-tertiary" aria-hidden="true" />
-    </button>
   );
 }

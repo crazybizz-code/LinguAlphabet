@@ -13,7 +13,11 @@ export default async function ProfilePage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, { data: progressRows }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("user_id", user.id).single(),
+    supabase
+      .from("profiles")
+      .select("username, level, streak, longest_streak, english_level, goal, daily_time_minutes, interests")
+      .eq("user_id", user.id)
+      .single(),
     supabase.from("progress").select("completed").eq("user_id", user.id),
   ]);
 

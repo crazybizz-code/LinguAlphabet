@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, Clock, Flame, Headphones, Sparkles } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
+import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { PodcastCard } from "@/components/content/PodcastCard";
 import type { PodcastContent } from "@/types/content";
 import type { Mission } from "@/lib/learning-brain";
@@ -66,7 +67,9 @@ export function HomeView({
           className="relative shrink-0"
         >
           <div className="absolute inset-0 rounded-full bg-primary-soft blur-2xl" aria-hidden="true" />
-          <Tuto pose="wave" size="md" animation="float" priority />
+          {/* `wave` is reserved for Welcome/first-time onboarding — this is
+              a daily-return greeting, so it gets Tuto's normal presence. */}
+          <Tuto pose="neutral" size="md" animation="float" priority />
         </motion.div>
       </header>
 
@@ -199,10 +202,7 @@ export function HomeView({
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-5 px-5 sm:px-8"
         >
-          <div className="flex items-start gap-3 rounded-2xl border border-border bg-bg-card p-4">
-            <Tuto pose={tutoNote.pose} size="sm" />
-            <p className="pt-0.5 text-sm leading-relaxed text-text-secondary">{`“${tutoNote.message}”`}</p>
-          </div>
+          <TutoNoteCard note={tutoNote} />
         </motion.section>
       )}
 

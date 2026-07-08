@@ -18,7 +18,11 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, podcasts, { data: progressRows }, { data: previousMission }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("user_id", user.id).single(),
+    supabase
+      .from("profiles")
+      .select("username, level, streak, last_study_date, english_level, goal, daily_time_minutes, interests")
+      .eq("user_id", user.id)
+      .single(),
     getPublishedPodcasts(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
     supabase
