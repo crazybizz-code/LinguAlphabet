@@ -71,3 +71,14 @@ export async function getPublishedPodcasts(supabase: Client): Promise<PodcastCon
     })
     .filter((item): item is PodcastContent => item !== null);
 }
+
+/** A single published podcast by id — Podcast Detail/Player/Learning Session all need this. */
+export async function getPodcastById(supabase: Client, id: string): Promise<PodcastContent | null> {
+  const [{ data: item }, { data: details }] = await Promise.all([
+    supabase.from("content_items").select("*").eq("id", id).eq("content_type", "podcast").maybeSingle(),
+    supabase.from("podcast_details").select("*").eq("content_item_id", id).maybeSingle(),
+  ]);
+
+  if (!item || !details) return null;
+  return toPodcastContent(item, details);
+}

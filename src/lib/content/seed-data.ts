@@ -493,7 +493,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 336000
       }
     ],
-    "summary": "A BBC Learning English lesson about talking about the beach, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss talking about the beach using BBC natural English. You'll pick up useful words like sunbathe, cool down, pebble beach. Listen to Neil & Becca talk it through in natural English.",
     "takeaways": [
       "We're back with another conversation in easy English to help you learn.",
       "And you can find a video version of this podcast on our website that comes with subtitles to help your learning.",
@@ -1028,7 +1028,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 312000
       }
     ],
-    "summary": "A BBC Learning English lesson about talking about names, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss talking about names using BBC natural English. You'll pick up useful words like named after, nickname, shortened version. Listen to Phil & Georgie talk it through in natural English.",
     "takeaways": [
       "We're back with another conversation in easy English to help you learn.",
       "You can find a video version of this podcast with subtitles so you can read along.",
@@ -1551,7 +1551,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 312000
       }
     ],
-    "summary": "A BBC Learning English lesson about talking about diy, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss talking about diy using BBC natural English. You'll pick up useful words like DIY, water tank, electrics. Listen to Georgie & Phil talk it through in natural English.",
     "takeaways": [
       "We're back with another conversation in easy English to help you learn.",
       "And you can find a video version of this podcast with subtitles to help you on our website.",
@@ -2208,7 +2208,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 306000
       }
     ],
-    "summary": "A BBC Learning English lesson about talking about fruit, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss talking about fruit using BBC natural English. You'll pick up useful words like berries, grapes, sour. Listen to Becca & Neil talk it through in natural English.",
     "takeaways": [
       "Hello and welcome to Real Easy English, where we have easy conversations to help you with your listening skills and learn new vocabulary.",
       "If you'd like to see a video version of this podcast, you can find it on our website at bbclearningenglish.",
@@ -2719,7 +2719,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 414000
       }
     ],
-    "summary": "A BBC Learning English lesson about the power of poetry, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss the power of poetry using BBC natural English. You'll pick up useful words like open mic night, recite, touch your soul. Listen to Neil & Pippa talk it through in natural English.",
     "takeaways": [
       "Hello, this is 6 Minute English from BBC Learning English.",
       "For some, poetry is what you study at school, then forget, while for others it becomes an important part of their life.",
@@ -3244,7 +3244,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 426000
       }
     ],
-    "summary": "A BBC Learning English lesson about living with debt, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss living with debt using BBC natural English. You'll pick up useful words like debt, pay back, pay off. Listen to Neil & Pippa talk it through in natural English.",
     "takeaways": [
       "Hello, this is 6 Minute English from BBC Learning English.",
       "I like to spend money on nice things, but I also try to save, mainly because I've got children.",
@@ -3779,7 +3779,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 402000
       }
     ],
-    "summary": "A BBC Learning English lesson about making cities feel quieter, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss making cities feel quieter using BBC natural English. You'll pick up useful words like quieter, noise pollution, soundscape. Listen to Neil & Beth talk it through in natural English.",
     "takeaways": [
       "Neil, I'm going to play you two sound recordings, and I want you to tell me how you feel when you hear them.",
       "Well, this little experiment shows how much we are affected by the noise around us.",
@@ -4322,7 +4322,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 390000
       }
     ],
-    "summary": "A BBC Learning English lesson about how reading shapes your brain, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss how reading shapes your brain using BBC natural English. You'll pick up useful words like shape, brain, empathy. Listen to Neil & Beth talk it through in natural English.",
     "takeaways": [
       "Remember, you can find all this episode's vocabulary along with a transcript and worksheet on our website, bbclearningenglish.",
       "I would love to read more, but I don't read very much at the moment.",
@@ -4835,7 +4835,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 414000
       }
     ],
-    "summary": "A BBC Learning English lesson about searching for life on another planet, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss searching for life on another planet using BBC natural English. You'll pick up useful words like planet, alien life, telescope. Listen to Neil & Beth talk it through in natural English.",
     "takeaways": [
       "Neil, do you believe that life exists away from planet Earth?",
       "Well, I'm not sure about the kind of little green men that you see in science fiction movies, but also, I think we cannot be alone in the universe.",
@@ -5742,7 +5742,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 834000
       }
     ],
-    "summary": "A BBC Learning English lesson about the battle for the cowboy way of life, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss the battle for the cowboy way of life using BBC natural English. You'll pick up useful words like cowboy, way of life, battle. Listen to BBC Narrator talk it through in natural English.",
     "takeaways": [
       "At the BBC, our colleagues investigate important stories around the world.",
       "In this special series, Our World in English, we’re bringing you the best documentaries from the BBC in language you can understand.",
@@ -6493,7 +6493,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 570000
       }
     ],
-    "summary": "A BBC Learning English lesson about love in a war zone, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss love in a war zone using BBC natural English. You'll pick up useful words like war zone, conflict, refuge. Listen to BBC Narrator talk it through in natural English.",
     "takeaways": [
       "At the BBC, our colleagues investigate important stories from around the world.",
       "In this new series, Our World in English, we're bringing you the best documentaries from the BBC in language you can understand.",
@@ -7016,7 +7016,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 396000
       }
     ],
-    "summary": "A BBC Learning English lesson about should we eat ultra-processed food?, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss should we eat ultra-processed food? using BBC natural English. You'll pick up useful words like ultra-processed food, ingredient, additive. Listen to BBC 6 Minute English talk it through in natural English.",
     "takeaways": [
       "If you've eaten anything today, then it's likely that some of your food was ultra- processed – food containing artificial ingredients like additives and sweeteners.",
       "Ultra-processed foods are everywhere, from sliced bread to chocolate biscuits and crisps.",
@@ -7557,7 +7557,7 @@ export const seedPodcasts: PodcastContent[] = [
         "endMs": 420000
       }
     ],
-    "summary": "A BBC Learning English lesson about why are we all so stressed?, with official transcript, aligned audio, vocabulary, grammar and comprehension practice.",
+    "summary": "Understand and discuss why are we all so stressed? using BBC natural English. You'll pick up useful words like stressed, pressure, anxiety. Listen to BBC 6 Minute English talk it through in natural English.",
     "takeaways": [
       "Worrying about work or exams, War and climate change in the news.",
       "I think not having enough time to do something, that really makes me stressed out.",

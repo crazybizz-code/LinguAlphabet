@@ -79,6 +79,19 @@ function buildReflection(podcast) {
   return `${podcast.objective} What's one thing from this lesson you could use in your own conversations this week?`;
 }
 
+// The 13 imported lessons' own `summary` field is identical boilerplate
+// across every lesson ("...with official transcript, aligned audio,
+// vocabulary, grammar and comprehension practice") — zero lesson-specific
+// information, same class of low-quality auto-generated content as the
+// original `quizQuestions`. Build a real per-lesson summary instead from
+// fields that actually vary: objective (topic-specific), keywords, speaker.
+function buildSummary(podcast) {
+  const keywordList = (podcast.keywords || []).slice(0, 3).join(", ");
+  const keywordSentence = keywordList ? ` You'll pick up useful words like ${keywordList}.` : "";
+  const speakerSentence = podcast.speaker ? ` Listen to ${podcast.speaker} talk it through in natural English.` : "";
+  return `${podcast.objective}${keywordSentence}${speakerSentence}`;
+}
+
 // The 13 imported lessons' own `quizQuestions` are low-quality auto-generated
 // placeholders (distractor options unrelated to the lesson topic — e.g. a
 // beach-lesson question offering "Buying a car" as an option). Build
@@ -164,7 +177,7 @@ const items = newBbcPodcasts.map((podcast, index) => {
     audioUrl: podcast.audioUrl,
     durationSeconds,
     transcript: estimatedSegments,
-    summary: podcast.summary,
+    summary: buildSummary(podcast),
     takeaways: podcast.takeaways,
     vocabulary: podcast.flashcards,
     quiz: buildQuiz(podcast),
