@@ -238,6 +238,24 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["achievements"]["Insert"]>;
         Relationships: [];
       };
+      daily_missions: {
+        Row: {
+          user_id: string;
+          mission_date: string;
+          content_item_id: string;
+          is_resume: boolean;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          mission_date: string;
+          content_item_id: string;
+          is_resume?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["daily_missions"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       leaderboard: {
