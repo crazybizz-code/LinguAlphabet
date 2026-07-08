@@ -56,7 +56,7 @@ export default async function DashboardPage() {
     previousMissionContentType: previousMissionContent?.contentType ?? null,
   };
 
-  const { mission, tutoRecommends } = await learningBrain.getHomeRecommendations({
+  const { mission, tutoRecommends, completedTodaysMissionTitle } = await learningBrain.getHomeRecommendations({
     supabase,
     userId: user.id,
     catalog: podcasts,
@@ -68,6 +68,7 @@ export default async function DashboardPage() {
   const recentCompletionRow = completedRows
     .filter((row) => now - new Date(row.updated_at).getTime() <= RECENT_COMPLETION_WINDOW_MS)
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
+  const recentCompletionTitle = recentCompletionRow ? (byId.get(recentCompletionRow.content_item_id)?.title ?? null) : null;
 
   const daysSinceLastStudy = profile?.last_study_date
     ? Math.floor((now - new Date(profile.last_study_date).getTime()) / (24 * 60 * 60 * 1000))
@@ -80,7 +81,9 @@ export default async function DashboardPage() {
     streak: profile?.streak ?? 0,
     weeklyMinutes,
     weeklyGoalMinutes,
-    recentCompletionTitle: recentCompletionRow ? (byId.get(recentCompletionRow.content_item_id)?.title ?? null) : null,
+    // The Today's Mission Complete banner already congratulates the learner
+    // by name for this exact completion — don't say it twice in Tuto's note.
+    recentCompletionTitle: recentCompletionTitle === completedTodaysMissionTitle ? null : recentCompletionTitle,
     daysSinceLastStudy,
   });
 
@@ -93,6 +96,7 @@ export default async function DashboardPage() {
       weeklyMinutes={weeklyMinutes}
       weeklyGoalMinutes={weeklyGoalMinutes}
       mission={mission}
+      completedTodaysMissionTitle={completedTodaysMissionTitle}
       tutoNote={tutoNote}
       recommendations={tutoRecommends}
     />

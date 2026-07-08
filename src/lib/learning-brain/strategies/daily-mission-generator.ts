@@ -13,6 +13,16 @@ type ProgressRow = Database["public"]["Tables"]["progress"]["Row"];
 export interface HomeRecommendations {
   mission: Mission | null;
   tutoRecommends: PodcastContent[];
+  /**
+   * Set when today's originally-assigned mission was just completed this
+   * calendar day. The Learning Brain re-picks `mission` fresh the instant
+   * this happens (see below) — this field is what lets Home show an
+   * explicit "Today's Mission Complete" acknowledgment instead of silently
+   * swapping in a new mission with no visible sign the previous one
+   * counted (product decision: completion must visibly change Home, never
+   * hand back an outwardly-unchanged screen).
+   */
+  completedTodaysMissionTitle: string | null;
 }
 
 function todayIsoDate(): string {
@@ -53,6 +63,8 @@ export const dailyMissionGenerator = {
 
     const assignedContent = existingAssignment ? byId.get(existingAssignment.content_item_id) : undefined;
     const assignmentStillValid = assignedContent && !context.completedContentIds.has(assignedContent.id);
+    const completedTodaysMissionTitle =
+      assignedContent && context.completedContentIds.has(assignedContent.id) ? assignedContent.title : null;
 
     let mission: Mission | null;
     let needsPersist = false;
@@ -83,6 +95,6 @@ export const dailyMissionGenerator = {
 
     const tutoRecommends = tutoRecommendsStrategy.pick(ranked, mission?.contentId, recommendCount);
 
-    return { mission, tutoRecommends };
+    return { mission, tutoRecommends, completedTodaysMissionTitle };
   },
 };

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Clock, Flame, Headphones, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock, Flame, Headphones, Sparkles } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { PodcastCard } from "@/components/content/PodcastCard";
 import type { PodcastContent } from "@/types/content";
@@ -18,6 +18,8 @@ export interface HomeViewProps {
   weeklyMinutes: number;
   weeklyGoalMinutes: number;
   mission: Mission | null;
+  /** Today's originally-assigned mission, if it was just completed this calendar day. */
+  completedTodaysMissionTitle: string | null;
   tutoNote: TutoNote | null;
   recommendations: PodcastContent[];
 }
@@ -30,6 +32,7 @@ export function HomeView({
   weeklyMinutes,
   weeklyGoalMinutes,
   mission,
+  completedTodaysMissionTitle,
   tutoNote,
   recommendations,
 }: HomeViewProps) {
@@ -66,6 +69,35 @@ export function HomeView({
           <Tuto pose="wave" size="md" animation="float" priority />
         </motion.div>
       </header>
+
+      {/* Today's Mission Complete acknowledgment — shown the moment a learner
+          returns to Home after finishing today's guided mission (product
+          decision: completion must visibly change Home, never hand back an
+          outwardly-unchanged screen). The Learning Brain re-picks `mission`
+          fresh the instant this happens, so this sits above it rather than
+          replacing it — the learner sees both "that counted" and "here's
+          what's next," never a silent swap. */}
+      {completedTodaysMissionTitle && (
+        <motion.section
+          initial={{ opacity: 0, y: 16, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.15, ease: [0, 0, 0.2, 1] }}
+          className="mt-4 px-5 sm:px-8"
+        >
+          <div className="flex items-center gap-4 rounded-[1.75rem] border border-success/30 bg-success-soft p-5">
+            <Tuto pose="celebrating" size="sm" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-success" aria-hidden="true" />
+                <p className="text-sm font-bold text-text-primary">Today&apos;s Mission Complete!</p>
+              </div>
+              <p className="mt-0.5 truncate text-sm text-text-secondary">
+                You finished &ldquo;{completedTodaysMissionTitle}&rdquo; — nice work!
+              </p>
+            </div>
+          </div>
+        </motion.section>
+      )}
 
       {/* Today's Mission — the hero. One card, one CTA (docs/dashboard-architecture.md §4.2).
           Mission is a fully-formed, kind-agnostic shape from the Learning Brain — this
