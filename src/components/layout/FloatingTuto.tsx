@@ -14,15 +14,14 @@ import { Tuto } from "@/components/mascot/Tuto";
  * the expanded teaser uses the full Tuto mascot (never a cropped circular
  * avatar) sized to fit the card, per product decision.
  *
- * Tuto Chat itself isn't built yet (task #36), so the teaser's CTA is a
- * same-card "coming soon" acknowledgment rather than a link to a route
- * that doesn't exist — docs/dashboard-architecture.md's Coming Soon
- * principle applies here too: "never a dead link, never hidden entirely."
+ * Tuto Chat itself isn't built yet (task #36) and there's no backend to
+ * wire a real "notify me" signup to either — the CTA is a plainly
+ * disabled "coming soon" state, not a fake toggle that pretends to
+ * register interest with nothing persisted behind it.
  */
 export function FloatingTuto() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [notified, setNotified] = useState(false);
 
   if (pathname === "/tuto-chat") return null;
 
@@ -54,18 +53,14 @@ export function FloatingTuto() {
               <p className="mt-2 text-sm font-bold text-text-primary">Ask Tuto</p>
               <p className="text-xs text-text-tertiary">Your English learning coach</p>
               <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                {notified
-                  ? "“I’ll let you know the moment chat is ready!”"
-                  : "“Have a question about grammar or vocabulary? I’m here to help!”"}
+                &ldquo;Have a question about grammar or vocabulary? I&apos;m here to help!&rdquo;
               </p>
-              <button
-                type="button"
-                onClick={() => setNotified(true)}
-                disabled={notified}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-text-on-primary shadow-glow transition-transform active:scale-95 disabled:opacity-60"
+              <div
+                aria-disabled="true"
+                className="mt-4 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-bg-muted py-3 text-sm font-bold text-text-tertiary"
               >
-                {notified ? "We'll let you know!" : "Coming Soon — Notify Me"}
-              </button>
+                Tuto Chat — Coming Soon
+              </div>
             </div>
           </motion.div>
         )}

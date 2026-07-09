@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Pause, Play, RotateCcw, RotateCw } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
-import { cn } from "@/lib/utils";
+import { ClickableText } from "@/components/vocabulary/ClickableText";
+import { DictionaryOverlay } from "@/components/vocabulary/DictionaryOverlay";
 import type { LearningSessionContent } from "@/lib/learning-session/types";
+import type { VocabularyEntry } from "@/types/content";
 
 const SKIP_SECONDS = 15;
 
@@ -21,28 +23,29 @@ function formatTime(totalSeconds: number): string {
  * ("Podcast" → "Podcast Summary" → ...) was always meant to be its own
  * screen, distinct from the Summary that follows it. Custom transport UI
  * over a plain <audio> element (native controls don't carry our brand or
- * support transcript sync); transcript sync is currentTime compared against
- * each segment's startMs/endMs, no separate timer needed.
+ * support tappable-word lookup).
+ *
+ * Transcript is rendered statically, with no active-segment highlighting —
+ * this project's seeded transcripts don't have real timestamps yet
+ * (scripts/build-podcast-seed.mjs's estimateTiming() distributes startMs/
+ * endMs proportionally by a word/punctuation weight, not a measured forced
+ * alignment). Highlighting against an estimate drifts further from the
+ * real audio the longer playback runs. Re-add sync once real per-segment
+ * timestamps exist — the comparison logic itself wasn't wrong, the data it
+ * trusted was never reliable enough to build a feature on.
  */
 export function PlayerStep({ content, onNext }: { content: LearningSessionContent; onNext: () => void }) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const transcriptRef = useRef<HTMLDivElement>(null);
-  const segmentRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(content.durationSeconds);
+  const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
-  const activeSegmentIndex = useMemo(() => {
-    const currentMs = currentTime * 1000;
-    return content.transcript.findIndex((segment) => currentMs >= segment.startMs && currentMs < segment.endMs);
-  }, [content.transcript, currentTime]);
-
-  useEffect(() => {
-    if (activeSegmentIndex < 0) return;
-    const el = segmentRefs.current.get(activeSegmentIndex);
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [activeSegmentIndex]);
+  function findVocabularyEntry(word: string): VocabularyEntry | null {
+    const normalized = word.toLowerCase();
+    return content.vocabulary.find((entry) => entry.word.toLowerCase() === normalized) ?? null;
+  }
 
   function togglePlay() {
     const audio = audioRef.current;
@@ -75,6 +78,9 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="mx-auto max-w-2xl px-5 py-6 sm:px-8"
     >
+      {/* Audio playback is independent of the overlay below — opening a
+          word's definition never touches this element, so playback
+          continues uninterrupted while the dictionary is open. */}
       <audio
         ref={audioRef}
         src={content.audioUrl}
@@ -90,7 +96,7 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         <Tuto pose="listening" size="md" animation="float" />
         <div className="flex-1 pt-1">
           <h2 className="text-lg font-bold text-text-primary">Let&apos;s listen together</h2>
-          <p className="text-sm text-text-secondary">Follow along with the transcript as you go.</p>
+          <p className="text-sm text-text-secondary">Tap any word in the transcript to look it up.</p>
         </div>
       </div>
 
@@ -147,31 +153,18 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         </div>
 
         {content.transcript.length > 0 && (
-          <div ref={transcriptRef} className="mt-6 max-h-72 overflow-y-auto rounded-2xl border border-border bg-bg-card p-4">
+          <div className="mt-6 max-h-72 overflow-y-auto rounded-2xl border border-border bg-bg-card p-4">
             <div className="flex flex-col gap-3">
-              {content.transcript.map((segment, index) => {
-                const isActive = index === activeSegmentIndex;
-                return (
-                  <div
-                    key={`${segment.startMs}-${index}`}
-                    ref={(el) => {
-                      if (el) segmentRefs.current.set(index, el);
-                      else segmentRefs.current.delete(index);
-                    }}
-                    className={cn(
-                      "rounded-xl border px-3 py-2 transition-colors",
-                      isActive ? "border-primary-light bg-primary-lighter" : "border-transparent",
-                    )}
-                  >
-                    <p className={cn("text-xs font-semibold uppercase tracking-wide", isActive ? "text-primary" : "text-text-tertiary")}>
-                      {segment.speaker}
-                    </p>
-                    <p className={cn("mt-0.5 text-sm leading-relaxed", isActive ? "text-text-primary" : "text-text-secondary")}>
-                      {segment.text}
-                    </p>
-                  </div>
-                );
-              })}
+              {content.transcript.map((segment, index) => (
+                <div key={`${segment.startMs}-${index}`} className="px-1 py-1">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">{segment.speaker}</p>
+                  <ClickableText
+                    text={segment.text}
+                    onWordClick={setSelectedWord}
+                    className="mt-0.5 text-sm leading-relaxed text-text-secondary"
+                  />
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -185,6 +178,14 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         Continue to Summary
         <ArrowRight className="h-5 w-5" aria-hidden="true" />
       </button>
+
+      <DictionaryOverlay
+        open={selectedWord !== null}
+        word={selectedWord ?? ""}
+        entry={selectedWord ? findVocabularyEntry(selectedWord) : null}
+        sourceContentId={content.contentId}
+        onClose={() => setSelectedWord(null)}
+      />
     </motion.div>
   );
 }
