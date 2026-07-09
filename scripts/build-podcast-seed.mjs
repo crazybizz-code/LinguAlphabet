@@ -180,7 +180,7 @@ for (const item of items) {
     `  ${sqlJson(item.vocabulary)},`,
     `  ${sqlJson(item.quiz)},`,
     `  ${sqlString(item.reflection)}`,
-    `) on conflict (content_item_id) do update set transcript = excluded.transcript, summary = excluded.summary, takeaways = excluded.takeaways, vocabulary = excluded.vocabulary, quiz = excluded.quiz, reflection = excluded.reflection;`,
+    `) on conflict (content_item_id) do update set audio_url = excluded.audio_url, duration_seconds = excluded.duration_seconds, transcript = excluded.transcript, summary = excluded.summary, takeaways = excluded.takeaways, vocabulary = excluded.vocabulary, quiz = excluded.quiz, reflection = excluded.reflection;`,
     "",
   );
 }
