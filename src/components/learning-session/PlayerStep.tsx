@@ -1,13 +1,14 @@
 "use client";
 
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Pause, Play, RotateCcw, RotateCw } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { ClickableText } from "@/components/vocabulary/ClickableText";
 import { DictionaryOverlay } from "@/components/vocabulary/DictionaryOverlay";
+import { cn } from "@/lib/utils";
 import type { LearningSessionContent } from "@/lib/learning-session/types";
-import type { VocabularyEntry } from "@/types/content";
+import type { TranscriptSegment, VocabularyEntry } from "@/types/content";
 
 const SKIP_SECONDS = 15;
 
@@ -19,33 +20,84 @@ function formatTime(totalSeconds: number): string {
 }
 
 /**
- * Isolated from PlayerStep's playback state (currentTime updates several
- * times a second via <audio onTimeUpdate>) so a transcript of any real
- * length doesn't get fully re-rendered and re-tokenized on every tick —
- * that thrash was starving click handling on longer transcripts (66+
- * segments / 800+ word buttons), making words appear unresponsive with no
- * error ever thrown. This only re-renders when the transcript itself or
- * the click handler identity changes, i.e. essentially once.
+ * One transcript line. Memoized so that during playback — when the active
+ * segment index changes on every audio timeupdate tick — only the segment
+ * losing highlight and the segment gaining it actually re-render; the other
+ * 60-150+ segments in a real transcript bail out via React.memo's shallow
+ * prop comparison (their `segment` reference and `isActive` boolean are
+ * unchanged). Re-tokenizing every word button on every tick is what made
+ * clicks unresponsive on longer transcripts before this was isolated.
+ */
+const TranscriptLine = memo(function TranscriptLine({
+  segment,
+  isActive,
+  onWordClick,
+}: {
+  segment: TranscriptSegment;
+  isActive: boolean;
+  onWordClick: (word: string, context: string) => void;
+}) {
+  const lineRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isActive) {
+      lineRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [isActive]);
+
+  return (
+    <div
+      ref={lineRef}
+      className={cn(
+        "rounded-xl px-2 py-1.5 transition-colors duration-300",
+        isActive && "bg-primary-lighter",
+      )}
+    >
+      <p
+        className={cn(
+          "text-xs font-semibold uppercase tracking-wide transition-colors duration-300",
+          isActive ? "text-primary" : "text-text-tertiary",
+        )}
+      >
+        {segment.speaker}
+      </p>
+      <ClickableText
+        text={segment.text}
+        onWordClick={onWordClick}
+        className={cn(
+          "mt-0.5 text-sm leading-relaxed transition-colors duration-300",
+          isActive ? "font-medium text-text-primary" : "text-text-secondary",
+        )}
+      />
+    </div>
+  );
+});
+
+/**
+ * The transcript list itself stays memoized on (transcript, onWordClick) —
+ * activeIndex is threaded through as a plain prop rather than causing this
+ * wrapper to re-render on every tick regardless (see TranscriptLine above
+ * for where the actual re-render cost is contained).
  */
 const TranscriptPanel = memo(function TranscriptPanel({
   transcript,
+  activeIndex,
   onWordClick,
 }: {
   transcript: LearningSessionContent["transcript"];
+  activeIndex: number;
   onWordClick: (word: string, context: string) => void;
 }) {
   return (
     <div className="mt-6 max-h-72 overflow-y-auto rounded-2xl border border-border bg-bg-card p-4">
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
         {transcript.map((segment, index) => (
-          <div key={`${segment.startMs}-${index}`} className="px-1 py-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">{segment.speaker}</p>
-            <ClickableText
-              text={segment.text}
-              onWordClick={onWordClick}
-              className="mt-0.5 text-sm leading-relaxed text-text-secondary"
-            />
-          </div>
+          <TranscriptLine
+            key={`${segment.startMs}-${index}`}
+            segment={segment}
+            isActive={index === activeIndex}
+            onWordClick={onWordClick}
+          />
         ))}
       </div>
     </div>
@@ -59,14 +111,22 @@ const TranscriptPanel = memo(function TranscriptPanel({
  * over a plain <audio> element (native controls don't carry our brand or
  * support tappable-word lookup).
  *
- * Transcript is rendered statically, with no active-segment highlighting —
- * this project's seeded transcripts don't have real timestamps yet
- * (scripts/build-podcast-seed.mjs's estimateTiming() distributes startMs/
- * endMs proportionally by a word/punctuation weight, not a measured forced
- * alignment). Highlighting against an estimate drifts further from the
- * real audio the longer playback runs. Re-add sync once real per-segment
- * timestamps exist — the comparison logic itself wasn't wrong, the data it
- * trusted was never reliable enough to build a feature on.
+ * Transcript sync: the audio element's real playback position (currentTime,
+ * updated by the native `timeupdate` event — never a timer/interval) is
+ * compared against each segment's startMs/endMs to find the one segment
+ * currently playing, which gets highlighted and scrolled into view. The
+ * audio is the only source of truth; pausing, seeking, or changing
+ * playback rate all flow through currentTime automatically, so the
+ * transcript can never drift or advance on its own.
+ *
+ * This depends on real per-segment timestamps. scripts/build-podcast-seed.mjs
+ * sources them from content/legacy-podcast-lessons/generated/bbcTranscripts.js
+ * — WhisperX forced alignment against the actual downloaded audio
+ * (docs/transcript-alignment.md), not an estimate. A prior version of this
+ * screen computed startMs/endMs as a proportional guess from word/punctuation
+ * weight, which is why highlighting was pulled entirely rather than shipped
+ * against data that couldn't support it — this is the real alignment data,
+ * not that estimate restored.
  */
 export function PlayerStep({ content, onNext }: { content: LearningSessionContent; onNext: () => void }) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -76,6 +136,11 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
   const [duration, setDuration] = useState(content.durationSeconds);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState("");
+
+  const activeIndex = useMemo(() => {
+    const currentMs = currentTime * 1000;
+    return content.transcript.findIndex((segment) => currentMs >= segment.startMs && currentMs < segment.endMs);
+  }, [content.transcript, currentTime]);
 
   const handleWordClick = useCallback((word: string, context: string) => {
     setSelectedWord(word);
@@ -193,7 +258,7 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         </div>
 
         {content.transcript.length > 0 && (
-          <TranscriptPanel transcript={content.transcript} onWordClick={handleWordClick} />
+          <TranscriptPanel transcript={content.transcript} activeIndex={activeIndex} onWordClick={handleWordClick} />
         )}
       </div>
 

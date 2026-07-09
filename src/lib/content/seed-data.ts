@@ -46,451 +46,451 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:00:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/realeasyenglish/260529_REE_the_beach_download.mp3",
-    "durationSeconds": 336,
+    "durationSeconds": 386,
     "transcript": [
       {
         "speaker": "Neil",
         "text": "Hello and welcome to Real Easy English.",
-        "startMs": 0,
-        "endMs": 2760
+        "startMs": 220,
+        "endMs": 3100
       },
       {
         "speaker": "Neil",
         "text": "We're back with another conversation in easy English to help you learn.",
-        "startMs": 2760,
-        "endMs": 6988
+        "startMs": 3440,
+        "endMs": 7500
       },
       {
         "speaker": "Becca",
         "text": "And you can find a video version of this podcast on our website that comes with subtitles to help your learning.",
-        "startMs": 6988,
-        "endMs": 14388
+        "startMs": 9660,
+        "endMs": 16180
       },
       {
         "speaker": "Becca",
         "text": "That's at bbclearningenglish.",
-        "startMs": 14388,
-        "endMs": 16414
+        "startMs": 16560,
+        "endMs": 19360
       },
       {
         "speaker": "Neil",
         "text": "Hi Becca. How are you?",
-        "startMs": 16414,
-        "endMs": 20231
+        "startMs": 26860,
+        "endMs": 27980
       },
       {
         "speaker": "Becca",
         "text": "I'm really well, thank you, Neil.",
-        "startMs": 20231,
-        "endMs": 23755
+        "startMs": 28100,
+        "endMs": 29580
       },
       {
         "speaker": "Neil",
         "text": "You look very relaxed, though.",
-        "startMs": 23755,
-        "endMs": 26720
+        "startMs": 32540,
+        "endMs": 34130
       },
       {
         "speaker": "Neil",
         "text": "So, what have you been doing?",
-        "startMs": 26720,
-        "endMs": 29862
+        "startMs": 34130,
+        "endMs": 36040
       },
       {
         "speaker": "Becca",
         "text": "Well, I've recently been to the beach.",
-        "startMs": 29862,
-        "endMs": 33415
+        "startMs": 36360,
+        "endMs": 39590
       },
       {
         "speaker": "Becca",
         "text": "to visit my parents, and they live quite close to the beach, so that's probably why I look and feel very relaxed.",
-        "startMs": 33415,
-        "endMs": 41108
+        "startMs": 40620,
+        "endMs": 50140
       },
       {
         "speaker": "Neil",
         "text": "Well, we are talking about the beach today.",
-        "startMs": 41108,
-        "endMs": 44955
+        "startMs": 51600,
+        "endMs": 54340
       },
       {
         "speaker": "Neil",
         "text": "Becca, when you have a beach day, do you like to sunbathe, which means lying on the beach in the Sun doing nothing, or do you prefer to do something active, like swimming?",
-        "startMs": 44955,
-        "endMs": 57082
+        "startMs": 55880,
+        "endMs": 72200
       },
       {
         "speaker": "Neil",
         "text": "People often play sports on the beach – that kind of thing.",
-        "startMs": 57082,
-        "endMs": 61339
+        "startMs": 72640,
+        "endMs": 76420
       },
       {
         "speaker": "Becca",
         "text": "I do love to sunbathe, but we don't have a lot of sun in the UK, and the temperatures aren't always the best for sunbathing.",
-        "startMs": 61339,
-        "endMs": 70442
+        "startMs": 76420,
+        "endMs": 88860
       },
       {
         "speaker": "Becca",
         "text": "But it's still something I really enjoy doing.",
-        "startMs": 70442,
-        "endMs": 73495
+        "startMs": 88860,
+        "endMs": 92460
       },
       {
         "speaker": "Becca",
         "text": "I'll sunbathe for a little bit.",
-        "startMs": 73495,
-        "endMs": 75962
+        "startMs": 92800,
+        "endMs": 95000
       },
       {
         "speaker": "Becca",
         "text": "I'll cook under the Sun and then I'll go for a swim to cool down.",
-        "startMs": 75962,
-        "endMs": 81071
+        "startMs": 96220,
+        "endMs": 102460
       },
       {
         "speaker": "Becca",
         "text": "But yeah, I prefer more relaxing activities.",
-        "startMs": 81071,
-        "endMs": 84095
+        "startMs": 102960,
+        "endMs": 105760
       },
       {
         "speaker": "Becca",
         "text": "I know some people enjoy, like, beach volleyball, or some people like long, long coastal walks.",
-        "startMs": 84095,
-        "endMs": 90555
+        "startMs": 106100,
+        "endMs": 116200
       },
       {
         "speaker": "Becca",
         "text": "But yeah, I prefer, kind of, just staying in one spot and relaxing there.",
-        "startMs": 90555,
-        "endMs": 96164
+        "startMs": 116280,
+        "endMs": 121740
       },
       {
         "speaker": "Neil",
         "text": "I prefer to do something active at the beach.",
-        "startMs": 96164,
-        "endMs": 100040
+        "startMs": 122880,
+        "endMs": 127300
       },
       {
         "speaker": "Neil",
         "text": "I like to play beach football, beach cricket...",
-        "startMs": 100040,
-        "endMs": 104003
+        "startMs": 129260,
+        "endMs": 131740
       },
       {
         "speaker": "Becca",
         "text": "Ooh!",
-        "startMs": 104003,
-        "endMs": 105971
+        "startMs": 131740,
+        "endMs": 133580
       },
       {
         "speaker": "Neil",
         "text": "And if I am lying or sunbathing, I like to read a book.",
-        "startMs": 105971,
-        "endMs": 111286
+        "startMs": 133580,
+        "endMs": 139800
       },
       {
         "speaker": "Becca",
         "text": "Yeah.",
-        "startMs": 111286,
-        "endMs": 113253
+        "startMs": 140860,
+        "endMs": 141000
       },
       {
         "speaker": "Neil",
         "text": "it's a bit uncomfortable.",
-        "startMs": 113253,
-        "endMs": 115661
+        "startMs": 141060,
+        "endMs": 141960
       },
       {
         "speaker": "Becca",
         "text": "It can be uncomfortable.",
-        "startMs": 115661,
-        "endMs": 118068
+        "startMs": 143760,
+        "endMs": 145080
       },
       {
         "speaker": "Becca",
         "text": "Also, you mentioned that you like playing some sports on the beach.",
-        "startMs": 118068,
-        "endMs": 122561
+        "startMs": 146840,
+        "endMs": 149760
       },
       {
         "speaker": "Becca",
         "text": "I imagine it can be quite difficult to play sports on a pebbly beach.",
-        "startMs": 122561,
-        "endMs": 127376
+        "startMs": 150220,
+        "endMs": 156060
       },
       {
         "speaker": "Becca",
         "text": "Pebbles are small stones, and very different to sandy beaches.",
-        "startMs": 127376,
-        "endMs": 131282
+        "startMs": 156700,
+        "endMs": 161740
       },
       {
         "speaker": "Becca",
         "text": "Sand is quite soft and, I guess, easier for beach football and beach cricket.",
-        "startMs": 131282,
-        "endMs": 136626
+        "startMs": 161880,
+        "endMs": 166580
       },
       {
         "speaker": "Neil",
         "text": "Yeah, lots of the beaches in the UK are pebble beaches with stones on them rather than sand.",
-        "startMs": 136626,
-        "endMs": 143409
+        "startMs": 167960,
+        "endMs": 174820
       },
       {
         "speaker": "Neil",
         "text": "And yes, it can be more difficult.",
-        "startMs": 143409,
-        "endMs": 146433
+        "startMs": 175040,
+        "endMs": 178230
       },
       {
         "speaker": "Neil",
         "text": "It can really hurt your feet.",
-        "startMs": 146433,
-        "endMs": 148899
+        "startMs": 178230,
+        "endMs": 180260
       },
       {
         "speaker": "Becca",
         "text": "Sometimes it is quite funny on a pebbly beach to see people coming out of the sea from their swim and then, kind of, you know, finding it quite difficult to walk along the beach.",
-        "startMs": 148899,
-        "endMs": 161202
+        "startMs": 180840,
+        "endMs": 192520
       },
       {
         "speaker": "Becca",
         "text": "It sometimes is quite funny.",
-        "startMs": 161202,
-        "endMs": 163375
+        "startMs": 193920,
+        "endMs": 195340
       },
       {
         "speaker": "Neil",
         "text": "So, do you take a picnic to the beach?",
-        "startMs": 163375,
-        "endMs": 167927
+        "startMs": 198460,
+        "endMs": 200660
       },
       {
         "speaker": "Becca",
         "text": "Another reason, actually...",
-        "startMs": 167927,
-        "endMs": 171391
+        "startMs": 202200,
+        "endMs": 203820
       },
       {
         "speaker": "Becca",
         "text": "We talked about pebbly beaches.",
-        "startMs": 171391,
-        "endMs": 173564
+        "startMs": 204000,
+        "endMs": 206360
       },
       {
         "speaker": "Becca",
         "text": "But I really love a pebble beach because it's easier to have a picnic on a pebble beach.",
-        "startMs": 173564,
-        "endMs": 179554
+        "startMs": 206740,
+        "endMs": 213420
       },
       {
         "speaker": "Becca",
         "text": "I don't know about your own experiences, but every time I sit on a sandy beach with a lovely picnic, it always gets ruined by all of the sand.",
-        "startMs": 179554,
-        "endMs": 189303
+        "startMs": 213420,
+        "endMs": 224740
       },
       {
         "speaker": "Neil",
         "text": "You end up with a kind of crunchy sandwich.",
-        "startMs": 189303,
-        "endMs": 193179
+        "startMs": 225740,
+        "endMs": 229040
       },
       {
         "speaker": "Becca",
         "text": "Yeah. Sandy sandwiches.",
-        "startMs": 193179,
-        "endMs": 196438
+        "startMs": 229120,
+        "endMs": 230560
       },
       {
         "speaker": "Neil",
         "text": "Sandy, sandy sandwiches!",
-        "startMs": 196438,
-        "endMs": 199257
+        "startMs": 232000,
+        "endMs": 233000
       },
       {
         "speaker": "Becca",
         "text": "So, I do love a picnic on the beach.",
-        "startMs": 199257,
-        "endMs": 203397
+        "startMs": 234480,
+        "endMs": 237080
       },
       {
         "speaker": "Becca",
         "text": "But, yeah, you do have to be careful about where you are, and the wind as well.",
-        "startMs": 203397,
-        "endMs": 209886
+        "startMs": 237080,
+        "endMs": 243700
       },
       {
         "speaker": "Neil",
         "text": "Yes, especially in the UK.",
-        "startMs": 209886,
-        "endMs": 212852
+        "startMs": 243800,
+        "endMs": 245900
       },
       {
         "speaker": "Becca",
         "text": "Mmm. Yeah.",
-        "startMs": 212852,
-        "endMs": 215818
+        "startMs": 246100,
+        "endMs": 246680
       },
       {
         "speaker": "Neil",
         "text": "Because they're quite windy.",
-        "startMs": 215818,
-        "endMs": 218225
+        "startMs": 246880,
+        "endMs": 247730
       },
       {
         "speaker": "Becca",
         "text": "Very windy in the UK.",
-        "startMs": 218225,
-        "endMs": 220927
+        "startMs": 247730,
+        "endMs": 248940
       },
       {
         "speaker": "Neil",
         "text": "But the world is full of beautiful beaches.",
-        "startMs": 220927,
-        "endMs": 224509
+        "startMs": 249140,
+        "endMs": 253200
       },
       {
         "speaker": "Neil",
         "text": "Have you got a memory of a favourite beach you've been to somewhere?",
-        "startMs": 224509,
-        "endMs": 229442
+        "startMs": 253920,
+        "endMs": 257480
       },
       {
         "speaker": "Becca",
         "text": "Yes, I have beautiful memories.",
-        "startMs": 229442,
-        "endMs": 232408
+        "startMs": 258120,
+        "endMs": 262180
       },
       {
         "speaker": "Becca",
         "text": "Probably the most recent and the most beautiful was when I was in Thailand last February.",
-        "startMs": 232408,
-        "endMs": 237810
+        "startMs": 262360,
+        "endMs": 269120
       },
       {
         "speaker": "Becca",
         "text": "Very cold and rainy in the UK, so I decided to go to Thailand, and I just remember seeing the sunset at the beach, and I'd never seen the Sun so red before.",
-        "startMs": 237810,
-        "endMs": 248998
+        "startMs": 270040,
+        "endMs": 284220
       },
       {
         "speaker": "Becca",
         "text": "So, when the Sun is setting and it's, kind of...",
-        "startMs": 248998,
-        "endMs": 253813
+        "startMs": 285540,
+        "endMs": 287610
       },
       {
         "speaker": "Becca",
         "text": "it looks like it's going below sea level, at night time.",
-        "startMs": 253813,
-        "endMs": 258012
+        "startMs": 287610,
+        "endMs": 292880
       },
       {
         "speaker": "Neil",
         "text": "Time now to recap the vocabulary we've heard in this podcast, starting with sunbathe.",
-        "startMs": 258012,
-        "endMs": 263620
+        "startMs": 303340,
+        "endMs": 309500
       },
       {
         "speaker": "Neil",
         "text": "If you sunbathe, you sit or lie in the sunshine to relax.",
-        "startMs": 263620,
-        "endMs": 268113
+        "startMs": 310000,
+        "endMs": 314810
       },
       {
         "speaker": "Neil",
         "text": "But you have to be careful in case you get burnt.",
-        "startMs": 268113,
-        "endMs": 272048
+        "startMs": 314810,
+        "endMs": 318220
       },
       {
         "speaker": "Becca",
         "text": "Yes, and if you sunbathe for too long, you might need to cool down.",
-        "startMs": 272048,
-        "endMs": 277920
+        "startMs": 318920,
+        "endMs": 323400
       },
       {
         "speaker": "Becca",
         "text": "To cool down means to do something to cool yourself when you're feeling too hot.",
-        "startMs": 277920,
-        "endMs": 283029
+        "startMs": 323740,
+        "endMs": 329600
       },
       {
         "speaker": "Becca",
         "text": "And you can do that by going for a swim.",
-        "startMs": 283029,
-        "endMs": 286670
+        "startMs": 329880,
+        "endMs": 331820
       },
       {
         "speaker": "Becca",
         "text": "And to go for a swim is to literally go swimming, but it could also mean just to relax in the water.",
-        "startMs": 286670,
-        "endMs": 294099
+        "startMs": 332000,
+        "endMs": 339200
       },
       {
         "speaker": "Neil",
         "text": "We talked about two different kinds of beaches – pebble beaches and sandy beaches.",
-        "startMs": 294099,
-        "endMs": 299473
+        "startMs": 339960,
+        "endMs": 345740
       },
       {
         "speaker": "Neil",
         "text": "Pebble beaches are covered in small, smooth stones.",
-        "startMs": 299473,
-        "endMs": 302791
+        "startMs": 346260,
+        "endMs": 351500
       },
       {
         "speaker": "Neil",
         "text": "They can be difficult to walk on.",
-        "startMs": 302791,
-        "endMs": 305551
+        "startMs": 352000,
+        "endMs": 353660
       },
       {
         "speaker": "Neil",
         "text": "A sandy beach is covered in sand, and sand is that fine grain and it's much more comfortable to walk on.",
-        "startMs": 305551,
-        "endMs": 312686
+        "startMs": 353880,
+        "endMs": 361960
       },
       {
         "speaker": "Becca",
         "text": "And lastly, we mentioned picnics.",
-        "startMs": 312686,
-        "endMs": 315651
+        "startMs": 362860,
+        "endMs": 365350
       },
       {
         "speaker": "Becca",
         "text": "A picnic is a meal that you enjoy outside.",
-        "startMs": 315651,
-        "endMs": 318999
+        "startMs": 365350,
+        "endMs": 368960
       },
       {
         "speaker": "Neil",
         "text": "That's it for this episode of Real Easy English, but don't forget to go to our website to download a free worksheet.",
-        "startMs": 318999,
-        "endMs": 326956
+        "startMs": 370000,
+        "endMs": 376850
       },
       {
         "speaker": "Neil",
         "text": "That's at bbclearningenglish.",
-        "startMs": 326956,
-        "endMs": 328982
+        "startMs": 376850,
+        "endMs": 379320
       },
       {
         "speaker": "Becca",
         "text": "And we'll be back next week with another episode of Real Easy English.",
-        "startMs": 328982,
-        "endMs": 334033
+        "startMs": 379840,
+        "endMs": 384460
       },
       {
         "speaker": "Neil",
         "text": "Goodbye.",
-        "startMs": 334033,
-        "endMs": 336000
+        "startMs": 385480,
+        "endMs": 385800
       }
     ],
     "summary": "Understand and discuss talking about the beach using BBC natural English. You'll pick up useful words like sunbathe, cool down, pebble beach. Listen to Neil & Becca talk it through in natural English.",
@@ -635,397 +635,397 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:01:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/realeasyenglish/260522_REE_names_download.mp3",
-    "durationSeconds": 312,
+    "durationSeconds": 325,
     "transcript": [
       {
         "speaker": "Phil",
         "text": "Hello and welcome to Real Easy English.",
-        "startMs": 0,
-        "endMs": 2803
+        "startMs": 180,
+        "endMs": 3820
       },
       {
         "speaker": "Phil",
         "text": "We're back with another conversation in easy English to help you learn.",
-        "startMs": 2803,
-        "endMs": 7098
+        "startMs": 4120,
+        "endMs": 8940
       },
       {
         "speaker": "Georgie",
         "text": "You can find a video version of this podcast with subtitles so you can read along.",
-        "startMs": 7098,
-        "endMs": 13122
+        "startMs": 11220,
+        "endMs": 16680
       },
       {
         "speaker": "Georgie",
         "text": "It's all on our website.",
-        "startMs": 13122,
-        "endMs": 15329
+        "startMs": 17060,
+        "endMs": 18340
       },
       {
         "speaker": "Georgie",
         "text": "That's bbclearningenglish.",
-        "startMs": 15329,
-        "endMs": 17088
+        "startMs": 18560,
+        "endMs": 18820
       },
       {
         "speaker": "Phil",
         "text": "How are you, Georgie?",
-        "startMs": 17088,
-        "endMs": 20219
+        "startMs": 28660,
+        "endMs": 29420
       },
       {
         "speaker": "Georgie",
         "text": "I'm very well thank you, Phil.",
-        "startMs": 20219,
-        "endMs": 23530
+        "startMs": 29580,
+        "endMs": 31280
       },
       {
         "speaker": "Phil",
         "text": "Today we're going to talk all about names.",
-        "startMs": 23530,
-        "endMs": 27168
+        "startMs": 34480,
+        "endMs": 38210
       },
       {
         "speaker": "Phil",
         "text": "We're going to talk about our names and where they come from.",
-        "startMs": 27168,
-        "endMs": 31462
+        "startMs": 38210,
+        "endMs": 42420
       },
       {
         "speaker": "Georgie",
         "text": "Ooh, it's an interesting topic.",
-        "startMs": 31462,
-        "endMs": 34474
+        "startMs": 42540,
+        "endMs": 44420
       },
       {
         "speaker": "Georgie",
         "text": "Phil, what's the story behind your name?",
-        "startMs": 34474,
-        "endMs": 37964
+        "startMs": 45360,
+        "endMs": 48360
       },
       {
         "speaker": "Georgie",
         "text": "Were you named after anyone or anything?",
-        "startMs": 37964,
-        "endMs": 41184
+        "startMs": 48360,
+        "endMs": 50480
       },
       {
         "speaker": "Phil",
         "text": "I don't know if I'm honest.",
-        "startMs": 41184,
-        "endMs": 44226
+        "startMs": 51160,
+        "endMs": 52920
       },
       {
         "speaker": "Phil",
         "text": "I don't know why I have my name.",
-        "startMs": 44226,
-        "endMs": 47328
+        "startMs": 53020,
+        "endMs": 54960
       },
       {
         "speaker": "Georgie",
         "text": "Yeah, I wish I had a better story for my name, but my parents had friends that had a dog called Georgia, and they liked that name.",
-        "startMs": 47328,
-        "endMs": 57438
+        "startMs": 56740,
+        "endMs": 68000
       },
       {
         "speaker": "Georgie",
         "text": "And so they decided to call me Georgia, which might be the first time people are hearing that my name – my real name – is Georgia, not Georgie.",
-        "startMs": 57438,
-        "endMs": 67398
+        "startMs": 68000,
+        "endMs": 77780
       },
       {
         "speaker": "Phil",
         "text": "Ah.",
-        "startMs": 67398,
-        "endMs": 69396
+        "startMs": 77780,
+        "endMs": 79540
       },
       {
         "speaker": "Georgie",
         "text": "So, I guess I was named after a dog!",
-        "startMs": 69396,
-        "endMs": 73601
+        "startMs": 79540,
+        "endMs": 82220
       },
       {
         "speaker": "Georgie",
         "text": "So, your name is Philip, but lots of people call you Phil, which is a nickname.",
-        "startMs": 73601,
-        "endMs": 79894
+        "startMs": 83880,
+        "endMs": 89360
       },
       {
         "speaker": "Georgie",
         "text": "So, a nickname is an informal name given to you by friends and family, which is often a shortened version, like Phil.",
-        "startMs": 79894,
-        "endMs": 87976
+        "startMs": 89980,
+        "endMs": 97820
       },
       {
         "speaker": "Phil",
         "text": "Yeah, often it's a shortened name.",
-        "startMs": 87976,
-        "endMs": 91286
+        "startMs": 99580,
+        "endMs": 101200
       },
       {
         "speaker": "Phil",
         "text": "In my case, that's the only one that's ever stuck, that people have ever called me.",
-        "startMs": 91286,
-        "endMs": 97310
+        "startMs": 101280,
+        "endMs": 107280
       },
       {
         "speaker": "Phil",
         "text": "But you can also sometimes have, like, a jokey, fun name that might not be anything to do with your real name, but your friends call you that.",
-        "startMs": 97310,
-        "endMs": 107449
+        "startMs": 107800,
+        "endMs": 118280
       },
       {
         "speaker": "Phil",
         "text": "Lots of people have them at school or in your family.",
-        "startMs": 107449,
-        "endMs": 111446
+        "startMs": 118520,
+        "endMs": 120940
       },
       {
         "speaker": "Phil",
         "text": "Do you have any nicknames, Georgie?",
-        "startMs": 111446,
-        "endMs": 114637
+        "startMs": 121960,
+        "endMs": 123080
       },
       {
         "speaker": "Georgie",
         "text": "Yes, I have a nickname that my dad calls me, which is Billy, short for Silly Billy because I do lots of stupid things.",
-        "startMs": 114637,
-        "endMs": 123852
+        "startMs": 124200,
+        "endMs": 134820
       },
       {
         "speaker": "Phil",
         "text": "I'm getting the feeling...",
-        "startMs": 123852,
-        "endMs": 126953
+        "startMs": 135760,
+        "endMs": 136000
       },
       {
         "speaker": "Phil",
         "text": "Do you like that nickname or...?",
-        "startMs": 126953,
-        "endMs": 130532
+        "startMs": 136300,
+        "endMs": 137580
       },
       {
         "speaker": "Georgie",
         "text": "I think it's quite...",
-        "startMs": 130532,
-        "endMs": 133633
+        "startMs": 139480,
+        "endMs": 142500
       },
       {
         "speaker": "Georgie",
         "text": "I don't mind it that much.",
-        "startMs": 133633,
-        "endMs": 136138
+        "startMs": 142960,
+        "endMs": 144400
       },
       {
         "speaker": "Georgie",
         "text": "As long as it's only my dad that calls me Billy, it's OK.",
-        "startMs": 136138,
-        "endMs": 140999
+        "startMs": 144440,
+        "endMs": 148320
       },
       {
         "speaker": "Georgie",
         "text": "Do you like your name?",
-        "startMs": 140999,
-        "endMs": 143624
+        "startMs": 149800,
+        "endMs": 151160
       },
       {
         "speaker": "Phil",
         "text": "I've never thought about it a lot, so I think I do.",
-        "startMs": 143624,
-        "endMs": 148723
+        "startMs": 151160,
+        "endMs": 157300
       },
       {
         "speaker": "Phil",
         "text": "it's not an unusual name.",
-        "startMs": 148723,
-        "endMs": 150930
+        "startMs": 158600,
+        "endMs": 161500
       },
       {
         "speaker": "Phil",
         "text": "I don't know, it might be difficult to have an unusual name, but I don't think it's too common either.",
-        "startMs": 150930,
-        "endMs": 158147
+        "startMs": 162540,
+        "endMs": 170040
       },
       {
         "speaker": "Phil",
         "text": "It's not like everyone has it, so...",
-        "startMs": 158147,
-        "endMs": 161875
+        "startMs": 170080,
+        "endMs": 171840
       },
       {
         "speaker": "Georgie",
         "text": "Yeah.",
-        "startMs": 161875,
-        "endMs": 163873
+        "startMs": 171840,
+        "endMs": 173100
       },
       {
         "speaker": "Phil",
         "text": "I think that's perfect for a name.",
-        "startMs": 163873,
-        "endMs": 167213
+        "startMs": 173100,
+        "endMs": 175020
       },
       {
         "speaker": "Georgie",
         "text": "So Phil, have you ever had to name something, like a child or a pet?",
-        "startMs": 167213,
-        "endMs": 173893
+        "startMs": 175920,
+        "endMs": 181020
       },
       {
         "speaker": "Georgie",
         "text": "And was it difficult?",
-        "startMs": 173893,
-        "endMs": 176219
+        "startMs": 181020,
+        "endMs": 182000
       },
       {
         "speaker": "Phil",
         "text": "I had to name two people – two children.",
-        "startMs": 176219,
-        "endMs": 180186
+        "startMs": 185120,
+        "endMs": 187600
       },
       {
         "speaker": "Phil",
         "text": "For my daughter, my wife was very keen on the name that we gave my daughter, so she...",
-        "startMs": 180186,
-        "endMs": 187462
+        "startMs": 188200,
+        "endMs": 192920
       },
       {
         "speaker": "Phil",
         "text": "so that was easy for me.",
-        "startMs": 187462,
-        "endMs": 189968
+        "startMs": 193300,
+        "endMs": 194440
       },
       {
         "speaker": "Phil",
         "text": "For my son, I really wanted a name that worked in English and in Spanish and wasn't too different.",
-        "startMs": 189968,
-        "endMs": 196618
+        "startMs": 195580,
+        "endMs": 203240
       },
       {
         "speaker": "Phil",
         "text": "And there's not actually that many boys' names that work easily in both languages, or that I could think of.",
-        "startMs": 196618,
-        "endMs": 203566
+        "startMs": 204080,
+        "endMs": 211220
       },
       {
         "speaker": "Georgie",
         "text": "Yeah, because your wife is from Argentina, so you needed a name that worked in both.",
-        "startMs": 203566,
-        "endMs": 210127
+        "startMs": 211300,
+        "endMs": 216900
       },
       {
         "speaker": "Phil",
         "text": "Georgie, have you ever had to name something like a pet or someone?",
-        "startMs": 210127,
-        "endMs": 215943
+        "startMs": 217800,
+        "endMs": 221720
       },
       {
         "speaker": "Georgie",
         "text": "Well, actually, my parents are getting a dog in a few...",
-        "startMs": 215943,
-        "endMs": 221669
+        "startMs": 222160,
+        "endMs": 226140
       },
       {
         "speaker": "Georgie",
         "text": "in a couple of weeks, and we're thinking about names right now, so it's quite a relevant question.",
-        "startMs": 221669,
-        "endMs": 228289
+        "startMs": 226140,
+        "endMs": 231520
       },
       {
         "speaker": "Georgie",
         "text": "It is difficult, isn't it?",
-        "startMs": 228289,
-        "endMs": 231182
+        "startMs": 231900,
+        "endMs": 233720
       },
       {
         "speaker": "Georgie",
         "text": "Because you have to think of a name that you're going to like for a long time, that you're not going to get bored of because you use it so much.",
-        "startMs": 231182,
-        "endMs": 241411
+        "startMs": 233720,
+        "endMs": 242520
       },
       {
         "speaker": "Phil",
         "text": "I guess with dogs' names, you don't want to have something that's too common, because when you call your dog, the whole park will come running to you!",
-        "startMs": 241411,
-        "endMs": 251819
+        "startMs": 243120,
+        "endMs": 252100
       },
       {
         "speaker": "Georgie",
         "text": "We're trying to think of something a little bit more unusual and fun.",
-        "startMs": 251819,
-        "endMs": 256948
+        "startMs": 254420,
+        "endMs": 257860
       },
       {
         "speaker": "Phil",
         "text": "Let's recap the vocabulary we heard during the conversation, starting with nickname, which is an informal name used by family and friends.",
-        "startMs": 256948,
-        "endMs": 265298
+        "startMs": 265040,
+        "endMs": 275320
       },
       {
         "speaker": "Georgie",
         "text": "We can use name as a verb, which means to give someone a name.",
-        "startMs": 265298,
-        "endMs": 270994
+        "startMs": 275540,
+        "endMs": 280240
       },
       {
         "speaker": "Georgie",
         "text": "For example, my parents named me Georgie.",
-        "startMs": 270994,
-        "endMs": 274066
+        "startMs": 280340,
+        "endMs": 283460
       },
       {
         "speaker": "Phil",
         "text": "If you're named after something or someone, you're given the same name as them because of them.",
-        "startMs": 274066,
-        "endMs": 280657
+        "startMs": 284080,
+        "endMs": 290880
       },
       {
         "speaker": "Phil",
         "text": "For example, Georgie was named after a dog called Georgia.",
-        "startMs": 280657,
-        "endMs": 284623
+        "startMs": 291480,
+        "endMs": 295800
       },
       {
         "speaker": "Georgie",
         "text": "Your name might be common, which means lots of people have the same name.",
-        "startMs": 284623,
-        "endMs": 290319
+        "startMs": 297360,
+        "endMs": 302020
       },
       {
         "speaker": "Phil",
         "text": "Or your name might be unusual, and that means that not many people have the same name.",
-        "startMs": 290319,
-        "endMs": 296910
+        "startMs": 302600,
+        "endMs": 308080
       },
       {
         "speaker": "Phil",
         "text": "That's it for this episode of Real Easy English.",
-        "startMs": 296910,
-        "endMs": 300310
+        "startMs": 309500,
+        "endMs": 313360
       },
       {
         "speaker": "Phil",
         "text": "Test what you've learned with the worksheet on our website.",
-        "startMs": 300310,
-        "endMs": 304008
+        "startMs": 313680,
+        "endMs": 317260
       },
       {
         "speaker": "Phil",
         "text": "And that's bbclearningenglish.",
-        "startMs": 304008,
-        "endMs": 306065
+        "startMs": 317380,
+        "endMs": 320340
       },
       {
         "speaker": "Georgie",
         "text": "We'll be back next week with more easy English.",
-        "startMs": 306065,
-        "endMs": 310002
+        "startMs": 320600,
+        "endMs": 323600
       },
       {
         "speaker": "Phil",
         "text": "Bye!",
-        "startMs": 310002,
-        "endMs": 312000
+        "startMs": 324640,
+        "endMs": 325040
       }
     ],
     "summary": "Understand and discuss talking about names using BBC natural English. You'll pick up useful words like named after, nickname, shortened version. Listen to Phil & Georgie talk it through in natural English.",
@@ -1170,385 +1170,385 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:02:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/realeasyenglish/260515_REE_DIY_download.mp3",
-    "durationSeconds": 312,
+    "durationSeconds": 352,
     "transcript": [
       {
         "speaker": "Georgie",
         "text": "Hello and welcome to Real Easy English.",
-        "startMs": 0,
-        "endMs": 2865
+        "startMs": 100,
+        "endMs": 3100
       },
       {
         "speaker": "Georgie",
         "text": "We're back with another conversation in easy English to help you learn.",
-        "startMs": 2865,
-        "endMs": 7254
+        "startMs": 3260,
+        "endMs": 7560
       },
       {
         "speaker": "Phil",
         "text": "And you can find a video version of this podcast with subtitles to help you on our website.",
-        "startMs": 7254,
-        "endMs": 14020
+        "startMs": 9920,
+        "endMs": 16360
       },
       {
         "speaker": "Phil",
         "text": "And that's at bbclearningenglish.",
-        "startMs": 14020,
-        "endMs": 15970
+        "startMs": 16360,
+        "endMs": 19620
       },
       {
         "speaker": "Georgie",
         "text": "Hello Phil. How are you?",
-        "startMs": 15970,
-        "endMs": 19932
+        "startMs": 26400,
+        "endMs": 27980
       },
       {
         "speaker": "Phil",
         "text": "I'm good, but I'm also a little bit tired because I've been doing DIY all weekend.",
-        "startMs": 19932,
-        "endMs": 26363
+        "startMs": 28500,
+        "endMs": 36180
       },
       {
         "speaker": "Georgie",
         "text": "Well, that's lucky because today we're talking about DIY.",
-        "startMs": 26363,
-        "endMs": 30661
+        "startMs": 37100,
+        "endMs": 41160
       },
       {
         "speaker": "Georgie",
         "text": "DIY stands for Do It Yourself and it means doing things to your home, such as fixing and painting.",
-        "startMs": 30661,
-        "endMs": 37457
+        "startMs": 41700,
+        "endMs": 49400
       },
       {
         "speaker": "Georgie",
         "text": "So, what kind of DIY have you been doing this weekend?",
-        "startMs": 37457,
-        "endMs": 42242
+        "startMs": 50280,
+        "endMs": 53940
       },
       {
         "speaker": "Phil",
         "text": "Yes, I've been trying to fix my water tank.",
-        "startMs": 42242,
-        "endMs": 46539
+        "startMs": 54620,
+        "endMs": 57860
       },
       {
         "speaker": "Georgie",
         "text": "And do you do a lot of DIY?",
-        "startMs": 46539,
-        "endMs": 50684
+        "startMs": 59300,
+        "endMs": 61940
       },
       {
         "speaker": "Phil",
         "text": "I'm not very good at DIY.",
-        "startMs": 50684,
-        "endMs": 53793
+        "startMs": 66600,
+        "endMs": 69300
       },
       {
         "speaker": "Phil",
         "text": "If it's something I can do, I will try and do it.",
-        "startMs": 53793,
-        "endMs": 58456
+        "startMs": 70140,
+        "endMs": 74600
       },
       {
         "speaker": "Phil",
         "text": "Some things I would never touch, like electrics.",
-        "startMs": 58456,
-        "endMs": 61900
+        "startMs": 74860,
+        "endMs": 78480
       },
       {
         "speaker": "Phil",
         "text": "I wouldn't go anywhere near that or gas because it's not safe.",
-        "startMs": 61900,
-        "endMs": 66289
+        "startMs": 78960,
+        "endMs": 82720
       },
       {
         "speaker": "Phil",
         "text": "But if it's something that looks safe and I think I can do it, I will try it.",
-        "startMs": 66289,
-        "endMs": 72781
+        "startMs": 83760,
+        "endMs": 90400
       },
       {
         "speaker": "Georgie",
         "text": "So, what kinds of things do you do around the house?",
-        "startMs": 72781,
-        "endMs": 78114
+        "startMs": 91180,
+        "endMs": 94900
       },
       {
         "speaker": "Phil",
         "text": "It could be things like painting and decorating your house, making it look nice – that I quite like.",
-        "startMs": 78114,
-        "endMs": 85490
+        "startMs": 97000,
+        "endMs": 102880
       },
       {
         "speaker": "Phil",
         "text": "Sometimes fixing things with bits of wood that need to go somewhere – I can do that.",
-        "startMs": 85490,
-        "endMs": 91433
+        "startMs": 106420,
+        "endMs": 113100
       },
       {
         "speaker": "Phil",
         "text": "Putting up fences – I could do that, but that's probably it.",
-        "startMs": 91433,
-        "endMs": 96127
+        "startMs": 114840,
+        "endMs": 120260
       },
       {
         "speaker": "Phil",
         "text": "What about you, Georgie?",
-        "startMs": 96127,
-        "endMs": 98778
+        "startMs": 121480,
+        "endMs": 122380
       },
       {
         "speaker": "Georgie",
         "text": "I actually rent my flat, so that means I can't really do much to the place because it's not mine.",
-        "startMs": 98778,
-        "endMs": 106428
+        "startMs": 127060,
+        "endMs": 133200
       },
       {
         "speaker": "Georgie",
         "text": "But recently I have put up some lights in my room, because I changed rooms, so I've put up some nice fairy lights on the wall, and I've put up some frames with art and photos, so that's probably my limit.",
-        "startMs": 106428,
-        "endMs": 120753
+        "startMs": 134000,
+        "endMs": 152040
       },
       {
         "speaker": "Georgie",
         "text": "I wouldn't do anything else.",
-        "startMs": 120753,
-        "endMs": 123008
+        "startMs": 152220,
+        "endMs": 153900
       },
       {
         "speaker": "Phil",
         "text": "Do you enjoy DIY?",
-        "startMs": 123008,
-        "endMs": 125934
+        "startMs": 154620,
+        "endMs": 156280
       },
       {
         "speaker": "Georgie",
         "text": "No, I don't, because I'm quite a lazy person.",
-        "startMs": 125934,
-        "endMs": 130505
+        "startMs": 157100,
+        "endMs": 161840
       },
       {
         "speaker": "Georgie",
         "text": "So, if I see that something is broken or needs fixing, I will just ignore it – procrastinate, which means to delay something, postpone it – and wait for someone else to do it.",
-        "startMs": 130505,
-        "endMs": 142757
+        "startMs": 162260,
+        "endMs": 176400
       },
       {
         "speaker": "Georgie",
         "text": "I kind of get used to things being broken and forget that it's like that.",
-        "startMs": 142757,
-        "endMs": 148061
+        "startMs": 176500,
+        "endMs": 181920
       },
       {
         "speaker": "Georgie",
         "text": "So, yeah, I'm just a bit lazy.",
-        "startMs": 148061,
-        "endMs": 151474
+        "startMs": 183320,
+        "endMs": 185380
       },
       {
         "speaker": "Georgie",
         "text": "Phil, have you ever put together furniture, like flat-pack furniture?",
-        "startMs": 151474,
-        "endMs": 156564
+        "startMs": 186020,
+        "endMs": 190940
       },
       {
         "speaker": "Phil",
         "text": "Because, yeah, a lot of furniture you buy that's fairly cheap – you have to do that.",
-        "startMs": 156564,
-        "endMs": 163604
+        "startMs": 195220,
+        "endMs": 202520
       },
       {
         "speaker": "Phil",
         "text": "I don't actually mind that.",
-        "startMs": 163604,
-        "endMs": 165860
+        "startMs": 203540,
+        "endMs": 208100
       },
       {
         "speaker": "Phil",
         "text": "It's quite good to do it with someone and you work as a team.",
-        "startMs": 165860,
-        "endMs": 170858
+        "startMs": 208300,
+        "endMs": 212780
       },
       {
         "speaker": "Georgie",
         "text": "Mmm. Like an activity?",
-        "startMs": 170858,
-        "endMs": 174515
+        "startMs": 212840,
+        "endMs": 214200
       },
       {
         "speaker": "Phil",
         "text": "Well, sometimes it's fun.",
-        "startMs": 174515,
-        "endMs": 177289
+        "startMs": 217340,
+        "endMs": 218660
       },
       {
         "speaker": "Phil",
         "text": "Sometimes it's stressful.",
-        "startMs": 177289,
-        "endMs": 179392
+        "startMs": 218700,
+        "endMs": 219700
       },
       {
         "speaker": "Georgie",
         "text": "If it goes well that can be a nice thing to do with someone, but if it goes badly it could lead to an argument.",
-        "startMs": 179392,
-        "endMs": 188565
+        "startMs": 220700,
+        "endMs": 227960
       },
       {
         "speaker": "Georgie",
         "text": "Do you have any big plans for your house?",
-        "startMs": 188565,
-        "endMs": 192467
+        "startMs": 228500,
+        "endMs": 231040
       },
       {
         "speaker": "Phil",
         "text": "I would really like to get a very nice bit of wood and make a nice bar for my kitchen.",
-        "startMs": 192467,
-        "endMs": 199842
+        "startMs": 231220,
+        "endMs": 238200
       },
       {
         "speaker": "Phil",
         "text": "I'd love to do that, but it's expensive and I haven't done it yet.",
-        "startMs": 199842,
-        "endMs": 205115
+        "startMs": 239000,
+        "endMs": 242900
       },
       {
         "speaker": "Phil",
         "text": "I keep procrastinating and not doing it.",
-        "startMs": 205115,
-        "endMs": 207980
+        "startMs": 242960,
+        "endMs": 245620
       },
       {
         "speaker": "Georgie",
         "text": "I rent my flat so I can't do anything big.",
-        "startMs": 207980,
-        "endMs": 212308
+        "startMs": 248120,
+        "endMs": 250720
       },
       {
         "speaker": "Georgie",
         "text": "I don't have big plans, but we do have an outdoor terrace, which at the moment it's not very...",
-        "startMs": 212308,
-        "endMs": 220049
+        "startMs": 250740,
+        "endMs": 259160
       },
       {
         "speaker": "Georgie",
         "text": "it's not in a very good state.",
-        "startMs": 220049,
-        "endMs": 222914
+        "startMs": 259160,
+        "endMs": 260740
       },
       {
         "speaker": "Georgie",
         "text": "So, I would like to clean it, maybe get some plants for it.",
-        "startMs": 222914,
-        "endMs": 228156
+        "startMs": 261000,
+        "endMs": 266120
       },
       {
         "speaker": "Georgie",
         "text": "I'd like to put some lights out there, actually, so that when people come round it will be really nice in the evenings.",
-        "startMs": 228156,
-        "endMs": 236446
+        "startMs": 266140,
+        "endMs": 273520
       },
       {
         "speaker": "Georgie",
         "text": "So, yeah, that's my plan.",
-        "startMs": 236446,
-        "endMs": 239250
+        "startMs": 274400,
+        "endMs": 275520
       },
       {
         "speaker": "Georgie",
         "text": "Ready for the summer.",
-        "startMs": 239250,
-        "endMs": 241200
+        "startMs": 275600,
+        "endMs": 276780
       },
       {
         "speaker": "Phil",
         "text": "That sounds lovely.",
-        "startMs": 241200,
-        "endMs": 243852
+        "startMs": 277420,
+        "endMs": 278160
       },
       {
         "speaker": "Georgie",
         "text": "Let's recap the language we heard during the conversation, starting with DIY, which stands for Do It Yourself.",
-        "startMs": 243852,
-        "endMs": 251167
+        "startMs": 285920,
+        "endMs": 293040
       },
       {
         "speaker": "Georgie",
         "text": "These are jobs you do around the house, like fixing or painting.",
-        "startMs": 251167,
-        "endMs": 255830
+        "startMs": 293500,
+        "endMs": 297200
       },
       {
         "speaker": "Georgie",
         "text": "For example, I don't like DIY – I'm too lazy.",
-        "startMs": 255830,
-        "endMs": 259914
+        "startMs": 297560,
+        "endMs": 300600
       },
       {
         "speaker": "Phil",
         "text": "We also heard decorate, which means paint a room or change how it looks.",
-        "startMs": 259914,
-        "endMs": 265735
+        "startMs": 301360,
+        "endMs": 306820
       },
       {
         "speaker": "Georgie",
         "text": "We heard flat-pack furniture, which is furniture which comes with instructions so that you can build it yourself.",
-        "startMs": 265735,
-        "endMs": 273110
+        "startMs": 307040,
+        "endMs": 313480
       },
       {
         "speaker": "Phil",
         "text": "And we heard a couple of phrasal verbs.",
-        "startMs": 273110,
-        "endMs": 276829
+        "startMs": 314560,
+        "endMs": 317180
       },
       {
         "speaker": "Phil",
         "text": "If you put something up, you fix it to the wall.",
-        "startMs": 276829,
-        "endMs": 281187
+        "startMs": 317620,
+        "endMs": 321020
       },
       {
         "speaker": "Phil",
         "text": "So, for example, Georgie put up some picture frames in her bedroom.",
-        "startMs": 281187,
-        "endMs": 286124
+        "startMs": 321200,
+        "endMs": 325120
       },
       {
         "speaker": "Georgie",
         "text": "And if you put something together, you build it.",
-        "startMs": 286124,
-        "endMs": 290422
+        "startMs": 325520,
+        "endMs": 328600
       },
       {
         "speaker": "Georgie",
         "text": "For example, Phil likes to put together flat-pack furniture with someone else.",
-        "startMs": 290422,
-        "endMs": 295420
+        "startMs": 328740,
+        "endMs": 333340
       },
       {
         "speaker": "Phil",
         "text": "And that's it for this episode of Real Easy English.",
-        "startMs": 295420,
-        "endMs": 299748
+        "startMs": 334360,
+        "endMs": 338380
       },
       {
         "speaker": "Phil",
         "text": "You can practise what you've learnt with a worksheet that's on our website, bbclearningenglish.",
-        "startMs": 299748,
-        "endMs": 305021
+        "startMs": 338900,
+        "endMs": 346040
       },
       {
         "speaker": "Georgie",
         "text": "And we'll be back next week with another conversation in easy English.",
-        "startMs": 305021,
-        "endMs": 309958
+        "startMs": 346160,
+        "endMs": 350840
       },
       {
         "speaker": "Phil",
         "text": "Bye!",
-        "startMs": 309958,
-        "endMs": 312000
+        "startMs": 351900,
+        "endMs": 352380
       }
     ],
     "summary": "Understand and discuss talking about diy using BBC natural English. You'll pick up useful words like DIY, water tank, electrics. Listen to Georgie & Phil talk it through in natural English.",
@@ -1695,517 +1695,517 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:03:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/realeasyenglish/260508_REE_fruit__download.mp3",
-    "durationSeconds": 306,
+    "durationSeconds": 348,
     "transcript": [
       {
         "speaker": "Becca",
         "text": "Hello and welcome to Real Easy English, where we have easy conversations to help you with your listening skills and learn new vocabulary.",
-        "startMs": 0,
-        "endMs": 7318
+        "startMs": 380,
+        "endMs": 9240
       },
       {
         "speaker": "Neil",
         "text": "If you'd like to see a video version of this podcast, you can find it on our website at bbclearningenglish.",
-        "startMs": 7318,
-        "endMs": 14302
+        "startMs": 11320,
+        "endMs": 18820
       },
       {
         "speaker": "Neil",
         "text": "The video has subtitles, which can help you learn.",
-        "startMs": 14302,
-        "endMs": 17725
+        "startMs": 18820,
+        "endMs": 21640
       },
       {
         "speaker": "Becca",
         "text": "How are you doing today?",
-        "startMs": 17725,
-        "endMs": 20675
+        "startMs": 29600,
+        "endMs": 30600
       },
       {
         "speaker": "Neil",
         "text": "I feel great because I just ate a banana.",
-        "startMs": 20675,
-        "endMs": 24348
+        "startMs": 32380,
+        "endMs": 35140
       },
       {
         "speaker": "Becca",
         "text": "You started off your day quite healthily this morning.",
-        "startMs": 24348,
-        "endMs": 28021
+        "startMs": 38300,
+        "endMs": 41050
       },
       {
         "speaker": "Neil",
         "text": "Yes, I saw you eating your banana, and I thought, I'm going to eat a banana.",
-        "startMs": 28021,
-        "endMs": 34393
+        "startMs": 42560,
+        "endMs": 46490
       },
       {
         "speaker": "Becca",
         "text": "Yes, bananas are delicious.",
-        "startMs": 34393,
-        "endMs": 36925
+        "startMs": 47950,
+        "endMs": 49840
       },
       {
         "speaker": "Becca",
         "text": "And today we are actually talking about fruit.",
-        "startMs": 36925,
-        "endMs": 39819
+        "startMs": 50640,
+        "endMs": 52880
       },
       {
         "speaker": "Neil",
         "text": "We are, yes, and I love eating fruit.",
-        "startMs": 39819,
-        "endMs": 43714
+        "startMs": 53120,
+        "endMs": 56080
       },
       {
         "speaker": "Becca",
         "text": "Me too.",
-        "startMs": 43714,
-        "endMs": 45857
+        "startMs": 56120,
+        "endMs": 57320
       },
       {
         "speaker": "Neil",
         "text": "What kind of fruit do you like?",
-        "startMs": 45857,
-        "endMs": 49363
+        "startMs": 57500,
+        "endMs": 59060
       },
       {
         "speaker": "Becca",
         "text": "Ooh, besides bananas, I really love berries.",
-        "startMs": 49363,
-        "endMs": 52980
+        "startMs": 60220,
+        "endMs": 64500
       },
       {
         "speaker": "Becca",
         "text": "And I like green apples and red grapes.",
-        "startMs": 52980,
-        "endMs": 55874
+        "startMs": 65140,
+        "endMs": 72080
       },
       {
         "speaker": "Becca",
         "text": "I like lots of fruit.",
-        "startMs": 55874,
-        "endMs": 57933
+        "startMs": 72140,
+        "endMs": 73690
       },
       {
         "speaker": "Neil",
         "text": "Yeah, I really like fruit.",
-        "startMs": 57933,
-        "endMs": 60744
+        "startMs": 74940,
+        "endMs": 76520
       },
       {
         "speaker": "Neil",
         "text": "I try to eat fruit every day and, like you, I like apples but not just green ones.",
-        "startMs": 60744,
-        "endMs": 66921
+        "startMs": 76520,
+        "endMs": 84160
       },
       {
         "speaker": "Neil",
         "text": "The red ones – I like those too.",
-        "startMs": 66921,
-        "endMs": 69843
+        "startMs": 84540,
+        "endMs": 86440
       },
       {
         "speaker": "Neil",
         "text": "And I like frozen berries with my breakfast.",
-        "startMs": 69843,
-        "endMs": 72737
+        "startMs": 88700,
+        "endMs": 92820
       },
       {
         "speaker": "Becca",
         "text": "So, you mentioned oranges.",
-        "startMs": 72737,
-        "endMs": 75269
+        "startMs": 93120,
+        "endMs": 95080
       },
       {
         "speaker": "Becca",
         "text": "Oranges can be a little sweet, but they're actually more sour, aren't they?",
-        "startMs": 75269,
-        "endMs": 80444
+        "startMs": 95340,
+        "endMs": 100680
       },
       {
         "speaker": "Neil",
         "text": "Yeah. Sour or sharp.",
-        "startMs": 80444,
-        "endMs": 83394
+        "startMs": 100900,
+        "endMs": 102540
       },
       {
         "speaker": "Becca",
         "text": "Sharp, yeah.",
-        "startMs": 83394,
-        "endMs": 85787
+        "startMs": 102620,
+        "endMs": 103740
       },
       {
         "speaker": "Neil",
         "text": "That's the taste that you get from fruit like oranges, and more so with lemons or limes.",
-        "startMs": 85787,
-        "endMs": 91936
+        "startMs": 104380,
+        "endMs": 113860
       },
       {
         "speaker": "Neil",
         "text": "These are called citrus fruit.",
-        "startMs": 91936,
-        "endMs": 93995
+        "startMs": 113880,
+        "endMs": 117710
       },
       {
         "speaker": "Becca",
         "text": "They have more of a sour taste.",
-        "startMs": 93995,
-        "endMs": 97112
+        "startMs": 117710,
+        "endMs": 120000
       },
       {
         "speaker": "Neil",
         "text": "If you bite into a lemon, that's sour.",
-        "startMs": 97112,
-        "endMs": 100757
+        "startMs": 120620,
+        "endMs": 124160
       },
       {
         "speaker": "Becca",
         "text": "The face that you make....",
-        "startMs": 100757,
-        "endMs": 103929
+        "startMs": 124780,
+        "endMs": 126160
       },
       {
         "speaker": "Neil",
         "text": "Yeah.",
-        "startMs": 103929,
-        "endMs": 105794
+        "startMs": 126160,
+        "endMs": 126161
       },
       {
         "speaker": "Becca",
         "text": "when you bite into something citrus, yeah.",
-        "startMs": 105794,
-        "endMs": 109160
+        "startMs": 126160,
+        "endMs": 129100
       },
       {
         "speaker": "Becca",
         "text": "Do you prefer sweet fruit or sour fruit?",
-        "startMs": 109160,
-        "endMs": 112444
+        "startMs": 129340,
+        "endMs": 132280
       },
       {
         "speaker": "Neil",
         "text": "Yeah, I like sweet fruit.",
-        "startMs": 112444,
-        "endMs": 115254
+        "startMs": 132560,
+        "endMs": 134280
       },
       {
         "speaker": "Neil",
         "text": "And probably I like fruit when it's ripe.",
-        "startMs": 115254,
-        "endMs": 118148
+        "startMs": 134440,
+        "endMs": 138640
       },
       {
         "speaker": "Becca",
         "text": "What does that mean – ripe?",
-        "startMs": 118148,
-        "endMs": 121404
+        "startMs": 139830,
+        "endMs": 140960
       },
       {
         "speaker": "Neil",
         "text": "It means that it's ready to eat.",
-        "startMs": 121404,
-        "endMs": 124520
+        "startMs": 141420,
+        "endMs": 143440
       },
       {
         "speaker": "Neil",
         "text": "It's at its sweetest usually, probably quite juicy.",
-        "startMs": 124520,
-        "endMs": 127665
+        "startMs": 143600,
+        "endMs": 148660
       },
       {
         "speaker": "Neil",
         "text": "If fruit is juicy, it means juice comes from it.",
-        "startMs": 127665,
-        "endMs": 131365
+        "startMs": 148920,
+        "endMs": 153060
       },
       {
         "speaker": "Neil",
         "text": "And juice is a liquid – watery.",
-        "startMs": 131365,
-        "endMs": 134009
+        "startMs": 153060,
+        "endMs": 156280
       },
       {
         "speaker": "Neil",
         "text": "If it's ripe, it's just before it goes bad or goes off.",
-        "startMs": 134009,
-        "endMs": 138266
+        "startMs": 159500,
+        "endMs": 163910
       },
       {
         "speaker": "Becca",
         "text": "So, if we're thinking about bananas, for example, a green-coloured banana perhaps isn't ready to eat.",
-        "startMs": 138266,
-        "endMs": 144944
+        "startMs": 166420,
+        "endMs": 171890
       },
       {
         "speaker": "Becca",
         "text": "It's not ripe like a yellow banana.",
-        "startMs": 144944,
-        "endMs": 147560
+        "startMs": 171890,
+        "endMs": 173740
       },
       {
         "speaker": "Neil",
         "text": "Yeah, but a yellow one with, sort of, brown bits on it.",
-        "startMs": 147560,
-        "endMs": 152819
+        "startMs": 174100,
+        "endMs": 177920
       },
       {
         "speaker": "Neil",
         "text": "That's a ripe banana.",
-        "startMs": 152819,
-        "endMs": 154600
+        "startMs": 177920,
+        "endMs": 179160
       },
       {
         "speaker": "Becca",
         "text": "Yeah, they're a bit too sweet for me.",
-        "startMs": 154600,
-        "endMs": 158245
+        "startMs": 179520,
+        "endMs": 182100
       },
       {
         "speaker": "Becca",
         "text": "I kind of like that middle...",
-        "startMs": 158245,
-        "endMs": 161195
+        "startMs": 182100,
+        "endMs": 184480
       },
       {
         "speaker": "Becca",
         "text": "Yeah, I like yellow bananas.",
-        "startMs": 161195,
-        "endMs": 163504
+        "startMs": 184480,
+        "endMs": 186580
       },
       {
         "speaker": "Neil",
         "text": "How about dried fruit?",
-        "startMs": 163504,
-        "endMs": 166176
+        "startMs": 187440,
+        "endMs": 189310
       },
       {
         "speaker": "Neil",
         "text": "Do you like dried fruit?",
-        "startMs": 166176,
-        "endMs": 168624
+        "startMs": 189310,
+        "endMs": 190560
       },
       {
         "speaker": "Becca",
         "text": "Oh, I'm glad you asked.",
-        "startMs": 168624,
-        "endMs": 171435
+        "startMs": 190760,
+        "endMs": 192200
       },
       {
         "speaker": "Becca",
         "text": "Yes, I really like dried fruit.",
-        "startMs": 171435,
-        "endMs": 174022
+        "startMs": 192260,
+        "endMs": 195000
       },
       {
         "speaker": "Becca",
         "text": "So, I will often have raisins.",
-        "startMs": 174022,
-        "endMs": 176610
+        "startMs": 195520,
+        "endMs": 199440
       },
       {
         "speaker": "Becca",
         "text": "So, raisins are dried grapes.",
-        "startMs": 176610,
-        "endMs": 178920
+        "startMs": 199560,
+        "endMs": 202240
       },
       {
         "speaker": "Becca",
         "text": "And dried means that it doesn't have any of that juice or liquid.",
-        "startMs": 178920,
-        "endMs": 183205
+        "startMs": 202480,
+        "endMs": 206300
       },
       {
         "speaker": "Neil",
         "text": "So, Becca, here is a really important and interesting question.",
-        "startMs": 183205,
-        "endMs": 187657
+        "startMs": 207220,
+        "endMs": 211420
       },
       {
         "speaker": "Neil",
         "text": "If you could only eat one fruit for the rest of your life, which would you choose?",
-        "startMs": 187657,
-        "endMs": 193695
+        "startMs": 211760,
+        "endMs": 217180
       },
       {
         "speaker": "Becca",
         "text": "Ooh, that is a very difficult question.",
-        "startMs": 193695,
-        "endMs": 197062
+        "startMs": 218220,
+        "endMs": 220500
       },
       {
         "speaker": "Becca",
         "text": "We've talked a lot about the fruit that we love.",
-        "startMs": 197062,
-        "endMs": 200513
+        "startMs": 220560,
+        "endMs": 222780
       },
       {
         "speaker": "Becca",
         "text": "But probably bananas because I do eat them every day.",
-        "startMs": 200513,
-        "endMs": 203963
+        "startMs": 223940,
+        "endMs": 228460
       },
       {
         "speaker": "Becca",
         "text": "It feels quite strange to not eat a banana every day for me.",
-        "startMs": 203963,
-        "endMs": 208248
+        "startMs": 228540,
+        "endMs": 234300
       },
       {
         "speaker": "Becca",
         "text": "And also I really enjoy banana bread and dried bananas.",
-        "startMs": 208248,
-        "endMs": 211698
+        "startMs": 235020,
+        "endMs": 239900
       },
       {
         "speaker": "Becca",
         "text": "I completely forgot about those.",
-        "startMs": 211698,
-        "endMs": 213758
+        "startMs": 239900,
+        "endMs": 241870
       },
       {
         "speaker": "Becca",
         "text": "They're really tasty.",
-        "startMs": 213758,
-        "endMs": 215678
+        "startMs": 241870,
+        "endMs": 243000
       },
       {
         "speaker": "Becca",
         "text": "So yeah, there's lots of things you can do with bananas.",
-        "startMs": 215678,
-        "endMs": 219657
+        "startMs": 244140,
+        "endMs": 246700
       },
       {
         "speaker": "Becca",
         "text": "What fruit would you choose?",
-        "startMs": 219657,
-        "endMs": 222105
+        "startMs": 248840,
+        "endMs": 249940
       },
       {
         "speaker": "Neil",
         "text": "I think maybe it sounds boring, but the apple is the perfect snack.",
-        "startMs": 222105,
-        "endMs": 227142
+        "startMs": 250280,
+        "endMs": 255780
       },
       {
         "speaker": "Neil",
         "text": "You always feel good after an apple, and it makes a fantastic noise when you bite into an apple.",
-        "startMs": 227142,
-        "endMs": 233347
+        "startMs": 255780,
+        "endMs": 261640
       },
       {
         "speaker": "Neil",
         "text": "That noise is called a crunch.",
-        "startMs": 233347,
-        "endMs": 235684
+        "startMs": 261640,
+        "endMs": 263580
       },
       {
         "speaker": "Neil",
         "text": "it's a very nice sound.",
-        "startMs": 235684,
-        "endMs": 237743
+        "startMs": 264640,
+        "endMs": 267770
       },
       {
         "speaker": "Becca",
         "text": "And so, we can describe apples as being crunchy.",
-        "startMs": 237743,
-        "endMs": 241667
+        "startMs": 267770,
+        "endMs": 270790
       },
       {
         "speaker": "Becca",
         "text": "That's the adjective.",
-        "startMs": 241667,
-        "endMs": 243587
+        "startMs": 270790,
+        "endMs": 271840
       },
       {
         "speaker": "Becca",
         "text": "It's time to recap the vocabulary that we've learned.",
-        "startMs": 243587,
-        "endMs": 246759
+        "startMs": 280640,
+        "endMs": 283480
       },
       {
         "speaker": "Becca",
         "text": "And we'll start with sour.",
-        "startMs": 246759,
-        "endMs": 248818
+        "startMs": 283480,
+        "endMs": 284900
       },
       {
         "speaker": "Becca",
         "text": "And that is the taste, for example, in lemon or in vinegar – it's not very sweet.",
-        "startMs": 248818,
-        "endMs": 254745
+        "startMs": 285260,
+        "endMs": 291520
       },
       {
         "speaker": "Becca",
         "text": "Citrus fruits, for example, like grapefruit, oranges, limes – they are very sour.",
-        "startMs": 254745,
-        "endMs": 260060
+        "startMs": 291660,
+        "endMs": 297800
       },
       {
         "speaker": "Neil",
         "text": "We used the word ripe.",
-        "startMs": 260060,
-        "endMs": 262620
+        "startMs": 298820,
+        "endMs": 300440
       },
       {
         "speaker": "Neil",
         "text": "Ripe describes fruit which is ready to eat.",
-        "startMs": 262620,
-        "endMs": 265514
+        "startMs": 300680,
+        "endMs": 303900
       },
       {
         "speaker": "Becca",
         "text": "We also had juicy, and that's an adjective to describe something that has juice or liquid.",
-        "startMs": 265514,
-        "endMs": 271385
+        "startMs": 304220,
+        "endMs": 310110
       },
       {
         "speaker": "Becca",
         "text": "So, for example, a juicy fruit like a strawberry – when you bite into it, juice will come out of it.",
-        "startMs": 271385,
-        "endMs": 278675
+        "startMs": 310110,
+        "endMs": 316980
       },
       {
         "speaker": "Neil",
         "text": "We also heard about dried fruit.",
-        "startMs": 278675,
-        "endMs": 281513
+        "startMs": 317960,
+        "endMs": 320340
       },
       {
         "speaker": "Neil",
         "text": "Dried fruit has had all of the juice taken out of it, sometimes by the sun.",
-        "startMs": 281513,
-        "endMs": 286884
+        "startMs": 320480,
+        "endMs": 326860
       },
       {
         "speaker": "Neil",
         "text": "So, for example, raisins are dried fruit.",
-        "startMs": 286884,
-        "endMs": 290000
+        "startMs": 326860,
+        "endMs": 329920
       },
       {
         "speaker": "Becca",
         "text": "That's it for this week's episode of Real Easy English.",
-        "startMs": 290000,
-        "endMs": 293951
+        "startMs": 330640,
+        "endMs": 333970
       },
       {
         "speaker": "Becca",
         "text": "You can find a free worksheet on our website to test what you've learned from this episode.",
-        "startMs": 293951,
-        "endMs": 299350
+        "startMs": 333970,
+        "endMs": 338880
       },
       {
         "speaker": "Neil",
         "text": "And we'll be back next week with another episode of Real Easy English.",
-        "startMs": 299350,
-        "endMs": 304136
+        "startMs": 342140,
+        "endMs": 345920
       },
       {
         "speaker": "Becca",
         "text": "Bye!",
-        "startMs": 304136,
-        "endMs": 306000
+        "startMs": 347580,
+        "endMs": 347840
       }
     ],
     "summary": "Understand and discuss talking about fruit using BBC natural English. You'll pick up useful words like berries, grapes, sour. Listen to Becca & Neil talk it through in natural English.",
@@ -2350,373 +2350,373 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:04:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/6min/260604_6_minute_english_the_power_of_poetry_download.mp3",
-    "durationSeconds": 414,
+    "durationSeconds": 365,
     "transcript": [
       {
         "speaker": "Neil",
         "text": "Hello, this is 6 Minute English from BBC Learning English.",
-        "startMs": 0,
-        "endMs": 4578
+        "startMs": 7840,
+        "endMs": 11100
       },
       {
         "speaker": "Pippa",
         "text": "In this episode we're discussing poetry.",
-        "startMs": 4578,
-        "endMs": 8089
+        "startMs": 13260,
+        "endMs": 15740
       },
       {
         "speaker": "Pippa",
         "text": "For some, poetry is what you study at school, then forget, while for others it becomes an important part of their life.",
-        "startMs": 8089,
-        "endMs": 17418
+        "startMs": 16240,
+        "endMs": 23780
       },
       {
         "speaker": "Pippa",
         "text": "Have you ever read or written any poetry, Neil?",
-        "startMs": 17418,
-        "endMs": 22134
+        "startMs": 24180,
+        "endMs": 26980
       },
       {
         "speaker": "Neil",
         "text": "Well, I haven't written any poetry since I was at school.",
-        "startMs": 22134,
-        "endMs": 27676
+        "startMs": 27360,
+        "endMs": 31120
       },
       {
         "speaker": "Neil",
         "text": "I would love to read more poetry, but I just don't get it, really.",
-        "startMs": 27676,
-        "endMs": 33941
+        "startMs": 31260,
+        "endMs": 36380
       },
       {
         "speaker": "Neil",
         "text": "I find it difficult to understand.",
-        "startMs": 33941,
-        "endMs": 36832
+        "startMs": 36420,
+        "endMs": 38260
       },
       {
         "speaker": "Pippa",
         "text": "A good place to hear poetry is an open mic night, a live event where anyone is allowed to stand up on stage to sing or recite poems.",
-        "startMs": 36832,
-        "endMs": 48226
+        "startMs": 38540,
+        "endMs": 47440
       },
       {
         "speaker": "Pippa",
         "text": "Here, BBC reporter Maria recites her open mic poem about a friend who suffered a stroke, for BBC World Service programme People Fixing the World.",
-        "startMs": 48226,
-        "endMs": 58277
+        "startMs": 48020,
+        "endMs": 56720
       },
       {
         "speaker": "Maria",
         "text": "This first poem, I wrote it about a friend who I love dearly.",
-        "startMs": 58277,
-        "endMs": 64508
+        "startMs": 56940,
+        "endMs": 60060
       },
       {
         "speaker": "Maria",
         "text": "You're awake And trying to grasp who it is.",
-        "startMs": 64508,
-        "endMs": 68432
+        "startMs": 62720,
+        "endMs": 65260
       },
       {
         "speaker": "Maria",
         "text": "I pull my mask past my lips and you study my face, Eyes wide.",
-        "startMs": 68432,
-        "endMs": 74387
+        "startMs": 65580,
+        "endMs": 69320
       },
       {
         "speaker": "Maria",
         "text": "I've enough stuff to tell you, I say, Sinking into a chair.",
-        "startMs": 74387,
-        "endMs": 79964
+        "startMs": 70960,
+        "endMs": 74840
       },
       {
         "speaker": "Maria",
         "text": "Sometimes if you go to an open mic night, people can really touch your soul with what they're saying.",
-        "startMs": 79964,
-        "endMs": 87640
+        "startMs": 77880,
+        "endMs": 82780
       },
       {
         "speaker": "Maria",
         "text": "And even if you're having a bad day, life can feel so much better after going to an open mic night.",
-        "startMs": 87640,
-        "endMs": 96004
+        "startMs": 83400,
+        "endMs": 87580
       },
       {
         "speaker": "Neil",
         "text": "For Maria, poetry has the power to heal emotions and touch your soul, meaning to affect you deeply on an emotional or spiritual level.",
-        "startMs": 96004,
-        "endMs": 106331
+        "startMs": 88240,
+        "endMs": 96920
       },
       {
         "speaker": "Pippa",
         "text": "In this episode, we'll hear more about the positive power of poetry and, as usual, we'll learn some useful new words and phrases.",
-        "startMs": 106331,
-        "endMs": 116624
+        "startMs": 97280,
+        "endMs": 105500
       },
       {
         "speaker": "Pippa",
         "text": "And remember, you'll find all the vocabulary, plus a quiz and worksheet on our website, bbclearningenglish.",
-        "startMs": 116624,
-        "endMs": 123887
+        "startMs": 105860,
+        "endMs": 110800
       },
       {
         "speaker": "Neil",
         "text": "But first, I have a question for you, Pippa.",
-        "startMs": 123887,
-        "endMs": 129050
+        "startMs": 113060,
+        "endMs": 115860
       },
       {
         "speaker": "Neil",
         "text": "Just now you used the phrase the positive power of poetry, repeating the same initial 'p' sound across a string of words.",
-        "startMs": 129050,
-        "endMs": 137759
+        "startMs": 116060,
+        "endMs": 124880
       },
       {
         "speaker": "Neil",
         "text": "Doing this is a common feature of poetry, but what's it called?",
-        "startMs": 137759,
-        "endMs": 143508
+        "startMs": 125520,
+        "endMs": 129240
       },
       {
         "speaker": "Neil",
         "text": "Is it: a) assonance, b) alliteration, or c) simile?",
-        "startMs": 143508,
-        "endMs": 148843
+        "startMs": 129580,
+        "endMs": 134940
       },
       {
         "speaker": "Pippa",
         "text": "Finally, my English degree might come in handy!",
-        "startMs": 148843,
-        "endMs": 153352
+        "startMs": 136080,
+        "endMs": 138540
       },
       {
         "speaker": "Pippa",
         "text": "And I'm going to say b) alliteration.",
-        "startMs": 153352,
-        "endMs": 156588
+        "startMs": 138580,
+        "endMs": 140640
       },
       {
         "speaker": "Neil",
         "text": "Well, we'll find out at the end, and I hope you don't get embarrassed, Pippa!",
-        "startMs": 156588,
-        "endMs": 164127
+        "startMs": 141100,
+        "endMs": 144600
       },
       {
         "speaker": "Neil",
         "text": "Now, poetry helped Maria overcome sadness, but could its power to heal work in other areas too?",
-        "startMs": 164127,
-        "endMs": 171906
+        "startMs": 145760,
+        "endMs": 152600
       },
       {
         "speaker": "Neil",
         "text": "Hot Poets is a group helping people understand the science behind global issues like climate change.",
-        "startMs": 171906,
-        "endMs": 178240
+        "startMs": 153220,
+        "endMs": 159220
       },
       {
         "speaker": "Neil",
         "text": "They go to meetings like the UN Climate Conference and listen to scientific papers being presented.",
-        "startMs": 178240,
-        "endMs": 184574
+        "startMs": 159520,
+        "endMs": 164660
       },
       {
         "speaker": "Neil",
         "text": "Then they write a poem about it all and perform that back to the audience.",
-        "startMs": 184574,
-        "endMs": 190563
+        "startMs": 164840,
+        "endMs": 169240
       },
       {
         "speaker": "Neil",
         "text": "Here's Hot Poet Liv Torc, reciting her poem to BBC World Service's People Fixing the World.",
-        "startMs": 190563,
-        "endMs": 197207
+        "startMs": 169580,
+        "endMs": 175620
       },
       {
         "speaker": "Liv Torc",
         "text": "It starts with an adventure at sea, A big blue murder mystery, where the killer is not the whale But an epic humanity fail Of overfishing and polluting at unimaginable scale.",
-        "startMs": 197207,
-        "endMs": 209943
+        "startMs": 176200,
+        "endMs": 188660
       },
       {
         "speaker": "Pippa",
         "text": "Liv's poem is based on a study into biodiversity.",
-        "startMs": 209943,
-        "endMs": 214487
+        "startMs": 192020,
+        "endMs": 195000
       },
       {
         "speaker": "Pippa",
         "text": "It's a complex research project that many find hard to understand.",
-        "startMs": 214487,
-        "endMs": 219100
+        "startMs": 195600,
+        "endMs": 199120
       },
       {
         "speaker": "Pippa",
         "text": "Here, Liv discusses this with Myra Anubi for BBC World Service programme People Fixing the World:",
-        "startMs": 219100,
-        "endMs": 226053
+        "startMs": 199780,
+        "endMs": 205380
       },
       {
         "speaker": "Myra Anubi",
         "text": "And Liv, I mean, so what you've identified is that there is an issue around the communication of science.",
-        "startMs": 226053,
-        "endMs": 234659
+        "startMs": 206140,
+        "endMs": 212520
       },
       {
         "speaker": "Liv Torc",
         "text": "Yes, a lot of this jargon is really hard to understand, or a lot of the science is quite impenetrable to normal people, so it's instantly a turn-off.",
-        "startMs": 234659,
-        "endMs": 247051
+        "startMs": 212960,
+        "endMs": 221000
       },
       {
         "speaker": "Neil",
         "text": "Science uses lots of jargon – specialist or technical vocabulary which is quite different from everyday language.",
-        "startMs": 247051,
-        "endMs": 254383
+        "startMs": 221300,
+        "endMs": 227960
       },
       {
         "speaker": "Neil",
         "text": "For example, a scientist might use the word precipitation, while in everyday English we would say rain.",
-        "startMs": 254383,
-        "endMs": 261680
+        "startMs": 228440,
+        "endMs": 234880
       },
       {
         "speaker": "Pippa",
         "text": "Jargon can make scientific papers impenetrable, an adjective meaning impossible to understand.",
-        "startMs": 261680,
-        "endMs": 267566
+        "startMs": 235640,
+        "endMs": 241680
       },
       {
         "speaker": "Pippa",
         "text": "And worse, it makes science a turn-off – something that people dislike or find uninteresting.",
-        "startMs": 267566,
-        "endMs": 274279
+        "startMs": 242380,
+        "endMs": 247320
       },
       {
         "speaker": "Neil",
         "text": "Hot Poets try to change all of that by making complex environmental ideas easy to understand through poetry.",
-        "startMs": 274279,
-        "endMs": 281921
+        "startMs": 247880,
+        "endMs": 254460
       },
       {
         "speaker": "Neil",
         "text": "And it works, says Kat Bruce, the environmental scientist whose study Liv based her poem on, talking here with Myra Anubi for BBC World Service's People Fixing the World.",
-        "startMs": 281921,
-        "endMs": 293659
+        "startMs": 254760,
+        "endMs": 265580
       },
       {
         "speaker": "Myra Anubi",
         "text": "What did it mean for you, Kat, hearing the poem, having actually experienced everything she's saying?",
-        "startMs": 293659,
-        "endMs": 302023
+        "startMs": 265860,
+        "endMs": 271180
       },
       {
         "speaker": "Kat Bruce",
         "text": "It still gives me goosebumps when I hear it now.",
-        "startMs": 302023,
-        "endMs": 306911
+        "startMs": 271680,
+        "endMs": 274600
       },
       {
         "speaker": "Kat Bruce",
         "text": "I think it's everything that I wish I could say and put into words myself.",
-        "startMs": 306911,
-        "endMs": 312901
+        "startMs": 274980,
+        "endMs": 281260
       },
       {
         "speaker": "Kat Bruce",
         "text": "I feel like Liv just, you know, has done that.",
-        "startMs": 312901,
-        "endMs": 317789
+        "startMs": 281560,
+        "endMs": 284120
       },
       {
         "speaker": "Pippa",
         "text": "Liv's poem gave Kat goosebumps, meaning she was so emotionally affected that the hairs on her skin stood up, making tiny bumps.",
-        "startMs": 317789,
-        "endMs": 327427
+        "startMs": 285260,
+        "endMs": 293240
       },
       {
         "speaker": "Pippa",
         "text": "Maybe poetry can't fix everything, but for Kat, it's making an impact for good.",
-        "startMs": 327427,
-        "endMs": 333692
+        "startMs": 293660,
+        "endMs": 298000
       },
       {
         "speaker": "Pippa",
         "text": "Now, what was the answer to your question, Neil?",
-        "startMs": 333692,
-        "endMs": 338718
+        "startMs": 298460,
+        "endMs": 300560
       },
       {
         "speaker": "Neil",
         "text": "Well, you seemed very clear, Pippa, that when you use a string of words beginning with the same sound, it's called alliteration...",
-        "startMs": 338718,
-        "endMs": 349733
+        "startMs": 300900,
+        "endMs": 309740
       },
       {
         "speaker": "Neil",
         "text": "and you're absolutely right.",
-        "startMs": 349733,
-        "endMs": 351936
+        "startMs": 310760,
+        "endMs": 312200
       },
       {
         "speaker": "Pippa",
         "text": "Phew!",
-        "startMs": 351936,
-        "endMs": 354242
+        "startMs": 312200,
+        "endMs": 314620
       },
       {
         "speaker": "Neil",
         "text": "Let's recap the vocabulary we've learned, starting with open mic night, a live event where anyone is allowed to perform poems or music on stage.",
-        "startMs": 354242,
-        "endMs": 364913
+        "startMs": 314620,
+        "endMs": 323300
       },
       {
         "speaker": "Pippa",
         "text": "If something touches your soul, it affects you deeply on an emotional or spiritual level.",
-        "startMs": 364913,
-        "endMs": 371832
+        "startMs": 323660,
+        "endMs": 329180
       },
       {
         "speaker": "Neil",
         "text": "Jargon means special words and phrases that are used in a particular profession or subject.",
-        "startMs": 371832,
-        "endMs": 378442
+        "startMs": 329520,
+        "endMs": 334400
       },
       {
         "speaker": "Pippa",
         "text": "The adjective impenetrable means impossible to understand.",
-        "startMs": 378442,
-        "endMs": 382297
+        "startMs": 334700,
+        "endMs": 338260
       },
       {
         "speaker": "Neil",
         "text": "A turn-off is something that people dislike or find uninteresting.",
-        "startMs": 382297,
-        "endMs": 387563
+        "startMs": 338540,
+        "endMs": 342440
       },
       {
         "speaker": "Pippa",
         "text": "And finally, if you get goosebumps, the hairs on your skin stand up because you're cold, emotionally affected, or afraid.",
-        "startMs": 387563,
-        "endMs": 397133
+        "startMs": 342740,
+        "endMs": 350740
       },
       {
         "speaker": "Pippa",
         "text": "Once again, our six minutes are up, but remember, you'll find lots more episodes as well as a quiz and worksheet for this one on our website, bbclearningenglish.",
-        "startMs": 397133,
-        "endMs": 408837
+        "startMs": 351220,
+        "endMs": 359680
       },
       {
         "speaker": "Pippa",
         "text": "But for now, it's goodbye.",
-        "startMs": 408837,
-        "endMs": 411694
+        "startMs": 363220,
+        "endMs": 364460
       },
       {
         "speaker": "Neil",
         "text": "Goodbye!",
-        "startMs": 411694,
-        "endMs": 414000
+        "startMs": 364640,
+        "endMs": 364920
       }
     ],
     "summary": "Understand and discuss the power of poetry using BBC natural English. You'll pick up useful words like open mic night, recite, touch your soul. Listen to Neil & Pippa talk it through in natural English.",
@@ -2863,385 +2863,385 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:05:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/6min/260528_6_minute_english_living_with_debt_download.mp3",
-    "durationSeconds": 426,
+    "durationSeconds": 367,
     "transcript": [
       {
         "speaker": "Neil",
         "text": "Hello, this is 6 Minute English from BBC Learning English.",
-        "startMs": 0,
-        "endMs": 4577
+        "startMs": 8020,
+        "endMs": 11540
       },
       {
         "speaker": "Pippa",
         "text": "Are you good at saving money, Neil?",
-        "startMs": 4577,
-        "endMs": 9223
+        "startMs": 13860,
+        "endMs": 15880
       },
       {
         "speaker": "Pippa",
         "text": "Or do you like to spend it?",
-        "startMs": 9223,
-        "endMs": 12940
+        "startMs": 16200,
+        "endMs": 17560
       },
       {
         "speaker": "Neil",
         "text": "Well, actually, a bit of both.",
-        "startMs": 12940,
-        "endMs": 17070
+        "startMs": 17840,
+        "endMs": 20400
       },
       {
         "speaker": "Neil",
         "text": "I like to spend money on nice things, but I also try to save, mainly because I've got children.",
-        "startMs": 17070,
-        "endMs": 25055
+        "startMs": 20860,
+        "endMs": 27360
       },
       {
         "speaker": "Pippa",
         "text": "I like to save money, or I try to, for the future.",
-        "startMs": 25055,
-        "endMs": 31250
+        "startMs": 30380,
+        "endMs": 33720
       },
       {
         "speaker": "Pippa",
         "text": "But I also do spend it.",
-        "startMs": 31250,
-        "endMs": 34141
+        "startMs": 34740,
+        "endMs": 36800
       },
       {
         "speaker": "Pippa",
         "text": "I don't count every penny that I spend and save every single penny that I earn.",
-        "startMs": 34141,
-        "endMs": 40473
+        "startMs": 36880,
+        "endMs": 41580
       },
       {
         "speaker": "Neil",
         "text": "Well, whether you're a saver or a spender, being in debt is common in the UK.",
-        "startMs": 40473,
-        "endMs": 48045
+        "startMs": 42560,
+        "endMs": 48180
       },
       {
         "speaker": "Neil",
         "text": "Debt refers to money a person has borrowed to buy something and which they have to pay back, usually to a bank, a credit card company, or another person.",
-        "startMs": 48045,
-        "endMs": 59780
+        "startMs": 48540,
+        "endMs": 57760
       },
       {
         "speaker": "Pippa",
         "text": "Many people avoid talking about debt, but it affects us all.",
-        "startMs": 59780,
-        "endMs": 65321
+        "startMs": 58580,
+        "endMs": 63080
       },
       {
         "speaker": "Pippa",
         "text": "In 2025, over 1000 people contacted the UK Citizens Advice Bureau every single day of the year for help with their debt.",
-        "startMs": 65321,
-        "endMs": 74029
+        "startMs": 63300,
+        "endMs": 71880
       },
       {
         "speaker": "Pippa",
         "text": "And when debt gets out of control, it causes stress and worry.",
-        "startMs": 74029,
-        "endMs": 79294
+        "startMs": 72520,
+        "endMs": 76120
       },
       {
         "speaker": "Pippa",
         "text": "BBC Radio 4 programme Thinking Allowed interviewed one young man, Jason, about his debt.",
-        "startMs": 79294,
-        "endMs": 85558
+        "startMs": 76600,
+        "endMs": 82480
       },
       {
         "speaker": "Jason",
         "text": "Whatever jobs there are aren't enough to provide for a family.",
-        "startMs": 85558,
-        "endMs": 90789
+        "startMs": 83160,
+        "endMs": 85340
       },
       {
         "speaker": "Jason",
         "text": "Sometimes you need to take out loans.",
-        "startMs": 90789,
-        "endMs": 94024
+        "startMs": 85540,
+        "endMs": 86900
       },
       {
         "speaker": "Jason",
         "text": "I've done it a few times, but you can't ever pay it back.",
-        "startMs": 94024,
-        "endMs": 99634
+        "startMs": 87060,
+        "endMs": 89640
       },
       {
         "speaker": "Jason",
         "text": "You can't see a way out, other than winning the lottery or something.",
-        "startMs": 99634,
-        "endMs": 105244
+        "startMs": 89920,
+        "endMs": 92400
       },
       {
         "speaker": "Jason",
         "text": "I'd like to think I could clear them all one day, even if it means, like, five years paying them off.",
-        "startMs": 105244,
-        "endMs": 114226
+        "startMs": 92780,
+        "endMs": 97360
       },
       {
         "speaker": "Neil",
         "text": "Jason uses three phrases, pay back, pay off, and clear debt, all of which mean the same thing – to give back the money you've borrowed.",
-        "startMs": 114226,
-        "endMs": 125893
+        "startMs": 97780,
+        "endMs": 107920
       },
       {
         "speaker": "Pippa",
         "text": "In this episode, we'll hear more about living with debt by learning some useful new words and phrases.",
-        "startMs": 125893,
-        "endMs": 133843
+        "startMs": 108540,
+        "endMs": 114540
       },
       {
         "speaker": "Pippa",
         "text": "And remember, you'll find all the vocabulary used, plus a quiz and worksheet, on our website, bbclearningenglish.",
-        "startMs": 133843,
-        "endMs": 141759
+        "startMs": 115020,
+        "endMs": 122620
       },
       {
         "speaker": "Neil",
         "text": "But first, I have a question for you, Pippa.",
-        "startMs": 141759,
-        "endMs": 146921
+        "startMs": 122840,
+        "endMs": 125360
       },
       {
         "speaker": "Neil",
         "text": "According to debt support group The Money Charity, roughly how much is the average British adult in debt through credit cards, overdrafts and personal loans?",
-        "startMs": 146921,
-        "endMs": 157453
+        "startMs": 125740,
+        "endMs": 137340
       },
       {
         "speaker": "Neil",
         "text": "Is it: a) £2,200, b) £4,200, or c) £6,200?",
-        "startMs": 157453,
-        "endMs": 164749
+        "startMs": 137860,
+        "endMs": 144120
       },
       {
         "speaker": "Pippa",
         "text": "Hmm. I'm not sure. I'll say £2,200.",
-        "startMs": 164749,
-        "endMs": 170909
+        "startMs": 146480,
+        "endMs": 148480
       },
       {
         "speaker": "Neil",
         "text": "Well, we will find out the answer later in the programme.",
-        "startMs": 170909,
-        "endMs": 176450
+        "startMs": 150980,
+        "endMs": 153780
       },
       {
         "speaker": "Neil",
         "text": "Jason's story features in a new book by sociologist Ryan Davey.",
-        "startMs": 176450,
-        "endMs": 181062
+        "startMs": 154240,
+        "endMs": 158800
       },
       {
         "speaker": "Neil",
         "text": "Ryan spent months living in a low-income housing estate, which he gave the fictional name Woldham.",
-        "startMs": 181062,
-        "endMs": 188083
+        "startMs": 159020,
+        "endMs": 164540
       },
       {
         "speaker": "Neil",
         "text": "He talked with residents and listened to their money worries.",
-        "startMs": 188083,
-        "endMs": 192350
+        "startMs": 165600,
+        "endMs": 168320
       },
       {
         "speaker": "Neil",
         "text": "Here, Ryan explains more to BBC Radio 4's Thinking Allowed:",
-        "startMs": 192350,
-        "endMs": 197238
+        "startMs": 168760,
+        "endMs": 172560
       },
       {
         "speaker": "Ryan Davey",
         "text": "My approach was to let people know that I was interested in learning about their lives and how they were making ends meet, so I did some interviews with residents, and I paid attention to where debt came up in everyday conversations.",
-        "startMs": 197238,
-        "endMs": 213757
+        "startMs": 173360,
+        "endMs": 184900
       },
       {
         "speaker": "Ryan Davey",
         "text": "For many people in Woldham, Jason included, debt was an ordinary feature of daily life.",
-        "startMs": 213757,
-        "endMs": 220365
+        "startMs": 185160,
+        "endMs": 191660
       },
       {
         "speaker": "Ryan Davey",
         "text": "And beyond that, being in arrears – so, being behind with one or more monthly payment commitments – was part of daily life.",
-        "startMs": 220365,
-        "endMs": 229795
+        "startMs": 191800,
+        "endMs": 198240
       },
       {
         "speaker": "Pippa",
         "text": "The people of Woldham were making ends meet.",
-        "startMs": 229795,
-        "endMs": 233994
+        "startMs": 198580,
+        "endMs": 201720
       },
       {
         "speaker": "Pippa",
         "text": "To make ends meet means having just enough money to pay for basic living expenses like food, bills and rent.",
-        "startMs": 233994,
-        "endMs": 242013
+        "startMs": 202000,
+        "endMs": 209020
       },
       {
         "speaker": "Neil",
         "text": "Ryan found that many residents were in arrears, a phrase meaning to still owe money that should have already been repaid.",
-        "startMs": 242013,
-        "endMs": 250995
+        "startMs": 209580,
+        "endMs": 216820
       },
       {
         "speaker": "Neil",
         "text": "For most residents, debt was a normal part of daily life.",
-        "startMs": 250995,
-        "endMs": 255917
+        "startMs": 217400,
+        "endMs": 220940
       },
       {
         "speaker": "Pippa",
         "text": "With a regular income, debt can be managed, but for those who are unemployed or on low incomes, it can cause serious distress.",
-        "startMs": 255917,
-        "endMs": 266207
+        "startMs": 221780,
+        "endMs": 230320
       },
       {
         "speaker": "Pippa",
         "text": "Here, Ryan discusses how the residents he met felt about their debt with BBC Radio 4's Thinking Allowed:",
-        "startMs": 266207,
-        "endMs": 273847
+        "startMs": 230820,
+        "endMs": 236540
       },
       {
         "speaker": "Ryan Davey",
         "text": "Jason actually fluctuated between wanting to clear all of his debts on the one hand, and on the other what he described as living on the never-never and actually questioning the supposed moral obligation to pay his debts.",
-        "startMs": 273847,
-        "endMs": 289059
+        "startMs": 237400,
+        "endMs": 251860
       },
       {
         "speaker": "Ryan Davey",
         "text": "Over the months that I knew him, the financial strain on him and his partner increased.",
-        "startMs": 289059,
-        "endMs": 295701
+        "startMs": 252240,
+        "endMs": 258440
       },
       {
         "speaker": "Ryan Davey",
         "text": "They missed some of their bills.",
-        "startMs": 295701,
-        "endMs": 298592
+        "startMs": 259340,
+        "endMs": 260700
       },
       {
         "speaker": "Ryan Davey",
         "text": "Their internet was disconnected.",
-        "startMs": 298592,
-        "endMs": 300795
+        "startMs": 260900,
+        "endMs": 262080
       },
       {
         "speaker": "Neil",
         "text": "Jason was living on the never-never, an informal phrase for buying the things you need by making regular small payments over a long time.",
-        "startMs": 300795,
-        "endMs": 311189
+        "startMs": 262540,
+        "endMs": 271440
       },
       {
         "speaker": "Neil",
         "text": "It's called the never- never because it seems the debt will never be repaid.",
-        "startMs": 311189,
-        "endMs": 317211
+        "startMs": 271700,
+        "endMs": 275920
       },
       {
         "speaker": "Pippa",
         "text": "Jason experienced financial strain – emotional stress caused by a lack of money to meet his basic needs or to repay his debt.",
-        "startMs": 317211,
-        "endMs": 326607
+        "startMs": 276260,
+        "endMs": 284820
       },
       {
         "speaker": "Pippa",
         "text": "Debt is a serious issue.",
-        "startMs": 326607,
-        "endMs": 329154
+        "startMs": 285300,
+        "endMs": 286840
       },
       {
         "speaker": "Pippa",
         "text": "It affects many people and there are support groups who can help if you need it.",
-        "startMs": 329154,
-        "endMs": 335486
+        "startMs": 287100,
+        "endMs": 291100
       },
       {
         "speaker": "Pippa",
         "text": "Neil, what was the answer to your question?",
-        "startMs": 335486,
-        "endMs": 339857
+        "startMs": 292080,
+        "endMs": 294240
       },
       {
         "speaker": "Neil",
         "text": "I asked what the average amount of debt a British adult has through credit cards, overdrafts and personal loans.",
-        "startMs": 339857,
-        "endMs": 348151
+        "startMs": 294540,
+        "endMs": 302320
       },
       {
         "speaker": "Pippa",
         "text": "I said it was around £2,200.",
-        "startMs": 348151,
-        "endMs": 352316
+        "startMs": 302800,
+        "endMs": 304060
       },
       {
         "speaker": "Neil",
         "text": "I'm afraid that's not the right answer.",
-        "startMs": 352316,
-        "endMs": 356170
+        "startMs": 305760,
+        "endMs": 308200
       },
       {
         "speaker": "Neil",
         "text": "In fact, it's £4,232.",
-        "startMs": 356170,
-        "endMs": 359336
+        "startMs": 308560,
+        "endMs": 309620
       },
       {
         "speaker": "Neil",
         "text": "Let's recap the vocabulary we've learned, starting with debt – money a person has borrowed and needs to give back.",
-        "startMs": 359336,
-        "endMs": 367390
+        "startMs": 313320,
+        "endMs": 320040
       },
       {
         "speaker": "Pippa",
         "text": "The phrases to pay back, to pay off, and to clear a debt all mean to give back money you have borrowed.",
-        "startMs": 367390,
-        "endMs": 377026
+        "startMs": 320440,
+        "endMs": 326740
       },
       {
         "speaker": "Neil",
         "text": "If someone is making ends meet, they have just enough money to pay for basic living expenses.",
-        "startMs": 377026,
-        "endMs": 384632
+        "startMs": 327200,
+        "endMs": 333040
       },
       {
         "speaker": "Neil",
         "text": "And if they are in arrears, they still owe money that should have been repaid already.",
-        "startMs": 384632,
-        "endMs": 391274
+        "startMs": 333040,
+        "endMs": 338100
       },
       {
         "speaker": "Pippa",
         "text": "If you buy something on the never-never, you buy it by making small regular payments over a long period.",
-        "startMs": 391274,
-        "endMs": 399947
+        "startMs": 338500,
+        "endMs": 345060
       },
       {
         "speaker": "Neil",
         "text": "And finally, financial strain is emotional stress caused by a lack of money to meet your basic needs.",
-        "startMs": 399947,
-        "endMs": 407897
+        "startMs": 345640,
+        "endMs": 351600
       },
       {
         "speaker": "Pippa",
         "text": "Once again, our six minutes are up, but if you'd like to know how debt is spelled and all the other words from this episode, visit our website,",
-        "startMs": 407897,
-        "endMs": 420218
+        "startMs": 352040,
+        "endMs": 360540
       },
       {
         "speaker": "Neil",
         "text": "But for now, it's goodbye.",
-        "startMs": 420218,
-        "endMs": 423694
+        "startMs": 365620,
+        "endMs": 366880
       },
       {
         "speaker": "Pippa",
         "text": "Bye!",
-        "startMs": 423694,
-        "endMs": 426000
+        "startMs": 366960,
+        "endMs": 367280
       }
     ],
     "summary": "Understand and discuss living with debt using BBC natural English. You'll pick up useful words like debt, pay back, pay off. Listen to Neil & Pippa talk it through in natural English.",
@@ -3386,397 +3386,397 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:06:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/6min/260521_6_minute_english_making_cities_feel_quieter_download.mp3",
-    "durationSeconds": 402,
+    "durationSeconds": 373,
     "transcript": [
       {
         "speaker": "Neil",
         "text": "This is 6 Minute English from BBC Learning English.",
-        "startMs": 0,
-        "endMs": 3777
+        "startMs": 8500,
+        "endMs": 11380
       },
       {
         "speaker": "Georgie",
         "text": "Neil, I'm going to play you two sound recordings, and I want you to tell me how you feel when you hear them.",
-        "startMs": 3777,
-        "endMs": 13386
+        "startMs": 13500,
+        "endMs": 19160
       },
       {
         "speaker": "Neil",
         "text": "OK.",
-        "startMs": 13386,
-        "endMs": 15606
+        "startMs": 19160,
+        "endMs": 19560
       },
       {
         "speaker": "Georgie",
         "text": "First this… And now this.",
-        "startMs": 15606,
-        "endMs": 19383
+        "startMs": 20000,
+        "endMs": 27540
       },
       {
         "speaker": "Neil",
         "text": "Oh, well, that first clip made me feel really relaxed.",
-        "startMs": 19383,
-        "endMs": 24684
+        "startMs": 31880,
+        "endMs": 35640
       },
       {
         "speaker": "Neil",
         "text": "But the second one – oh, it's horrible!",
-        "startMs": 24684,
-        "endMs": 28461
+        "startMs": 35940,
+        "endMs": 38180
       },
       {
         "speaker": "Neil",
         "text": "I felt quite stressed out actually.",
-        "startMs": 28461,
-        "endMs": 31244
+        "startMs": 38320,
+        "endMs": 40140
       },
       {
         "speaker": "Georgie",
         "text": "Well, this little experiment shows how much we are affected by the noise around us.",
-        "startMs": 31244,
-        "endMs": 37904
+        "startMs": 41180,
+        "endMs": 45620
       },
       {
         "speaker": "Georgie",
         "text": "And that's a problem if you're one of the four billion people around the world who live in cities.",
-        "startMs": 37904,
-        "endMs": 44994
+        "startMs": 45820,
+        "endMs": 50220
       },
       {
         "speaker": "Neil",
         "text": "Yes, whether it's the rattle of train tracks, honking car horns, or the roar of aeroplanes overhead, modern cities are full of noise and this can have serious effects.",
-        "startMs": 44994,
-        "endMs": 57187
+        "startMs": 50640,
+        "endMs": 61280
       },
       {
         "speaker": "Neil",
         "text": "The World Health Organisation reports that by 2050, around 2.",
-        "startMs": 57187,
-        "endMs": 61594
+        "startMs": 61500,
+        "endMs": 65360
       },
       {
         "speaker": "Neil",
         "text": "5 billion people will experience hearing loss, and exposure to loud noise has been linked to stress and anxiety.",
-        "startMs": 61594,
-        "endMs": 68982
+        "startMs": 66040,
+        "endMs": 72480
       },
       {
         "speaker": "Georgie",
         "text": "In this episode, we'll be hearing about ways to make our cities quieter, more relaxing places, using some useful new words and phrases.",
-        "startMs": 68982,
-        "endMs": 78889
+        "startMs": 73040,
+        "endMs": 80900
       },
       {
         "speaker": "Georgie",
         "text": "And remember, you'll find all the vocabulary along with a quiz and worksheet on our website,",
-        "startMs": 78889,
-        "endMs": 85582
+        "startMs": 81140,
+        "endMs": 86360
       },
       {
         "speaker": "Neil",
         "text": "But now I have a question for you, Georgie.",
-        "startMs": 85582,
-        "endMs": 90254
+        "startMs": 88600,
+        "endMs": 91120
       },
       {
         "speaker": "Neil",
         "text": "Sound is measured in units called decibels.",
-        "startMs": 90254,
-        "endMs": 93368
+        "startMs": 91540,
+        "endMs": 94040
       },
       {
         "speaker": "Neil",
         "text": "But how many decibels would it be if I whispered?",
-        "startMs": 93368,
-        "endMs": 97940
+        "startMs": 94220,
+        "endMs": 97800
       },
       {
         "speaker": "Neil",
         "text": "A whisper is speaking like this.",
-        "startMs": 97940,
-        "endMs": 100724
+        "startMs": 98480,
+        "endMs": 100220
       },
       {
         "speaker": "Neil",
         "text": "Is it: a) 3 decibels, b) 13 decibels, or c) 30 decibels?",
-        "startMs": 100724,
-        "endMs": 106853
+        "startMs": 100680,
+        "endMs": 106860
       },
       {
         "speaker": "Georgie",
         "text": "Oh, that's really hard.",
-        "startMs": 106853,
-        "endMs": 109868
+        "startMs": 107080,
+        "endMs": 108260
       },
       {
         "speaker": "Georgie",
         "text": "I'll go for b) 13 decibels.",
-        "startMs": 109868,
-        "endMs": 112651
+        "startMs": 108820,
+        "endMs": 111080
       },
       {
         "speaker": "Neil",
         "text": "Well, we'll find out the answer at the end of the programme.",
-        "startMs": 112651,
-        "endMs": 118317
+        "startMs": 111300,
+        "endMs": 114540
       },
       {
         "speaker": "Neil",
         "text": "Let's start in one of the noisiest cities in the world – Mumbai in India, where daytime noise levels regularly hit 80 decibels, which is over 20 decibels higher than World Health Organisation recommendations.",
-        "startMs": 118317,
-        "endMs": 131007
+        "startMs": 115300,
+        "endMs": 128800
       },
       {
         "speaker": "Neil",
         "text": "Listen to Mumbai native Chhavi Sachdev share her experiences of living in this noisy city with BBC World Service programme People Fixing the World.",
-        "startMs": 131007,
-        "endMs": 139754
+        "startMs": 129600,
+        "endMs": 138700
       },
       {
         "speaker": "Chhavi Sachdev",
         "text": "I mean, India in general is just really loud.",
-        "startMs": 139754,
-        "endMs": 144426
+        "startMs": 139140,
+        "endMs": 141990
       },
       {
         "speaker": "Chhavi Sachdev",
         "text": "We are a loud people.",
-        "startMs": 144426,
-        "endMs": 146878
+        "startMs": 141990,
+        "endMs": 143120
       },
       {
         "speaker": "Chhavi Sachdev",
         "text": "We dress loud, we talk loud, we celebrate loud, we watch movies loud.",
-        "startMs": 146878,
-        "endMs": 152875
+        "startMs": 143420,
+        "endMs": 147300
       },
       {
         "speaker": "Chhavi Sachdev",
         "text": "When people ask me what I miss about living abroad, I tell them it's the quiet, because after 12 years of living in the US and Europe, when I got back, I realised I couldn't handle it anymore.",
-        "startMs": 152875,
-        "endMs": 167453
+        "startMs": 147580,
+        "endMs": 157570
       },
       {
         "speaker": "Chhavi Sachdev",
         "text": "I'd gotten used to lower levels of noise.",
-        "startMs": 167453,
-        "endMs": 170899
+        "startMs": 157570,
+        "endMs": 159880
       },
       {
         "speaker": "Georgie",
         "text": "Chhavi says, \"Indians talk loud, celebrate loud and dress loud.\"",
-        "startMs": 170899,
-        "endMs": 176200
+        "startMs": 160660,
+        "endMs": 164360
       },
       {
         "speaker": "Georgie",
         "text": "To dress loud means to wear clothes with bright colours and large, bold patterns.",
-        "startMs": 176200,
-        "endMs": 181932
+        "startMs": 164580,
+        "endMs": 168900
       },
       {
         "speaker": "Neil",
         "text": "When Chhavi returned to India after living overseas, she says she couldn't handle the noise.",
-        "startMs": 181932,
-        "endMs": 188592
+        "startMs": 169240,
+        "endMs": 174340
       },
       {
         "speaker": "Neil",
         "text": "If you can't handle something, you find it difficult to deal or cope with.",
-        "startMs": 188592,
-        "endMs": 194324
+        "startMs": 174780,
+        "endMs": 178880
       },
       {
         "speaker": "Georgie",
         "text": "So, what can be done to tackle noise in cities like Mumbai?",
-        "startMs": 194324,
-        "endMs": 200453
+        "startMs": 179180,
+        "endMs": 182520
       },
       {
         "speaker": "Georgie",
         "text": "One interesting approach involves using sound itself to make things feel quieter.",
-        "startMs": 200453,
-        "endMs": 205224
+        "startMs": 182920,
+        "endMs": 187580
       },
       {
         "speaker": "Georgie",
         "text": "Soundscaping is the idea of adding certain sounds to busy public spaces so that they sound and feel more relaxing.",
-        "startMs": 205224,
-        "endMs": 212646
+        "startMs": 188040,
+        "endMs": 194800
       },
       {
         "speaker": "Neil",
         "text": "Sound artist Charles Montambault lives near the Parc des Madelinots, a busy city park in Montreal, Canada.",
-        "startMs": 212646,
-        "endMs": 220267
+        "startMs": 195480,
+        "endMs": 202040
       },
       {
         "speaker": "Neil",
         "text": "Charles was inspired to recreate the ocean sounds he heard on holiday in the Magdalen Islands in his city park back home.",
-        "startMs": 220267,
-        "endMs": 228351
+        "startMs": 202600,
+        "endMs": 209680
       },
       {
         "speaker": "Neil",
         "text": "On BBC World Service programme People Fixing the World, he tells reporter Natasha Fernandes that these sounds included ocean waves and some unusual-sounding sand.",
-        "startMs": 228351,
-        "endMs": 237761
+        "startMs": 210220,
+        "endMs": 220120
       },
       {
         "speaker": "Charles Montambault",
         "text": "The sand on the Magdalen Islands can sing.",
-        "startMs": 237761,
-        "endMs": 241803
+        "startMs": 220620,
+        "endMs": 223150
       },
       {
         "speaker": "Charles Montambault",
         "text": "When you walk into the sand firmly, the sand makes some squeaky sounds, so that's one sound that is kind of funny, kind of special.",
-        "startMs": 241803,
-        "endMs": 251776
+        "startMs": 223150,
+        "endMs": 231720
       },
       {
         "speaker": "Natasha Fernandes",
         "text": "Inside the small park, surrounded by busy roads, Charles and his team set up an immersive sound art installation in the form of speakers planted in flower beds.",
-        "startMs": 251776,
-        "endMs": 263041
+        "startMs": 232160,
+        "endMs": 241300
       },
       {
         "speaker": "Charles Montambault",
         "text": "So, the art installation was really to make this park a little quieter by adding some quiet noises.",
-        "startMs": 263041,
-        "endMs": 270695
+        "startMs": 241600,
+        "endMs": 248260
       },
       {
         "speaker": "Charles Montambault",
         "text": "So, it's counterintuitive, but you can make a park less noisy by adding some calmer sounds.",
-        "startMs": 270695,
-        "endMs": 277388
+        "startMs": 249640,
+        "endMs": 257840
       },
       {
         "speaker": "Georgie",
         "text": "The sand on the Magdalen Islands is squeaky – it makes a high-pitched sound called a squeak when stepped on.",
-        "startMs": 277388,
-        "endMs": 285803
+        "startMs": 258580,
+        "endMs": 264760
       },
       {
         "speaker": "Georgie",
         "text": "Charles played recordings of this sand, ocean waves and other relaxing sounds through speakers hidden in the park.",
-        "startMs": 285803,
-        "endMs": 292861
+        "startMs": 265060,
+        "endMs": 271360
       },
       {
         "speaker": "Georgie",
         "text": "He created an art installation – a work of art designed to give people an interactive experience.",
-        "startMs": 292861,
-        "endMs": 299322
+        "startMs": 271720,
+        "endMs": 277760
       },
       {
         "speaker": "Neil",
         "text": "By adding more relaxing sounds, Charles' art installation actually made the park feel quieter.",
-        "startMs": 299322,
-        "endMs": 305650
+        "startMs": 278100,
+        "endMs": 283460
       },
       {
         "speaker": "Neil",
         "text": "It's an example of something that's counterintuitive, meaning it happens differently from how you would expect.",
-        "startMs": 305650,
-        "endMs": 312045
+        "startMs": 283900,
+        "endMs": 290060
       },
       {
         "speaker": "Georgie",
         "text": "And similar soundscapes are now helping city dwellers relax in other cities too, including Tokyo and Barcelona.",
-        "startMs": 312045,
-        "endMs": 319367
+        "startMs": 291800,
+        "endMs": 298280
       },
       {
         "speaker": "Georgie",
         "text": "Now Neil, you asked me a question about a very quiet sound – a whisper.",
-        "startMs": 319367,
-        "endMs": 325463
+        "startMs": 298740,
+        "endMs": 303560
       },
       {
         "speaker": "Georgie",
         "text": "So, are you going to reveal the correct answer?",
-        "startMs": 325463,
-        "endMs": 330002
+        "startMs": 303560,
+        "endMs": 306300
       },
       {
         "speaker": "Neil",
         "text": "I asked you how loud a whisper is.",
-        "startMs": 330002,
-        "endMs": 334045
+        "startMs": 307000,
+        "endMs": 310300
       },
       {
         "speaker": "Georgie",
         "text": "Yes, and I said 13 decibels.",
-        "startMs": 334045,
-        "endMs": 337722
+        "startMs": 310520,
+        "endMs": 313080
       },
       {
         "speaker": "Neil",
         "text": "Well, 13 is an unlucky number and you are wrong.",
-        "startMs": 337722,
-        "endMs": 342725
+        "startMs": 313220,
+        "endMs": 316000
       },
       {
         "speaker": "Georgie",
         "text": "Ah!",
-        "startMs": 342725,
-        "endMs": 344945
+        "startMs": 316060,
+        "endMs": 316520
       },
       {
         "speaker": "Neil",
         "text": "Let's recap the vocabulary we've learned, starting with decibel – the unit for measuring sound.",
-        "startMs": 344945,
-        "endMs": 351638
+        "startMs": 320440,
+        "endMs": 325400
       },
       {
         "speaker": "Georgie",
         "text": "Someone who dresses loud likes to wear clothes with bright colours and bold designs.",
-        "startMs": 351638,
-        "endMs": 357668
+        "startMs": 325820,
+        "endMs": 330220
       },
       {
         "speaker": "Neil",
         "text": "If you can't handle something, you find it difficult to deal with.",
-        "startMs": 357668,
-        "endMs": 363334
+        "startMs": 330660,
+        "endMs": 334180
       },
       {
         "speaker": "Georgie",
         "text": "An art installation is an artwork designed to create an interactive experience in a certain space.",
-        "startMs": 363334,
-        "endMs": 370027
+        "startMs": 334360,
+        "endMs": 339920
       },
       {
         "speaker": "Neil",
         "text": "The adjective squeaky describes things which make a high-pitched sound like a mouse.",
-        "startMs": 370027,
-        "endMs": 376090
+        "startMs": 340260,
+        "endMs": 345800
       },
       {
         "speaker": "Georgie",
         "text": "And finally, if you call something counterintuitive, you mean it happens differently from how you would expect.",
-        "startMs": 376090,
-        "endMs": 383711
+        "startMs": 347440,
+        "endMs": 352900
       },
       {
         "speaker": "Georgie",
         "text": "Once again, our six minutes are up, but if you'd like to hear more about this and many other trending topics, you'll find more episodes and learning activities on our website, bbclearningenglish.",
-        "startMs": 383711,
-        "endMs": 396301
+        "startMs": 353300,
+        "endMs": 364220
       },
       {
         "speaker": "Georgie",
         "text": "But for now, it's goodbye.",
-        "startMs": 396301,
-        "endMs": 399051
+        "startMs": 365460,
+        "endMs": 366760
       },
       {
         "speaker": "Neil",
         "text": "Goodbye...!",
-        "startMs": 399051,
-        "endMs": 402000
+        "startMs": 367160,
+        "endMs": 367540
       }
     ],
     "summary": "Understand and discuss making cities feel quieter using BBC natural English. You'll pick up useful words like quieter, noise pollution, soundscape. Listen to Neil & Beth talk it through in natural English.",
@@ -3923,403 +3923,403 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:07:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/6min/260514_6_minute_english_how_reading_shapes_your_brain_download.mp3",
-    "durationSeconds": 390,
+    "durationSeconds": 365,
     "transcript": [
       {
         "speaker": "Becca",
         "text": "Welcome to 6 Minute English from BBC Learning English.",
-        "startMs": 0,
-        "endMs": 3845
+        "startMs": 9280,
+        "endMs": 12760
       },
       {
         "speaker": "Georgie",
         "text": "Remember, you can find all this episode's vocabulary along with a transcript and worksheet on our website, bbclearningenglish.",
-        "startMs": 3845,
-        "endMs": 11940
+        "startMs": 15000,
+        "endMs": 21740
       },
       {
         "speaker": "Georgie",
         "text": "Now, Becca, do you read a lot?",
-        "startMs": 11940,
-        "endMs": 16190
+        "startMs": 23200,
+        "endMs": 24900
       },
       {
         "speaker": "Becca",
         "text": "Hmm, I don't read often.",
-        "startMs": 16190,
-        "endMs": 19596
+        "startMs": 25040,
+        "endMs": 27200
       },
       {
         "speaker": "Becca",
         "text": "I just feel like I don't have the time, Georgie.",
-        "startMs": 19596,
-        "endMs": 24082
+        "startMs": 27360,
+        "endMs": 29580
       },
       {
         "speaker": "Georgie",
         "text": "I would love to read more, but I don't read very much at the moment.",
-        "startMs": 24082,
-        "endMs": 30861
+        "startMs": 30860,
+        "endMs": 34870
       },
       {
         "speaker": "Georgie",
         "text": "I read mostly before bed because I feel like it helps me relax and go to sleep.",
-        "startMs": 30861,
-        "endMs": 37405
+        "startMs": 34870,
+        "endMs": 39760
       },
       {
         "speaker": "Georgie",
         "text": "And today we're talking all about reading.",
-        "startMs": 37405,
-        "endMs": 40575
+        "startMs": 40900,
+        "endMs": 43140
       },
       {
         "speaker": "Georgie",
         "text": "We'll be hearing from some experts about how reading can change our brains, and as usual we'll be learning some useful new words and phrases.",
-        "startMs": 40575,
-        "endMs": 50120
+        "startMs": 43200,
+        "endMs": 50560
       },
       {
         "speaker": "Becca",
         "text": "Let's start with a quiz question.",
-        "startMs": 50120,
-        "endMs": 53560
+        "startMs": 51060,
+        "endMs": 52960
       },
       {
         "speaker": "Becca",
         "text": "The longest novel in the world is widely thought to be by French author Marcel Proust, a book which, when translated into English, means Remembrance of Things Past.",
-        "startMs": 53560,
-        "endMs": 64725
+        "startMs": 53240,
+        "endMs": 64020
       },
       {
         "speaker": "Becca",
         "text": "But how many words does the book contain?",
-        "startMs": 64725,
-        "endMs": 68704
+        "startMs": 64880,
+        "endMs": 66780
       },
       {
         "speaker": "Becca",
         "text": "Is it: a) 130,000, b) 1.",
-        "startMs": 68704,
-        "endMs": 72786
+        "startMs": 67420,
+        "endMs": 71000
       },
       {
         "speaker": "Becca",
         "text": "3 million, or c) 13 million?",
-        "startMs": 72786,
-        "endMs": 76395
+        "startMs": 72000,
+        "endMs": 74540
       },
       {
         "speaker": "Georgie",
         "text": "The longest novel in the world.",
-        "startMs": 76395,
-        "endMs": 79835
+        "startMs": 75320,
+        "endMs": 77360
       },
       {
         "speaker": "Georgie",
         "text": "I still think 13 million words sounds too many, so I'm going to go with b) 1.",
-        "startMs": 79835,
-        "endMs": 86682
+        "startMs": 77460,
+        "endMs": 82320
       },
       {
         "speaker": "Becca",
         "text": "We'll find out at the end of the programme.",
-        "startMs": 86682,
-        "endMs": 91134
+        "startMs": 84600,
+        "endMs": 86700
       },
       {
         "speaker": "Becca",
         "text": "Now, we might think of reading as like speaking.",
-        "startMs": 91134,
-        "endMs": 95282
+        "startMs": 87080,
+        "endMs": 90060
       },
       {
         "speaker": "Becca",
         "text": "We're born with the potential to do it and then we learn.",
-        "startMs": 95282,
-        "endMs": 100139
+        "startMs": 90540,
+        "endMs": 93500
       },
       {
         "speaker": "Becca",
         "text": "If something is natural, it's something you were born with or that comes from nature.",
-        "startMs": 100139,
-        "endMs": 106312
+        "startMs": 94620,
+        "endMs": 99280
       },
       {
         "speaker": "Georgie",
         "text": "But Maryanne Wolf, author of the book Reader Come Home, says that this isn't true.",
-        "startMs": 106312,
-        "endMs": 113394
+        "startMs": 99560,
+        "endMs": 105140
       },
       {
         "speaker": "Maryanne Wolf",
         "text": "We think of language as natural, and reading is written language so it must be natural.",
-        "startMs": 113394,
-        "endMs": 120511
+        "startMs": 105900,
+        "endMs": 112760
       },
       {
         "speaker": "Maryanne Wolf",
         "text": "It isn't natural at all.",
-        "startMs": 120511,
-        "endMs": 123007
+        "startMs": 114380,
+        "endMs": 116480
       },
       {
         "speaker": "Becca",
         "text": "Scientific studies suggest that when we're born, our brains already have the networks that allow our eyes to see and our vocal cords to produce sounds, but not with the pathways we need to read.",
-        "startMs": 123007,
-        "endMs": 136836
+        "startMs": 116760,
+        "endMs": 128900
       },
       {
         "speaker": "Georgie",
         "text": "Let's hear more from psychologist and neuroscientist Rebecca Gotlieb, speaking to the BBC World Service.",
-        "startMs": 136836,
-        "endMs": 143615
+        "startMs": 129260,
+        "endMs": 135100
       },
       {
         "speaker": "Rebecca Gotlieb",
         "text": "From an evolutionary timescale, our brain hasn't had enough time to develop a dedicated reading brain.",
-        "startMs": 143615,
-        "endMs": 150732
+        "startMs": 135560,
+        "endMs": 142140
       },
       {
         "speaker": "Rebecca Gotlieb",
         "text": "And so, to build a reading brain network, we co-opt parts of the brain involved in vision and auditory processing, and language, and attention and affect.",
-        "startMs": 150732,
-        "endMs": 161896
+        "startMs": 142440,
+        "endMs": 153480
       },
       {
         "speaker": "Rebecca Gotlieb",
         "text": "Reading is really a whole brain process.",
-        "startMs": 161896,
-        "endMs": 165066
+        "startMs": 154020,
+        "endMs": 156360
       },
       {
         "speaker": "Rebecca Gotlieb",
         "text": "It involves activation in all four lobes of the cortex.",
-        "startMs": 165066,
-        "endMs": 169248
+        "startMs": 157020,
+        "endMs": 162020
       },
       {
         "speaker": "Rebecca Gotlieb",
         "text": "The process of developing a reading brain alters everything, from brain activity to brain structure and brain connectivity.",
-        "startMs": 169248,
-        "endMs": 176433
+        "startMs": 162300,
+        "endMs": 172500
       },
       {
         "speaker": "Rebecca Gotlieb",
         "text": "The power of deep reading is really fundamental to our humanity.",
-        "startMs": 176433,
-        "endMs": 180952
+        "startMs": 173040,
+        "endMs": 177420
       },
       {
         "speaker": "Rebecca Gotlieb",
         "text": "When we read deeply, we change our brains and we change who we are.",
-        "startMs": 180952,
-        "endMs": 186787
+        "startMs": 177620,
+        "endMs": 182100
       },
       {
         "speaker": "Becca",
         "text": "Rebecca says that our brains haven't evolved to include a dedicated reading brain.",
-        "startMs": 186787,
-        "endMs": 192588
+        "startMs": 182300,
+        "endMs": 187380
       },
       {
         "speaker": "Becca",
         "text": "Dedicated here means designed and used for one particular purpose.",
-        "startMs": 192588,
-        "endMs": 196771
+        "startMs": 187560,
+        "endMs": 191560
       },
       {
         "speaker": "Georgie",
         "text": "So, because we don't have a part of the brain designed specifically for reading, when we learn to read, we co-opt other parts of the brain.",
-        "startMs": 196771,
-        "endMs": 208238
+        "startMs": 191940,
+        "endMs": 199040
       },
       {
         "speaker": "Georgie",
         "text": "Co-opt here means to include someone or something, often against their will.",
-        "startMs": 208238,
-        "endMs": 213770
+        "startMs": 199280,
+        "endMs": 203660
       },
       {
         "speaker": "Becca",
         "text": "Learning to read means using lots of different parts of the brain that are designed for other things, and this changes our brain structure compared to someone who hasn't learned to read.",
-        "startMs": 213770,
-        "endMs": 226283
+        "startMs": 204680,
+        "endMs": 214560
       },
       {
         "speaker": "Georgie",
         "text": "And the language we read also shapes our brain.",
-        "startMs": 226283,
-        "endMs": 230735
+        "startMs": 215000,
+        "endMs": 217740
       },
       {
         "speaker": "Georgie",
         "text": "Chinese characters, for example, use symbols instead of letters of the alphabet to represent words and ideas.",
-        "startMs": 230735,
-        "endMs": 237885
+        "startMs": 217920,
+        "endMs": 224540
       },
       {
         "speaker": "Becca",
         "text": "Research suggests that learning to read these symbols activates different areas of the brain to reading an alphabet-based system.",
-        "startMs": 237885,
-        "endMs": 246081
+        "startMs": 225100,
+        "endMs": 232000
       },
       {
         "speaker": "Georgie",
         "text": "Scientists studied a bilingual man who could read and speak Chinese and English.",
-        "startMs": 246081,
-        "endMs": 251883
+        "startMs": 232500,
+        "endMs": 237680
       },
       {
         "speaker": "Georgie",
         "text": "The man suffered a stroke, which affected parts of his brain, including his ability to read Chinese.",
-        "startMs": 251883,
-        "endMs": 259033
+        "startMs": 238180,
+        "endMs": 244100
       },
       {
         "speaker": "Georgie",
         "text": "But amazingly, he was still able to read English.",
-        "startMs": 259033,
-        "endMs": 263182
+        "startMs": 244500,
+        "endMs": 248040
       },
       {
         "speaker": "Becca",
         "text": "Maryanne Wolf explains more to the BBC World Service.",
-        "startMs": 263182,
-        "endMs": 267634
+        "startMs": 248920,
+        "endMs": 251760
       },
       {
         "speaker": "Maryanne Wolf",
         "text": "It's a beautiful example of how the brain's circuit reflects the requirements of Chinese, which inevitably means more visual memory and visual processing of those beautifully intricate symbols or characters.",
-        "startMs": 267634,
-        "endMs": 279472
+        "startMs": 252700,
+        "endMs": 272400
       },
       {
         "speaker": "Georgie",
         "text": "Maryanne says that the brain's circuit is shaped by learning to read Chinese.",
-        "startMs": 279472,
-        "endMs": 285274
+        "startMs": 273440,
+        "endMs": 276980
       },
       {
         "speaker": "Georgie",
         "text": "A circuit is a system of connections.",
-        "startMs": 285274,
-        "endMs": 288444
+        "startMs": 277360,
+        "endMs": 279520
       },
       {
         "speaker": "Becca",
         "text": "The visual qualities of Chinese symbols inevitably mean more visual areas of the brain are developed.",
-        "startMs": 288444,
-        "endMs": 295257
+        "startMs": 279820,
+        "endMs": 286260
       },
       {
         "speaker": "Becca",
         "text": "Inevitably means in a way that cannot be stopped or avoided.",
-        "startMs": 295257,
-        "endMs": 299777
+        "startMs": 286800,
+        "endMs": 290060
       },
       {
         "speaker": "Georgie",
         "text": "Maryanne describes the symbolic Chinese characters as beautifully intricate.",
-        "startMs": 299777,
-        "endMs": 304229
+        "startMs": 291540,
+        "endMs": 295380
       },
       {
         "speaker": "Georgie",
         "text": "If something is intricate, it has lots of detail.",
-        "startMs": 304229,
-        "endMs": 308378
+        "startMs": 295780,
+        "endMs": 298420
       },
       {
         "speaker": "Becca",
         "text": "And something which also has lots of detail, or certainly lots of words – I asked you, Georgie, how many words are in Marcel Proust's Remembrance of Things Past.",
-        "startMs": 308378,
-        "endMs": 320520
+        "startMs": 298800,
+        "endMs": 309560
       },
       {
         "speaker": "Georgie",
         "text": "I said 1.3 million.",
-        "startMs": 320520,
-        "endMs": 324095
+        "startMs": 309560,
+        "endMs": 312120
       },
       {
         "speaker": "Becca",
         "text": "And you were correct!",
-        "startMs": 324095,
-        "endMs": 326861
+        "startMs": 312360,
+        "endMs": 314060
       },
       {
         "speaker": "Georgie",
         "text": "Yay!",
-        "startMs": 326861,
-        "endMs": 329120
+        "startMs": 314060,
+        "endMs": 314540
       },
       {
         "speaker": "Becca",
         "text": "The book also contains lots of very long sentences, including one with over 900 words.",
-        "startMs": 329120,
-        "endMs": 335900
+        "startMs": 314540,
+        "endMs": 321180
       },
       {
         "speaker": "Georgie",
         "text": "One sentence with 900 words?",
-        "startMs": 335900,
-        "endMs": 339475
+        "startMs": 321240,
+        "endMs": 323180
       },
       {
         "speaker": "Georgie",
         "text": "It's time to recap the language we learned during this programme, starting with natural, which describes something you were born with or that comes from nature.",
-        "startMs": 339475,
-        "endMs": 349661
+        "startMs": 325180,
+        "endMs": 333220
       },
       {
         "speaker": "Becca",
         "text": "Dedicated can describe something that is designed and used for one particular purpose.",
-        "startMs": 349661,
-        "endMs": 355462
+        "startMs": 333680,
+        "endMs": 338560
       },
       {
         "speaker": "Georgie",
         "text": "If you co-opt someone or something, you involve them, sometimes against their will.",
-        "startMs": 355462,
-        "endMs": 362242
+        "startMs": 338820,
+        "endMs": 343380
       },
       {
         "speaker": "Becca",
         "text": "A circuit is a system of connections – for example, in the brain.",
-        "startMs": 362242,
-        "endMs": 368380
+        "startMs": 343680,
+        "endMs": 347940
       },
       {
         "speaker": "Georgie",
         "text": "Inevitably means in a way that cannot be stopped or avoided.",
-        "startMs": 368380,
-        "endMs": 373507
+        "startMs": 348140,
+        "endMs": 351360
       },
       {
         "speaker": "Becca",
         "text": "And intricate describes something which has lots of detail.",
-        "startMs": 373507,
-        "endMs": 377959
+        "startMs": 351720,
+        "endMs": 355180
       },
       {
         "speaker": "Georgie",
         "text": "That's it for this episode of 6 Minute English.",
-        "startMs": 377959,
-        "endMs": 382411
+        "startMs": 355600,
+        "endMs": 358100
       },
       {
         "speaker": "Georgie",
         "text": "Test what you've learnt with the worksheet on our website, bbclearningenglish.",
-        "startMs": 382411,
-        "endMs": 387234
+        "startMs": 358680,
+        "endMs": 360780
       },
       {
         "speaker": "Becca",
         "text": "Thanks for joining us.",
-        "startMs": 387234,
-        "endMs": 390000
+        "startMs": 362460,
+        "endMs": 363980
       }
     ],
     "summary": "Understand and discuss how reading shapes your brain using BBC natural English. You'll pick up useful words like shape, brain, empathy. Listen to Neil & Beth talk it through in natural English.",
@@ -4466,373 +4466,373 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:08:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/6min/260507_searching_for_life_on_another_planet_download.mp3",
-    "durationSeconds": 414,
+    "durationSeconds": 365,
     "transcript": [
       {
         "speaker": "Neil",
         "text": "This is 6 Minute English from BBC Learning English.",
-        "startMs": 0,
-        "endMs": 3849
+        "startMs": 8560,
+        "endMs": 11240
       },
       {
         "speaker": "Becca",
         "text": "Neil, do you believe that life exists away from planet Earth?",
-        "startMs": 3849,
-        "endMs": 9758
+        "startMs": 13380,
+        "endMs": 17400
       },
       {
         "speaker": "Neil",
         "text": "Well, I'm not sure about the kind of little green men that you see in science fiction movies, but also, I think we cannot be alone in the universe.",
-        "startMs": 9758,
-        "endMs": 21880
+        "startMs": 17720,
+        "endMs": 28220
       },
       {
         "speaker": "Neil",
         "text": "What about you, Becca?",
-        "startMs": 21880,
-        "endMs": 24818
+        "startMs": 28380,
+        "endMs": 29600
       },
       {
         "speaker": "Becca",
         "text": "I agree, I think that maybe life does exist beyond our planet, but maybe not as we see in alien movies.",
-        "startMs": 24818,
-        "endMs": 33934
+        "startMs": 30440,
+        "endMs": 38860
       },
       {
         "speaker": "Neil",
         "text": "Well, in this episode, we'll be learning from science and space experts about whether the conditions for life exist on a planet 40 light years away.",
-        "startMs": 33934,
-        "endMs": 44739
+        "startMs": 39580,
+        "endMs": 49240
       },
       {
         "speaker": "Becca",
         "text": "Yes, and as usual, you can find a transcript for this episode, along with all the vocabulary and a worksheet, on our website bbclearningenglish.",
-        "startMs": 44739,
-        "endMs": 55477
+        "startMs": 49800,
+        "endMs": 58880
       },
       {
         "speaker": "Neil",
         "text": "OK, a quiz question for you, Becca.",
-        "startMs": 55477,
-        "endMs": 59866
+        "startMs": 60160,
+        "endMs": 61680
       },
       {
         "speaker": "Neil",
         "text": "How long would it take to drive a car to the Sun at 100km an hour?",
-        "startMs": 59866,
-        "endMs": 66552
+        "startMs": 61760,
+        "endMs": 68020
       },
       {
         "speaker": "Neil",
         "text": "Is it: a) 70 years, b) 170 years, or c) 1,700 years?",
-        "startMs": 66552,
-        "endMs": 73440
+        "startMs": 68280,
+        "endMs": 75600
       },
       {
         "speaker": "Becca",
         "text": "Well, Neil, the Sun seems very far away so I'll go for c) 1,700 years.",
-        "startMs": 73440,
-        "endMs": 81172
+        "startMs": 76080,
+        "endMs": 82760
       },
       {
         "speaker": "Neil",
         "text": "I hope you have enough petrol for that.",
-        "startMs": 81172,
-        "endMs": 85292
+        "startMs": 83720,
+        "endMs": 85480
       },
       {
         "speaker": "Neil",
         "text": "Well, we'll find out the answer to the question later.",
-        "startMs": 85292,
-        "endMs": 89783
+        "startMs": 85660,
+        "endMs": 88200
       },
       {
         "speaker": "Neil",
         "text": "Now, though, some science and space experts are excited about a planet in a different solar system from our own.",
-        "startMs": 89783,
-        "endMs": 97954
+        "startMs": 88980,
+        "endMs": 95220
       },
       {
         "speaker": "Neil",
         "text": "Science journalist, Caroline Steele, talks about this discovery on the BBC World Service programme, What in the World.",
-        "startMs": 97954,
-        "endMs": 105754
+        "startMs": 95900,
+        "endMs": 102280
       },
       {
         "speaker": "Caroline Steele",
         "text": "So, scientists have been looking at an exoplanet.",
-        "startMs": 105754,
-        "endMs": 110177
+        "startMs": 102600,
+        "endMs": 105720
       },
       {
         "speaker": "Caroline Steele",
         "text": "So, that's a planet that exists in a solar system that isn't our own, called TRAPPIST-1e, um, and it's a rocky planet like Earth.",
-        "startMs": 110177,
-        "endMs": 120678
+        "startMs": 105800,
+        "endMs": 114240
       },
       {
         "speaker": "Caroline Steele",
         "text": "It's a similar size to Earth, and it exists in the habitable zone around its sun, and its sun is called TRAPPIST-1.",
-        "startMs": 120678,
-        "endMs": 129896
+        "startMs": 114380,
+        "endMs": 122860
       },
       {
         "speaker": "Becca",
         "text": "Caroline explains that scientists have discovered that the planet, TRAPPIST-1e, exists in the habitable zone around its sun.",
-        "startMs": 129896,
-        "endMs": 138371
+        "startMs": 123880,
+        "endMs": 131920
       },
       {
         "speaker": "Becca",
         "text": "The adjective habitable describes a place or habitat that is suitable for something to live.",
-        "startMs": 138371,
-        "endMs": 144247
+        "startMs": 132360,
+        "endMs": 137840
       },
       {
         "speaker": "Neil",
         "text": "Yes, and a zone is an area with a particular feature.",
-        "startMs": 144247,
-        "endMs": 149683
+        "startMs": 138260,
+        "endMs": 141620
       },
       {
         "speaker": "Neil",
         "text": "For example, people who live in earthquake zones have to be prepared for danger.",
-        "startMs": 149683,
-        "endMs": 155524
+        "startMs": 141780,
+        "endMs": 146420
       },
       {
         "speaker": "Becca",
         "text": "So, a habitable zone is an area where something could live.",
-        "startMs": 155524,
-        "endMs": 160961
+        "startMs": 147320,
+        "endMs": 151080
       },
       {
         "speaker": "Becca",
         "text": "Caroline goes on to explain why they think TRAPPIST-1e may be habitable.",
-        "startMs": 160961,
-        "endMs": 166194
+        "startMs": 151400,
+        "endMs": 155700
       },
       {
         "speaker": "Caroline Steele",
         "text": "Scientists have been looking at the potential atmosphere around TRAPPIST-1e and they've ruled out that it's really full of hydrogen or carbon dioxide, which is a great thing because they're greenhouse gases, which would make the planet really hot.",
-        "startMs": 166194,
-        "endMs": 181760
+        "startMs": 155940,
+        "endMs": 168280
       },
       {
         "speaker": "Caroline Steele",
         "text": "And there are some small clues that it might be a nitrogen-dominated atmosphere, which, again, is another sort of clue that there could be life there.",
-        "startMs": 181760,
-        "endMs": 192633
+        "startMs": 168600,
+        "endMs": 178200
       },
       {
         "speaker": "Neil",
         "text": "Caroline Steele says that scientists are looking at the potential atmosphere around TRAPPIST-1e.",
-        "startMs": 192633,
-        "endMs": 198812
+        "startMs": 178200,
+        "endMs": 183740
       },
       {
         "speaker": "Neil",
         "text": "That is, that they want to find out if the atmosphere is capable or likely to become able to host life.",
-        "startMs": 198812,
-        "endMs": 207017
+        "startMs": 184620,
+        "endMs": 190460
       },
       {
         "speaker": "Neil",
         "text": "If something has potential, it already has the qualities or abilities to do something.",
-        "startMs": 207017,
-        "endMs": 212858
+        "startMs": 190960,
+        "endMs": 195740
       },
       {
         "speaker": "Neil",
         "text": "The adjective potential has a similar meaning but refers to future capability.",
-        "startMs": 212858,
-        "endMs": 217721
+        "startMs": 196120,
+        "endMs": 200940
       },
       {
         "speaker": "Becca",
         "text": "We could say the data has potential in that it shows signs of helping the research.",
-        "startMs": 217721,
-        "endMs": 224541
+        "startMs": 202420,
+        "endMs": 206840
       },
       {
         "speaker": "Becca",
         "text": "But when we talk about potential data, we're referring to data that could help us with future research.",
-        "startMs": 224541,
-        "endMs": 231733
+        "startMs": 206960,
+        "endMs": 212500
       },
       {
         "speaker": "Neil",
         "text": "She also mentions how scientists have ruled out that TRAPPIST-1e is full of hydrogen or carbon dioxide.",
-        "startMs": 231733,
-        "endMs": 239263
+        "startMs": 213260,
+        "endMs": 219860
       },
       {
         "speaker": "Neil",
         "text": "The phrasal verb rule out means to dismiss the possibility or idea of something.",
-        "startMs": 239263,
-        "endMs": 244801
+        "startMs": 220440,
+        "endMs": 225140
       },
       {
         "speaker": "Neil",
         "text": "Scientists have found that TRAPPIST-1e is not full of those greenhouse gases, they've ruled it out.",
-        "startMs": 244801,
-        "endMs": 251689
+        "startMs": 225760,
+        "endMs": 231180
       },
       {
         "speaker": "Becca",
         "text": "And Caroline goes on to say how the atmosphere of TRAPPIST-1e is dominated by nitrogen.",
-        "startMs": 251689,
-        "endMs": 258543
+        "startMs": 232580,
+        "endMs": 237660
       },
       {
         "speaker": "Becca",
         "text": "If something is dominated by something else, it is controlled by it or is the most significant element of it.",
-        "startMs": 258543,
-        "endMs": 266411
+        "startMs": 238540,
+        "endMs": 244500
       },
       {
         "speaker": "Becca",
         "text": "TRAPPIST-1e is full of nitrogen, which is exciting because nitrogen is a sign of life and habitability.",
-        "startMs": 266411,
-        "endMs": 273636
+        "startMs": 244840,
+        "endMs": 251520
       },
       {
         "speaker": "Neil",
         "text": "So, what if nitrogen is actually found on this planet?",
-        "startMs": 273636,
-        "endMs": 279208
+        "startMs": 252620,
+        "endMs": 255900
       },
       {
         "speaker": "Neil",
         "text": "Caroline Steele has more.",
-        "startMs": 279208,
-        "endMs": 281369
+        "startMs": 256160,
+        "endMs": 257880
       },
       {
         "speaker": "Caroline Steele",
         "text": "My guess is what we'll do is try and see what other gases are in the atmosphere and use models to work out how warm the planet could be and whether or not it's a temperature that basically could support life, or maybe it's too hot or too cold, but fingers crossed it has nitrogen.",
-        "startMs": 281369,
-        "endMs": 301966
+        "startMs": 258080,
+        "endMs": 271980
       },
       {
         "speaker": "Caroline Steele",
         "text": "There's enough of it to keep the planet a decent temperature.",
-        "startMs": 301966,
-        "endMs": 306490
+        "startMs": 272640,
+        "endMs": 275560
       },
       {
         "speaker": "Caroline Steele",
         "text": "And then that's one step closer to finding life.",
-        "startMs": 306490,
-        "endMs": 310340
+        "startMs": 275560,
+        "endMs": 278060
       },
       {
         "speaker": "Becca",
         "text": "Caroline guesses that scientists will focus on the planet's temperature and whether it could support life.",
-        "startMs": 310340,
-        "endMs": 317160
+        "startMs": 278220,
+        "endMs": 283600
       },
       {
         "speaker": "Becca",
         "text": "She uses the expression fingers crossed to express hope for a positive outcome.",
-        "startMs": 317160,
-        "endMs": 322360
+        "startMs": 283840,
+        "endMs": 288580
       },
       {
         "speaker": "Neil",
         "text": "We often make the physical gesture of crossing our fingers for good luck.",
-        "startMs": 322360,
-        "endMs": 328168
+        "startMs": 289500,
+        "endMs": 293380
       },
       {
         "speaker": "Becca",
         "text": "That reminds me Neil, the answer to your question!",
-        "startMs": 328168,
-        "endMs": 332929
+        "startMs": 294560,
+        "endMs": 297020
       },
       {
         "speaker": "Becca",
         "text": "Fingers crossed that I answered correctly.",
-        "startMs": 332929,
-        "endMs": 335765
+        "startMs": 297260,
+        "endMs": 299020
       },
       {
         "speaker": "Neil",
         "text": "I see what you've done there, Becca.",
-        "startMs": 335765,
-        "endMs": 339851
+        "startMs": 299720,
+        "endMs": 301000
       },
       {
         "speaker": "Neil",
         "text": "Yes, I asked you how long it would take to drive to the Sun at 100km an hour, and you answered c) 1,700 years.",
-        "startMs": 339851,
-        "endMs": 350014
+        "startMs": 301360,
+        "endMs": 310080
       },
       {
         "speaker": "Neil",
         "text": "Well, the Sun is very far away, but the answer was b) only 170 years.",
-        "startMs": 350014,
-        "endMs": 356497
+        "startMs": 310580,
+        "endMs": 316060
       },
       {
         "speaker": "Becca",
         "text": "Oh well, that's still longer than my lifetime!",
-        "startMs": 356497,
-        "endMs": 360920
+        "startMs": 316240,
+        "endMs": 318840
       },
       {
         "speaker": "Becca",
         "text": "Now let's have a recap of the language we've learnt in this episode, starting with habitable, which describes a place or habitat that is suitable for something to live.",
-        "startMs": 360920,
-        "endMs": 372131
+        "startMs": 319500,
+        "endMs": 328360
       },
       {
         "speaker": "Neil",
         "text": "A zone is an area with a particular feature.",
-        "startMs": 372131,
-        "endMs": 376588
+        "startMs": 328580,
+        "endMs": 331160
       },
       {
         "speaker": "Becca",
         "text": "Potential describes possibly having qualities or abilities to do something.",
-        "startMs": 376588,
-        "endMs": 381382
+        "startMs": 331440,
+        "endMs": 335440
       },
       {
         "speaker": "Neil",
         "text": "The phrasal verb rule out means to dismiss the possibility or idea of something.",
-        "startMs": 381382,
-        "endMs": 387528
+        "startMs": 335840,
+        "endMs": 340600
       },
       {
         "speaker": "Becca",
         "text": "We also had dominated.",
-        "startMs": 387528,
-        "endMs": 390297
+        "startMs": 340980,
+        "endMs": 342900
       },
       {
         "speaker": "Becca",
         "text": "If something is dominated by something else, it is controlled by it or is the most significant element of it.",
-        "startMs": 390297,
-        "endMs": 398164
+        "startMs": 343400,
+        "endMs": 349460
       },
       {
         "speaker": "Neil",
         "text": "And finally, the expression fingers crossed is used to wish for hope or luck.",
-        "startMs": 398164,
-        "endMs": 404613
+        "startMs": 350260,
+        "endMs": 355100
       },
       {
         "speaker": "Neil",
         "text": "Once again, our six minutes are up, but head over to our website, Goodbye for now.",
-        "startMs": 404613,
-        "endMs": 411738
+        "startMs": 355520,
+        "endMs": 364500
       },
       {
         "speaker": "Becca",
         "text": "Bye!",
-        "startMs": 411738,
-        "endMs": 414000
+        "startMs": 364660,
+        "endMs": 364920
       }
     ],
     "summary": "Understand and discuss searching for life on another planet using BBC natural English. You'll pick up useful words like planet, alien life, telescope. Listen to Neil & Beth talk it through in natural English.",
@@ -4977,769 +4977,769 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:09:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/OWIE/260213_OWIE_the_battle_for_the_cowboy_way_of_life_download.mp3",
-    "durationSeconds": 834,
+    "durationSeconds": 736,
     "transcript": [
       {
         "speaker": "Pippa",
         "text": "At the BBC, our colleagues investigate important stories around the world.",
-        "startMs": 0,
-        "endMs": 4747
+        "startMs": 3140,
+        "endMs": 7780
       },
       {
         "speaker": "Pippa",
         "text": "In this special series, Our World in English, we’re bringing you the best documentaries from the BBC in language you can understand.",
-        "startMs": 4747,
-        "endMs": 13444
+        "startMs": 8580,
+        "endMs": 15900
       },
       {
         "speaker": "Pippa",
         "text": "This episode is called The battle for the cowboy way of life.",
-        "startMs": 13444,
-        "endMs": 18224
+        "startMs": 16760,
+        "endMs": 20320
       },
       {
         "speaker": "Ellie",
         "text": "I hop into Brud's dusty 4x4 truck.",
-        "startMs": 18224,
-        "endMs": 21941
+        "startMs": 24180,
+        "endMs": 26520
       },
       {
         "speaker": "Pippa",
         "text": "BBC Journalist Ellie House has travelled to Montana in the United States.",
-        "startMs": 21941,
-        "endMs": 27319
+        "startMs": 27500,
+        "endMs": 32240
       },
       {
         "speaker": "Pippa",
         "text": "Montana is a western US state that goes all the way up to the Canadian border.",
-        "startMs": 27319,
-        "endMs": 33426
+        "startMs": 32940,
+        "endMs": 37740
       },
       {
         "speaker": "Pippa",
         "text": "You might have seen old western movies set in places like this.",
-        "startMs": 33426,
-        "endMs": 38206
+        "startMs": 38480,
+        "endMs": 42740
       },
       {
         "speaker": "Pippa",
         "text": "Montana is full of wide open spaces with huge areas of flat land.",
-        "startMs": 38206,
-        "endMs": 43318
+        "startMs": 43060,
+        "endMs": 48380
       },
       {
         "speaker": "Pippa",
         "text": "In these films you’ll find cowboys, with wide brim hats and guns, who enjoy the outdoors, horses, farming.",
-        "startMs": 43318,
-        "endMs": 51285
+        "startMs": 49380,
+        "endMs": 57100
       },
       {
         "speaker": "Pippa",
         "text": "And a modern cowboy way of life still exists here.",
-        "startMs": 51285,
-        "endMs": 55401
+        "startMs": 57800,
+        "endMs": 60860
       },
       {
         "speaker": "Pippa",
         "text": "Ellie’s being shown around by Brud Smith.",
-        "startMs": 55401,
-        "endMs": 58521
+        "startMs": 62020,
+        "endMs": 63820
       },
       {
         "speaker": "Brud",
         "text": "Do you see where the brown is over there?",
-        "startMs": 58521,
-        "endMs": 63367
+        "startMs": 64520,
+        "endMs": 66540
       },
       {
         "speaker": "Brud",
         "text": "Where it starts out there?",
-        "startMs": 63367,
-        "endMs": 66288
+        "startMs": 66700,
+        "endMs": 67760
       },
       {
         "speaker": "Ellie",
         "text": "Yeah.",
-        "startMs": 66288,
-        "endMs": 68512
+        "startMs": 67780,
+        "endMs": 68120
       },
       {
         "speaker": "Brud",
         "text": "That's the edge of our ranch there.",
-        "startMs": 68512,
-        "endMs": 72230
+        "startMs": 68140,
+        "endMs": 69620
       },
       {
         "speaker": "Brud",
         "text": "And we probably go over to where the trees, just the side of the, the big trees down there.",
-        "startMs": 72230,
-        "endMs": 79931
+        "startMs": 70160,
+        "endMs": 76740
       },
       {
         "speaker": "Pippa",
         "text": "A ranch is a very large farm.",
-        "startMs": 79931,
-        "endMs": 83649
+        "startMs": 77540,
+        "endMs": 79800
       },
       {
         "speaker": "Pippa",
         "text": "Brud’s family have owned a ranch here for five generations, farming cattle, which means cows.",
-        "startMs": 83649,
-        "endMs": 90022
+        "startMs": 80480,
+        "endMs": 86120
       },
       {
         "speaker": "Pippa",
         "text": "And Brud’s ranch relies on his own private land… The battle for the cowboy way of life Our World in English © British Broadcasting Corporation 2026",
-        "startMs": 90022,
-        "endMs": 99848
+        "startMs": 87080,
+        "endMs": 89960
       },
       {
         "speaker": "Brud",
         "text": "And actually, that's private land up to that sign up there.",
-        "startMs": 99848,
-        "endMs": 105192
+        "startMs": 90800,
+        "endMs": 94520
       },
       {
         "speaker": "Pippa",
         "text": "And federal land, owned by the national government…",
-        "startMs": 105192,
-        "endMs": 110271
+        "startMs": 94820,
+        "endMs": 97480
       },
       {
         "speaker": "Brud",
         "text": "But the this is all federal land here.",
-        "startMs": 110271,
-        "endMs": 114320
+        "startMs": 99520,
+        "endMs": 101500
       },
       {
         "speaker": "Brud",
         "text": "And then it's federal land beyond that.",
-        "startMs": 114320,
-        "endMs": 117440
+        "startMs": 101500,
+        "endMs": 103080
       },
       {
         "speaker": "Pippa",
         "text": "In the US, each state has its own government, but the national leadership, currently headed up by President Trump, is the federal government in Washington DC.",
-        "startMs": 117440,
-        "endMs": 128660
+        "startMs": 105640,
+        "endMs": 114920
       },
       {
         "speaker": "Pippa",
         "text": "About 30% of Montana is owned by the federal government.",
-        "startMs": 128660,
-        "endMs": 132776
+        "startMs": 116520,
+        "endMs": 120280
       },
       {
         "speaker": "Pippa",
         "text": "This land is often called public or federal land.",
-        "startMs": 132776,
-        "endMs": 136560
+        "startMs": 121040,
+        "endMs": 123960
       },
       {
         "speaker": "Pippa",
         "text": "And this land is at the centre of a debate.",
-        "startMs": 136560,
-        "endMs": 140676
+        "startMs": 124680,
+        "endMs": 127020
       },
       {
         "speaker": "Pippa",
         "text": "Some think the government shouldn’t own so much and that parts of it should be sold or transferred to the state authorities.",
-        "startMs": 140676,
-        "endMs": 148776
+        "startMs": 127780,
+        "endMs": 134000
       },
       {
         "speaker": "Pippa",
         "text": "But Brud says access to this land, and keeping it publicly owned, is important for his ranch.",
-        "startMs": 148776,
-        "endMs": 155813
+        "startMs": 134760,
+        "endMs": 140340
       },
       {
         "speaker": "Pippa",
         "text": "This is the story of the modern day cowboys that live in Montana, and whether the public land they use, and the way they live, is under threat.",
-        "startMs": 155813,
-        "endMs": 166800
+        "startMs": 140900,
+        "endMs": 149660
       },
       {
         "speaker": "Pippa",
         "text": "Brud takes BBC reporter Ellie House to see some of the public land he wants to protect.",
-        "startMs": 166800,
-        "endMs": 173240
+        "startMs": 152560,
+        "endMs": 157080
       },
       {
         "speaker": "Ellie",
         "text": "So this, is this is public land.",
-        "startMs": 173240,
-        "endMs": 177256
+        "startMs": 157940,
+        "endMs": 159680
       },
       {
         "speaker": "Ellie",
         "text": "So, explain to me how it works.",
-        "startMs": 177256,
-        "endMs": 180675
+        "startMs": 159700,
+        "endMs": 161180
       },
       {
         "speaker": "Ellie",
         "text": "The battle for the cowboy way of life Our World in English © British Broadcasting Corporation 2026",
-        "startMs": 180675,
-        "endMs": 186783
+        "startMs": 161180,
+        "endMs": 161220
       },
       {
         "speaker": "Brud",
         "text": "Well, we have a permit, a certain amount that we could run up here on a forest permit during the months of middle of June to the middle of October.",
-        "startMs": 186783,
-        "endMs": 198733
+        "startMs": 161220,
+        "endMs": 169780
       },
       {
         "speaker": "Pippa",
         "text": "Brud rents this land from the government, so that his cattle can graze up here in the summer.",
-        "startMs": 198733,
-        "endMs": 206400
+        "startMs": 171100,
+        "endMs": 175320
       },
       {
         "speaker": "Pippa",
         "text": "35 for each cow every month, much cheaper than renting private land.",
-        "startMs": 206400,
-        "endMs": 211479
+        "startMs": 177720,
+        "endMs": 181820
       },
       {
         "speaker": "Ellie",
         "text": "How important is having access to this public land for your business?",
-        "startMs": 211479,
-        "endMs": 217321
+        "startMs": 182460,
+        "endMs": 185260
       },
       {
         "speaker": "Brud",
         "text": "Incredibly important because without it, you would have to cut down your operation as to the number of cattle you run, and most of the time you're running kind of on a margin.",
-        "startMs": 217321,
-        "endMs": 230267
+        "startMs": 187140,
+        "endMs": 197200
       },
       {
         "speaker": "Brud",
         "text": "The cost of running a ranch, unfortunately, is very high too.",
-        "startMs": 230267,
-        "endMs": 235312
+        "startMs": 197200,
+        "endMs": 200320
       },
       {
         "speaker": "Brud",
         "text": "Equipment's high, fuel's high, all that.",
-        "startMs": 235312,
-        "endMs": 238698
+        "startMs": 200580,
+        "endMs": 203940
       },
       {
         "speaker": "Ellie",
         "text": "So the ranching industry here really relies on having access to public land?",
-        "startMs": 238698,
-        "endMs": 244872
+        "startMs": 204120,
+        "endMs": 207100
       },
       {
         "speaker": "Brud",
         "text": "Oh definitely, definitely",
-        "startMs": 244872,
-        "endMs": 248059
+        "startMs": 207330,
+        "endMs": 208740
       },
       {
         "speaker": "Pippa",
         "text": "But some politicians believe parts of the public land should be sold.",
-        "startMs": 248059,
-        "endMs": 253436
+        "startMs": 209080,
+        "endMs": 212940
       },
       {
         "speaker": "Pippa",
         "text": "One US Senator, called Mike Lee, campaigned for President Trump to support a plan to sell off up to three million acres of public land in the west, for housebuilding amid a nationwide shortage.",
-        "startMs": 253436,
-        "endMs": 266415
+        "startMs": 213480,
+        "endMs": 224560
       },
       {
         "speaker": "Pippa",
         "text": "Here he is talking about the idea in a promotional video published on the social media platform X.",
-        "startMs": 266415,
-        "endMs": 273187
+        "startMs": 225280,
+        "endMs": 231220
       },
       {
         "speaker": "Pippa",
         "text": "The battle for the cowboy way of life Our World in English © British Broadcasting Corporation 2026 Senator Mike Lee (promotional video) Nearly one out of every three acres in America is owned by the federal government.",
-        "startMs": 273187,
-        "endMs": 285933
+        "startMs": 231500,
+        "endMs": 235900
       },
       {
         "speaker": "Pippa",
         "text": "In states like Utah, it's even more extreme.",
-        "startMs": 285933,
-        "endMs": 289684
+        "startMs": 236160,
+        "endMs": 238540
       },
       {
         "speaker": "Pippa",
         "text": "Almost 70% of our land is controlled by Washington, D.",
-        "startMs": 289684,
-        "endMs": 294099
+        "startMs": 239060,
+        "endMs": 242400
       },
       {
         "speaker": "Pippa",
         "text": "That's not sustainable.",
-        "startMs": 294099,
-        "endMs": 296389
+        "startMs": 243640,
+        "endMs": 244780
       },
       {
         "speaker": "Pippa",
         "text": "It's not serving the Americans who actually live here.",
-        "startMs": 296389,
-        "endMs": 300174
+        "startMs": 246120,
+        "endMs": 249980
       },
       {
         "speaker": "Pippa",
         "text": "Senator Lee’s plan faced a big backlash in Montana.",
-        "startMs": 300174,
-        "endMs": 303958
+        "startMs": 250360,
+        "endMs": 253740
       },
       {
         "speaker": "Pippa",
         "text": "A backlash is when people feel and argue strongly against a political change or plan.",
-        "startMs": 303958,
-        "endMs": 309733
+        "startMs": 254340,
+        "endMs": 259620
       },
       {
         "speaker": "Pippa",
         "text": "Lots of people want to keep the federal land public.",
-        "startMs": 309733,
-        "endMs": 313850
+        "startMs": 260140,
+        "endMs": 263380
       },
       {
         "speaker": "Pippa",
         "text": "Ellie met Tracy-Stone- Manning by a stream on public land near the city of Missoula in Montana.",
-        "startMs": 313850,
-        "endMs": 321019
+        "startMs": 263740,
+        "endMs": 269900
       },
       {
         "speaker": "Ellie",
         "text": "Wow.",
-        "startMs": 321019,
-        "endMs": 323243
+        "startMs": 271320,
+        "endMs": 271980
       },
       {
         "speaker": "Tracy",
         "text": "That was a mother whitetail deer and her fawn still with spots.",
-        "startMs": 323243,
-        "endMs": 328621
+        "startMs": 272180,
+        "endMs": 277200
       },
       {
         "speaker": "Ellie",
         "text": "They were just galloping in front of us.",
-        "startMs": 328621,
-        "endMs": 332671
+        "startMs": 278140,
+        "endMs": 279140
       },
       {
         "speaker": "Tracy",
         "text": "Just galloped away from us.",
-        "startMs": 332671,
-        "endMs": 335724
+        "startMs": 279140,
+        "endMs": 279540
       },
       {
         "speaker": "Pippa",
         "text": "Tracy was head of the Bureau of Land Management under the previous US president, Joe Biden.",
-        "startMs": 335724,
-        "endMs": 342728
+        "startMs": 280780,
+        "endMs": 286200
       },
       {
         "speaker": "Pippa",
         "text": "She’s now in charge of the Wilderness Society, which is an environmental conservation organisation.",
-        "startMs": 342728,
-        "endMs": 348471
+        "startMs": 286500,
+        "endMs": 291180
       },
       {
         "speaker": "Tracy",
         "text": "The current administration under President Trump talks about our public lands in the form of a balance sheet.",
-        "startMs": 348471,
-        "endMs": 355840
+        "startMs": 292540,
+        "endMs": 298600
       },
       {
         "speaker": "Tracy",
         "text": "That kind of language and that kind of approach is about today's profits, not about what we need to pay forward to the future so that The battle for the cowboy way of life Our World in English © British Broadcasting Corporation 2026 future generations have the ability to access and touch nature, have the ability to hunt and fish and camp and birdwatch and picnic like, like we do.",
-        "startMs": 355840,
-        "endMs": 380437
+        "startMs": 299140,
+        "endMs": 319940
       },
       {
         "speaker": "Pippa",
         "text": "Senator Lee’s plan didn’t include national parks, monuments or protected wilderness areas.",
-        "startMs": 380437,
-        "endMs": 386113
+        "startMs": 320500,
+        "endMs": 325860
       },
       {
         "speaker": "Pippa",
         "text": "He insisted it only covered a tiny portion of land, close to existing towns or cities.",
-        "startMs": 386113,
-        "endMs": 392519
+        "startMs": 326320,
+        "endMs": 331420
       },
       {
         "speaker": "Pippa",
         "text": "But many people believe that once some public land is sold, more could follow.",
-        "startMs": 392519,
-        "endMs": 398262
+        "startMs": 331800,
+        "endMs": 336040
       },
       {
         "speaker": "Ellie",
         "text": "Senator Lee was pretty clear that it would be maximum 0.",
-        "startMs": 398262,
-        "endMs": 403307
+        "startMs": 336940,
+        "endMs": 340480
       },
       {
         "speaker": "Ellie",
         "text": "75% of public lands that would be eligible for sale, which is a pretty small percentage.",
-        "startMs": 403307,
-        "endMs": 409714
+        "startMs": 342580,
+        "endMs": 349120
       },
       {
         "speaker": "Tracy",
         "text": "The idea that this year they’re just going to sell off just 3 million acres… what about next year?",
-        "startMs": 409714,
-        "endMs": 418610
+        "startMs": 350960,
+        "endMs": 359960
       },
       {
         "speaker": "Tracy",
         "text": "And what about the year after that?",
-        "startMs": 418610,
-        "endMs": 422195
+        "startMs": 360220,
+        "endMs": 361620
       },
       {
         "speaker": "Tracy",
         "text": "If you do that every year for a hundred years, you don't have public lands left, right?",
-        "startMs": 422195,
-        "endMs": 429697
+        "startMs": 362080,
+        "endMs": 365540
       },
       {
         "speaker": "Tracy",
         "text": "So I think that's really what drove the backlash, people understanding this was the beginning of a very bad idea.",
-        "startMs": 429697,
-        "endMs": 437431
+        "startMs": 366720,
+        "endMs": 377840
       },
       {
         "speaker": "Pippa",
         "text": "In the end, Senator Lee faced opposition to his proposal and was forced to stop his plan.",
-        "startMs": 437431,
-        "endMs": 444767
+        "startMs": 378240,
+        "endMs": 383220
       },
       {
         "speaker": "Pippa",
         "text": "But Tracy believes he won’t give up.",
-        "startMs": 444767,
-        "endMs": 447887
+        "startMs": 383700,
+        "endMs": 385400
       },
       {
         "speaker": "Tracy",
         "text": "Senator Lee, when he withdrew his language, was very clear that he wasn't done.",
-        "startMs": 447887,
-        "endMs": 454526
+        "startMs": 386000,
+        "endMs": 390340
       },
       {
         "speaker": "Tracy",
         "text": "So the threat of losing this identity that we have in common as Americans that we have this cherished thing called public lands is real and the risk to tinkering with that is more risk than reward.",
-        "startMs": 454526,
-        "endMs": 467604
+        "startMs": 390620,
+        "endMs": 406880
       },
       {
         "speaker": "Pippa",
         "text": "The BBC tried to speak with Senator Lee, but he didn’t respond to the interview request.",
-        "startMs": 467604,
-        "endMs": 474608
+        "startMs": 407800,
+        "endMs": 412280
       },
       {
         "speaker": "Pippa",
         "text": "The battle for the cowboy way of life Our World in English © British Broadcasting Corporation 2026 And some people do think that the federal government owns too much land in western states like Montana.",
-        "startMs": 474608,
-        "endMs": 486691
+        "startMs": 413440,
+        "endMs": 418500
       },
       {
         "speaker": "William",
         "text": "The United States government owns one third of the country, 640 million acres.",
-        "startMs": 486691,
-        "endMs": 492699
+        "startMs": 418940,
+        "endMs": 424260
       },
       {
         "speaker": "William",
         "text": "Most of that's in the American west.",
-        "startMs": 492699,
-        "endMs": 495819
+        "startMs": 425000,
+        "endMs": 427320
       },
       {
         "speaker": "Pippa",
         "text": "This is lawyer William Perry Pendley.",
-        "startMs": 495819,
-        "endMs": 499205
+        "startMs": 427460,
+        "endMs": 429800
       },
       {
         "speaker": "Pippa",
         "text": "William is a controversial figure.",
-        "startMs": 499205,
-        "endMs": 501661
+        "startMs": 430120,
+        "endMs": 432080
       },
       {
         "speaker": "Pippa",
         "text": "He was head of the Bureau of Land Management in Trump’s first term as president, but a judge ruled that he was in the position unlawfully, because his appointment was never confirmed by the Senate.",
-        "startMs": 501661,
-        "endMs": 514673
+        "startMs": 432340,
+        "endMs": 442400
       },
       {
         "speaker": "Pippa",
         "text": "He was also an author on Project 2025, a conservative plan for Trump’s second presidency.",
-        "startMs": 514673,
-        "endMs": 520748
+        "startMs": 442620,
+        "endMs": 448040
       },
       {
         "speaker": "William",
         "text": "So when the federal government sneezes, we catch a cold.",
-        "startMs": 520748,
-        "endMs": 525760
+        "startMs": 449060,
+        "endMs": 452100
       },
       {
         "speaker": "William",
         "text": "We really can't do anything economically without the permission of the federal government.",
-        "startMs": 525760,
-        "endMs": 530872
+        "startMs": 452640,
+        "endMs": 457740
       },
       {
         "speaker": "Pippa",
         "text": "William is saying that because so much land in western states is owned by the federal government, it is difficult to build homes and expand businesses in the area.",
-        "startMs": 530872,
-        "endMs": 542191
+        "startMs": 458260,
+        "endMs": 466640
       },
       {
         "speaker": "Pippa",
         "text": "He points to Las Vegas as an example of where selling public land can create opportunities.",
-        "startMs": 542191,
-        "endMs": 548299
+        "startMs": 467100,
+        "endMs": 472280
       },
       {
         "speaker": "William",
         "text": "When I was running the Bureau of Land Management for President Trump during his first term, I went down to Las Vegas.",
-        "startMs": 548299,
-        "endMs": 557295
+        "startMs": 473340,
+        "endMs": 481900
       },
       {
         "speaker": "Pippa",
         "text": "Las Vegas, the casino city in Nevada, is surrounded by federally-owned desert land, making economic growth difficult.",
-        "startMs": 557295,
-        "endMs": 565593
+        "startMs": 482340,
+        "endMs": 490560
       },
       {
         "speaker": "Pippa",
         "text": "Since the 1990s, some of this land has been sold and built on.",
-        "startMs": 565593,
-        "endMs": 571004
+        "startMs": 490940,
+        "endMs": 494900
       },
       {
         "speaker": "Pippa",
         "text": "The battle for the cowboy way of life Our World in English © British Broadcasting Corporation 2026",
-        "startMs": 571004,
-        "endMs": 577111
+        "startMs": 494900,
+        "endMs": 494920
       },
       {
         "speaker": "William",
         "text": "And I met with a BLM official and he pointed out all the things that were there, housing developments, commercial activity, recreation facilities.",
-        "startMs": 577111,
-        "endMs": 587036
+        "startMs": 494920,
+        "endMs": 507820
       },
       {
         "speaker": "William",
         "text": "And he said, \"Mr Pendley, I got to tell you, if we had not been authorised to dispose of all of this land, none of this would have been possible, and all this economic activity that you see here would have been prevented\".",
-        "startMs": 587036,
-        "endMs": 603600
+        "startMs": 508600,
+        "endMs": 522860
       },
       {
         "speaker": "William",
         "text": "I frankly think that fully informed the American people would, would agree with that.",
-        "startMs": 603600,
-        "endMs": 609343
+        "startMs": 522940,
+        "endMs": 527960
       },
       {
         "speaker": "Pippa",
         "text": "But in Montana, many people are worried that selling public land like this will mean an end to modern ranches, and the cowboy lifestyle.",
-        "startMs": 609343,
-        "endMs": 619301
+        "startMs": 528260,
+        "endMs": 536260
       },
       {
         "speaker": "Pippa",
         "text": "And even without selling public land, the area is changing.",
-        "startMs": 619301,
-        "endMs": 623716
+        "startMs": 537220,
+        "endMs": 540860
       },
       {
         "speaker": "Pippa",
         "text": "Country music and the western lifestyle is becoming more popular.",
-        "startMs": 623716,
-        "endMs": 627832
+        "startMs": 541620,
+        "endMs": 545300
       },
       {
         "speaker": "Pippa",
         "text": "New people are moving in to enjoy the big open spaces and traditional cowboy sports like the rodeo, where people try to stay on the back of an angry bull.",
-        "startMs": 627832,
-        "endMs": 638885
+        "startMs": 545700,
+        "endMs": 554280
       },
       {
         "speaker": "Pippa",
         "text": "Ellie (at the rodeo) Ooh and he's off right away.",
-        "startMs": 638885,
-        "endMs": 643002
+        "startMs": 554280,
+        "endMs": 558920
       },
       {
         "speaker": "Pippa",
         "text": "One place where the new popularity of the cowboy way of life is clear is a city called Bozeman.",
-        "startMs": 643002,
-        "endMs": 650105
+        "startMs": 558920,
+        "endMs": 568300
       },
       {
         "speaker": "Pippa",
         "text": "BBC reporter Ellie House went to see it.",
-        "startMs": 650105,
-        "endMs": 653557
+        "startMs": 568660,
+        "endMs": 571400
       },
       {
         "speaker": "Ellie",
         "text": "It is five PM in downtown Bozeman, and I'm standing on the main street.",
-        "startMs": 653557,
-        "endMs": 659897
+        "startMs": 571620,
+        "endMs": 576300
       },
       {
         "speaker": "Ellie",
         "text": "And this city is the centre of Montana's development and population boom.",
-        "startMs": 659897,
-        "endMs": 664677
+        "startMs": 576300,
+        "endMs": 582000
       },
       {
         "speaker": "Ellie",
         "text": "And you can really feel that here.",
-        "startMs": 664677,
-        "endMs": 667797
+        "startMs": 582360,
+        "endMs": 583460
       },
       {
         "speaker": "Ellie",
         "text": "It's absolutely buzzing.",
-        "startMs": 667797,
-        "endMs": 670088
+        "startMs": 583640,
+        "endMs": 584720
       },
       {
         "speaker": "Ellie",
         "text": "It's almost like a Disney version of the American west.",
-        "startMs": 670088,
-        "endMs": 674204
+        "startMs": 585700,
+        "endMs": 588180
       },
       {
         "speaker": "Ellie",
         "text": "You've got all of the cowboy paraphernalia, but it's sold for quite high prices next to things like artisanal soap and handcrafted jewellery.",
-        "startMs": 674204,
-        "endMs": 682934
+        "startMs": 588500,
+        "endMs": 597480
       },
       {
         "speaker": "Pippa",
         "text": "Bozeman is one of America’s fastest-growing cities.",
-        "startMs": 682934,
-        "endMs": 687017
+        "startMs": 597780,
+        "endMs": 601180
       },
       {
         "speaker": "Pippa",
         "text": "Locals say wealthy Californians are moving in and causing price increases.",
-        "startMs": 687017,
-        "endMs": 691465
+        "startMs": 601720,
+        "endMs": 607140
       },
       {
         "speaker": "Pippa",
         "text": "The battle for the cowboy way of life Our World in English © British Broadcasting Corporation 2026 Back on Brud’s ranch, Ellie’s having lunch with the family on the patio.",
-        "startMs": 691465,
-        "endMs": 702187
+        "startMs": 608420,
+        "endMs": 614940
       },
       {
         "speaker": "Pippa",
         "text": "Brud’s wife, Terry, explains what a changing Montana means to her.",
-        "startMs": 702187,
-        "endMs": 707232
+        "startMs": 616260,
+        "endMs": 619860
       },
       {
         "speaker": "Terry",
         "text": "And then you get off the plane in Bozeman and there's all these people with cowboy hats.",
-        "startMs": 707232,
-        "endMs": 714269
+        "startMs": 620320,
+        "endMs": 624730
       },
       {
         "speaker": "Terry",
         "text": "Well, they have nothing to do with agriculture, nothing to with ranching, nothing to do with really Montana.",
-        "startMs": 714269,
-        "endMs": 721937
+        "startMs": 624730,
+        "endMs": 629840
       },
       {
         "speaker": "Pippa",
         "text": "Brud’s daughter Darby has just moved back to Montana from New York to take over the ranch from her father.",
-        "startMs": 721937,
-        "endMs": 729970
+        "startMs": 631000,
+        "endMs": 636660
       },
       {
         "speaker": "Pippa",
         "text": "She also worries about the new developments in the area and the new people who are buying them.",
-        "startMs": 729970,
-        "endMs": 736741
+        "startMs": 637160,
+        "endMs": 642260
       },
       {
         "speaker": "Darby",
         "text": "It is disheartening to see the larger trends happening to our neighbours and to the land around us.",
-        "startMs": 736741,
-        "endMs": 744111
+        "startMs": 642560,
+        "endMs": 649260
       },
       {
         "speaker": "Darby",
         "text": "I think because we are in this for the long haul, you know, there's no, no way that we're going to sell this place.",
-        "startMs": 744111,
-        "endMs": 753770
+        "startMs": 649700,
+        "endMs": 657080
       },
       {
         "speaker": "Pippa",
         "text": "Darby says her family are in it for the long haul, meaning plan to stay in Montana for a long time into the future.",
-        "startMs": 753770,
-        "endMs": 763429
+        "startMs": 657420,
+        "endMs": 664160
       },
       {
         "speaker": "Pippa",
         "text": "And Darby’s worried that, as development continues, whether it’s the sale of public land, or wealthy outsiders moving to the area, Montana won’t feel the same in the future, that it will be sullied, or ruined.",
-        "startMs": 763429,
-        "endMs": 777968
+        "startMs": 671500,
+        "endMs": 684280
       },
       {
         "speaker": "Darby",
         "text": "Once you pave wilderness, it's not going to come back.",
-        "startMs": 777968,
-        "endMs": 782981
+        "startMs": 687240,
+        "endMs": 691720
       },
       {
         "speaker": "Darby",
         "text": "It's forever that way.",
-        "startMs": 782981,
-        "endMs": 785105
+        "startMs": 691800,
+        "endMs": 692760
       },
       {
         "speaker": "Darby",
         "text": "And people who buy those sorts of places are trying to get a version of Montana that, we understand, it's really appealing to feel like you have your own slice of paradise.",
-        "startMs": 785105,
-        "endMs": 797121
+        "startMs": 694680,
+        "endMs": 705340
       },
       {
         "speaker": "Darby",
         "text": "But you have to realise that in doing that, you're sullying the very thing that you came for.",
-        "startMs": 797121,
-        "endMs": 804192
+        "startMs": 706380,
+        "endMs": 712480
       },
       {
         "speaker": "Pippa",
         "text": "Thanks for listening to this episode of Our World in English, based on the documentary The real Yellowstone: A battle for the cowboy way of life from Assignment on the BBC World Service.",
-        "startMs": 804192,
-        "endMs": 817137
+        "startMs": 714000,
+        "endMs": 725360
       },
       {
         "speaker": "Pippa",
         "text": "The original programme was reported by The battle for the cowboy way of life Our World in English © British Broadcasting Corporation 2026 Ellie House and produced by Josephine Casserly.",
-        "startMs": 817137,
-        "endMs": 827560
+        "startMs": 725860,
+        "endMs": 730140
       },
       {
         "speaker": "Pippa",
         "text": "You can find more information about Assignment by following the link in the notes below this programme.",
-        "startMs": 827560,
-        "endMs": 834000
+        "startMs": 731120,
+        "endMs": 736100
       }
     ],
     "summary": "Understand and discuss the battle for the cowboy way of life using BBC natural English. You'll pick up useful words like cowboy, way of life, battle. Listen to BBC Narrator talk it through in natural English.",
@@ -5884,613 +5884,613 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:10:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/OWIE/251215_OWIE_love_in_a_warzone_download.mp3",
-    "durationSeconds": 570,
+    "durationSeconds": 672,
     "transcript": [
       {
         "speaker": "Beth",
         "text": "At the BBC, our colleagues investigate important stories from around the world.",
-        "startMs": 0,
-        "endMs": 5037
+        "startMs": 200,
+        "endMs": 5100
       },
       {
         "speaker": "Beth",
         "text": "In this new series, Our World in English, we're bringing you the best documentaries from the BBC in language you can understand.",
-        "startMs": 5037,
-        "endMs": 13662
+        "startMs": 5540,
+        "endMs": 13920
       },
       {
         "speaker": "Beth",
         "text": "This episode is called Kharkiv: Love in a war zone.",
-        "startMs": 13662,
-        "endMs": 18040
+        "startMs": 14540,
+        "endMs": 18260
       },
       {
         "speaker": "Adela",
         "text": "I'm at the Polish Ukrainian border.",
-        "startMs": 18040,
-        "endMs": 21398
+        "startMs": 18860,
+        "endMs": 26920
       },
       {
         "speaker": "Adela",
         "text": "It's hot outside, 33 degrees.",
-        "startMs": 21398,
-        "endMs": 24130
+        "startMs": 27380,
+        "endMs": 31000
       },
       {
         "speaker": "Adela",
         "text": "I've been waiting here for more than four hours in a queue.",
-        "startMs": 24130,
-        "endMs": 28870
+        "startMs": 32560,
+        "endMs": 35540
       },
       {
         "speaker": "Adela",
         "text": "They work really slowly here.",
-        "startMs": 28870,
-        "endMs": 31306
+        "startMs": 36440,
+        "endMs": 38320
       },
       {
         "speaker": "Adela",
         "text": "This is the longest time I've been ever waiting on my way to Ukraine.",
-        "startMs": 31306,
-        "endMs": 36705
+        "startMs": 39060,
+        "endMs": 44720
       },
       {
         "speaker": "Adela",
         "text": "But anyway, I can't wait to be with Kostya.",
-        "startMs": 36705,
-        "endMs": 40754
+        "startMs": 46160,
+        "endMs": 47860
       },
       {
         "speaker": "Beth",
         "text": "This is Adela Knapova a Czech writer and journalist.",
-        "startMs": 40754,
-        "endMs": 45100
+        "startMs": 49580,
+        "endMs": 53280
       },
       {
         "speaker": "Beth",
         "text": "She's stuck in a queue to cross the border into Ukraine.",
-        "startMs": 45100,
-        "endMs": 49511
+        "startMs": 53780,
+        "endMs": 57180
       },
       {
         "speaker": "Adela",
         "text": "It looks like it's my turn to go, to move another two metres, so I'm going to do it now.",
-        "startMs": 49511,
-        "endMs": 58070
+        "startMs": 61260,
+        "endMs": 68880
       },
       {
         "speaker": "Adela",
         "text": "I just can't wait to be with Kostya.",
-        "startMs": 58070,
-        "endMs": 61494
+        "startMs": 70440,
+        "endMs": 71840
       },
       {
         "speaker": "Adela",
         "text": "To be honest, we are all tired.",
-        "startMs": 61494,
-        "endMs": 64884
+        "startMs": 73500,
+        "endMs": 77080
       },
       {
         "speaker": "Adela",
         "text": "Everyone here is tired.",
-        "startMs": 64884,
-        "endMs": 66991
+        "startMs": 77260,
+        "endMs": 78360
       },
       {
         "speaker": "Beth",
         "text": "Adela is travelling to Kharkiv in eastern Ukraine, close to the border with Russia.",
-        "startMs": 66991,
-        "endMs": 73279
+        "startMs": 80120,
+        "endMs": 85820
       },
       {
         "speaker": "Beth",
         "text": "Kharkiv is one of the most bombed cities in Ukraine.",
-        "startMs": 73279,
-        "endMs": 77361
+        "startMs": 86840,
+        "endMs": 90100
       },
       {
         "speaker": "Beth",
         "text": "Adela moved to Kharkiv around a year ago after she met an artist called Konstantin Zorkin, who she calls Kostya.",
-        "startMs": 77361,
-        "endMs": 85031
+        "startMs": 90840,
+        "endMs": 98200
       },
       {
         "speaker": "Beth",
         "text": "She left her life in Prague and moved to Kharkiv to be with Kostya.",
-        "startMs": 85031,
-        "endMs": 90430
+        "startMs": 101360,
+        "endMs": 104660
       },
       {
         "speaker": "Adela",
         "text": "If someone told me even one year ago that I will live in Kharkiv, that I will fell in love, and that I will be happy in Kharkiv, and that I will leave all my Prague life for Kharkiv, I would consider that person a crazy man or woman.",
-        "startMs": 90430,
-        "endMs": 109128
+        "startMs": 106400,
+        "endMs": 126280
       },
       {
         "speaker": "Adela",
         "text": "I just I would say it's no way, no way.",
-        "startMs": 109128,
-        "endMs": 113506
+        "startMs": 126320,
+        "endMs": 130440
       },
       {
         "speaker": "Adela",
         "text": "Love in a war zone Our World in English © British Broadcasting Corporation 2025",
-        "startMs": 113506,
-        "endMs": 118576
+        "startMs": 130440,
+        "endMs": 138740
       },
       {
         "speaker": "Beth",
         "text": "How far would you go for love?",
-        "startMs": 118576,
-        "endMs": 122724
+        "startMs": 138740,
+        "endMs": 140760
       },
       {
         "speaker": "Beth",
         "text": "Over the past year, BBC Eye has been speaking to people in Kharkiv.",
-        "startMs": 122724,
-        "endMs": 128090
+        "startMs": 141160,
+        "endMs": 146120
       },
       {
         "speaker": "Beth",
         "text": "In this programme, we're going to tell one story about Adela and Konstantin and what their life in Kharkiv is like as the war in Ukraine continues.",
-        "startMs": 128090,
-        "endMs": 138064
+        "startMs": 147280,
+        "endMs": 157580
       },
       {
         "speaker": "Beth",
         "text": "Adela's friends in Prague want her to come home, but Adela wants to be with Kostya, and Kostya feels he needs to stay in Kharkiv.",
-        "startMs": 138064,
-        "endMs": 147677
+        "startMs": 162400,
+        "endMs": 172130
       },
       {
         "speaker": "Adela",
         "text": "When I'm in Prague, they almost always ask me, why don't you bring Konstantin with you?",
-        "startMs": 147677,
-        "endMs": 155380
+        "startMs": 174480,
+        "endMs": 180040
       },
       {
         "speaker": "Adela",
         "text": "But I say he doesn't want to live here.",
-        "startMs": 155380,
-        "endMs": 159133
+        "startMs": 181060,
+        "endMs": 182740
       },
       {
         "speaker": "Adela",
         "text": "They don't want to run away.",
-        "startMs": 159133,
-        "endMs": 161898
+        "startMs": 186730,
+        "endMs": 188540
       },
       {
         "speaker": "Beth",
         "text": "Kharkiv is a dangerous place to live.",
-        "startMs": 161898,
-        "endMs": 165585
+        "startMs": 189480,
+        "endMs": 192080
       },
       {
         "speaker": "Adela",
         "text": "Of course, if Russians enter Kharkiv, there is no place for us.",
-        "startMs": 165585,
-        "endMs": 171510
+        "startMs": 194540,
+        "endMs": 197530
       },
       {
         "speaker": "Adela",
         "text": "We will be killed, both of us.",
-        "startMs": 171510,
-        "endMs": 174901
+        "startMs": 197530,
+        "endMs": 199240
       },
       {
         "speaker": "Adela",
         "text": "The, the reality of the war is is like this.",
-        "startMs": 174901,
-        "endMs": 179279
+        "startMs": 201020,
+        "endMs": 204540
       },
       {
         "speaker": "Adela",
         "text": "But as long as Kharkiv is and the Russian bombing and the war is going on, that's, uh, my place.",
-        "startMs": 179279,
-        "endMs": 187542
+        "startMs": 204580,
+        "endMs": 211540
       },
       {
         "speaker": "Adela",
         "text": "That's my home, because it's, uh, it's Kostya's home.",
-        "startMs": 187542,
-        "endMs": 192184
+        "startMs": 211740,
+        "endMs": 213780
       },
       {
         "speaker": "Beth",
         "text": "By the middle of May 2025, independent monitors say 1,684 civilians had been killed in the Kharkiv region during the war, and there had been over 23,079 attacks.",
-        "startMs": 192184,
-        "endMs": 204627
+        "startMs": 227580,
+        "endMs": 242720
       },
       {
         "speaker": "Beth",
         "text": "This is Konstantin's art studio in a basement.",
-        "startMs": 204627,
-        "endMs": 208051
+        "startMs": 245600,
+        "endMs": 248880
       },
       {
         "speaker": "Beth",
         "text": "This is where Adela and Kostya first met.",
-        "startMs": 208051,
-        "endMs": 211474
+        "startMs": 249380,
+        "endMs": 252220
       },
       {
         "speaker": "Beth",
         "text": "Sitting at the table, Kostya talks about meeting Adela.",
-        "startMs": 211474,
-        "endMs": 215524
+        "startMs": 252860,
+        "endMs": 256200
       },
       {
         "speaker": "Beth",
         "text": "Konstantin (translated and spoken by an English speaker) We were sitting at this table talking about Kharkiv, about the feeling in the city.",
-        "startMs": 215524,
-        "endMs": 224181
+        "startMs": 256580,
+        "endMs": 264360
       },
       {
         "speaker": "Beth",
         "text": "And Adela sat on the chair that I'm sitting on now.",
-        "startMs": 224181,
-        "endMs": 228593
+        "startMs": 264660,
+        "endMs": 267040
       },
       {
         "speaker": "Beth",
         "text": "And I don't let anyone sit on this chair except for me.",
-        "startMs": 228593,
-        "endMs": 233333
+        "startMs": 267600,
+        "endMs": 270400
       },
       {
         "speaker": "Beth",
         "text": "And there were two journalists here, and I felt very tense, and I just started talking to her.",
-        "startMs": 233333,
-        "endMs": 240641
+        "startMs": 270400,
+        "endMs": 276780
       },
       {
         "speaker": "Beth",
         "text": "I looked at her and she looked at me, and I remember Love in a war zone Our World in English © British Broadcasting Corporation 2025 it as this magical story, because I hardly ever left this basement.",
-        "startMs": 240641,
-        "endMs": 254204
+        "startMs": 277020,
+        "endMs": 284620
       },
       {
         "speaker": "Beth",
         "text": "There was so much death around.",
-        "startMs": 254204,
-        "endMs": 256969
+        "startMs": 285080,
+        "endMs": 286760
       },
       {
         "speaker": "Beth",
         "text": "I worked all the time and love, warmth found me.",
-        "startMs": 256969,
-        "endMs": 261347
+        "startMs": 286900,
+        "endMs": 290700
       },
       {
         "speaker": "Beth",
         "text": "A month after that meeting in Kostya's studio, Adela moved to Kharkiv.",
-        "startMs": 261347,
-        "endMs": 266384
+        "startMs": 293200,
+        "endMs": 298120
       },
       {
         "speaker": "Beth",
         "text": "They've been together ever since.",
-        "startMs": 266384,
-        "endMs": 268820
+        "startMs": 298380,
+        "endMs": 300080
       },
       {
         "speaker": "Adela",
         "text": "My closest friends say that Kharkiv has changed me.",
-        "startMs": 268820,
-        "endMs": 273165
+        "startMs": 302420,
+        "endMs": 306860
       },
       {
         "speaker": "Adela",
         "text": "I have different eyes, they say.",
-        "startMs": 273165,
-        "endMs": 276227
+        "startMs": 307180,
+        "endMs": 309300
       },
       {
         "speaker": "Adela",
         "text": "I don't know, I'm not aware of it.",
-        "startMs": 276227,
-        "endMs": 279947
+        "startMs": 310660,
+        "endMs": 312800
       },
       {
         "speaker": "Adela",
         "text": "I have a unique position.",
-        "startMs": 279947,
-        "endMs": 282383
+        "startMs": 313960,
+        "endMs": 315460
       },
       {
         "speaker": "Adela",
         "text": "Half inside, half outside.",
-        "startMs": 282383,
-        "endMs": 284786
+        "startMs": 315460,
+        "endMs": 317580
       },
       {
         "speaker": "Adela",
         "text": "I can run to safety at any time.",
-        "startMs": 284786,
-        "endMs": 288210
+        "startMs": 318100,
+        "endMs": 320520
       },
       {
         "speaker": "Adela",
         "text": "Sometimes I even feel guilty for that.",
-        "startMs": 288210,
-        "endMs": 291304
+        "startMs": 321320,
+        "endMs": 323920
       },
       {
         "speaker": "Adela",
         "text": "But as long as Kostya is here in Kharkiv, I have no choice but to live here with him.",
-        "startMs": 291304,
-        "endMs": 298645
+        "startMs": 324980,
+        "endMs": 331140
       },
       {
         "speaker": "Adela",
         "text": "He never asked me to live here with him.",
-        "startMs": 298645,
-        "endMs": 302398
+        "startMs": 332160,
+        "endMs": 334420
       },
       {
         "speaker": "Adela",
         "text": "He always repeats that he is aware of the risks I'm taking.",
-        "startMs": 302398,
-        "endMs": 307138
+        "startMs": 334920,
+        "endMs": 339720
       },
       {
         "speaker": "Adela",
         "text": "But I won't lie, somewhere deep beneath all that life, love, happiness, hope and gratitude, well, there is a sadness.",
-        "startMs": 307138,
-        "endMs": 316290
+        "startMs": 341240,
+        "endMs": 352680
       },
       {
         "speaker": "Adela",
         "text": "I think I haven't admitted it aloud to anyone yet.",
-        "startMs": 316290,
-        "endMs": 320372
+        "startMs": 354460,
+        "endMs": 359200
       },
       {
         "speaker": "Beth",
         "text": "Two weeks later, in the early hours of the 7th of June, Kharkiv is hit by one of the most powerful drone and missile attacks of the war.",
-        "startMs": 320372,
-        "endMs": 331565
+        "startMs": 365640,
+        "endMs": 380380
       },
       {
         "speaker": "Beth",
         "text": "It comes five days after a Ukrainian attack on a Russian air base.",
-        "startMs": 331565,
-        "endMs": 336634
+        "startMs": 382220,
+        "endMs": 386020
       },
       {
         "speaker": "Adela",
         "text": "What you hear is the Shaheds and the Ukrainian army trying to shoot them down.",
-        "startMs": 336634,
-        "endMs": 342955
+        "startMs": 392360,
+        "endMs": 398360
       },
       {
         "speaker": "Adela",
         "text": "It's more than 40 explosions during the night here.",
-        "startMs": 342955,
-        "endMs": 346707
+        "startMs": 398360,
+        "endMs": 402680
       },
       {
         "speaker": "Adela",
         "text": "Rockets, ballistic missiles and dozens of Shaheds.",
-        "startMs": 346707,
-        "endMs": 350098
+        "startMs": 402720,
+        "endMs": 405860
       },
       {
         "speaker": "Adela",
         "text": "It's the biggest Russian attack on Kharkiv during the war.",
-        "startMs": 350098,
-        "endMs": 354180
+        "startMs": 407680,
+        "endMs": 412440
       },
       {
         "speaker": "Adela",
         "text": "What we're experiencing this night, it's not even four in the morning.",
-        "startMs": 354180,
-        "endMs": 359217
+        "startMs": 413040,
+        "endMs": 417620
       },
       {
         "speaker": "Beth",
         "text": "And Adela doesn't know whether to stay in Kharkiv.",
-        "startMs": 359217,
-        "endMs": 363562
+        "startMs": 425800,
+        "endMs": 429000
       },
       {
         "speaker": "Beth",
         "text": "Love in a war zone Our World in English © British Broadcasting Corporation 2025",
-        "startMs": 363562,
-        "endMs": 368632
+        "startMs": 429000,
+        "endMs": 429900
       },
       {
         "speaker": "Adela",
         "text": "When the last explosions, Kostya told me that he will help me pack my stuff and I should leave, but I can't leave.",
-        "startMs": 368632,
-        "endMs": 378178
+        "startMs": 429900,
+        "endMs": 441180
       },
       {
         "speaker": "Adela",
         "text": "I want to stay with him.",
-        "startMs": 378178,
-        "endMs": 380944
+        "startMs": 441640,
+        "endMs": 442880
       },
       {
         "speaker": "Adela",
         "text": "But at the same time, I feel like I need to calm down, to breathe.",
-        "startMs": 380944,
-        "endMs": 387264
+        "startMs": 442940,
+        "endMs": 448640
       },
       {
         "speaker": "Beth",
         "text": "Later in their kitchen, Adela and Kostya are cooking lunch.",
-        "startMs": 387264,
-        "endMs": 392235
+        "startMs": 451120,
+        "endMs": 455420
       },
       {
         "speaker": "Beth",
         "text": "It's small, everyday routines like this, Kostya tells us, that help you survive.",
-        "startMs": 392235,
-        "endMs": 398193
+        "startMs": 456400,
+        "endMs": 461760
       },
       {
         "speaker": "Beth",
         "text": "Konstantin (translated and spoken by an English speaker) In this chaos, the only thing that you feel you can do is to live your life while you can.",
-        "startMs": 398193,
-        "endMs": 408497
+        "startMs": 462280,
+        "endMs": 471760
       },
       {
         "speaker": "Beth",
         "text": "Live your life, love, work, and make some kind of contribution to what's happening.",
-        "startMs": 408497,
-        "endMs": 414785
+        "startMs": 472580,
+        "endMs": 476920
       },
       {
         "speaker": "Beth",
         "text": "In June, Adela leaves Kharkiv to spend a month in Greece in a house she owns by the sea.",
-        "startMs": 414785,
-        "endMs": 422126
+        "startMs": 479100,
+        "endMs": 485340
       },
       {
         "speaker": "Beth",
         "text": "Meanwhile, the attacks on Kharkiv continue.",
-        "startMs": 422126,
-        "endMs": 425187
+        "startMs": 486060,
+        "endMs": 488540
       },
       {
         "speaker": "Beth",
         "text": "When Adela returns to Kharkiv, US President Donald Trump announces he will meet Russian President Vladimir Putin to try to find an end to the war.",
-        "startMs": 425187,
-        "endMs": 434833
+        "startMs": 493520,
+        "endMs": 503740
       },
       {
         "speaker": "Beth",
         "text": "BBC News headline Donald Trump and Vladimir Putin arrived in Anchorage in Alaska a couple of hours ago, greeting each other on a red carpet laid out at a US Air Force base.",
-        "startMs": 434833,
-        "endMs": 446783
+        "startMs": 504060,
+        "endMs": 513380
       },
       {
         "speaker": "Beth",
         "text": "It's the first time they've met face to face since 2019.",
-        "startMs": 446783,
-        "endMs": 451194
+        "startMs": 513740,
+        "endMs": 516860
       },
       {
         "speaker": "Beth",
         "text": "Two days later, Ukrainian President Volodymyr Zelensky and European leaders fly to Washington for more talks about peace.",
-        "startMs": 451194,
-        "endMs": 458206
+        "startMs": 517620,
+        "endMs": 526120
       },
       {
         "speaker": "Beth",
         "text": "BBC News headline Donald Trump has confirmed the US would be involved in security guarantees for Ukraine as part of a deal to end the war with Russia.",
-        "startMs": 458206,
-        "endMs": 468213
+        "startMs": 526980,
+        "endMs": 534940
       },
       {
         "speaker": "Beth",
         "text": "Love in a war zone Our World in English © British Broadcasting Corporation 2025",
-        "startMs": 468213,
-        "endMs": 473283
+        "startMs": 534940,
+        "endMs": 535360
       },
       {
         "speaker": "Beth",
         "text": "That weekend, Adela and Kostya are hosting a small party to celebrate their birthdays.",
-        "startMs": 473283,
-        "endMs": 478978
+        "startMs": 535360,
+        "endMs": 541160
       },
       {
         "speaker": "Beth",
         "text": "Adela has been watching the news about the negotiations between President Trump, President Putin, President Zelensky and European leaders.",
-        "startMs": 478978,
-        "endMs": 486615
+        "startMs": 543320,
+        "endMs": 559980
       },
       {
         "speaker": "Beth",
         "text": "But living in Kharkiv, she finds it difficult to believe that the war will end soon.",
-        "startMs": 486615,
-        "endMs": 492969
+        "startMs": 560220,
+        "endMs": 565420
       },
       {
         "speaker": "Adela",
         "text": "Right now, I feel like there are two realities.",
-        "startMs": 492969,
-        "endMs": 497610
+        "startMs": 566760,
+        "endMs": 570380
       },
       {
         "speaker": "Adela",
         "text": "The reality outside Ukraine and Putin and Trump and Zelensky and the European leaders are talking and they're pretending that peace is coming, but it's just blah, blah, blah.",
-        "startMs": 497610,
-        "endMs": 508836
+        "startMs": 571400,
+        "endMs": 585820
       },
       {
         "speaker": "Adela",
         "text": "Because here in Ukraine, nothing has changed.",
-        "startMs": 508836,
-        "endMs": 512226
+        "startMs": 585920,
+        "endMs": 588340
       },
       {
         "speaker": "Adela",
         "text": "The peace is not closer.",
-        "startMs": 512226,
-        "endMs": 514662
+        "startMs": 588760,
+        "endMs": 590300
       },
       {
         "speaker": "Adela",
         "text": "So for now, the reason I stay here in Kharkiv is the same as why I moved here.",
-        "startMs": 514662,
-        "endMs": 521674
+        "startMs": 595540,
+        "endMs": 605880
       },
       {
         "speaker": "Adela",
         "text": "I simply feel I'm exactly where I'm supposed to be.",
-        "startMs": 521674,
-        "endMs": 525756
+        "startMs": 608380,
+        "endMs": 611260
       },
       {
         "speaker": "Adela",
         "text": "And with a man who is the love of my life.",
-        "startMs": 525756,
-        "endMs": 530167
+        "startMs": 611260,
+        "endMs": 614420
       },
       {
         "speaker": "Adela",
         "text": "You know, the death is inevitable.",
-        "startMs": 530167,
-        "endMs": 533229
+        "startMs": 615900,
+        "endMs": 618520
       },
       {
         "speaker": "Adela",
         "text": "Our only freedom is to choose to live our own way.",
-        "startMs": 533229,
-        "endMs": 537640
+        "startMs": 620000,
+        "endMs": 623600
       },
       {
         "speaker": "Beth",
         "text": "Thanks for listening to this episode of Our World in English, based on the documentary Kharkiv: Love in a War Zone by BBC Eye.",
-        "startMs": 537640,
-        "endMs": 547516
+        "startMs": 639240,
+        "endMs": 647320
       },
       {
         "speaker": "Beth",
         "text": "This programme was originally broadcast in September 2025.",
-        "startMs": 547516,
-        "endMs": 550940
+        "startMs": 648500,
+        "endMs": 652680
       },
       {
         "speaker": "Beth",
         "text": "Since then, bombings in Kharkiv have continued and more of the city has been destroyed.",
-        "startMs": 550940,
-        "endMs": 556964
+        "startMs": 653660,
+        "endMs": 659400
       },
       {
         "speaker": "Beth",
         "text": "Talks to end the fighting have also carried on, but for now, the war continues.",
-        "startMs": 556964,
-        "endMs": 563284
+        "startMs": 659740,
+        "endMs": 665160
       },
       {
         "speaker": "Beth",
         "text": "You can find more information about BBC Eye by following the link in the notes below this programme.",
-        "startMs": 563284,
-        "endMs": 570000
+        "startMs": 666200,
+        "endMs": 672160
       }
     ],
     "summary": "Understand and discuss love in a war zone using BBC natural English. You'll pick up useful words like war zone, conflict, refuge. Listen to BBC Narrator talk it through in natural English.",
@@ -6635,385 +6635,385 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:11:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/6min/260430_6_minute_english_should_we_eat_ultra_processed_food_download.mp3",
-    "durationSeconds": 396,
+    "durationSeconds": 366,
     "transcript": [
       {
         "speaker": "Phil",
         "text": "This is 6 Minute English from BBC Learning English.",
-        "startMs": 0,
-        "endMs": 3869
+        "startMs": 8660,
+        "endMs": 11860
       },
       {
         "speaker": "Pippa",
         "text": "And I'm Pippa.",
-        "startMs": 3869,
-        "endMs": 6822
+        "startMs": 12220,
+        "endMs": 13460
       },
       {
         "speaker": "Phil",
         "text": "If you've eaten anything today, then it's likely that some of your food was ultra- processed – food containing artificial ingredients like additives and sweeteners.",
-        "startMs": 6822,
-        "endMs": 17446
+        "startMs": 13760,
+        "endMs": 23820
       },
       {
         "speaker": "Phil",
         "text": "Ultra-processed foods are everywhere, from sliced bread to chocolate biscuits and crisps.",
-        "startMs": 17446,
-        "endMs": 23013
+        "startMs": 25120,
+        "endMs": 29810
       },
       {
         "speaker": "Pippa",
         "text": "They might taste good, but the bad news is that ultra-processed foods have been linked to poor health.",
-        "startMs": 23013,
-        "endMs": 31227
+        "startMs": 29810,
+        "endMs": 36620
       },
       {
         "speaker": "Pippa",
         "text": "They often contain lots of sugar and salt and have been linked to problems like obesity and diabetes.",
-        "startMs": 31227,
-        "endMs": 38151
+        "startMs": 36960,
+        "endMs": 43040
       },
       {
         "speaker": "Pippa",
         "text": "So, how can we tell what food is ultra- processed and what's not?",
-        "startMs": 38151,
-        "endMs": 44532
+        "startMs": 43780,
+        "endMs": 47740
       },
       {
         "speaker": "Pippa",
         "text": "Here's health reporter Annabel Rackham on BBC World Service programme What in the World?",
-        "startMs": 44532,
-        "endMs": 50573
+        "startMs": 48080,
+        "endMs": 53080
       },
       {
         "speaker": "Annabel Rackham",
         "text": "Ultra-processed foods are things that contain five or more ingredients, and things that you wouldn't find in your average kitchen.",
-        "startMs": 50573,
-        "endMs": 59466
+        "startMs": 53360,
+        "endMs": 61220
       },
       {
         "speaker": "Annabel Rackham",
         "text": "It's going to have things on there, like emulsifiers, preservatives, additives, dyes and sweeteners.",
-        "startMs": 59466,
-        "endMs": 66255
+        "startMs": 61560,
+        "endMs": 66660
       },
       {
         "speaker": "Phil",
         "text": "Annabel describes ultra-processed foods as things containing ingredients you wouldn't find in your kitchen.",
-        "startMs": 66255,
-        "endMs": 72805
+        "startMs": 67100,
+        "endMs": 73440
       },
       {
         "speaker": "Phil",
         "text": "Do you eat much ultra-processed food, Pippa, or do you try to avoid it?",
-        "startMs": 72805,
-        "endMs": 79831
+        "startMs": 74300,
+        "endMs": 78340
       },
       {
         "speaker": "Pippa",
         "text": "I used to eat a lot of ultra-processed foods, and now I try to cook everything myself and not eat things like chocolate and snacks all day.",
-        "startMs": 79831,
-        "endMs": 91100
+        "startMs": 78520,
+        "endMs": 90300
       },
       {
         "speaker": "Phil",
         "text": "I try to cook things using just normal ingredients, just so you know what's gone into it.",
-        "startMs": 91100,
-        "endMs": 98601
+        "startMs": 92560,
+        "endMs": 97740
       },
       {
         "speaker": "Pippa",
         "text": "In this episode, we'll be discussing ultra-processed food as well as learning some useful new vocabulary.",
-        "startMs": 98601,
-        "endMs": 106136
+        "startMs": 97900,
+        "endMs": 104240
       },
       {
         "speaker": "Pippa",
         "text": "And remember, there's also a quiz and worksheet available on our website, bbclearningenglish.",
-        "startMs": 106136,
-        "endMs": 111974
+        "startMs": 104780,
+        "endMs": 109500
       },
       {
         "speaker": "Phil",
         "text": "But now I have a question for you, Pippa.",
-        "startMs": 111974,
-        "endMs": 116760
+        "startMs": 112180,
+        "endMs": 115040
       },
       {
         "speaker": "Phil",
         "text": "Fizzy drinks, like cola and lemonade, are another example of popular ultra-processed foods, but when were fizzy drinks invented?",
-        "startMs": 116760,
-        "endMs": 125789
+        "startMs": 115300,
+        "endMs": 124860
       },
       {
         "speaker": "Phil",
         "text": "Was it: a) 1772, b) 1872, or c) 1972?",
-        "startMs": 125789,
-        "endMs": 131050
+        "startMs": 125180,
+        "endMs": 134080
       },
       {
         "speaker": "Pippa",
         "text": "Well, I think it was before 1972, but 1772 sounds like too early, so I'm going to say b) 1872.",
-        "startMs": 131050,
-        "endMs": 140180
+        "startMs": 135160,
+        "endMs": 146180
       },
       {
         "speaker": "Phil",
         "text": "We'll find out the answer at the end of the programme.",
-        "startMs": 140180,
-        "endMs": 145339
+        "startMs": 146620,
+        "endMs": 149680
       },
       {
         "speaker": "Phil",
         "text": "One reason for the popularity of ultra-processed food is convenience.",
-        "startMs": 145339,
-        "endMs": 149921
+        "startMs": 150120,
+        "endMs": 154580
       },
       {
         "speaker": "Phil",
         "text": "Let's hear more from health reporter Annabel, who talks here with Hannah Gelbart, presenter of BBC World Service's What in the World.",
-        "startMs": 149921,
-        "endMs": 158814
+        "startMs": 155320,
+        "endMs": 163400
       },
       {
         "speaker": "Annabel Rackham",
         "text": "So, I do think convenience – it is the main issue there.",
-        "startMs": 158814,
-        "endMs": 164652
+        "startMs": 163880,
+        "endMs": 166860
       },
       {
         "speaker": "Annabel Rackham",
         "text": "And again, with a ready meal, you put it in the microwave for a couple of minutes.",
-        "startMs": 164652,
-        "endMs": 171848
+        "startMs": 167040,
+        "endMs": 170200
       },
       {
         "speaker": "Annabel Rackham",
         "text": "Whereas, you know, sometimes cooking a fresh meal from scratch – that can take a really long time.",
-        "startMs": 171848,
-        "endMs": 179417
+        "startMs": 172720,
+        "endMs": 177180
       },
       {
         "speaker": "Hannah Gelbart",
         "text": "What's your ultra-processed guilty food?",
-        "startMs": 179417,
-        "endMs": 183388
+        "startMs": 177260,
+        "endMs": 179340
       },
       {
         "speaker": "Annabel Rackham",
         "text": "I'm a chocolate girl.",
-        "startMs": 183388,
-        "endMs": 186171
+        "startMs": 179640,
+        "endMs": 180660
       },
       {
         "speaker": "Annabel Rackham",
         "text": "A packet of biscuits – something like that.",
-        "startMs": 186171,
-        "endMs": 189735
+        "startMs": 181100,
+        "endMs": 184580
       },
       {
         "speaker": "Annabel Rackham",
         "text": "that's my guilty pleasure.",
-        "startMs": 189735,
-        "endMs": 191907
+        "startMs": 185080,
+        "endMs": 185960
       },
       {
         "speaker": "Pippa",
         "text": "Ultra-processed foods like ready meals are convenient.",
-        "startMs": 191907,
-        "endMs": 196082
+        "startMs": 186500,
+        "endMs": 189840
       },
       {
         "speaker": "Pippa",
         "text": "A ready meal is a meal from a supermarket that has already been prepared and can be heated up quickly in a microwave.",
-        "startMs": 196082,
-        "endMs": 204704
+        "startMs": 190460,
+        "endMs": 197180
       },
       {
         "speaker": "Pippa",
         "text": "That's a lot quicker and easier than cooking from scratch – an idiom meaning to do something from the very beginning without using anything that's already been made.",
-        "startMs": 204704,
-        "endMs": 215056
+        "startMs": 197180,
+        "endMs": 206820
       },
       {
         "speaker": "Phil",
         "text": "Even though ultra-processed foods are often unhealthy, they taste good.",
-        "startMs": 215056,
-        "endMs": 220554
+        "startMs": 207240,
+        "endMs": 212260
       },
       {
         "speaker": "Phil",
         "text": "That's why Annabel calls chocolate her guilty pleasure.",
-        "startMs": 220554,
-        "endMs": 224084
+        "startMs": 212740,
+        "endMs": 215980
       },
       {
         "speaker": "Phil",
         "text": "A guilty pleasure is something you enjoy but think you shouldn't and feel a little embarrassed about.",
-        "startMs": 224084,
-        "endMs": 230669
+        "startMs": 216380,
+        "endMs": 222820
       },
       {
         "speaker": "Pippa",
         "text": "Ultra-processed food is a tricky topic.",
-        "startMs": 230669,
-        "endMs": 234504
+        "startMs": 223260,
+        "endMs": 225820
       },
       {
         "speaker": "Pippa",
         "text": "We know these foods have been linked to poor health, but at the same time they're cheap, convenient and taste good.",
-        "startMs": 234504,
-        "endMs": 243058
+        "startMs": 226260,
+        "endMs": 233320
       },
       {
         "speaker": "Pippa",
         "text": "So, what should we do?",
-        "startMs": 243058,
-        "endMs": 246350
+        "startMs": 233740,
+        "endMs": 235180
       },
       {
         "speaker": "Pippa",
         "text": "Here's Hannah and Annabel discussing this for BBC programme What in the World:",
-        "startMs": 246350,
-        "endMs": 251883
+        "startMs": 235600,
+        "endMs": 239780
       },
       {
         "speaker": "Hannah Gelbart",
         "text": "Is it OK for me to have a packet of crisps once in a while?",
-        "startMs": 251883,
-        "endMs": 258875
+        "startMs": 240220,
+        "endMs": 243120
       },
       {
         "speaker": "Hannah Gelbart",
         "text": "Should we be cutting ultra-processed foods out of our diets completely, or is there a way for us to still enjoy them from time to time?",
-        "startMs": 258875,
-        "endMs": 269668
+        "startMs": 243340,
+        "endMs": 250440
       },
       {
         "speaker": "Annabel Rackham",
         "text": "I think the best thing to do is just not to panic.",
-        "startMs": 269668,
-        "endMs": 275167
+        "startMs": 250440,
+        "endMs": 253280
       },
       {
         "speaker": "Annabel Rackham",
         "text": "Everything is fine in moderation.",
-        "startMs": 275167,
-        "endMs": 277679
+        "startMs": 253780,
+        "endMs": 255620
       },
       {
         "speaker": "Phil",
         "text": "Hannah asks if it's OK to eat ultra-processed foods once in a while, or from time to time.",
-        "startMs": 277679,
-        "endMs": 285893
+        "startMs": 256220,
+        "endMs": 262320
       },
       {
         "speaker": "Phil",
         "text": "The phrases once in a while and from time to time mean occasionally – sometimes, but not very often.",
-        "startMs": 285893,
-        "endMs": 293496
+        "startMs": 262880,
+        "endMs": 270560
       },
       {
         "speaker": "Pippa",
         "text": "Annabel replies using the phrase everything in moderation, which advises us that it's best to avoid too much of anything.",
-        "startMs": 293496,
-        "endMs": 302015
+        "startMs": 271020,
+        "endMs": 278940
       },
       {
         "speaker": "Phil",
         "text": "That sounds sensible to me, and it also means I won't feel bad about eating chocolate now and then.",
-        "startMs": 302015,
-        "endMs": 310195
+        "startMs": 279300,
+        "endMs": 284640
       },
       {
         "speaker": "Phil",
         "text": "Pippa, it's time to reveal the answer to my question.",
-        "startMs": 310195,
-        "endMs": 314709
+        "startMs": 286540,
+        "endMs": 289780
       },
       {
         "speaker": "Phil",
         "text": "Now, I asked you when fizzy drinks were invented.",
-        "startMs": 314709,
-        "endMs": 318884
+        "startMs": 289940,
+        "endMs": 295000
       },
       {
         "speaker": "Phil",
         "text": "I'm afraid the correct answer was 1772.",
-        "startMs": 318884,
-        "endMs": 322075
+        "startMs": 297900,
+        "endMs": 301260
       },
       {
         "speaker": "Phil",
         "text": "Apparently carbonated water was used to try to prevent scurvy on sea voyages.",
-        "startMs": 322075,
-        "endMs": 327302
+        "startMs": 301900,
+        "endMs": 307140
       },
       {
         "speaker": "Pippa",
         "text": "Wow, that is amazing.",
-        "startMs": 327302,
-        "endMs": 330390
+        "startMs": 307520,
+        "endMs": 309360
       },
       {
         "speaker": "Pippa",
         "text": "I wouldn't have thought it was that long ago.",
-        "startMs": 330390,
-        "endMs": 334260
+        "startMs": 309540,
+        "endMs": 311760
       },
       {
         "speaker": "Phil",
         "text": "Let's recap the vocabulary we've learned, starting with ready meal – a meal from a supermarket that has already been prepared so you can heat it up quickly.",
-        "startMs": 334260,
-        "endMs": 345528
+        "startMs": 312840,
+        "endMs": 321260
       },
       {
         "speaker": "Pippa",
         "text": "If you do something from scratch, you do it from the very beginning, without using anything that's already been made.",
-        "startMs": 345528,
-        "endMs": 354353
+        "startMs": 321760,
+        "endMs": 328320
       },
       {
         "speaker": "Phil",
         "text": "A guilty pleasure is something you enjoy but feel guilty or embarrassed about because you think you shouldn't do it.",
-        "startMs": 354353,
-        "endMs": 362567
+        "startMs": 328980,
+        "endMs": 335980
       },
       {
         "speaker": "Pippa",
         "text": "The phrases once in a while and from time to time mean occasionally, not very often.",
-        "startMs": 362567,
-        "endMs": 369729
+        "startMs": 336540,
+        "endMs": 342360
       },
       {
         "speaker": "Phil",
         "text": "And finally, the phrase everything in moderation is used to advise someone that it's best to avoid too much of anything.",
-        "startMs": 369729,
-        "endMs": 378588
+        "startMs": 342860,
+        "endMs": 350560
       },
       {
         "speaker": "Phil",
         "text": "Once again, our six minutes are up, but if you're hungry for more, head over to our website, bbclearningenglish.",
-        "startMs": 378588,
-        "endMs": 387073
+        "startMs": 351460,
+        "endMs": 358820
       },
       {
         "speaker": "Phil",
         "text": "com, for more tasty topics and useful vocabulary.",
-        "startMs": 387073,
-        "endMs": 390909
+        "startMs": 358820,
+        "endMs": 361980
       },
       {
         "speaker": "Phil",
         "text": "But for now, it's goodbye.",
-        "startMs": 390909,
-        "endMs": 393726
+        "startMs": 363780,
+        "endMs": 365200
       },
       {
         "speaker": "Pippa",
         "text": "Bye!",
-        "startMs": 393726,
-        "endMs": 396000
+        "startMs": 365640,
+        "endMs": 365980
       }
     ],
     "summary": "Understand and discuss should we eat ultra-processed food? using BBC natural English. You'll pick up useful words like ultra-processed food, ingredient, additive. Listen to BBC 6 Minute English talk it through in natural English.",
@@ -7158,403 +7158,403 @@ export const seedPodcasts: PodcastContent[] = [
     "premium": false,
     "publishedAt": "2026-06-30T09:12:00.000Z",
     "audioUrl": "https://downloads.bbc.co.uk/learningenglish/features/6min/260423_6_minute_english_why_are_we_all_so_stressed_download.mp3",
-    "durationSeconds": 420,
+    "durationSeconds": 366,
     "transcript": [
       {
         "speaker": "Neil",
         "text": "This is 6 Minute English from BBC Learning English.",
-        "startMs": 0,
-        "endMs": 3740
+        "startMs": 9580,
+        "endMs": 12480
       },
       {
         "speaker": "Becca",
         "text": "Worrying about work or exams, War and climate change in the news.",
-        "startMs": 3740,
-        "endMs": 9351
+        "startMs": 14660,
+        "endMs": 19060
       },
       {
         "speaker": "Becca",
         "text": "It's no wonder that modern life is stressful.",
-        "startMs": 9351,
-        "endMs": 12763
+        "startMs": 19340,
+        "endMs": 21880
       },
       {
         "speaker": "Becca",
         "text": "What makes you stress, Neil?",
-        "startMs": 12763,
-        "endMs": 15946
+        "startMs": 22320,
+        "endMs": 23540
       },
       {
         "speaker": "Neil",
         "text": "I think not having enough time to do something, that really makes me stressed out.",
-        "startMs": 15946,
-        "endMs": 22540
+        "startMs": 25500,
+        "endMs": 30920
       },
       {
         "speaker": "Becca",
         "text": "When I'm trying to do something that I've never tried before and I'm not very good at it, that makes me feel really stressed.",
-        "startMs": 22540,
-        "endMs": 32088
+        "startMs": 32780,
+        "endMs": 39940
       },
       {
         "speaker": "Neil",
         "text": "I find that stressful, too.",
-        "startMs": 32088,
-        "endMs": 35402
+        "startMs": 40460,
+        "endMs": 42120
       },
       {
         "speaker": "Becca",
         "text": "And how do you cope with stressful situations, Neil?",
-        "startMs": 35402,
-        "endMs": 40487
+        "startMs": 43080,
+        "endMs": 45660
       },
       {
         "speaker": "Neil",
         "text": "Well, I try to slow down, uh, pause, take a breath and think, ‘at some point, probably later today, everything will be okay again.’",
-        "startMs": 40487,
-        "endMs": 51807
+        "startMs": 45960,
+        "endMs": 56220
       },
       {
         "speaker": "Becca",
         "text": "But in my mind, I'm telling myself that, ‘I will be better at what I'm doing.",
-        "startMs": 51807,
-        "endMs": 59025
+        "startMs": 58600,
+        "endMs": 62930
       },
       {
         "speaker": "Becca",
         "text": "I just need to practise more.’",
-        "startMs": 59025,
-        "endMs": 61781
+        "startMs": 62930,
+        "endMs": 64600
       },
       {
         "speaker": "Neil",
         "text": "Many young people who feel stressed about the modern world use the word overwhelm to describe their feelings.",
-        "startMs": 61781,
-        "endMs": 69065
+        "startMs": 66000,
+        "endMs": 72080
       },
       {
         "speaker": "Neil",
         "text": "And overwhelm was also the topic of a recent BBC World Service programme, What in the World.",
-        "startMs": 69065,
-        "endMs": 75725
+        "startMs": 72080,
+        "endMs": 77720
       },
       {
         "speaker": "Neil",
         "text": "Here's Iqra Farooq and Claudia Hammond.",
-        "startMs": 75725,
-        "endMs": 78481
+        "startMs": 78160,
+        "endMs": 80580
       },
       {
         "speaker": "Claudia Hammond",
         "text": "So, overwhelm is an emotional state where you are struggling with your current situation.",
-        "startMs": 78481,
-        "endMs": 84748
+        "startMs": 81240,
+        "endMs": 85940
       },
       {
         "speaker": "Claudia Hammond",
         "text": "So, you might feel overloaded, you might feel you can't cope, and that might be a temporary thing, hopefully.",
-        "startMs": 84748,
-        "endMs": 92951
+        "startMs": 86080,
+        "endMs": 91180
       },
       {
         "speaker": "Claudia Hammond",
         "text": "But if it's not in the longer term, if that becomes more of a kind of chronic kind of stress, then that that might lead to burnout in the end.",
-        "startMs": 92951,
-        "endMs": 104172
+        "startMs": 91300,
+        "endMs": 98240
       },
       {
         "speaker": "Becca",
         "text": "Feeling overwhelmed and unable to cope with life can become chronic, meaning that it lasts for a long time.",
-        "startMs": 104172,
-        "endMs": 112079
+        "startMs": 98880,
+        "endMs": 105840
       },
       {
         "speaker": "Becca",
         "text": "Overwhelm can lead to burnout, mental or physical exhaustion caused by working too hard.",
-        "startMs": 112079,
-        "endMs": 117755
+        "startMs": 106180,
+        "endMs": 111460
       },
       {
         "speaker": "Neil",
         "text": "So, how can we manage the stress in our lives and feel happier and healthier?",
-        "startMs": 117755,
-        "endMs": 124809
+        "startMs": 112140,
+        "endMs": 116240
       },
       {
         "speaker": "Neil",
         "text": "That's what we'll be discussing in this episode, along with some useful new words and phrases.",
-        "startMs": 124809,
-        "endMs": 131141
+        "startMs": 116680,
+        "endMs": 121260
       },
       {
         "speaker": "Neil",
         "text": "You'll find all the vocabulary from this episode on our website",
-        "startMs": 131141,
-        "endMs": 135538
+        "startMs": 121740,
+        "endMs": 125080
       },
       {
         "speaker": "Becca",
         "text": "But before we start, I have a question for you, Neil.",
-        "startMs": 135538,
-        "endMs": 141116
+        "startMs": 127440,
+        "endMs": 130460
       },
       {
         "speaker": "Becca",
         "text": "One simple way of combating stress is taking time to rest.",
-        "startMs": 141116,
-        "endMs": 145512
+        "startMs": 130960,
+        "endMs": 135100
       },
       {
         "speaker": "Becca",
         "text": "So, according to research conducted by BBC presenter and psychologist Claudia Hammond, which activity is thought to be the most restful?",
-        "startMs": 145512,
-        "endMs": 154240
+        "startMs": 135440,
+        "endMs": 144400
       },
       {
         "speaker": "Becca",
         "text": "Is it: a) reading for pleasure, b) walking in nature, or c) listening to music?",
-        "startMs": 154240,
-        "endMs": 161294
+        "startMs": 145200,
+        "endMs": 151420
       },
       {
         "speaker": "Neil",
         "text": "Well, I think they're all quite relaxing, but I'm gonna guess b) walking in nature.",
-        "startMs": 161294,
-        "endMs": 168184
+        "startMs": 151980,
+        "endMs": 157640
       },
       {
         "speaker": "Becca",
         "text": "I know you love music.",
-        "startMs": 168184,
-        "endMs": 171202
+        "startMs": 159100,
+        "endMs": 160200
       },
       {
         "speaker": "Becca",
         "text": "And we'll find out the answer later.",
-        "startMs": 171202,
-        "endMs": 174286
+        "startMs": 160620,
+        "endMs": 162520
       },
       {
         "speaker": "Becca",
         "text": "One of the most stressful things facing many young people is exams.",
-        "startMs": 174286,
-        "endMs": 179011
+        "startMs": 163320,
+        "endMs": 167080
       },
       {
         "speaker": "Becca",
         "text": "Here, Claudia Hammond offers some advice for managing exam stress to BBC World Service’s What in the World:",
-        "startMs": 179011,
-        "endMs": 186295
+        "startMs": 167980,
+        "endMs": 174620
       },
       {
         "speaker": "Claudia Hammond",
         "text": "…particularly in the exam itself, if you feel stressed, then just knowing that you may well perform better while you're stressed, that this… it concentrates the mind, it sharpens and you know nerves sharpen your thinking and allow you to really do your best.",
-        "startMs": 186295,
-        "endMs": 204734
+        "startMs": 175480,
+        "endMs": 189340
       },
       {
         "speaker": "Neil",
         "text": "It's normal to feel nerves before an exam.",
-        "startMs": 204734,
-        "endMs": 208737
+        "startMs": 189840,
+        "endMs": 192440
       },
       {
         "speaker": "Neil",
         "text": "Nerves is an informal word for worry or anxiety, but according to Claudia, nerves aren't necessarily bad.",
-        "startMs": 208737,
-        "endMs": 215693
+        "startMs": 192940,
+        "endMs": 199740
       },
       {
         "speaker": "Becca",
         "text": "Yes, nerves can help concentrate the mind.",
-        "startMs": 215693,
-        "endMs": 219663
+        "startMs": 200100,
+        "endMs": 203240
       },
       {
         "speaker": "Becca",
         "text": "The phrase concentrate or sharpen the mind means to think more clearly about something like an actor or an athlete feeling nerves before a big performance can help them do their best.",
-        "startMs": 219663,
-        "endMs": 230949
+        "startMs": 203440,
+        "endMs": 214320
       },
       {
         "speaker": "Neil",
         "text": "Claudia recommends other ways to reduce stress as well.",
-        "startMs": 230949,
-        "endMs": 235280
+        "startMs": 215000,
+        "endMs": 217900
       },
       {
         "speaker": "Neil",
         "text": "These include slowing down and accepting that it’s ok to be ‘good enough’ rather than always trying for perfection.",
-        "startMs": 235280,
-        "endMs": 242301
+        "startMs": 218500,
+        "endMs": 225700
       },
       {
         "speaker": "Neil",
         "text": "Here, she shares more top tips with Iqra Farooq for BBC World Service’s What in the World:",
-        "startMs": 242301,
-        "endMs": 249257
+        "startMs": 226560,
+        "endMs": 231640
       },
       {
         "speaker": "Iqra Farooq",
         "text": "I guess it's - there's no one-size-fits-all as well, when it comes to this.",
-        "startMs": 249257,
-        "endMs": 256639
+        "startMs": 232680,
+        "endMs": 235980
       },
       {
         "speaker": "Iqra Farooq",
         "text": "So, if someone's listening and thinking, ‘I want some top tips on just feeling overwhelmed generally in my life,’ what would you say to them?",
-        "startMs": 256639,
-        "endMs": 266974
+        "startMs": 237100,
+        "endMs": 242980
       },
       {
         "speaker": "Claudia Hammond",
         "text": "So, first I would say accept that your to-do list is never going to end, it's always going to be there.",
-        "startMs": 266974,
-        "endMs": 276194
+        "startMs": 243080,
+        "endMs": 247840
       },
       {
         "speaker": "Claudia Hammond",
         "text": "So, even I know that might sound defeatist, but even if you get to the end of it today, tomorrow there will be something else on it.",
-        "startMs": 276194,
-        "endMs": 286726
+        "startMs": 247840,
+        "endMs": 253380
       },
       {
         "speaker": "Claudia Hammond",
         "text": "And that's just life, and that is just signs of a busy life.",
-        "startMs": 286726,
-        "endMs": 292074
+        "startMs": 253380,
+        "endMs": 256220
       },
       {
         "speaker": "Becca",
         "text": "There are many ways to combat stress, not a one-size-fits-all solution.",
-        "startMs": 292074,
-        "endMs": 298439
+        "startMs": 256520,
+        "endMs": 261380
       },
       {
         "speaker": "Becca",
         "text": "The phrase, one-size-fits-all, describes trying to apply the same solution to many different problems.",
-        "startMs": 298439,
-        "endMs": 305493
+        "startMs": 261860,
+        "endMs": 268240
       },
       {
         "speaker": "Neil",
         "text": "Claudia's final piece of advice is don't worry too much about your to-do-list, the list of all the items you have to do.",
-        "startMs": 305493,
-        "endMs": 315435
+        "startMs": 269000,
+        "endMs": 276840
       },
       {
         "speaker": "Neil",
         "text": "Because it never ends.",
-        "startMs": 315435,
-        "endMs": 317535
+        "startMs": 277840,
+        "endMs": 278960
       },
       {
         "speaker": "Neil",
         "text": "Every day there will be something new to add to the list.",
-        "startMs": 317535,
-        "endMs": 322259
+        "startMs": 279160,
+        "endMs": 282380
       },
       {
         "speaker": "Becca",
         "text": "Some good advice there, Neil.",
-        "startMs": 322259,
-        "endMs": 325573
+        "startMs": 283980,
+        "endMs": 285540
       },
       {
         "speaker": "Becca",
         "text": "I think I'll try these techniques next time I feel stressed.",
-        "startMs": 325573,
-        "endMs": 329970
+        "startMs": 285840,
+        "endMs": 288900
       },
       {
         "speaker": "Becca",
         "text": "And, speaking of ways to de-stress reminds me of my question I asked you earlier.",
-        "startMs": 329970,
-        "endMs": 336335
+        "startMs": 289120,
+        "endMs": 295140
       },
       {
         "speaker": "Becca",
         "text": "According to research conducted by BBC presenter and psychologist Claudia Hammond, which activity is thought of to be the most restful?",
-        "startMs": 336335,
-        "endMs": 344767
+        "startMs": 295300,
+        "endMs": 303620
       },
       {
         "speaker": "Becca",
         "text": "And you answered b) walking in nature.",
-        "startMs": 344767,
-        "endMs": 347851
+        "startMs": 303920,
+        "endMs": 305940
       },
       {
         "speaker": "Becca",
         "text": "Unfortunately, Neil, the answer is a) reading.",
-        "startMs": 347851,
-        "endMs": 351526
+        "startMs": 306840,
+        "endMs": 309710
       },
       {
         "speaker": "Neil",
         "text": "Ah well, reading is really relaxing as well.",
-        "startMs": 351526,
-        "endMs": 355824
+        "startMs": 309710,
+        "endMs": 312660
       },
       {
         "speaker": "Becca",
         "text": "OK, let’s recap the vocabulary from this episode, beginning with the adjective chronic, which means continuing for a long time.",
-        "startMs": 355824,
-        "endMs": 364650
+        "startMs": 313940,
+        "endMs": 320740
       },
       {
         "speaker": "Neil",
         "text": "Burnout is a feeling of physical or mental exhaustion caused by working too hard.",
-        "startMs": 364650,
-        "endMs": 370621
+        "startMs": 321100,
+        "endMs": 325980
       },
       {
         "speaker": "Becca",
         "text": "If you say that a difficult situation sharpens or concentrates someone's mind, you mean that it makes them think clearly.",
-        "startMs": 370621,
-        "endMs": 378856
+        "startMs": 326280,
+        "endMs": 333440
       },
       {
         "speaker": "Neil",
         "text": "Nerves are an informal word for worry or anxiety.",
-        "startMs": 378856,
-        "endMs": 383187
+        "startMs": 333760,
+        "endMs": 337200
       },
       {
         "speaker": "Becca",
         "text": "A one-size-fits-all approach tries to apply the same solution to all problems, rather than solving them individually.",
-        "startMs": 383187,
-        "endMs": 391521
+        "startMs": 337860,
+        "endMs": 344680
       },
       {
         "speaker": "Neil",
         "text": "And finally, a to-do list is a list of all the tasks you have to do.",
-        "startMs": 391521,
-        "endMs": 398805
+        "startMs": 345140,
+        "endMs": 349140
       },
       {
         "speaker": "Neil",
         "text": "Of course, another way to beat stress is doing something you love - and if that’s improving your English then why not visit our website, bbclearningenglish.",
-        "startMs": 398805,
-        "endMs": 408746
+        "startMs": 349380,
+        "endMs": 358700
       },
       {
         "speaker": "Neil",
         "text": "com, where you’ll find loads more activities for doing just that!",
-        "startMs": 408746,
-        "endMs": 413438
+        "startMs": 358880,
+        "endMs": 361740
       },
       {
         "speaker": "Neil",
         "text": "See you again next time, but for now it’s goodbye!",
-        "startMs": 413438,
-        "endMs": 417802
+        "startMs": 362320,
+        "endMs": 365020
       },
       {
         "speaker": "Becca",
         "text": "Bye!",
-        "startMs": 417802,
-        "endMs": 420000
+        "startMs": 365300,
+        "endMs": 365640
       }
     ],
     "summary": "Understand and discuss why are we all so stressed? using BBC natural English. You'll pick up useful words like stressed, pressure, anxiety. Listen to BBC 6 Minute English talk it through in natural English.",

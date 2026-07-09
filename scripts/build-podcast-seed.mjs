@@ -7,7 +7,8 @@
 //
 // Run: node scripts/build-podcast-seed.mjs
 
-import { newBbcPodcasts, newBbcOfficialTranscripts } from "../content/legacy-podcast-lessons/generated/newBbcLessons.js";
+import { newBbcPodcasts } from "../content/legacy-podcast-lessons/generated/newBbcLessons.js";
+import { bbcTranscripts } from "../content/legacy-podcast-lessons/generated/bbcTranscripts.js";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -35,45 +36,6 @@ const GOAL_MAP = {
   "Business English": "Business English",
   "Academic English": "School",
 };
-
-// Same weighted-estimate timing algorithm as data.js's buildOfficialTranscript
-// (the 5 hand-authored lessons), applied here to the 13 imported lessons,
-// whose own transcript timing is still "pending-forced-alignment" (0/1ms
-// placeholders) — this gives them a real, reasonable estimate instead.
-function getTimingWeight(segment, previousSegment) {
-  const words = segment.text.match(/[\p{L}\p{N}]+(?:['’.-][\p{L}\p{N}]+)*/gu)?.length || 1;
-  const sentences = Math.max(1, (segment.text.match(/[.!?]+/g) || []).length);
-  const commas = (segment.text.match(/[,;:]/g) || []).length;
-  const ellipses = (segment.text.match(/\.{2,}|…/g) || []).length;
-  const dashes = (segment.text.match(/[–—-]/g) || []).length;
-  const hasQuestion = /[?]/.test(segment.text);
-  const speakerChanged = previousSegment && previousSegment.speaker !== segment.speaker;
-
-  return (
-    words +
-    sentences * 2.4 +
-    commas * 0.9 +
-    ellipses * 2.2 +
-    dashes * 1.1 +
-    (hasQuestion ? 1.4 : 0) +
-    (speakerChanged ? 1.8 : 0) +
-    (words <= 3 ? 1.5 : 0)
-  );
-}
-
-function estimateTiming(segments, durationMs) {
-  const weights = segments.map((segment, index) => getTimingWeight(segment, segments[index - 1]));
-  const totalWeight = weights.reduce((sum, w) => sum + w, 0) || segments.length || 1;
-  let elapsed = 0;
-
-  return segments.map((segment, index) => {
-    const isLast = index === segments.length - 1;
-    const startMs = Math.round((elapsed / totalWeight) * durationMs);
-    elapsed += weights[index];
-    const endMs = isLast ? durationMs : Math.max(startMs + 1, Math.round((elapsed / totalWeight) * durationMs));
-    return { speaker: segment.speaker, text: segment.text, startMs, endMs };
-  });
-}
 
 function buildReflection(podcast) {
   return `${podcast.objective} What's one thing from this lesson you could use in your own conversations this week?`;
@@ -155,9 +117,18 @@ function sqlJson(value) {
 }
 
 const items = newBbcPodcasts.map((podcast, index) => {
-  const transcript = newBbcOfficialTranscripts[podcast.transcriptId];
-  const durationSeconds = Math.round(podcast.duration * 60);
-  const estimatedSegments = estimateTiming(transcript.content, durationSeconds * 1000);
+  // Real per-segment timestamps from scripts/align-bbc-transcripts.mjs's
+  // WhisperX forced-alignment pass against the actual downloaded audio
+  // (docs/transcript-alignment.md) — not an estimate. durationSeconds comes
+  // from the same measured source rather than the hand-entered minutes
+  // field, which is often off by tens of seconds.
+  const aligned = bbcTranscripts[podcast.transcriptId];
+  if (!aligned) {
+    throw new Error(
+      `No forced-aligned transcript found for ${podcast.transcriptId} (${podcast.podcastId}) — refusing to fall back to estimated timing.`,
+    );
+  }
+  const durationSeconds = Math.round(aligned.duration / 1000);
 
   return {
     id: podcast.podcastId,
@@ -176,7 +147,7 @@ const items = newBbcPodcasts.map((podcast, index) => {
     publishedAt: podcast.createdAt,
     audioUrl: podcast.audioUrl,
     durationSeconds,
-    transcript: estimatedSegments,
+    transcript: aligned.content,
     summary: buildSummary(podcast),
     takeaways: podcast.takeaways,
     vocabulary: podcast.flashcards,
