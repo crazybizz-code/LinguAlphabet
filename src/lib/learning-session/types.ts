@@ -19,6 +19,7 @@ export interface LearningSessionContent {
   cefrLevel: string;
   topics: string[];
   estimatedMinutes: number;
+  thumbnailUrl: string;
   audioUrl: string;
   durationSeconds: number;
   transcript: TranscriptSegment[];

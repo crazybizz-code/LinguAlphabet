@@ -17,6 +17,7 @@ export function toLearningSessionContent(podcast: PodcastContent): LearningSessi
     cefrLevel: podcast.cefrLevelMin,
     topics: podcast.topics,
     estimatedMinutes: podcast.estimatedTimeMinutes,
+    thumbnailUrl: podcast.thumbnailUrl,
     audioUrl: podcast.audioUrl,
     durationSeconds: podcast.durationSeconds,
     transcript: podcast.transcript,
