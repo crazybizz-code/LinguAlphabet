@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Pause, Play, RotateCcw, RotateCw } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
@@ -42,9 +42,23 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
   const [duration, setDuration] = useState(content.durationSeconds);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
+  // TEMPORARY: runtime trace instrumentation for the transcript/dictionary
+  // bug report — remove once the failing link is identified.
+  console.log("[TRACE:PlayerStep] render", {
+    transcriptLength: content.transcript.length,
+    firstSegment: content.transcript[0] ?? null,
+    vocabularyLength: content.vocabulary.length,
+  });
+
+  useEffect(() => {
+    console.log("[TRACE:PlayerStep] selectedWord changed:", selectedWord);
+  }, [selectedWord]);
+
   function findVocabularyEntry(word: string): VocabularyEntry | null {
     const normalized = word.toLowerCase();
-    return content.vocabulary.find((entry) => entry.word.toLowerCase() === normalized) ?? null;
+    const result = content.vocabulary.find((entry) => entry.word.toLowerCase() === normalized) ?? null;
+    console.log("[TRACE:PlayerStep] findVocabularyEntry", { word, found: !!result });
+    return result;
   }
 
   function togglePlay() {
@@ -160,7 +174,10 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
                   <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">{segment.speaker}</p>
                   <ClickableText
                     text={segment.text}
-                    onWordClick={setSelectedWord}
+                    onWordClick={(word) => {
+                      console.log("[TRACE:PlayerStep] onWordClick received from ClickableText:", word);
+                      setSelectedWord(word);
+                    }}
                     className="mt-0.5 text-sm leading-relaxed text-text-secondary"
                   />
                 </div>

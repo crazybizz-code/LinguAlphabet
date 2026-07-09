@@ -18,6 +18,14 @@ export interface ClickableTextProps {
 export function ClickableText({ text, onWordClick, className }: ClickableTextProps) {
   const tokens = tokenizeWords(text);
 
+  // TEMPORARY: runtime trace instrumentation for the transcript/dictionary
+  // bug report — remove once the failing link is identified.
+  console.log("[TRACE:ClickableText] render", {
+    textSample: text.slice(0, 40),
+    tokenCount: tokens.length,
+    wordTokenCount: tokens.filter((t) => t.isWord).length,
+  });
+
   return (
     <span className={className}>
       {tokens.map((token, index) =>
@@ -25,7 +33,10 @@ export function ClickableText({ text, onWordClick, className }: ClickableTextPro
           <button
             key={index}
             type="button"
-            onClick={() => onWordClick(token.text)}
+            onClick={() => {
+              console.log("[TRACE:ClickableText] button clicked:", token.text);
+              onWordClick(token.text);
+            }}
             className="rounded-sm border-0 bg-transparent p-0 font-inherit text-inherit hover:bg-primary-lighter hover:text-primary-dark"
           >
             {token.text}

@@ -29,6 +29,15 @@ export function LearningSessionView({
   const [completionResult, setCompletionResult] = useState<CompleteMissionResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // TEMPORARY: runtime trace instrumentation for the transcript/dictionary
+  // bug report — remove once the failing link is identified.
+  console.log("[TRACE:LearningSessionView] render", {
+    step,
+    contentId: content.contentId,
+    transcriptLength: content.transcript.length,
+    vocabularyLength: content.vocabulary.length,
+  });
+
   function handleFlashcardsFinished() {
     setStep(content.quiz.length > 0 ? "quiz" : "reflection");
   }

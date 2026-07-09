@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { BookMarked, Check, MessageCircleQuestion } from "lucide-react";
 import { EditSheet } from "@/components/profile/EditSheet";
 import { saveVocabularyWord } from "@/lib/vocabulary/actions";
@@ -26,6 +26,19 @@ export interface DictionaryOverlayProps {
 export function DictionaryOverlay({ open, word, entry, sourceContentId, onClose }: DictionaryOverlayProps) {
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
+
+  // TEMPORARY: runtime trace instrumentation for the transcript/dictionary
+  // bug report — remove once the failing link is identified.
+  console.log("[TRACE:DictionaryOverlay] render", { open, word, hasEntry: !!entry });
+
+  useEffect(() => {
+    console.log("[TRACE:DictionaryOverlay] mounted");
+    return () => console.log("[TRACE:DictionaryOverlay] unmounted");
+  }, []);
+
+  useEffect(() => {
+    if (open) console.log("[TRACE:DictionaryOverlay] opened for word:", word);
+  }, [open, word]);
 
   function handleSave() {
     startTransition(async () => {
