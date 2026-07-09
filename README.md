@@ -41,14 +41,15 @@ We are building the world's most natural AI English Coach.
 
 ### Frontend
 
-- Vite
-- JavaScript (ES Modules)
-- HTML5
-- CSS3
+- Next.js 16 (App Router, Turbopack)
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Framer Motion
 
 ### Backend
 
-- Supabase
+- Supabase (Postgres, Auth, `@supabase/ssr`)
 
 ### AI
 
@@ -57,11 +58,13 @@ We are building the world's most natural AI English Coach.
 
 ### Mobile
 
-- Capacitor
+- Not in scope for this phase. The architecture stays compatible with a
+  future Capacitor wrapper, but no Android-specific work is being done yet
+  (see `android/`, preserved but currently dormant).
 
 ### Deployment
 
-- Progressive Web App (PWA)
+- Vercel
 
 ---
 
@@ -70,18 +73,28 @@ We are building the world's most natural AI English Coach.
 ```
 LinguAlphabet/
 
-├── android/
+├── android/                       preserved, not currently wired in
+├── content/legacy-podcast-lessons/ preserved podcast content from V1
 ├── docs/
 ├── public/
 ├── scripts/
 ├── src/
+│   ├── app/                       Next.js App Router routes
+│   ├── components/                ui/, layout/, mascot/
+│   ├── hooks/
+│   ├── lib/                       supabase/, motion/, utils.ts
+│   └── types/
 ├── supabase/
 
-├── index.html
+├── next.config.ts
 ├── package.json
-├── vite.config.js
+├── tsconfig.json
 └── README.md
 ```
+
+This is a rebuilt (V2) codebase. The previous Vanilla JS + Vite application
+has been fully retired — see `docs/coding-standards.md` for the current
+conventions and `CLAUDE.md` for the up-to-date project overview.
 
 ---
 
