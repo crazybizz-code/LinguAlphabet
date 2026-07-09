@@ -6,6 +6,7 @@ import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { SessionStepper } from "./SessionStepper";
+import { PlayerStep } from "./PlayerStep";
 import { SummaryStep } from "./SummaryStep";
 import { VocabularyStep } from "./VocabularyStep";
 import { FlashcardsStep } from "./FlashcardsStep";
@@ -23,7 +24,7 @@ export function LearningSessionView({
   displayName: string;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState<SessionStep>("summary");
+  const [step, setStep] = useState<SessionStep>("player");
   const [quizScore, setQuizScore] = useState(0);
   const [completionResult, setCompletionResult] = useState<CompleteMissionResult | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -67,6 +68,7 @@ export function LearningSessionView({
       </div>
 
       <AnimatePresence mode="wait">
+        {step === "player" && <PlayerStep key="player" content={content} onNext={() => setStep("summary")} />}
         {step === "summary" && (
           <SummaryStep key="summary" content={content} displayName={displayName} onNext={() => setStep("vocabulary")} />
         )}
