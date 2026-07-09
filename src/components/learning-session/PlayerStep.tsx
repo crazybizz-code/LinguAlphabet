@@ -8,11 +8,21 @@ import { Tuto } from "@/components/mascot/Tuto";
 import { ClickableText } from "@/components/vocabulary/ClickableText";
 import { DictionaryOverlay } from "@/components/vocabulary/DictionaryOverlay";
 import { cn } from "@/lib/utils";
+import { SESSION_STEP_CONTAINER } from "./sessionStepLayout";
 import type { LearningSessionContent } from "@/lib/learning-session/types";
 import type { TranscriptSegment, VocabularyEntry } from "@/types/content";
 
 const SKIP_SECONDS = 15;
 const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5];
+/** Real cumulative listened time must reach this fraction of the real
+ * duration before Continue unlocks — not 100%, since timeupdate's ~250ms
+ * granularity can legitimately leave the tally a hair short even after a
+ * genuine full listen. */
+const LISTEN_COMPLETION_THRESHOLD = 0.95;
+/** Above this per-tick delta, a jump is a seek (forward or backward), not
+ * natural playback — excluded from the listened tally so completion can't
+ * be gamed by dragging the scrubber to the end. */
+const MAX_NATURAL_TICK_SECONDS = 1.5;
 
 function formatTime(totalSeconds: number): string {
   const seconds = Math.max(0, Math.floor(totalSeconds));
@@ -243,6 +253,12 @@ function PlaybackSpeedControl({ rate, onChange }: { rate: number; onChange: (rat
  * — WhisperX forced alignment against the actual downloaded audio
  * (docs/transcript-alignment.md), not an estimate.
  *
+ * Listening is a required activity, not a skippable intro: Continue stays
+ * disabled until `listenedSeconds` (cumulative real forward-playback time,
+ * see handleTimeUpdate) reaches LISTEN_COMPLETION_THRESHOLD of the real
+ * duration. currentTime alone can't gate this — dragging the scrubber to
+ * the end moves currentTime without the learner having heard anything.
+ *
  * Layout: below `lg` this renders the original single-column flow untouched.
  * At `lg` and up it switches to a two-column reading layout (artwork/
  * controls/speed on the left, a dedicated wide transcript pane on the
@@ -259,6 +275,13 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState("");
+
+  // Cumulative real listened time — the gate for unlocking Continue.
+  // Deliberately not derived from currentTime alone (see handleTimeUpdate):
+  // currentTime reaching the end via a seek must not count as "listened."
+  const [listenedSeconds, setListenedSeconds] = useState(0);
+  const lastTimeRef = useRef(0);
+  const hasFinishedListening = duration > 0 && listenedSeconds >= duration * LISTEN_COMPLETION_THRESHOLD;
 
   const activeIndex = useMemo(() => {
     const currentMs = currentTime * 1000;
@@ -304,13 +327,29 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
     setPlaybackRateState(rate);
   }
 
+  function handleTimeUpdate(time: number) {
+    const delta = time - lastTimeRef.current;
+    if (delta > 0 && delta < MAX_NATURAL_TICK_SECONDS) {
+      setListenedSeconds((prev) => prev + delta);
+    }
+    lastTimeRef.current = time;
+    setCurrentTime(time);
+  }
+
+  function handleEnded() {
+    setIsPlaying(false);
+    // A real finish always unlocks Continue, even if timeupdate's granularity
+    // left the cumulative tally a hair under the threshold.
+    setListenedSeconds(duration);
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -30 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="mx-auto max-w-2xl px-5 py-6 sm:px-8 lg:max-w-6xl lg:px-10 lg:py-12"
+      className={SESSION_STEP_CONTAINER}
     >
       {/* Audio playback is independent of the overlay below — opening a
           word's definition never touches this element, so playback
@@ -321,8 +360,8 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         preload="metadata"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
-        onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
+        onEnded={handleEnded}
+        onTimeUpdate={(event) => handleTimeUpdate(event.currentTarget.currentTime)}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || content.durationSeconds)}
       />
 
@@ -418,11 +457,21 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
       <button
         type="button"
         onClick={onNext}
-        className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-text-on-primary transition-all hover:opacity-90 active:scale-[0.98] lg:mt-8"
+        disabled={!hasFinishedListening}
+        aria-disabled={!hasFinishedListening}
+        className={cn(
+          "mt-6 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold transition-all lg:mt-8",
+          hasFinishedListening
+            ? "bg-primary text-text-on-primary hover:opacity-90 active:scale-[0.98]"
+            : "cursor-not-allowed bg-bg-muted text-text-tertiary",
+        )}
       >
         Continue to Summary
         <ArrowRight className="h-5 w-5" aria-hidden="true" />
       </button>
+      {!hasFinishedListening && (
+        <p className="mt-2 text-center text-xs font-medium text-text-tertiary">Finish listening to continue.</p>
+      )}
 
       <DictionaryOverlay
         open={selectedWord !== null}
