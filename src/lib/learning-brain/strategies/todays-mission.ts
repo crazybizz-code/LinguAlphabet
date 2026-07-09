@@ -22,7 +22,11 @@ function buildMission(podcast: PodcastContent, isResume: boolean, positionSecond
     badgeLabel: isResume ? "In Progress" : "Prepared by Tuto",
     cefrLevel: podcast.cefrLevelMin,
     estimatedMinutes: podcast.estimatedTimeMinutes,
-    ctaHref: `/podcast/${podcast.id}/play`,
+    // Podcast Player (/podcast/[id]/play) doesn't exist yet (task #32) — the
+    // Learning Session is the one real destination today. Same fix already
+    // applied to PodcastCard's Explore/Home grid links; this is the second,
+    // independent hardcoded href that one didn't cover.
+    ctaHref: `/podcast/${podcast.id}/learn`,
     ctaLabel: isResume ? "Resume Learning" : "Start Learning",
     progressPercentage:
       isResume && positionSeconds !== undefined
