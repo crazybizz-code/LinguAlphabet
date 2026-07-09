@@ -32,7 +32,7 @@ const TranscriptPanel = memo(function TranscriptPanel({
   onWordClick,
 }: {
   transcript: LearningSessionContent["transcript"];
-  onWordClick: (word: string) => void;
+  onWordClick: (word: string, context: string) => void;
 }) {
   return (
     <div className="mt-6 max-h-72 overflow-y-auto rounded-2xl border border-border bg-bg-card p-4">
@@ -75,9 +75,11 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(content.durationSeconds);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
+  const [selectedContext, setSelectedContext] = useState("");
 
-  const handleWordClick = useCallback((word: string) => {
+  const handleWordClick = useCallback((word: string, context: string) => {
     setSelectedWord(word);
+    setSelectedContext(context);
   }, []);
 
   function findVocabularyEntry(word: string): VocabularyEntry | null {
@@ -207,6 +209,7 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
       <DictionaryOverlay
         open={selectedWord !== null}
         word={selectedWord ?? ""}
+        context={selectedContext}
         entry={selectedWord ? findVocabularyEntry(selectedWord) : null}
         sourceContentId={content.contentId}
         onClose={() => setSelectedWord(null)}
