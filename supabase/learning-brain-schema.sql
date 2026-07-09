@@ -24,5 +24,6 @@ create table if not exists public.daily_missions (
 
 alter table public.daily_missions enable row level security;
 
+drop policy if exists "Users can manage own daily missions" on public.daily_missions;
 create policy "Users can manage own daily missions" on public.daily_missions
   for all using (auth.uid() = user_id);

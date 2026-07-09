@@ -60,11 +60,13 @@ create table if not exists public.podcast_details (
 alter table public.content_items enable row level security;
 alter table public.podcast_details enable row level security;
 
+drop policy if exists "Published content is readable by authenticated users" on public.content_items;
 create policy "Published content is readable by authenticated users"
   on public.content_items for select
   to authenticated
   using (status in ('published', 'coming_soon'));
 
+drop policy if exists "Podcast details are readable by authenticated users" on public.podcast_details;
 create policy "Podcast details are readable by authenticated users"
   on public.podcast_details for select
   to authenticated
@@ -81,9 +83,33 @@ create policy "Podcast details are readable by authenticated users"
 -- (no FK), so this is a rename, not a data migration — see
 -- docs/content-lifecycle.md §7 for why this generalization matters before a
 -- second content type ships.
-alter table public.progress rename column podcast_id to content_item_id;
-alter table public.bookmarks rename column podcast_id to content_item_id;
-alter table public.bookmarks rename column podcast_title to content_item_title;
-alter table public.notes rename column podcast_id to content_item_id;
-alter table public.notes rename column podcast_title to content_item_title;
-alter table public.vocabulary rename column source_podcast_id to source_content_item_id;
+--
+-- Renames aren't naturally idempotent (the second run wouldn't find the old
+-- column name), so each is guarded by a check against information_schema —
+-- safe to re-run whether this migration has partially applied or not at all.
+do $$
+begin
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'progress' and column_name = 'podcast_id') then
+    alter table public.progress rename column podcast_id to content_item_id;
+  end if;
+
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'bookmarks' and column_name = 'podcast_id') then
+    alter table public.bookmarks rename column podcast_id to content_item_id;
+  end if;
+
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'bookmarks' and column_name = 'podcast_title') then
+    alter table public.bookmarks rename column podcast_title to content_item_title;
+  end if;
+
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'notes' and column_name = 'podcast_id') then
+    alter table public.notes rename column podcast_id to content_item_id;
+  end if;
+
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'notes' and column_name = 'podcast_title') then
+    alter table public.notes rename column podcast_title to content_item_title;
+  end if;
+
+  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'vocabulary' and column_name = 'source_podcast_id') then
+    alter table public.vocabulary rename column source_podcast_id to source_content_item_id;
+  end if;
+end $$;
