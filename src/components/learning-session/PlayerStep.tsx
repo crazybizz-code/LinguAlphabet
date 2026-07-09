@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Pause, Play, RotateCcw, RotateCw } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
@@ -17,6 +17,40 @@ function formatTime(totalSeconds: number): string {
   const remainder = seconds % 60;
   return `${minutes}:${remainder.toString().padStart(2, "0")}`;
 }
+
+/**
+ * Isolated from PlayerStep's playback state (currentTime updates several
+ * times a second via <audio onTimeUpdate>) so a transcript of any real
+ * length doesn't get fully re-rendered and re-tokenized on every tick —
+ * that thrash was starving click handling on longer transcripts (66+
+ * segments / 800+ word buttons), making words appear unresponsive with no
+ * error ever thrown. This only re-renders when the transcript itself or
+ * the click handler identity changes, i.e. essentially once.
+ */
+const TranscriptPanel = memo(function TranscriptPanel({
+  transcript,
+  onWordClick,
+}: {
+  transcript: LearningSessionContent["transcript"];
+  onWordClick: (word: string) => void;
+}) {
+  return (
+    <div className="mt-6 max-h-72 overflow-y-auto rounded-2xl border border-border bg-bg-card p-4">
+      <div className="flex flex-col gap-3">
+        {transcript.map((segment, index) => (
+          <div key={`${segment.startMs}-${index}`} className="px-1 py-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">{segment.speaker}</p>
+            <ClickableText
+              text={segment.text}
+              onWordClick={onWordClick}
+              className="mt-0.5 text-sm leading-relaxed text-text-secondary"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+});
 
 /**
  * The actual "listen to the podcast" step — the flow's original first item
@@ -42,23 +76,13 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
   const [duration, setDuration] = useState(content.durationSeconds);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
-  // TEMPORARY: runtime trace instrumentation for the transcript/dictionary
-  // bug report — remove once the failing link is identified.
-  console.log("[TRACE:PlayerStep] render", {
-    transcriptLength: content.transcript.length,
-    firstSegment: content.transcript[0] ?? null,
-    vocabularyLength: content.vocabulary.length,
-  });
-
-  useEffect(() => {
-    console.log("[TRACE:PlayerStep] selectedWord changed:", selectedWord);
-  }, [selectedWord]);
+  const handleWordClick = useCallback((word: string) => {
+    setSelectedWord(word);
+  }, []);
 
   function findVocabularyEntry(word: string): VocabularyEntry | null {
     const normalized = word.toLowerCase();
-    const result = content.vocabulary.find((entry) => entry.word.toLowerCase() === normalized) ?? null;
-    console.log("[TRACE:PlayerStep] findVocabularyEntry", { word, found: !!result });
-    return result;
+    return content.vocabulary.find((entry) => entry.word.toLowerCase() === normalized) ?? null;
   }
 
   function togglePlay() {
@@ -167,23 +191,7 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         </div>
 
         {content.transcript.length > 0 && (
-          <div className="mt-6 max-h-72 overflow-y-auto rounded-2xl border border-border bg-bg-card p-4">
-            <div className="flex flex-col gap-3">
-              {content.transcript.map((segment, index) => (
-                <div key={`${segment.startMs}-${index}`} className="px-1 py-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">{segment.speaker}</p>
-                  <ClickableText
-                    text={segment.text}
-                    onWordClick={(word) => {
-                      console.log("[TRACE:PlayerStep] onWordClick received from ClickableText:", word);
-                      setSelectedWord(word);
-                    }}
-                    className="mt-0.5 text-sm leading-relaxed text-text-secondary"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+          <TranscriptPanel transcript={content.transcript} onWordClick={handleWordClick} />
         )}
       </div>
 
