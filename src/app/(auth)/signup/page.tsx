@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Tuto } from "@/components/mascot/Tuto";
 import { Input } from "@/components/ui/Input";
@@ -17,6 +17,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,7 +34,7 @@ export default function SignUpPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const { error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
 
     if (signUpError) {
       setError(signUpError.message || "Registration failed");
@@ -41,7 +42,41 @@ export default function SignUpPage() {
       return;
     }
 
+    // If the Supabase project requires email confirmation, signUp()
+    // returns error: null but session: null — the account exists but
+    // isn't authenticated yet. Walking straight into onboarding here would
+    // run the entire wizard on no session at all: every write silently
+    // no-ops, and it dead-ends back at /login once it reaches /dashboard.
+    if (!data.session) {
+      setNeedsConfirmation(true);
+      setLoading(false);
+      return;
+    }
+
     router.push("/welcome");
+  }
+
+  if (needsConfirmation) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-white to-bg-muted px-5 py-12">
+        <div className="w-full max-w-sm text-center">
+          <Tuto pose="celebrating" size="md" animation="breathe" priority className="mx-auto mb-6" />
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-success-soft">
+            <CheckCircle2 className="h-7 w-7 text-success" />
+          </div>
+          <h1 className="font-heading text-h1 font-extrabold text-text-primary">Check your email</h1>
+          <p className="mt-2 mb-6 text-small text-text-secondary">
+            We&apos;ve sent a confirmation link to <span className="font-medium text-text-primary">{email}</span>.
+            Click it to activate your account, then sign in to get started.
+          </p>
+          <Link href="/login">
+            <Button variant="secondary" className="h-11 rounded-full px-6">
+              Back to Sign In
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
