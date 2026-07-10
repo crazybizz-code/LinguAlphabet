@@ -41,6 +41,12 @@ export interface CalendarDay {
   active: boolean;
   isToday: boolean;
   isFuture: boolean;
+  /** Real minutes studied that day (sum of completed items' estimated duration). */
+  totalMinutes: number;
+  /** GitHub-contribution-graph-style bucket, 0 (none) to 4 (heaviest) — scaled
+   * against the learner's own daily goal, not a fixed minute count, so a
+   * 10-minute goal and a 60-minute goal both max out meaningfully. */
+  intensityLevel: 0 | 1 | 2 | 3 | 4;
 }
 
 export interface MonthActivity {
@@ -48,25 +54,53 @@ export interface MonthActivity {
   days: CalendarDay[];
 }
 
-/** This calendar month's Learning Calendar — same "which days had activity"
- * feeling as the week strip, just zoomed out (Base44 reference: full-month grid). */
-export function buildMonthActivity(progressRows: ProgressRow[], now: Date = new Date()): MonthActivity {
+function computeIntensityLevel(minutes: number, goalMinutes: number): 0 | 1 | 2 | 3 | 4 {
+  if (minutes <= 0) return 0;
+  const ratio = minutes / goalMinutes;
+  if (ratio < 0.5) return 1;
+  if (ratio < 1) return 2;
+  if (ratio < 1.5) return 3;
+  return 4;
+}
+
+/** This calendar month's Learning Calendar — a real per-day study timeline
+ * (minutes + GitHub-style intensity), not just presence/absence of a
+ * session. `goalMinutes` is the learner's own daily-time onboarding goal,
+ * so intensity is relative to them, never an arbitrary fixed threshold. */
+export function buildMonthActivity(
+  progressRows: ProgressRow[],
+  podcasts: PodcastContent[],
+  goalMinutes: number,
+  now: Date = new Date(),
+): MonthActivity {
   const year = now.getFullYear();
   const month = now.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = now.getDate();
+  const podcastById = new Map(podcasts.map((podcast) => [podcast.id, podcast]));
 
-  const activeDays = new Set(
-    progressRows
-      .filter((row) => row.completed)
-      .map((row) => new Date(row.updated_at))
-      .filter((date) => date.getFullYear() === year && date.getMonth() === month)
-      .map((date) => date.getDate()),
-  );
+  const minutesByDay = new Map<number, number>();
+  for (const row of progressRows) {
+    if (!row.completed) continue;
+    const date = new Date(row.updated_at);
+    if (date.getFullYear() !== year || date.getMonth() !== month) continue;
+    const podcast = podcastById.get(row.content_item_id);
+    if (!podcast) continue;
+    const day = date.getDate();
+    minutesByDay.set(day, (minutesByDay.get(day) ?? 0) + podcast.estimatedTimeMinutes);
+  }
 
   const days: CalendarDay[] = Array.from({ length: daysInMonth }, (_, index) => {
     const day = index + 1;
-    return { day, active: activeDays.has(day), isToday: day === today, isFuture: day > today };
+    const totalMinutes = minutesByDay.get(day) ?? 0;
+    return {
+      day,
+      active: totalMinutes > 0,
+      isToday: day === today,
+      isFuture: day > today,
+      totalMinutes,
+      intensityLevel: computeIntensityLevel(totalMinutes, goalMinutes),
+    };
   });
 
   return {

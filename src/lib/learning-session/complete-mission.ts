@@ -22,6 +22,11 @@ export interface CompleteMissionResult {
  * §20), and advances Streak only if this was today's guided Daily
  * Mission (§19) — a casual Explore completion still earns XP, just less,
  * and never touches the streak.
+ *
+ * xp_earned/quiz_score/quiz_total are persisted onto the same progress row
+ * (supabase/daily-activity-schema.sql) so the Learning Calendar's Daily
+ * Activity panel can show real per-completion numbers instead of recomputing
+ * or guessing them later.
  */
 export async function completeMission(params: {
   contentId: string;
@@ -66,6 +71,9 @@ export async function completeMission(params: {
         content_item_id: params.contentId,
         completed: true,
         position_seconds: Math.round(params.estimatedMinutes * 60),
+        xp_earned: xpEarned,
+        quiz_score: params.quizTotal > 0 ? params.correctAnswers : null,
+        quiz_total: params.quizTotal > 0 ? params.quizTotal : null,
         updated_at: nowIso,
       },
       { onConflict: "user_id,content_item_id" },

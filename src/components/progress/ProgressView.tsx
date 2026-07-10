@@ -4,7 +4,9 @@ import { motion } from "framer-motion";
 import { Award, CalendarDays, CheckCircle2, Clock, Flame, Sparkles } from "lucide-react";
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
+import { LearningCalendar } from "./LearningCalendar";
 import type { WeekDay, MonthActivity, RecentActivityItem } from "@/lib/content/progress";
+import type { DailyActivity } from "@/lib/content/daily-activity";
 import type { TutoNote } from "@/lib/tuto/messages";
 
 export interface ProgressViewProps {
@@ -19,6 +21,7 @@ export interface ProgressViewProps {
   totalCompleted: number;
   completedThisWeek: number;
   monthActivity: MonthActivity;
+  dailyActivityIndex: Record<string, DailyActivity>;
   recentActivity: RecentActivityItem[];
   earnedAchievementIds: Set<string>;
   tutoNote: TutoNote | null;
@@ -36,6 +39,7 @@ export function ProgressView({
   totalCompleted,
   completedThisWeek,
   monthActivity,
+  dailyActivityIndex,
   recentActivity,
   earnedAchievementIds,
   tutoNote,
@@ -165,37 +169,21 @@ export function ProgressView({
         <p className="mt-2 text-xs text-text-tertiary">{Math.max(0, xpToNext - xp)} XP to Level {level + 1}</p>
       </motion.section>
 
-      {/* Learning Calendar — the whole month's activity pattern, soft and
-          non-judgmental (no numbers, just presence/absence of a session). */}
+      {/* Learning Calendar — the learner's personal study timeline: real
+          per-day intensity coloring, and clicking any day opens its full
+          Daily Activity record (LearningCalendar). */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
         className="mt-5 rounded-[1.5rem] border border-border bg-bg-card p-5"
       >
-        <div className="mb-4 flex items-center gap-2">
-          <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
-          <h3 className="text-sm font-semibold text-text-primary">Learning Calendar</h3>
-          <span className="ml-auto text-xs text-text-tertiary">{monthActivity.monthLabel}</span>
-        </div>
-        <div className="grid grid-cols-7 gap-1.5">
-          {monthActivity.days.map(({ day, active, isToday, isFuture }) => (
-            <div
-              key={day}
-              className={`flex aspect-square items-center justify-center rounded-xl text-xs font-medium transition-all ${
-                isToday
-                  ? "bg-primary font-bold text-text-on-primary"
-                  : active
-                    ? "bg-primary-lighter font-semibold text-primary"
-                    : isFuture
-                      ? "text-text-tertiary/40"
-                      : "text-text-tertiary"
-              }`}
-            >
-              {day}
-            </div>
-          ))}
-        </div>
+        <LearningCalendar
+          monthActivity={monthActivity}
+          dailyActivityIndex={dailyActivityIndex}
+          streak={streak}
+          longestStreak={longestStreak}
+        />
       </motion.section>
 
       {/* Recent Activity — History (docs/domain-model.md §18) summarized narratively. */}

@@ -138,6 +138,9 @@ export interface Database {
           content_item_id: string;
           position_seconds: number;
           completed: boolean;
+          xp_earned: number;
+          quiz_score: number | null;
+          quiz_total: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -147,6 +150,9 @@ export interface Database {
           content_item_id: string;
           position_seconds?: number;
           completed?: boolean;
+          xp_earned?: number;
+          quiz_score?: number | null;
+          quiz_total?: number | null;
           created_at?: string;
           updated_at?: string;
         };
