@@ -1,11 +1,13 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle2, Clock, Flame, Headphones, Sparkles } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { PodcastCard } from "@/components/content/PodcastCard";
+import { getTimeGreeting } from "@/lib/content/home";
 import type { PodcastContent } from "@/types/content";
 import type { Mission } from "@/lib/learning-brain";
 import type { TutoNote } from "@/lib/tuto/messages";
@@ -13,7 +15,6 @@ import { fadeSlideUp } from "@/lib/motion/variants";
 
 export interface HomeViewProps {
   displayName: string;
-  greeting: string;
   streak: number;
   level: number;
   weeklyMinutes: number;
@@ -27,7 +28,6 @@ export interface HomeViewProps {
 
 export function HomeView({
   displayName,
-  greeting,
   streak,
   level,
   weeklyMinutes,
@@ -38,6 +38,22 @@ export function HomeView({
   recommendations,
 }: HomeViewProps) {
   const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
+
+  // The server has no idea what timezone the learner is in (and its own
+  // clock is UTC on Vercel), so the greeting can only be correct if it's
+  // read from the browser's clock. useSyncExternalStore (same pattern as
+  // useMediaQuery.ts) rather than useState+useEffect: there's no real
+  // "change event" to subscribe to (the greeting only needs to be right
+  // once per load, not ticking live), so the subscribe callback is a
+  // no-op — but this is still the sanctioned way to read external,
+  // clock-dependent state without a hydration mismatch, since the server
+  // snapshot (used for SSR and the client's first hydration pass) stays a
+  // neutral placeholder and only the real client snapshot reads the clock.
+  const greeting = useSyncExternalStore(
+    () => () => {},
+    () => getTimeGreeting(new Date().getHours()),
+    () => "Welcome back",
+  );
 
   return (
     <div className="mx-auto max-w-3xl">

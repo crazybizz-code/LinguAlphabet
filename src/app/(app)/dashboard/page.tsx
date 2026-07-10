@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedPodcasts } from "@/lib/content/queries";
-import { buildWeeklyMinutes, getTimeGreeting } from "@/lib/content/home";
+import { buildWeeklyMinutes } from "@/lib/content/home";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
 import { buildTutoNote } from "@/lib/tuto/messages";
@@ -94,7 +94,6 @@ export default async function DashboardPage() {
   return (
     <HomeView
       displayName={profile?.username || "there"}
-      greeting={getTimeGreeting()}
       streak={profile?.streak ?? 0}
       level={profile?.level ?? 1}
       weeklyMinutes={weeklyMinutes}
