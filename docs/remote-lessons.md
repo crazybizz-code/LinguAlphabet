@@ -37,7 +37,7 @@ Create a JSON file with an aligned transcript:
     "title": "Lesson title",
     "description": "Lesson description",
     "language": "English",
-    "source": "LinguAlphabet",
+    "source": "LinguABC",
     "series": "Custom Lessons",
     "category": "Speaking",
     "difficulty": "Intermediate",

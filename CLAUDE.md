@@ -1,4 +1,4 @@
-# LinguAlphabet
+# LinguABC
 
 AI-powered English coaching platform. Next.js 16 (App Router, Turbopack) +
 React 19 + TypeScript, Tailwind CSS v4, Supabase for backend/auth, Google

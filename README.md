@@ -1,4 +1,4 @@
-# LinguAlphabet
+# LinguABC
 
 > **AI-powered English Coaching Platform** that helps learners achieve their English goals through personalized learning journeys, real-world podcast lessons, and an intelligent AI Coach.
 
@@ -6,9 +6,9 @@
 
 ## 📖 Overview
 
-LinguAlphabet is a next-generation English learning platform designed to replace passive language learning with personalized AI coaching.
+LinguABC is a next-generation English learning platform designed to replace passive language learning with personalized AI coaching.
 
-Instead of simply teaching English, LinguAlphabet guides every learner through an adaptive learning journey based on their goals, current level, strengths, and weaknesses.
+Instead of simply teaching English, LinguABC guides every learner through an adaptive learning journey based on their goals, current level, strengths, and weaknesses.
 
 Our mission is to make English learning feel natural, motivating, and deeply personalized.
 
@@ -208,4 +208,4 @@ This project is currently private.
 
 All rights reserved.
 
-© LinguAlphabet
+© LinguABC

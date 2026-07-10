@@ -13,7 +13,7 @@ alongside `docs/design-system.md` (visual philosophy) and `CLAUDE.md`
 
 ## 1. Dashboard Philosophy
 
-LinguAlphabet is not a content platform. It is not Netflix, YouTube, Spotify,
+LinguABC is not a content platform. It is not Netflix, YouTube, Spotify,
 or Duolingo. The moment a learner opens the app, they should never have to
 decide what to do — Tuto and the Learning Brain have already decided. The
 Dashboard's entire job is to answer one question instantly: **"What do I do
@@ -313,7 +313,7 @@ ingestion/authoring pipeline (even a simple internal tool writing into
 `content_items`) becomes necessary. Not a launch requirement — a flagged
 future dependency.
 
-**Explicitly out of scope, by design**: multi-language support. LinguAlphabet
+**Explicitly out of scope, by design**: multi-language support. LinguABC
 teaches English only, full stop — there is no target-language or
 native-language concept anywhere in this architecture, and none should be
 added later without a separate, explicit product decision.

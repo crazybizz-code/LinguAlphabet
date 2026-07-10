@@ -7,8 +7,8 @@ export const contentType = "image/png";
  * Generated at request/build time from the same brand tokens as
  * favicon.svg (--color-primary #FF6B00 → #EA580C gradient, the "L" mark)
  * — not a new design asset, just a social-preview render of the existing
- * identity so links shared in Slack/iMessage/Twitter don't show a blank
- * card.
+ * identity (LinguABC) so links shared in Slack/iMessage/Twitter don't show
+ * a blank card.
  */
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -39,7 +39,7 @@ export default function OpengraphImage() {
         >
           <span style={{ fontSize: 80, fontWeight: 800, color: "#FFFFFF" }}>L</span>
         </div>
-        <div style={{ display: "flex", fontSize: 64, fontWeight: 800, color: "#FFFFFF" }}>LinguAlphabet</div>
+        <div style={{ display: "flex", fontSize: 64, fontWeight: 800, color: "#FFFFFF" }}>LinguABC</div>
         <div style={{ display: "flex", fontSize: 30, color: "rgba(255,255,255,0.85)", marginTop: 16 }}>
           AI Coach for Language Mastery
         </div>

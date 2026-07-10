@@ -19,15 +19,15 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 // when deploying. Falls back to localhost so dev/build never breaks.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-const TITLE = "LinguAlphabet — AI Coach for Language Mastery";
+const TITLE = "LinguABC — AI Coach for Language Mastery";
 const DESCRIPTION =
-  "LinguAlphabet is an AI-powered English coaching platform that guides every learner through a personalized learning journey with Tuto, your AI English coach.";
+  "LinguABC is an AI-powered English coaching platform that guides every learner through a personalized learning journey with Tuto, your AI English coach.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITLE,
-    template: "%s — LinguAlphabet",
+    template: "%s — LinguABC",
   },
   description: DESCRIPTION,
   icons: {
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    siteName: "LinguAlphabet",
+    siteName: "LinguABC",
     type: "website",
     locale: "en_US",
   },

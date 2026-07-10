@@ -1,10 +1,10 @@
-# LinguAlphabet Design Constitution (MANDATORY)
+# LinguABC Design Constitution (MANDATORY)
 
-LinguAlphabet follows Apple's Human Interface Guidelines philosophy — NOT Material
+LinguABC follows Apple's Human Interface Guidelines philosophy — NOT Material
 Design, NOT a generic SaaS dashboard, NOT Bootstrap, NOT Duolingo, NOT Notion.
 
 Study the *philosophy* of Apple Health, Fitness, Journal, Podcasts, Music, Wallet,
-and Settings. Never copy their layouts directly — LinguAlphabet keeps its own
+and Settings. Never copy their layouts directly — LinguABC keeps its own
 identity while feeling equally premium.
 
 **First impression test:** the user should think "this feels expensive," never
@@ -114,7 +114,7 @@ conversation with Tuto, never like filling out a form.
 
 ## Learning Philosophy
 
-LinguAlphabet is not a traditional language-learning app with lessons to
+LinguABC is not a traditional language-learning app with lessons to
 browse. The learner should never feel like they're navigating a content
 library or manually deciding what to study — the **Learning Brain** decides
 that for them. The interface's job is to minimize decisions, not multiply

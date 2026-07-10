@@ -77,7 +77,7 @@ export interface TutoProps {
 }
 
 /**
- * Renders the official LinguAlphabet Tuto mascot renders exactly as
+ * Renders the official LinguABC Tuto mascot renders exactly as
  * provided — never recreate, redraw, mirror, crop, recolor, or vectorize
  * Tuto, and never synthesize a pose we don't have a real render for.
  * The source renders are not uniformly square, so object-fit: contain

@@ -1,4 +1,4 @@
--- Remote Lesson CMS for LinguAlphabet
+-- Remote Lesson CMS for LinguABC
 -- Run this in Supabase SQL editor before publishing live lessons.
 
 create table if not exists public.published_lessons (

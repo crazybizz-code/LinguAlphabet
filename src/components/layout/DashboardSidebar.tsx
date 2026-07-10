@@ -23,7 +23,7 @@ export function DashboardSidebar() {
       <div className="flex items-center gap-3 px-2">
         <Image src="/favicon.svg" alt="" width={36} height={36} className="rounded-md" />
         <div>
-          <p className="text-sm font-bold text-text-primary">LinguAlphabet</p>
+          <p className="text-sm font-bold text-text-primary">LinguABC</p>
           <p className="text-xs text-text-tertiary">Learn with Tuto</p>
         </div>
       </div>

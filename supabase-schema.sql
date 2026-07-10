@@ -1,5 +1,5 @@
 -- ============================================================
--- LinguAlphabet — Supabase Database Schema
+-- LinguABC — Supabase Database Schema
 -- Run this in your Supabase SQL Editor
 -- ============================================================
 
