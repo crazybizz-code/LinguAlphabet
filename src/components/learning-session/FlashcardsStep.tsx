@@ -76,7 +76,7 @@ export function FlashcardsStep({ content, onNext }: { content: LearningSessionCo
                 if (event.key === "Enter" || event.key === " ") setFlipped((value) => !value);
               }}
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[2rem] border border-border bg-bg-card p-8 text-center shadow-lg">
+              <div className="absolute inset-0 flex flex-col items-center justify-center rounded-[2rem] border border-border bg-bg-card p-6 text-center shadow-lg sm:p-8">
                 {flipped ? (
                   <>
                     <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-primary">Definition</p>

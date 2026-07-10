@@ -33,7 +33,7 @@ export function ReflectionStep({
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] bg-bg-muted p-6 sm:p-8">
+        <div className="rounded-[1.75rem] bg-bg-muted p-5 sm:p-8">
           <div className="flex items-start gap-3 rounded-2xl border border-border bg-bg-card p-4">
             <Tuto pose="thinking" size="sm" />
             <p className="pt-0.5 text-sm leading-relaxed text-text-secondary">{content.reflectionPrompt}</p>

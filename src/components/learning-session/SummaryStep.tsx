@@ -32,7 +32,7 @@ export function SummaryStep({
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] bg-bg-muted p-6 sm:p-8">
+        <div className="rounded-[1.75rem] bg-bg-muted p-5 sm:p-8">
           <div className="mb-5 flex items-center gap-3">
             <span className="rounded-full border border-border bg-bg-card px-3 py-1 text-xs font-bold text-primary">
               {content.cefrLevel}

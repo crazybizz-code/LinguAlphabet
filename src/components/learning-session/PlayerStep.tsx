@@ -259,8 +259,9 @@ function PlaybackSpeedControl({ rate, onChange }: { rate: number; onChange: (rat
  * duration. currentTime alone can't gate this — dragging the scrubber to
  * the end moves currentTime without the learner having heard anything.
  *
- * Layout: below `lg` this renders the original single-column flow untouched.
- * At `lg` and up it switches to a two-column reading layout (artwork/
+ * Layout: below `lg` this renders a mobile-first single-column flow (tight
+ * card padding, full-width transcript and controls). At `lg` and up it
+ * switches to a two-column reading layout (artwork/
  * controls/speed on the left, a dedicated wide transcript pane on the
  * right) — both trees share the same state and the same PlaybackControls/
  * SeekBar/TranscriptPanel pieces, so only the composition differs, not the
@@ -365,7 +366,9 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || content.durationSeconds)}
       />
 
-      {/* Mobile & tablet (<lg) — unchanged from the original single-column flow. */}
+      {/* Mobile & tablet (<lg) — single-column, mobile-first: tighter card
+          padding than desktop so the transcript and controls get the full
+          available width rather than losing it to nested card margins. */}
       <div className="lg:hidden">
         <div className="mb-6 flex items-start gap-3">
           <Tuto pose="listening" size="md" animation="float" />
@@ -375,7 +378,7 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
           </div>
         </div>
 
-        <div className="rounded-[1.75rem] bg-bg-muted p-6 sm:p-8">
+        <div className="rounded-[1.75rem] bg-bg-muted p-5 sm:p-8">
           <div className="mb-5 flex items-center gap-3">
             <span className="rounded-full border border-border bg-bg-card px-3 py-1 text-xs font-bold text-primary">
               {content.cefrLevel}

@@ -54,17 +54,17 @@ export function LearningSessionView({
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-bg-muted to-bg">
-      <div className="flex items-center justify-between px-5 py-6 sm:px-8">
+      <div className="flex items-center justify-between px-4 py-5 sm:px-8 sm:py-6">
         <button
           type="button"
           onClick={() => router.back()}
           aria-label="Go back"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-bg-card shadow-sm transition-all hover:shadow-md"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-bg-card shadow-sm transition-all hover:shadow-md"
         >
           <ArrowLeft className="h-5 w-5 text-text-secondary" aria-hidden="true" />
         </button>
-        <div className="flex-1 px-4">{step !== "complete" && <SessionStepper current={step} />}</div>
-        <div className="w-10" />
+        <div className="min-w-0 flex-1 px-2 sm:px-4">{step !== "complete" && <SessionStepper current={step} />}</div>
+        <div className="w-10 shrink-0" />
       </div>
 
       <AnimatePresence mode="wait">

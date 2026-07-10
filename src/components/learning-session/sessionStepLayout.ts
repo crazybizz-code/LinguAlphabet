@@ -10,7 +10,7 @@
  * SESSION_STEP_CONTENT rather than stretching a quiz question or reflection
  * prompt edge to edge.
  */
-export const SESSION_STEP_CONTAINER = "mx-auto max-w-2xl px-5 py-6 sm:px-8 lg:max-w-6xl lg:px-10 lg:py-12";
+export const SESSION_STEP_CONTAINER = "mx-auto max-w-2xl px-4 py-5 sm:px-8 sm:py-6 lg:max-w-6xl lg:px-10 lg:py-12";
 
 /** Centers a step's task card at a comfortable desktop reading width inside the wider container above. */
 export const SESSION_STEP_CONTENT = "lg:mx-auto lg:max-w-3xl";

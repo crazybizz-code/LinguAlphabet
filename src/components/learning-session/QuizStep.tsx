@@ -84,7 +84,7 @@ export function QuizStep({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.3 }}
-            className="rounded-[1.75rem] bg-bg-muted p-6 sm:p-8"
+            className="rounded-[1.75rem] bg-bg-muted p-5 sm:p-8"
           >
             <h3 className="mb-5 text-lg font-bold text-text-primary">{question.question}</h3>
             <div className="flex flex-col gap-3">
