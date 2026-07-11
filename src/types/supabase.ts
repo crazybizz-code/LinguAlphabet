@@ -265,6 +265,76 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["daily_missions"]["Insert"]>;
         Relationships: [];
       };
+      content_sources: {
+        Row: {
+          id: string;
+          provider_id: string;
+          name: string;
+          config: Json;
+          enabled: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          provider_id: string;
+          name: string;
+          config?: Json;
+          enabled?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["content_sources"]["Insert"]>;
+        Relationships: [];
+      };
+      content_raw_items: {
+        Row: {
+          id: string;
+          source_id: string;
+          external_id: string;
+          raw_payload: Json;
+          fetched_at: string;
+          processed_at: string | null;
+          content_item_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          source_id: string;
+          external_id: string;
+          raw_payload: Json;
+          fetched_at?: string;
+          processed_at?: string | null;
+          content_item_id?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["content_raw_items"]["Insert"]>;
+        Relationships: [];
+      };
+      content_ingestion_runs: {
+        Row: {
+          id: string;
+          source_id: string;
+          started_at: string;
+          completed_at: string | null;
+          items_fetched: number;
+          items_published: number;
+          items_rejected: number;
+          status: "running" | "completed" | "failed";
+          error: Json | null;
+        };
+        Insert: {
+          id?: string;
+          source_id: string;
+          started_at?: string;
+          completed_at?: string | null;
+          items_fetched?: number;
+          items_published?: number;
+          items_rejected?: number;
+          status?: "running" | "completed" | "failed";
+          error?: Json | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["content_ingestion_runs"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: {
       leaderboard: {
