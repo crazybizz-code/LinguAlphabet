@@ -55,7 +55,7 @@ export function SummaryStep({
           <div className="mt-5 flex items-start gap-3 rounded-2xl border border-primary-light bg-primary-lighter p-4">
             <Tuto pose="happy" size="sm" />
             <p className="pt-0.5 text-sm leading-relaxed text-text-secondary">
-              &ldquo;You listened well! Now let&apos;s review the key vocabulary from this session.&rdquo;
+              &ldquo;Nice work! Now let&apos;s review the key vocabulary from this session.&rdquo;
             </p>
           </div>
         </div>

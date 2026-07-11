@@ -113,6 +113,17 @@ function toArticleContent(item: ContentItemRow, details: ArticleDetailsRow): Art
   };
 }
 
+/** A single published article by id — the Article Learning Session needs this, mirrors getPodcastById exactly. */
+export async function getArticleById(supabase: Client, id: string): Promise<ArticleContent | null> {
+  const [{ data: item }, { data: details }] = await Promise.all([
+    supabase.from("content_items").select("*").eq("id", id).eq("content_type", "article").maybeSingle(),
+    supabase.from("article_details").select("*").eq("content_item_id", id).maybeSingle(),
+  ]);
+
+  if (!item || !details) return null;
+  return toArticleContent(item, details);
+}
+
 /** All published articles, joined from content_items + article_details — mirrors getPublishedPodcasts exactly. */
 export async function getPublishedArticles(supabase: Client): Promise<ArticleContent[]> {
   const { data: items } = await supabase

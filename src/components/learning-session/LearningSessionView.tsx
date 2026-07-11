@@ -7,6 +7,8 @@ import { ArrowLeft } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { SessionStepper } from "./SessionStepper";
 import { PlayerStep } from "./PlayerStep";
+import { ReadingStep } from "./ReadingStep";
+import { DictionaryStep } from "./DictionaryStep";
 import { SummaryStep } from "./SummaryStep";
 import { VocabularyStep } from "./VocabularyStep";
 import { FlashcardsStep } from "./FlashcardsStep";
@@ -14,7 +16,7 @@ import { QuizStep } from "./QuizStep";
 import { ReflectionStep } from "./ReflectionStep";
 import { CompleteStep } from "./CompleteStep";
 import { completeMission, saveReflection, type CompleteMissionResult } from "@/lib/learning-session/complete-mission";
-import type { LearningSessionContent, SessionStep } from "@/lib/learning-session/types";
+import { getSessionFlow, type LearningSessionContent, type SessionStep } from "@/lib/learning-session/types";
 
 export function LearningSessionView({
   content,
@@ -24,7 +26,8 @@ export function LearningSessionView({
   displayName: string;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState<SessionStep>("player");
+  const flow = getSessionFlow(content.contentType);
+  const [step, setStep] = useState<SessionStep>(flow[0]);
   const [quizScore, setQuizScore] = useState(0);
   const [completionResult, setCompletionResult] = useState<CompleteMissionResult | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -63,12 +66,18 @@ export function LearningSessionView({
         >
           <ArrowLeft className="h-5 w-5 text-text-secondary" aria-hidden="true" />
         </button>
-        <div className="min-w-0 flex-1 px-2 sm:px-4">{step !== "complete" && <SessionStepper current={step} />}</div>
+        <div className="min-w-0 flex-1 px-2 sm:px-4">
+          {step !== "complete" && <SessionStepper current={step} steps={flow.filter((s) => s !== "complete")} />}
+        </div>
         <div className="w-10 shrink-0" />
       </div>
 
       <AnimatePresence mode="wait">
         {step === "player" && <PlayerStep key="player" content={content} onNext={() => setStep("summary")} />}
+        {step === "reading" && <ReadingStep key="reading" content={content} onNext={() => setStep("dictionary")} />}
+        {step === "dictionary" && (
+          <DictionaryStep key="dictionary" content={content} onNext={() => setStep("summary")} />
+        )}
         {step === "summary" && (
           <SummaryStep key="summary" content={content} displayName={displayName} onNext={() => setStep("vocabulary")} />
         )}

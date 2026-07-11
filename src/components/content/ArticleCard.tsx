@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Clock, ExternalLink, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Clock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { ArticleContent } from "@/types/content";
 
@@ -17,14 +18,14 @@ function formatMinutes(minutes: number) {
 }
 
 /**
- * Article tile for Explore's grid — mirrors PodcastCard's shell exactly.
- * There's no in-app article reader yet (a separate future task, same as
- * Podcast Detail/Player), so this links out to the original source rather
- * than to a page that doesn't exist.
+ * Article tile for Explore's grid — mirrors PodcastCard exactly, including
+ * its destination: the Article Learning Session (/article/[id]/learn),
+ * not the original external source. Reading/Live Dictionary/Summary/
+ * Vocabulary/Flashcards/Quiz/Reflection/Complete all happen in-app now.
  */
 export function ArticleCard({ article, tutosPick = false, index = 0 }: ArticleCardProps) {
   return (
-    <a href={article.sourceUrl} target="_blank" rel="noopener noreferrer" className="group block">
+    <Link href={`/article/${article.id}/learn`} className="group block">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -59,15 +60,12 @@ export function ArticleCard({ article, tutosPick = false, index = 0 }: ArticleCa
             <p className="text-[10px] font-semibold uppercase tracking-wide text-text-tertiary">{article.tags[0]}</p>
           )}
           <h4 className="mt-1 line-clamp-2 font-bold leading-snug text-text-primary">{article.title}</h4>
-          <div className="mt-2 flex items-center justify-between text-xs text-text-tertiary">
-            <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {formatMinutes(article.readingTimeMinutes)}
-            </span>
-            <ExternalLink className="h-3 w-3" aria-hidden="true" />
+          <div className="mt-2 flex items-center gap-1 text-xs text-text-tertiary">
+            <Clock className="h-3 w-3" />
+            {formatMinutes(article.readingTimeMinutes)}
           </div>
         </div>
       </motion.div>
-    </a>
+    </Link>
   );
 }
