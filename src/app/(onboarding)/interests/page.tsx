@@ -20,19 +20,22 @@ import { SelectableCard } from "@/components/ui/SelectableCard";
 import { OnboardingLayout } from "@/components/layout/OnboardingLayout";
 import { OnboardingNav } from "@/components/layout/OnboardingNav";
 import { useOnboardingData, writeOnboardingData } from "@/lib/onboarding/storage";
+import { CONTROLLED_TOPICS } from "@/lib/constants/topics";
 
-const INTERESTS = [
-  { id: "Technology", icon: Cpu },
-  { id: "Business", icon: Briefcase },
-  { id: "Science", icon: FlaskConical },
-  { id: "Movies", icon: Clapperboard },
-  { id: "Books", icon: BookOpen },
-  { id: "Gaming", icon: Gamepad2 },
-  { id: "Music", icon: Music },
-  { id: "Travel", icon: Plane },
-  { id: "Sports", icon: Trophy },
-  { id: "Food", icon: UtensilsCrossed },
-] as const;
+const ICONS_BY_TOPIC: Record<(typeof CONTROLLED_TOPICS)[number], typeof Cpu> = {
+  Technology: Cpu,
+  Business: Briefcase,
+  Science: FlaskConical,
+  Movies: Clapperboard,
+  Books: BookOpen,
+  Gaming: Gamepad2,
+  Music: Music,
+  Travel: Plane,
+  Sports: Trophy,
+  Food: UtensilsCrossed,
+};
+
+const INTERESTS = CONTROLLED_TOPICS.map((id) => ({ id, icon: ICONS_BY_TOPIC[id] }));
 
 export default function InterestsPage() {
   const interests = useOnboardingData().interests;

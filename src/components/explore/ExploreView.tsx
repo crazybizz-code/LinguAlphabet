@@ -20,9 +20,10 @@ import {
 import { Tuto } from "@/components/mascot/Tuto";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { PodcastCard } from "@/components/content/PodcastCard";
+import { ArticleCard } from "@/components/content/ArticleCard";
 import { searchService } from "@/lib/content/search";
 import { CEFR_ORDER } from "@/lib/learning-brain/cefr";
-import type { PodcastContent } from "@/types/content";
+import type { ArticleContent, PodcastContent } from "@/types/content";
 
 interface KnowledgeHubTab {
   id: string;
@@ -33,7 +34,7 @@ interface KnowledgeHubTab {
 
 const KNOWLEDGE_HUB_TABS: KnowledgeHubTab[] = [
   { id: "podcasts", label: "Podcasts", icon: Headphones, available: true },
-  { id: "articles", label: "Articles", icon: FileText, available: false },
+  { id: "articles", label: "Articles", icon: FileText, available: true },
   { id: "news", label: "News", icon: Newspaper, available: false },
   { id: "videos", label: "Videos", icon: Video, available: false },
   { id: "stories", label: "Stories", icon: BookOpen, available: false },
@@ -43,10 +44,12 @@ const KNOWLEDGE_HUB_TABS: KnowledgeHubTab[] = [
 
 export interface ExploreViewProps {
   podcasts: PodcastContent[];
-  tutoRecommends: PodcastContent[];
+  podcastRecommends: PodcastContent[];
+  articles: ArticleContent[];
+  articleRecommends: ArticleContent[];
 }
 
-export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
+export function ExploreView({ podcasts, podcastRecommends, articles, articleRecommends }: ExploreViewProps) {
   const [activeTab, setActiveTab] = useState("podcasts");
   const [query, setQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -54,36 +57,41 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
   const [topicFilter, setTopicFilter] = useState<string | null>(null);
   const [notified, setNotified] = useState<Record<string, boolean>>({});
 
+  const isArticlesTab = activeTab === "articles";
+  const activeCatalog: (PodcastContent | ArticleContent)[] = isArticlesTab ? articles : podcasts;
+  const activeRecommends: (PodcastContent | ArticleContent)[] = isArticlesTab ? articleRecommends : podcastRecommends;
+
   const availableTopics = useMemo(
-    () => Array.from(new Set(podcasts.flatMap((podcast) => podcast.topics))).sort(),
-    [podcasts],
+    () => Array.from(new Set(activeCatalog.flatMap((item) => item.topics))).sort(),
+    [activeCatalog],
   );
 
   // Universal Search is async (searchService.rank returns a Promise) so a
   // future AI-powered ranker is a drop-in here — today's deterministic
   // ranker resolves in the same tick, but the seam is already real.
-  const [searchResults, setSearchResults] = useState<PodcastContent[]>(podcasts);
+  const [searchResults, setSearchResults] = useState<(PodcastContent | ArticleContent)[]>(activeCatalog);
 
   useEffect(() => {
     let cancelled = false;
-    searchService.rank(podcasts, query).then((results) => {
+    searchService.rank(activeCatalog, query).then((results) => {
       if (!cancelled) setSearchResults(results);
     });
     return () => {
       cancelled = true;
     };
-  }, [podcasts, query]);
+  }, [activeCatalog, query]);
 
   const filtered = useMemo(() => {
     let result = searchResults;
-    if (levelFilter) result = result.filter((podcast) => podcast.cefrLevelMin === levelFilter);
-    if (topicFilter) result = result.filter((podcast) => podcast.topics.includes(topicFilter));
+    if (levelFilter) result = result.filter((item) => item.cefrLevelMin === levelFilter);
+    if (topicFilter) result = result.filter((item) => item.topics.includes(topicFilter));
     return result;
   }, [searchResults, levelFilter, topicFilter]);
 
   const isBrowsing = query.trim() === "" && !levelFilter && !topicFilter;
   const activeChip = KNOWLEDGE_HUB_TABS.find((tab) => tab.id === activeTab);
   const hasActiveFilter = Boolean(levelFilter || topicFilter);
+  const chipLabelLower = activeChip?.label.toLowerCase() ?? "content";
 
   return (
     <div className="mx-auto max-w-5xl px-5 pb-12 pt-8 sm:px-8 md:pt-10">
@@ -101,9 +109,9 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
       {/* Universal Search — always the first section (product decision). Field
           coverage is dispatched by content type (src/lib/content/search/extract.ts):
           title/description/topics/tags for every type today, plus transcript,
-          vocabulary, and takeaways for podcasts. Article body, story text, video
-          transcript, and conversation text each add their own case there when
-          those types ship — this component never changes. */}
+          vocabulary, and takeaways for podcasts, and body for articles. Story
+          text, video transcript, and conversation text each add their own
+          case there when those types ship — this component never changes. */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -132,7 +140,7 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
       </motion.div>
 
       {/* Knowledge Hub selector — every content type is visible from day one
-          (docs/dashboard-architecture.md §10), only Podcasts is live. */}
+          (docs/dashboard-architecture.md §10), only Podcasts and Articles are live. */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -171,7 +179,7 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
       <AnimatePresence mode="wait">
         {activeChip?.available ? (
           <motion.div
-            key="podcasts-panel"
+            key={`${activeChip.id}-panel`}
             role="tabpanel"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,7 +188,7 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
           >
             {/* Tuto Recommends — always shown first while just browsing (docs/dashboard-architecture.md §5),
                 steps aside the moment the learner searches or filters with actual intent. */}
-            {isBrowsing && tutoRecommends.length > 0 && (
+            {isBrowsing && activeRecommends.length > 0 && (
               <motion.section
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -192,9 +200,13 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
                   <h3 className="text-sm font-semibold text-text-primary">Recommended by Tuto</h3>
                 </div>
                 <div className="grid grid-cols-4 gap-4 max-xl:grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-                  {tutoRecommends.map((podcast, index) => (
-                    <PodcastCard key={podcast.id} podcast={podcast} tutosPick index={index} />
-                  ))}
+                  {isArticlesTab
+                    ? (activeRecommends as ArticleContent[]).map((article, index) => (
+                        <ArticleCard key={article.id} article={article} tutosPick index={index} />
+                      ))
+                    : (activeRecommends as PodcastContent[]).map((podcast, index) => (
+                        <PodcastCard key={podcast.id} podcast={podcast} tutosPick index={index} />
+                      ))}
                 </div>
               </motion.section>
             )}
@@ -202,7 +214,7 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
             {/* Filters — secondary, collapsed by default, never the primary path. */}
             <div className="mt-8 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-text-primary">
-                All Podcasts <span className="text-text-tertiary">({filtered.length})</span>
+                All {activeChip.label} <span className="text-text-tertiary">({filtered.length})</span>
               </h3>
               <button
                 type="button"
@@ -276,15 +288,19 @@ export function ExploreView({ podcasts, tutoRecommends }: ExploreViewProps) {
 
             {filtered.length > 0 ? (
               <div className="mt-4 grid grid-cols-4 gap-4 max-xl:grid-cols-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-                {filtered.map((podcast, index) => (
-                  <PodcastCard key={podcast.id} podcast={podcast} index={index} />
-                ))}
+                {isArticlesTab
+                  ? (filtered as ArticleContent[]).map((article, index) => (
+                      <ArticleCard key={article.id} article={article} index={index} />
+                    ))
+                  : (filtered as PodcastContent[]).map((podcast, index) => (
+                      <PodcastCard key={podcast.id} podcast={podcast} index={index} />
+                    ))}
               </div>
             ) : (
               <div className="mt-4 flex flex-col items-center rounded-[2rem] border border-border bg-bg-muted px-6 py-16 text-center">
                 <Tuto pose="thinking" size="sm" />
                 <p className="mt-4 text-lg font-semibold text-text-primary">
-                  {query ? `No podcasts found for "${query}"` : "No podcasts match those filters"}
+                  {query ? `No ${chipLabelLower} found for "${query}"` : `No ${chipLabelLower} match those filters`}
                 </p>
                 <p className="mt-1 max-w-sm text-sm text-text-tertiary">
                   Try a different search or clear a filter — Tuto is here to help you find what you need.

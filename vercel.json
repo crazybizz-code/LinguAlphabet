@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/content-engine/ingest",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

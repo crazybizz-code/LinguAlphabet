@@ -65,3 +65,16 @@ export interface PodcastContent extends ContentItem {
   quiz: QuizQuestion[];
   reflection: string;
 }
+
+/** content_items + article_details joined — mirrors PodcastContent exactly. */
+export interface ArticleContent extends ContentItem {
+  contentType: "article";
+  body: string;
+  sourceUrl: string;
+  readingTimeMinutes: number;
+  summary: string;
+  takeaways: string[];
+  vocabulary: VocabularyEntry[];
+  quiz: QuizQuestion[];
+  reflection: string;
+}

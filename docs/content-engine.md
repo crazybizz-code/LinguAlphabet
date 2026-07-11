@@ -1,18 +1,21 @@
 # Content Engine
 
-Status: **architecture complete, no provider wired in yet.** Companion to
-`docs/domain-model.md` (the universal `content_items` data model) and
-`docs/content-lifecycle.md` (how content enters circulation once it
-exists). This document covers the machinery in between: how a piece of
-content gets from an external source into `content_items` in the first
-place, for any content type, without a redesign per type.
+Status: **architecture complete, first provider (RSS Articles) wired in.**
+Companion to `docs/domain-model.md` (the universal `content_items` data
+model) and `docs/content-lifecycle.md` (how content enters circulation
+once it exists). This document covers the machinery in between: how a
+piece of content gets from an external source into `content_items` in the
+first place, for any content type, without a redesign per type.
 
 Before this, the only ingestion path was `scripts/build-podcast-seed.mjs`
 — hand-authored, template-based (no AI), hardcoded to two source files,
 no dedup, no audit trail. That's still how podcasts work today and this
 document doesn't change it. The Content Engine (`src/lib/content-engine/`)
 is separate, forward-looking infrastructure for every source beyond
-hand-authored podcasts, starting with RSS-powered Articles next.
+hand-authored podcasts. RSS-powered Articles (`src/lib/content-engine/providers/rss-provider.ts`,
+one source today: Breaking News English) is the first proof this works
+end to end — Podcasts, News, Videos, and everything else should only ever
+need a new provider, never a change to the six subsystems below.
 
 ---
 
@@ -23,9 +26,13 @@ hand-authored podcasts, starting with RSS-powered Articles next.
 `src/lib/content-engine/types.ts`'s `ContentProvider` interface — `id`,
 `contentType`, `fetchRawItems(sourceConfig): Promise<RawContentItem[]>`.
 Registered via `src/lib/content-engine/providers/registry.ts`'s
-`registerProvider()`/`getProvider()`. Empty registry today — nothing
-calls `registerProvider()` yet, which is the correct state until a real
-provider exists.
+`registerProvider()`/`getProvider()`. `src/lib/content-engine/providers/rss-provider.ts`'s
+`rssArticleProvider` (`id: "rss"`) is the first real provider — one
+implementation serves arbitrarily many RSS feeds via separate
+`content_sources` rows, so a second feed is a data row, never new code.
+`src/lib/content-engine/providers/bootstrap.ts` registers every real
+provider at startup; `src/app/api/content-engine/ingest/route.ts` (hit
+daily by Vercel Cron, `vercel.json`) is the only caller today.
 
 A `RawContentItem` is deliberately minimal and type-agnostic: `externalId`
 (the dedup key — an RSS `<guid>`, an API's item id, ...), `title`, `body`
@@ -57,7 +64,14 @@ podcast summary/quiz are template string-interpolation, not a model
 call). One function, content-type-agnostic: title + raw body text in, the
 universal enrichment attachments out (`docs/domain-model.md`'s Podcast
 Model section — Vocabulary, Quiz, Reflection, and Takeaways apply to
-every content type identically, not just podcasts). Built on the existing
+every content type identically, not just podcasts) plus `cefrLevelMin`/
+`cefrLevelMax`/`topics` — the AI-derived universal fields every content
+type needs before it can pass the quality gate. `topics` is filtered
+against `src/lib/constants/topics.ts`'s `CONTROLLED_TOPICS` (the same
+list onboarding's Interests step collects), dropping anything Gemini
+hallucinated outside it. `estimateReadingTimeMinutes(body)` sits alongside
+it as a separate, deterministic word-count/200wpm function — never asked
+of Gemini, which is unreliable at precise counting. Built on the existing
 `generateJson()` Gemini primitive (`src/lib/gemini/client.ts`), following
 `src/lib/vocabulary/lookup.ts`'s exact convention: prompt → structured
 `responseSchema` → `JSON.parse` → manual runtime validation before
@@ -103,24 +117,35 @@ before it has its own case.
 
 ---
 
-## How the RSS Articles task plugs in
+## How RSS Articles proved the architecture (done)
 
-1. Implement `ContentProvider` for RSS (parses a feed URL from
-   `sourceConfig` into `RawContentItem[]`) and call `registerProvider()`
-   once, at startup.
-2. Add `article_details` to `supabase/content-schema.sql`-style migration
-   (same 1:1-with-`content_items` pattern `podcast_details` already
-   follows) and to `src/types/supabase.ts`.
-3. Add one `case "article":` to `getSearchableFields()`
-   (`src/lib/content/search/extract.ts`) for article-specific fields
-   (body text) beyond the universal ones it already gets for free.
-4. Optionally add an `article` entry to `publishing.ts`'s
-   `TYPE_SPECIFIC_CHECKS` if articles need an extra required field beyond
-   the universal ones (e.g. a minimum body length).
-5. Insert a `content_sources` row with the feed URL, then call
-   `runIngestionPipeline()` — nothing else in the engine changes.
+1. `rssArticleProvider` (`src/lib/content-engine/providers/rss-provider.ts`)
+   implements `ContentProvider` — `fetchRawItems()` parses a feed URL from
+   `sourceConfig.feedUrl` via `rss-parser`, and a pure `mapFeedItemToRaw()`
+   normalizes any RSS 2.0 `<item>` into a `RawContentItem`, `raw` attached
+   for full metadata preservation. Registered once via
+   `providers/bootstrap.ts`.
+2. `article_details` (`supabase/article-content-schema.sql`) follows
+   `podcast_details`'s exact 1:1-with-`content_items` pattern —
+   `body`, `source_url`, `reading_time_minutes`, plus the same universal
+   enrichment columns (`summary`/`takeaways`/`vocabulary`/`quiz`/
+   `reflection`). Mirrored in `src/types/supabase.ts`.
+3. `getSearchableFields()` (`src/lib/content/search/extract.ts`) has a
+   `case "article":` covering body text plus the universal fields.
+4. No `article`-specific quality-gate override was needed — the universal
+   checks (title, description, CEFR range, topics/goal-alignment,
+   estimated time) already cover what an article needs.
+5. One `content_sources` row (seeded in `article-content-schema.sql`,
+   `provider_id: "rss"`, Breaking News English's feed URL) is read by
+   `src/app/api/content-engine/ingest/route.ts`, which Vercel Cron hits
+   daily (`vercel.json`) and which calls `runIngestionPipeline()` per
+   enabled source.
 
-Nothing above touches `pipeline.ts`, `storage.ts`, `publishing.ts`'s
-universal checks, or `ai-processing.ts` — exactly the "additive, never a
-redesign" property `docs/dashboard-architecture.md` §10 already commits
-to for the rest of the content system.
+`pipeline.ts`, `storage.ts`, and `publishing.ts`'s universal checks were
+untouched by adding this provider (`ai-processing.ts` gained the
+CEFR/topics/reading-time fields described above, but that's shared
+infra every content type benefits from, not an RSS-specific change) —
+exactly the "additive, never a redesign" property
+`docs/dashboard-architecture.md` §10 already commits to for the rest of
+the content system. The next content type (Podcasts' real ingestion,
+News, Videos, ...) should only ever need a new provider.

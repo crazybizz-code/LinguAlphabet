@@ -1,6 +1,12 @@
 import { generateJson } from "@/lib/gemini/client";
-import type { QuizQuestion, VocabularyEntry } from "@/types/content";
+import type { CefrLevel, QuizQuestion, VocabularyEntry } from "@/types/content";
+import { CONTROLLED_TOPICS } from "@/lib/constants/topics";
 import type { EnrichmentResult } from "./types";
+
+const CEFR_LEVELS: readonly CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
+function isCefrLevel(value: unknown): value is CefrLevel {
+  return typeof value === "string" && (CEFR_LEVELS as readonly string[]).includes(value);
+}
 
 /**
  * 3. AI Processing — the first real AI-based content enrichment in the
@@ -20,6 +26,9 @@ import type { EnrichmentResult } from "./types";
 const RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
+    cefrLevelMin: { type: "STRING" },
+    cefrLevelMax: { type: "STRING" },
+    topics: { type: "ARRAY", items: { type: "STRING" } },
     summary: { type: "STRING" },
     vocabulary: {
       type: "ARRAY",
@@ -53,7 +62,7 @@ const RESPONSE_SCHEMA = {
     takeaways: { type: "ARRAY", items: { type: "STRING" } },
     reflection: { type: "STRING" },
   },
-  required: ["summary", "vocabulary", "quiz", "takeaways", "reflection"],
+  required: ["cefrLevelMin", "cefrLevelMax", "topics", "summary", "vocabulary", "quiz", "takeaways", "reflection"],
 };
 
 function buildPrompt(title: string, body: string): string {
@@ -63,6 +72,9 @@ Title: "${title}"
 Body: "${body}"
 
 Return a JSON object with:
+- cefrLevelMin: the easiest CEFR level (one of A1, A2, B1, B2, C1, C2) a learner could still get value from this content at.
+- cefrLevelMax: the hardest CEFR level (same six values) this content still meaningfully suits — equal to cefrLevelMin if it's narrowly aimed at one level.
+- topics: 1-3 topics that best describe this content, chosen ONLY from this exact list, verbatim: ${CONTROLLED_TOPICS.join(", ")}. Never invent a topic outside this list — if nothing fits well, return an empty array.
 - summary: a 2-3 sentence plain-English recap of what this content teaches or covers.
 - vocabulary: 5-8 key words or phrases from the content genuinely useful for an English learner, each with word, pos (part of speech), definition (simple, plain-language), example (a natural sentence using it, different from the source), translation (Uzbek translation), and phonetic (IPA, omit if uncertain).
 - quiz: 3-4 multiple-choice comprehension/vocabulary questions, each with type ("mc"), question, options (4 plausible choices), correct (the 0-based index of the right option), and explanation (why that answer is correct).
@@ -105,6 +117,10 @@ export async function generateEnrichment(title: string, body: string): Promise<E
   const result = parsed as Record<string, unknown>;
 
   if (
+    !isCefrLevel(result.cefrLevelMin) ||
+    !isCefrLevel(result.cefrLevelMax) ||
+    !Array.isArray(result.topics) ||
+    !result.topics.every((topic) => typeof topic === "string") ||
     typeof result.summary !== "string" ||
     !Array.isArray(result.vocabulary) ||
     !result.vocabulary.every(isVocabularyEntry) ||
@@ -117,7 +133,13 @@ export async function generateEnrichment(title: string, body: string): Promise<E
     throw new Error("AI Processing: Gemini returned an unexpected response shape");
   }
 
+  const controlledTopics: readonly string[] = CONTROLLED_TOPICS;
+
   return {
+    cefrLevelMin: result.cefrLevelMin,
+    cefrLevelMax: result.cefrLevelMax,
+    // Drop anything Gemini hallucinated outside the controlled vocabulary.
+    topics: result.topics.filter((topic) => controlledTopics.includes(topic)),
     summary: result.summary,
     vocabulary: result.vocabulary.map((entry) => ({
       word: entry.word,
@@ -137,4 +159,16 @@ export async function generateEnrichment(title: string, body: string): Promise<E
     takeaways: result.takeaways,
     reflection: result.reflection,
   };
+}
+
+const WORDS_PER_MINUTE = 200;
+
+/**
+ * Deterministic reading-time estimate — never asked of Gemini, which is
+ * unreliable at precise word counting. A floor of 2 minutes keeps very
+ * short content from ever reading as instantaneous.
+ */
+export function estimateReadingTimeMinutes(body: string): number {
+  const wordCount = body.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(2, Math.round(wordCount / WORDS_PER_MINUTE));
 }

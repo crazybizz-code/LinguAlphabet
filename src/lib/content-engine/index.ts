@@ -1,5 +1,5 @@
 import { registerProvider, getProvider } from "./providers/registry";
-import { generateEnrichment } from "./ai-processing";
+import { generateEnrichment, estimateReadingTimeMinutes } from "./ai-processing";
 import { runQualityGate, publishContentItem } from "./publishing";
 import { upsertContentItem, upsertContentDetails } from "./storage";
 import { runIngestionPipeline } from "./pipeline";
@@ -17,6 +17,7 @@ export const contentEngine = {
   registerProvider,
   getProvider,
   generateEnrichment,
+  estimateReadingTimeMinutes,
   runQualityGate,
   publishContentItem,
   upsertContentItem,
@@ -28,6 +29,7 @@ export type {
   ContentProvider,
   RawContentItem,
   ContentItemDraft,
+  ProviderDraft,
   ContentType,
   EnrichmentResult,
   QualityGateResult,

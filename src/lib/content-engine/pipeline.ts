@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
-import { generateEnrichment } from "./ai-processing";
+import { generateEnrichment, estimateReadingTimeMinutes } from "./ai-processing";
 import { runQualityGate, publishContentItem } from "./publishing";
 import { upsertContentItem, upsertContentDetails } from "./storage";
-import type { ContentItemDraft, ContentProvider, IngestionRunResult, RawContentItem } from "./types";
+import type { ContentProvider, IngestionRunResult, ProviderDraft, RawContentItem } from "./types";
 
 type Client = SupabaseClient<Database>;
 
@@ -12,8 +12,8 @@ export interface RunIngestionPipelineOptions {
   sourceConfig: Record<string, unknown>;
   /** If true, an item that passes the quality gate publishes immediately; otherwise it's written as `draft` for manual review. */
   autoPublish?: boolean;
-  /** Maps a fetched RawContentItem into the universal draft + its type-specific details row — provider-specific normalization the pipeline itself stays agnostic to. */
-  normalize: (raw: RawContentItem) => ContentItemDraft;
+  /** Maps a fetched RawContentItem into the universal draft (minus AI-derived fields) + its type-specific details row — provider-specific normalization the pipeline itself stays agnostic to. */
+  normalize: (raw: RawContentItem) => ProviderDraft;
 }
 
 /**
@@ -62,7 +62,7 @@ export async function runIngestionPipeline(
       const { data: rawRow, error: rawInsertError } = await supabase
         .from("content_raw_items")
         .upsert(
-          { source_id: options.sourceId, external_id: raw.externalId, raw_payload: raw as unknown as Json },
+          { source_id: options.sourceId, external_id: raw.externalId, raw_payload: (raw.raw ?? raw) as unknown as Json },
           { onConflict: "source_id,external_id" },
         )
         .select()
@@ -74,8 +74,16 @@ export async function runIngestionPipeline(
 
       try {
         const enrichment = await generateEnrichment(raw.title, raw.body);
-        const draft = options.normalize(raw);
-        draft.detailsRow = { ...draft.detailsRow, ...enrichment, content_item_id: draft.id };
+        const providerDraft = options.normalize(raw);
+        const { summary, vocabulary, quiz, takeaways, reflection, ...universal } = enrichment;
+        const draft = {
+          ...providerDraft,
+          cefrLevelMin: universal.cefrLevelMin,
+          cefrLevelMax: universal.cefrLevelMax,
+          topics: universal.topics,
+          estimatedTimeMinutes: estimateReadingTimeMinutes(raw.body),
+          detailsRow: { ...providerDraft.detailsRow, summary, vocabulary, quiz, takeaways, reflection, content_item_id: providerDraft.id },
+        };
 
         const gate = runQualityGate(draft);
         if (!gate.passed) {

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPublishedPodcasts } from "@/lib/content/queries";
+import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
 import { ExploreView } from "@/components/explore/ExploreView";
@@ -14,9 +14,10 @@ export default async function ExplorePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, podcasts, { data: progressRows }] = await Promise.all([
+  const [{ data: profile }, podcasts, articles, { data: progressRows }] = await Promise.all([
     supabase.from("profiles").select("english_level, goal, interests").eq("user_id", user.id).single(),
     getPublishedPodcasts(supabase),
+    getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
   ]);
 
@@ -43,8 +44,19 @@ export default async function ExplorePage() {
     previousMissionContentType: null,
   };
 
-  const ranked = await learningBrain.getExploreRanking(podcasts, context);
-  const tutoRecommends = learningBrain.getTutoRecommends(ranked, undefined, RECOMMEND_COUNT);
+  const [rankedPodcasts, rankedArticles] = await Promise.all([
+    learningBrain.getExploreRanking(podcasts, context),
+    learningBrain.getExploreRanking(articles, context),
+  ]);
+  const podcastRecommends = learningBrain.getTutoRecommends(rankedPodcasts, undefined, RECOMMEND_COUNT);
+  const articleRecommends = learningBrain.getTutoRecommends(rankedArticles, undefined, RECOMMEND_COUNT);
 
-  return <ExploreView podcasts={ranked} tutoRecommends={tutoRecommends} />;
+  return (
+    <ExploreView
+      podcasts={rankedPodcasts}
+      podcastRecommends={podcastRecommends}
+      articles={rankedArticles}
+      articleRecommends={articleRecommends}
+    />
+  );
 }

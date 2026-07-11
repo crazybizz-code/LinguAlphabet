@@ -131,6 +131,32 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["podcast_details"]["Insert"]>;
         Relationships: [];
       };
+      article_details: {
+        Row: {
+          content_item_id: string;
+          body: string;
+          source_url: string | null;
+          reading_time_minutes: number;
+          summary: string | null;
+          takeaways: Json;
+          vocabulary: Json;
+          quiz: Json;
+          reflection: string | null;
+        };
+        Insert: {
+          content_item_id: string;
+          body: string;
+          source_url?: string | null;
+          reading_time_minutes: number;
+          summary?: string | null;
+          takeaways?: Json;
+          vocabulary?: Json;
+          quiz?: Json;
+          reflection?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["article_details"]["Insert"]>;
+        Relationships: [];
+      };
       progress: {
         Row: {
           id: string;

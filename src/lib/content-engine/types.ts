@@ -28,6 +28,8 @@ export interface RawContentItem {
   url?: string;
   publishedAt?: string;
   thumbnailUrl?: string;
+  /** The complete original source record (an RSS item, an API payload) — preserved as-is for content_raw_items.raw_payload, never interpreted by the pipeline. */
+  raw?: unknown;
 }
 
 export interface ContentProvider {
@@ -48,6 +50,10 @@ export interface ContentProvider {
  * parallel shape.
  */
 export interface EnrichmentResult {
+  cefrLevelMin: CefrLevel;
+  cefrLevelMax: CefrLevel;
+  /** Filtered to the controlled vocabulary (src/lib/constants/topics.ts) — never a hallucinated value. */
+  topics: string[];
   summary: string;
   vocabulary: VocabularyEntry[];
   quiz: QuizQuestion[];
@@ -80,6 +86,15 @@ export interface ContentItemDraft {
   detailsTable: string;
   detailsRow: Record<string, unknown>;
 }
+
+/**
+ * What a provider's `normalize()` can honestly know before AI Processing has
+ * run — cefrLevelMin/Max, topics, and estimatedTimeMinutes are all derived
+ * from enrichment (docs/content-engine.md), so a provider never fabricates
+ * placeholder values for them. The pipeline fills these in after
+ * generateEnrichment() resolves.
+ */
+export type ProviderDraft = Omit<ContentItemDraft, "cefrLevelMin" | "cefrLevelMax" | "topics" | "estimatedTimeMinutes">;
 
 /** 5. Publishing's quality gate result (docs/content-lifecycle.md §1 stage 3). */
 export interface QualityGateResult {

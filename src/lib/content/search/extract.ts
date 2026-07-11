@@ -1,4 +1,4 @@
-import type { ContentItem, PodcastContent } from "@/types/content";
+import type { ArticleContent, ContentItem, PodcastContent } from "@/types/content";
 import type { SearchableField } from "./types";
 
 /**
@@ -17,6 +17,7 @@ const WEIGHTS = {
   vocabulary: 1.5,
   takeaways: 1,
   transcript: 1,
+  body: 1,
 } as const;
 
 function podcastFields(podcast: PodcastContent): SearchableField[] {
@@ -34,6 +35,22 @@ function podcastFields(podcast: PodcastContent): SearchableField[] {
     },
     { text: podcast.takeaways.join(" "), weight: WEIGHTS.takeaways },
     { text: podcast.transcript.map((segment) => segment.text).join(" "), weight: WEIGHTS.transcript },
+  ];
+}
+
+function articleFields(article: ArticleContent): SearchableField[] {
+  return [
+    { text: article.title, weight: WEIGHTS.title },
+    { text: article.description, weight: WEIGHTS.description },
+    { text: article.topics.join(" "), weight: WEIGHTS.topics },
+    { text: article.tags.join(" "), weight: WEIGHTS.tags },
+    { text: article.summary, weight: WEIGHTS.summary },
+    { text: article.body, weight: WEIGHTS.body },
+    {
+      text: article.vocabulary.map((entry) => `${entry.word} ${entry.definition}`).join(" "),
+      weight: WEIGHTS.vocabulary,
+    },
+    { text: article.takeaways.join(" "), weight: WEIGHTS.takeaways },
   ];
 }
 
@@ -62,6 +79,8 @@ export function getSearchableFields(item: ContentItem): SearchableField[] {
   switch (item.contentType) {
     case "podcast":
       return podcastFields(item as PodcastContent);
+    case "article":
+      return articleFields(item as ArticleContent);
     default:
       return universalFields(item);
   }
