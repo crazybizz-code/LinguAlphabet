@@ -33,7 +33,7 @@ async function setRawItemStatus(
   fields: {
     status: RawItemStatus;
     rejectionReason?: string;
-    qualityGateReasons?: string[];
+    qualityGateReasons?: Record<string, unknown>;
     geminiError?: string;
     normalizationError?: string;
     markPublished?: { contentItemId: string };
@@ -187,7 +187,17 @@ export async function runIngestionPipeline(
         await setRawItemStatus(supabase, rawRow.id, {
           status: "QUALITY_GATE_FAILED",
           rejectionReason: gate.reasons.join("; "),
-          qualityGateReasons: gate.reasons,
+          // Traces the exact values runQualityGate saw, plus what Gemini
+          // returned before the controlled-vocabulary filter — pinpoints
+          // whether an empty topics/tags array came from Gemini genuinely
+          // returning nothing, or from a merge bug upstream of this check.
+          qualityGateReasons: {
+            reasons: gate.reasons,
+            draftTopics: draft.topics,
+            draftTags: draft.tags,
+            draftGoalAlignment: draft.goalAlignment,
+            geminiRawTopics: rawTopics,
+          },
         });
         continue;
       }
