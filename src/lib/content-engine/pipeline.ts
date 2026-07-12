@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import { generateEnrichment, estimateReadingTimeMinutes } from "./ai-processing";
@@ -20,6 +21,25 @@ export interface RunIngestionPipelineOptions {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+/** Exact-match content fingerprint — catches the same real-world article syndicated through a different feed, not just a re-run of the same one. */
+function computeContentHash(body: string): string {
+  const normalized = body.trim().toLowerCase().replace(/\s+/g, " ");
+  return createHash("sha256").update(normalized).digest("hex");
+}
+
+/** Strips protocol/www/trailing-slash/case so trivial URL variants across feeds still match. Returns null for anything unparseable rather than guessing. */
+function normalizeCanonicalUrl(url: string | undefined): string | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+    const path = parsed.pathname.replace(/\/+$/, "");
+    return `${host}${path}`.toLowerCase();
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -69,6 +89,15 @@ async function setRawItemStatus(
  * handled. Anything that didn't reach PUBLISHED keeps processed_at null,
  * so it's retried on the next run rather than permanently stuck.
  *
+ * That same-source check alone doesn't catch the same real-world article
+ * syndicated through a second, different source (each with its own
+ * external_id) — every item's content_hash/canonical_url are computed and
+ * stored regardless of outcome, and checked against every OTHER source's
+ * already-published rows before AI enrichment runs, so a genuine
+ * cross-feed duplicate is marked DUPLICATE (pointing at the article that
+ * already exists) without wasting a Gemini call or creating a second
+ * content_items row.
+ *
  * Every item is traceable: it always ends this run at exactly one of
  * FETCHED/NORMALIZED/AI_ENRICHED/QUALITY_GATE_FAILED/PUBLISHED/FAILED
  * (content_raw_items.status), with the real reason recorded alongside it
@@ -110,6 +139,9 @@ export async function runIngestionPipeline(
 
       if (existing?.processed_at) continue; // already published by a previous run
 
+      const contentHash = computeContentHash(raw.body);
+      const canonicalUrl = normalizeCanonicalUrl(raw.url);
+
       const { data: rawRow, error: rawInsertError } = await supabase
         .from("content_raw_items")
         .upsert(
@@ -119,6 +151,8 @@ export async function runIngestionPipeline(
             raw_payload: (raw.raw ?? raw) as unknown as Json,
             status: "FETCHED",
             stage_updated_at: new Date().toISOString(),
+            content_hash: contentHash,
+            canonical_url: canonicalUrl,
           },
           { onConflict: "source_id,external_id" },
         )
@@ -127,6 +161,41 @@ export async function runIngestionPipeline(
 
       if (rawInsertError || !rawRow) {
         itemsRejected += 1;
+        continue;
+      }
+
+      // Cross-source dedup: has this exact content, or this exact URL,
+      // already been successfully published from a DIFFERENT source?
+      const [{ data: hashMatch }, { data: urlMatch }] = await Promise.all([
+        supabase
+          .from("content_raw_items")
+          .select("content_item_id")
+          .eq("content_hash", contentHash)
+          .neq("id", rawRow.id)
+          .not("content_item_id", "is", null)
+          .limit(1)
+          .maybeSingle(),
+        canonicalUrl
+          ? supabase
+              .from("content_raw_items")
+              .select("content_item_id")
+              .eq("canonical_url", canonicalUrl)
+              .neq("id", rawRow.id)
+              .not("content_item_id", "is", null)
+              .limit(1)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+      ]);
+      const duplicateOfContentItemId = hashMatch?.content_item_id ?? urlMatch?.content_item_id ?? null;
+
+      if (duplicateOfContentItemId) {
+        // Neither published nor rejected this run — already covered by
+        // another source, same as the already-processed skip above.
+        await setRawItemStatus(supabase, rawRow.id, {
+          status: "DUPLICATE",
+          rejectionReason: `Duplicate of an article already published from another source (content_item_id=${duplicateOfContentItemId})`,
+          markPublished: { contentItemId: duplicateOfContentItemId },
+        });
         continue;
       }
 

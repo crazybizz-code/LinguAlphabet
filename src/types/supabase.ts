@@ -330,12 +330,15 @@ export interface Database {
             | "QUALITY_GATE_FAILED"
             | "PUBLISHED"
             | "FAILED"
-            | "RETRY_PENDING";
+            | "RETRY_PENDING"
+            | "DUPLICATE";
           rejection_reason: string | null;
           quality_gate_reasons: Json | null;
           gemini_error: string | null;
           normalization_error: string | null;
           stage_updated_at: string;
+          content_hash: string | null;
+          canonical_url: string | null;
         };
         Insert: {
           id?: string;
@@ -351,6 +354,8 @@ export interface Database {
           gemini_error?: string | null;
           normalization_error?: string | null;
           stage_updated_at?: string;
+          content_hash?: string | null;
+          canonical_url?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["content_raw_items"]["Insert"]>;
         Relationships: [];
