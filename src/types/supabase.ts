@@ -322,6 +322,12 @@ export interface Database {
           fetched_at: string;
           processed_at: string | null;
           content_item_id: string | null;
+          status: "QUEUED" | "FETCHED" | "NORMALIZED" | "AI_ENRICHED" | "QUALITY_GATE_FAILED" | "PUBLISHED" | "FAILED";
+          rejection_reason: string | null;
+          quality_gate_reasons: Json | null;
+          gemini_error: string | null;
+          normalization_error: string | null;
+          stage_updated_at: string;
         };
         Insert: {
           id?: string;
@@ -331,6 +337,12 @@ export interface Database {
           fetched_at?: string;
           processed_at?: string | null;
           content_item_id?: string | null;
+          status?: Database["public"]["Tables"]["content_raw_items"]["Row"]["status"];
+          rejection_reason?: string | null;
+          quality_gate_reasons?: Json | null;
+          gemini_error?: string | null;
+          normalization_error?: string | null;
+          stage_updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["content_raw_items"]["Insert"]>;
         Relationships: [];
