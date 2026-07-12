@@ -2,11 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { cn } from "@/lib/utils";
 import { SESSION_STEP_CONTAINER, SESSION_STEP_CONTENT } from "./sessionStepLayout";
 import type { LearningSessionContent } from "@/lib/learning-session/types";
+
+/** Several approved sources (docs/content-source-policy.md) require visible attribution + a link back — this is that link. Hostname only, not the full URL, to keep it unobtrusive. */
+function sourceHostname(sourceUrl: string): string | null {
+  try {
+    return new URL(sourceUrl).hostname.replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
 
 /**
  * The "read the article" step — Reading's counterpart to the Podcast
@@ -23,6 +32,7 @@ import type { LearningSessionContent } from "@/lib/learning-session/types";
 export function ReadingStep({ content, onNext }: { content: LearningSessionContent; onNext: () => void }) {
   const [reachedEnd, setReachedEnd] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const hostname = content.sourceUrl ? sourceHostname(content.sourceUrl) : null;
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -69,6 +79,19 @@ export function ReadingStep({ content, onNext }: { content: LearningSessionConte
               </p>
             ))}
           </div>
+
+          {hostname && (
+            <a
+              href={content.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-text-tertiary hover:text-text-secondary"
+            >
+              Source: {hostname}
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />
+            </a>
+          )}
+
           <div ref={sentinelRef} aria-hidden="true" />
         </div>
 

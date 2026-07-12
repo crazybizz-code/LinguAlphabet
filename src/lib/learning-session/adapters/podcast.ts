@@ -22,6 +22,7 @@ export function toLearningSessionContent(podcast: PodcastContent): LearningSessi
     durationSeconds: podcast.durationSeconds,
     transcript: podcast.transcript,
     paragraphs: [],
+    sourceUrl: "",
     // Real BBC content always populates these, but the architecture must
     // not depend on that — a temporary placeholder keeps the session fully
     // functional if a future ingested item is missing either field.

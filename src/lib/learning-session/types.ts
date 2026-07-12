@@ -26,6 +26,8 @@ export interface LearningSessionContent {
   transcript: TranscriptSegment[];
   /** Article body, pre-split into readable paragraphs by the article adapter — empty for podcast. */
   paragraphs: string[];
+  /** The original source's URL — populated by the article adapter when the content is externally sourced (e.g. RSS ingestion); empty for podcast and for anything without one. Several approved sources (docs/content-source-policy.md) require visible attribution + a link back, which this exists to satisfy. */
+  sourceUrl: string;
   summary: string;
   vocabulary: VocabularyEntry[];
   quiz: QuizQuestion[];
