@@ -23,9 +23,12 @@ function checkUniversalFields(draft: ContentItemDraft): string[] {
   if (!draft.title.trim()) reasons.push("Missing title");
   if (!draft.description.trim()) reasons.push("Missing description");
   if (!draft.cefrLevelMin || !draft.cefrLevelMax) reasons.push("Missing CEFR level range");
-  if (draft.topics.length === 0 && draft.goalAlignment.length === 0 && draft.tags.length === 0) {
-    reasons.push("Needs at least one topic, goal-alignment, or tag");
-  }
+  // Deliberately no "must have at least one topic/goalAlignment/tag" check
+  // (docs/content-engine.md) — topics/tags are still generated and stored
+  // whenever AI Processing/a provider produces them (see ai-processing.ts's
+  // rawTopics and pipeline.ts's tags merge), they just no longer block
+  // publication when Gemini legitimately returns no controlled-vocabulary
+  // match for a given article.
   if (draft.estimatedTimeMinutes <= 0) reasons.push("Missing or invalid estimated time");
   return reasons;
 }
