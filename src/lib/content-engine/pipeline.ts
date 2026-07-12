@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import { generateEnrichment, estimateReadingTimeMinutes } from "./ai-processing";
+import { GeminiTransientError } from "@/lib/gemini/client";
 import { runQualityGate, publishContentItem } from "./publishing";
 import { upsertContentItem, upsertContentDetails } from "./storage";
 import type { ContentProvider, IngestionRunResult, ProviderDraft, RawContentItem } from "./types";
@@ -148,8 +149,15 @@ export async function runIngestionPipeline(
         enrichment = await generateEnrichment(raw.title, raw.body);
       } catch (error) {
         itemsRejected += 1;
+        // A transient Gemini failure (rate limit / server-side outage,
+        // already retried 3x with backoff inside generateJson) isn't a
+        // permanent rejection — leaving processed_at unset (unchanged
+        // either way) means it's retried automatically on the next run,
+        // but RETRY_PENDING vs FAILED tells a human whether that's
+        // expected to resolve itself or actually needs attention.
+        const isTransient = error instanceof GeminiTransientError;
         await setRawItemStatus(supabase, rawRow.id, {
-          status: "FAILED",
+          status: isTransient ? "RETRY_PENDING" : "FAILED",
           rejectionReason: `AI enrichment failed: ${errorMessage(error)}`,
           geminiError: errorMessage(error),
         });
@@ -157,12 +165,18 @@ export async function runIngestionPipeline(
       }
       await setRawItemStatus(supabase, rawRow.id, { status: "AI_ENRICHED" });
 
-      const { summary, vocabulary, quiz, takeaways, reflection, ...universal } = enrichment;
+      const { summary, vocabulary, quiz, takeaways, reflection, rawTopics, ...universal } = enrichment;
       const draft = {
         ...providerDraft,
         cefrLevelMin: universal.cefrLevelMin,
         cefrLevelMax: universal.cefrLevelMax,
         topics: universal.topics,
+        // Topic-like keywords Gemini identified that didn't survive the
+        // controlled-vocabulary filter above still carry real signal — kept
+        // here, in the freeform tags field, rather than discarded. Never
+        // merged into goalAlignment, a differently-scoped controlled
+        // vocabulary (see EnrichmentResult.rawTopics).
+        tags: Array.from(new Set([...providerDraft.tags, ...rawTopics])),
         estimatedTimeMinutes: estimateReadingTimeMinutes(raw.body),
         detailsRow: { ...providerDraft.detailsRow, summary, vocabulary, quiz, takeaways, reflection, content_item_id: providerDraft.id },
       };

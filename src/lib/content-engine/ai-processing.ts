@@ -138,8 +138,11 @@ export async function generateEnrichment(title: string, body: string): Promise<E
   return {
     cefrLevelMin: result.cefrLevelMin,
     cefrLevelMax: result.cefrLevelMax,
-    // Drop anything Gemini hallucinated outside the controlled vocabulary.
+    // Drop anything Gemini hallucinated outside the controlled vocabulary
+    // from `topics` — but keep the full list in `rawTopics` so it isn't
+    // simply thrown away (see EnrichmentResult's rawTopics doc comment).
     topics: result.topics.filter((topic) => controlledTopics.includes(topic)),
+    rawTopics: result.topics,
     summary: result.summary,
     vocabulary: result.vocabulary.map((entry) => ({
       word: entry.word,

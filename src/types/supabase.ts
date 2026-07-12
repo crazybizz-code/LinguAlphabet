@@ -322,7 +322,15 @@ export interface Database {
           fetched_at: string;
           processed_at: string | null;
           content_item_id: string | null;
-          status: "QUEUED" | "FETCHED" | "NORMALIZED" | "AI_ENRICHED" | "QUALITY_GATE_FAILED" | "PUBLISHED" | "FAILED";
+          status:
+            | "QUEUED"
+            | "FETCHED"
+            | "NORMALIZED"
+            | "AI_ENRICHED"
+            | "QUALITY_GATE_FAILED"
+            | "PUBLISHED"
+            | "FAILED"
+            | "RETRY_PENDING";
           rejection_reason: string | null;
           quality_gate_reasons: Json | null;
           gemini_error: string | null;

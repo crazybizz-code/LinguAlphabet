@@ -54,6 +54,8 @@ export interface EnrichmentResult {
   cefrLevelMax: CefrLevel;
   /** Filtered to the controlled vocabulary (src/lib/constants/topics.ts) — never a hallucinated value. */
   topics: string[];
+  /** Every topic-like keyword Gemini returned, before that filter — real signal (e.g. "Robotics") that doesn't fit the 10-word controlled list, folded into a draft's freeform `tags` rather than discarded (docs/content-engine.md). Never written to `goalAlignment`, a different controlled vocabulary that happens to share some words (e.g. "Travel") with the topic list. */
+  rawTopics: string[];
   summary: string;
   vocabulary: VocabularyEntry[];
   quiz: QuizQuestion[];
