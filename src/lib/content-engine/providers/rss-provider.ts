@@ -98,6 +98,10 @@ export async function mapFeedItemToRaw(item: FeedItem): Promise<RawContentItem> 
     body: fullBody ?? rssBody,
     url: item.link,
     publishedAt: item.isoDate ?? item.pubDate,
+    // rss-parser normalizes RSS's <dc:creator> to `.creator`; Atom's
+    // <author><name> lands on `.creator` too, but some feeds only expose
+    // a raw `author` string field — checked as a fallback.
+    author: item.creator ?? stringField(item, "author"),
     raw: item,
   };
 }

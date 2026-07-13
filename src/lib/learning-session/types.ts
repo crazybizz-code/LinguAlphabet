@@ -28,6 +28,8 @@ export interface LearningSessionContent {
   paragraphs: string[];
   /** The original source's URL — populated by the article adapter when the content is externally sourced (e.g. RSS ingestion); empty for podcast and for anything without one. Several approved sources (docs/content-source-policy.md) require visible attribution + a link back, which this exists to satisfy. */
   sourceUrl: string;
+  /** Original author byline — populated by the article adapter when the source provides one; empty for podcast and for anything without one. Some approved sources (docs/content-source-policy.md, e.g. Global Voices) require this alongside sourceUrl. */
+  author: string;
   summary: string;
   vocabulary: VocabularyEntry[];
   quiz: QuizQuestion[];

@@ -56,6 +56,7 @@ export function toLearningSessionContent(article: ArticleContent): LearningSessi
     transcript: [],
     paragraphs: extractParagraphs(article.body),
     sourceUrl: article.sourceUrl,
+    author: article.author,
     // Real ingested content always populates these, but the architecture must
     // not depend on that — a temporary placeholder keeps the session fully
     // functional if a future ingested item is missing either field.

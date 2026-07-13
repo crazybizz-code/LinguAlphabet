@@ -28,6 +28,8 @@ export interface RawContentItem {
   url?: string;
   publishedAt?: string;
   thumbnailUrl?: string;
+  /** Original creator's byline, when the source exposes one (e.g. RSS `dc:creator`) — some approved sources (docs/content-source-policy.md, e.g. Global Voices' CC license) require author-name attribution alongside the source link. */
+  author?: string;
   /** The complete original source record (an RSS item, an API payload) — preserved as-is for content_raw_items.raw_payload, never interpreted by the pipeline. */
   raw?: unknown;
 }

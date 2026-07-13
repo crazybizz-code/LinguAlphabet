@@ -104,6 +104,7 @@ function toArticleContent(item: ContentItemRow, details: ArticleDetailsRow): Art
     publishedAt: item.published_at ?? item.created_at,
     body: details.body,
     sourceUrl: details.source_url ?? "",
+    author: details.author ?? "",
     readingTimeMinutes: details.reading_time_minutes,
     summary: details.summary ?? "",
     takeaways: (details.takeaways ?? []) as unknown as string[],

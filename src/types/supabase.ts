@@ -136,6 +136,7 @@ export interface Database {
           content_item_id: string;
           body: string;
           source_url: string | null;
+          author: string | null;
           reading_time_minutes: number;
           summary: string | null;
           takeaways: Json;
@@ -147,6 +148,7 @@ export interface Database {
           content_item_id: string;
           body: string;
           source_url?: string | null;
+          author?: string | null;
           reading_time_minutes: number;
           summary?: string | null;
           takeaways?: Json;

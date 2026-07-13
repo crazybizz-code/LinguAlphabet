@@ -70,6 +70,7 @@ export async function GET(request: Request) {
         detailsRow: {
           body: raw.body,
           source_url: raw.url ?? "",
+          author: raw.author ?? "",
           reading_time_minutes: estimateReadingTimeMinutes(raw.body),
         },
       }),

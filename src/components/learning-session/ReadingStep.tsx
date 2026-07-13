@@ -87,7 +87,7 @@ export function ReadingStep({ content, onNext }: { content: LearningSessionConte
               rel="noopener noreferrer"
               className="mt-5 inline-flex items-center gap-1.5 text-xs font-medium text-text-tertiary hover:text-text-secondary"
             >
-              Source: {hostname}
+              {content.author ? `By ${content.author} · Source: ${hostname}` : `Source: ${hostname}`}
               <ExternalLink className="h-3 w-3" aria-hidden="true" />
             </a>
           )}

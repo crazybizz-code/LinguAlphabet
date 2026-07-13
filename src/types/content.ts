@@ -71,6 +71,8 @@ export interface ArticleContent extends ContentItem {
   contentType: "article";
   body: string;
   sourceUrl: string;
+  /** Original author byline, when the source provides one — some approved sources (docs/content-source-policy.md, e.g. Global Voices) require crediting it alongside sourceUrl. Empty when the source doesn't expose one. */
+  author: string;
   readingTimeMinutes: number;
   summary: string;
   takeaways: string[];
