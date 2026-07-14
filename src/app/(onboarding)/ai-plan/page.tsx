@@ -54,12 +54,13 @@ export default function AiPlanPage() {
   useEffect(() => {
     const timer = setTimeout(async () => {
       const supabase = createClient();
+      let saved = false;
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
-          await supabase
+          const { error } = await supabase
             .from("profiles")
             .update({
               username: profile.displayName || undefined,
@@ -70,11 +71,16 @@ export default function AiPlanPage() {
               onboarding_completed: true,
             })
             .eq("user_id", user.id);
+          saved = !error;
         }
       } catch {
-        // Non-fatal — the plan still renders from local onboarding data.
+        // saved stays false — handled below.
       }
-      clearOnboardingData();
+      // Only clear the local backup once it's actually persisted. If there
+      // was no session or the write failed, keeping it means the learner's
+      // answers survive to be saved on a later visit instead of being lost
+      // silently (the old behavior cleared unconditionally here).
+      if (saved) clearOnboardingData();
       setPhase("reveal");
       setTimeout(() => setRevealed(true), 50);
     }, 3200);

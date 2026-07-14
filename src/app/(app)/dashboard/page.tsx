@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   const [{ data: profile }, podcasts, { data: progressRows }, { data: previousMission }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username, level, streak, last_study_date, english_level, goal, daily_time_minutes, interests")
+      .select("username, level, streak, last_study_date, english_level, goal, daily_time_minutes, interests, onboarding_completed")
       .eq("user_id", user.id)
       .single(),
     getPublishedPodcasts(supabase),
@@ -34,6 +34,8 @@ export default async function DashboardPage() {
       .limit(1)
       .maybeSingle(),
   ]);
+
+  if (!profile?.onboarding_completed) redirect("/welcome");
 
   const rows = progressRows ?? [];
   const dailyMinutes = profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES;

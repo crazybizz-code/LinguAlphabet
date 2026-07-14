@@ -15,11 +15,13 @@ export default async function ProfilePage() {
   const [{ data: profile }, { data: progressRows }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username, level, streak, longest_streak, english_level, goal, daily_time_minutes, interests")
+      .select("username, level, streak, longest_streak, english_level, goal, daily_time_minutes, interests, onboarding_completed")
       .eq("user_id", user.id)
       .single(),
     supabase.from("progress").select("completed").eq("user_id", user.id),
   ]);
+
+  if (!profile?.onboarding_completed) redirect("/welcome");
 
   const completedCount = (progressRows ?? []).filter((row) => row.completed).length;
   const streak = profile?.streak ?? 0;

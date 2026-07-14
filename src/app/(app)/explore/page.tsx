@@ -15,11 +15,13 @@ export default async function ExplorePage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, podcasts, articles, { data: progressRows }] = await Promise.all([
-    supabase.from("profiles").select("english_level, goal, interests").eq("user_id", user.id).single(),
+    supabase.from("profiles").select("english_level, goal, interests, onboarding_completed").eq("user_id", user.id).single(),
     getPublishedPodcasts(supabase),
     getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
   ]);
+
+  if (!profile?.onboarding_completed) redirect("/welcome");
 
   const rows = progressRows ?? [];
   const byId = new Map(podcasts.map((podcast) => [podcast.id, podcast]));

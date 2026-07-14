@@ -9,5 +9,12 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("onboarding_completed")
+    .eq("user_id", user.id)
+    .single();
+  if (!profile?.onboarding_completed) redirect("/welcome");
+
   return <SettingsView email={user.email ?? ""} />;
 }

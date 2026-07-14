@@ -21,7 +21,7 @@ export default async function ProgressPage() {
   const [{ data: profile }, podcasts, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("streak, longest_streak, level, xp, xp_to_next, last_study_date, daily_time_minutes")
+      .select("streak, longest_streak, level, xp, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed")
       .eq("user_id", user.id)
       .single(),
     getPublishedPodcasts(supabase),
@@ -29,6 +29,8 @@ export default async function ProgressPage() {
     supabase.from("vocabulary").select("*").eq("user_id", user.id),
     supabase.from("notes").select("*").eq("user_id", user.id),
   ]);
+
+  if (!profile?.onboarding_completed) redirect("/welcome");
 
   const rows = progressRows ?? [];
   const dailyGoalMinutes = profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES;
