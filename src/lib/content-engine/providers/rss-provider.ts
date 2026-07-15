@@ -165,17 +165,29 @@ async function fetchArticlePage(url: string): Promise<{ body: string | null; ogI
  * the primary source. Preview image follows the same preference: an RSS-
  * provided media image is trusted first (cheap, no extra fetch needed),
  * then the fetched page's own og:image as a last resort.
+ *
+ * `feedContentOnly` (set per-source in `content_sources.config`) skips the
+ * page fetch entirely and uses only what the RSS feed itself provides.
+ * Required for sources whose own terms forbid full-page fetching (e.g.
+ * TechCrunch's RSS Terms of Use, docs/content-source-policy.md) — those
+ * feeds are only usable this way in the first place because they already
+ * publish the complete article in `content:encoded`, so nothing is lost.
  */
-export async function mapFeedItemToRaw(item: FeedItem): Promise<RawContentItem> {
+export async function mapFeedItemToRaw(
+  item: FeedItem,
+  options?: { feedContentOnly?: boolean },
+): Promise<RawContentItem> {
   const externalId = item.guid ?? item.link;
   if (!externalId) {
     throw new Error("RSS provider: item has neither guid nor link to use as an external id");
   }
 
   const rssBody = extractBodyFromRssFields(item);
-  const { body: fullBody, ogImage, reason } = item.link
-    ? await fetchArticlePage(item.link)
-    : { body: null, ogImage: undefined, reason: "no_link" };
+  const { body: fullBody, ogImage, reason } = options?.feedContentOnly
+    ? { body: null, ogImage: undefined, reason: "feed_content_only" }
+    : item.link
+      ? await fetchArticlePage(item.link)
+      : { body: null, ogImage: undefined, reason: "no_link" };
   const rssImage = extractImageFromRssFields(item);
   const thumbnailUrl = rssImage ?? ogImage;
 
@@ -217,6 +229,7 @@ export const rssArticleProvider: ContentProvider = {
     if (typeof feedUrl !== "string" || !feedUrl) {
       throw new Error("RSS provider: sourceConfig.feedUrl is required");
     }
+    const feedContentOnly = sourceConfig.feedContentOnly === true;
 
     const feed = await parser.parseURL(feedUrl);
     // Sequential, not Promise.all — each item now triggers a real fetch
@@ -224,7 +237,7 @@ export const rssArticleProvider: ContentProvider = {
     // requests would be an impolite way to treat someone else's server.
     const items: RawContentItem[] = [];
     for (const item of feed.items as unknown as FeedItem[]) {
-      items.push(await mapFeedItemToRaw(item));
+      items.push(await mapFeedItemToRaw(item, { feedContentOnly }));
     }
     return items;
   },

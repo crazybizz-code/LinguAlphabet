@@ -299,6 +299,19 @@ from this source pending direct written permission from the site owner).
 - **Notes:** Strong candidate to prioritize for topic diversity alongside
   legal safety.
 
+### European Commission (Press Corner) — ⚠️ disabled, see note
+
+**Status update:** disabled in production
+(`supabase/content-source-swap-eu-for-techcrunch.sql`) — scored lowest
+(5.3) in `docs/content-quality-audit-by-source.md`, and was swapped for
+TechCrunch below to fix the "article body only ~100-170 chars" production
+issue (this source, like every other government press-release feed
+enabled at the time, depends on a full-page fetch that was resolving to
+null in production). This is a quality/operational decision, not a legal
+one — the APPROVED classification below is unchanged and this source can
+be re-enabled later once the page-fetch/bot-blocking question is
+resolved for the government-source cohort as a whole.
+
 ### European Commission (Press Corner)
 - **Copyright:** EU institutional content, generally released under the
   EU's default open reuse policy (Commission Decision 2011/833/EU, commonly
@@ -358,9 +371,43 @@ from this source pending direct written permission from the site owner).
 - **Notes:** Straightforward, no caveats found beyond the general "verify
   any embedded third-party material" federal-content default.
 
+### TechCrunch — moved from REQUIRES_PERMISSION, both conditions now met
+- **Copyright:** Standard commercial copyright (Yahoo/TechCrunch Media).
+- **RSS availability:** Yes, confirmed working, full content via
+  `content:encoded` (`techcrunch.com/feed/`) — the entire article body is
+  in the feed itself, not an excerpt.
+- **Commercial usage rights:** Conditionally permitted per TechCrunch's own
+  RSS Terms of Use — restricted to *only* the content provided in the
+  feed (no full-page fetching), with mandatory attribution and a link back
+  to the original article. **Both conditions are now enforced, not just
+  noted:** attribution + link-back already existed generically in
+  `ReadingStep.tsx` (built for GOV.UK/Global Voices); "no full-page
+  fetching" is enforced via the new `feedContentOnly` source-config flag
+  (`rss-provider.ts`), which skips `fetchArticlePage` entirely for this
+  source — the RSS body is the only body ever used.
+- **Educational reuse rights:** Not separately addressed; governed by the
+  same RSS terms.
+- **Attribution requirements:** Required, explicit — attribution + link to
+  the full article on TechCrunch. Satisfied by the existing attribution UI.
+- **Readability compatibility:** N/A by design — full-page fetching is
+  never attempted for this source; feed content is sufficient and already
+  HTML-structured compatibly with our existing pipeline.
+- **AI enrichment compatibility:** Good — substantial tech journalism,
+  though topic profile (startups/VC/AI industry) skews adult/professional
+  rather than general-interest.
+- **Risk level:** Low, now that both conditions above are enforced in
+  code rather than just documented as required.
+- **Notes:** Worth being transparent that TechCrunch is documented as
+  blocking Anthropic's ClaudeBot in its `robots.txt` — a different bot
+  than ours, and not a legal bar to RSS feed use (no page fetch happens
+  for this source at all), but worth the team being aware of given who's
+  implementing this. Enabled in place of European Commission Press Corner
+  (see that entry's status note above) via
+  `supabase/content-source-swap-eu-for-techcrunch.sql`.
+
 ---
 
-## REQUIRES_PERMISSION (6)
+## REQUIRES_PERMISSION (5)
 
 ### Breaking News English — **already in production; recommend pausing new ingestion**
 - **Copyright:** Held by Sean Banville (2004–2023 per the site's own
@@ -387,35 +434,6 @@ from this source pending direct written permission from the site owner).
   and in-app republishing, or pause new ingestion from this source until
   that's resolved.** This is the most consequential finding in this
   document — flagging clearly rather than downgrading quietly.
-
-### TechCrunch
-- **Copyright:** Standard commercial copyright (Yahoo/TechCrunch Media).
-- **RSS availability:** Yes, confirmed working, full content via
-  `content:encoded` (`techcrunch.com/feed/`).
-- **Commercial usage rights:** Conditionally permitted per TechCrunch's own
-  RSS Terms of Use — but restricted to *only* the content provided in the
-  feed (no full-page fetching), with mandatory attribution and a link back
-  to the original article.
-- **Educational reuse rights:** Not separately addressed; governed by the
-  same RSS terms.
-- **Attribution requirements:** Required, explicit — attribution + link to
-  the full article on TechCrunch.
-- **Readability compatibility:** N/A — full-page fetching must not be used
-  for this source per its own terms; feed content is sufficient and
-  already HTML-structured compatibly with our existing pipeline.
-- **AI enrichment compatibility:** Good — substantial tech journalism,
-  though topic profile (startups/VC/AI industry) skews adult/professional
-  rather than general-interest.
-- **Risk level:** Medium — legally usable under clear conditions, but not
-  yet compliant with our own architecture (no attribution/link-back UI
-  exists anywhere in the Article Learning Session today).
-- **Notes:** Per the prior decision in this project: implement the
-  attribution/link-back model (needed for GOV.UK's OGL requirement too, see
-  above) before enabling this source. Also worth being transparent that
-  TechCrunch is documented as blocking Anthropic's ClaudeBot in its
-  `robots.txt` — a different bot than ours, and not a legal bar to RSS
-  feed use, but worth the team being aware of given who's implementing
-  this.
 
 ### UN Tourism
 - **Copyright:** UN Tourism's own copyright page states all publications
@@ -584,15 +602,16 @@ from this source pending direct written permission from the site owner).
 
 | Classification | Count | Sources |
 |---|---|---|
-| APPROVED | 15 | NASA News, VOA Learning English, NOAA/NWS, CDC Newsroom, National Park Service, USGS, NIH, Library of Congress, Peace Corps, UK Government (GOV.UK), Wikinews, Global Voices, European Commission Press Corner, FEMA, EPA |
-| REQUIRES_PERMISSION | 6 | Breaking News English (⚠️ already in production), TechCrunch, UN Tourism, WHO, Smithsonian Magazine, British Council LearnEnglish |
+| APPROVED | 16 | NASA News, VOA Learning English, NOAA/NWS, CDC Newsroom, National Park Service, USGS, NIH, Library of Congress, Peace Corps, UK Government (GOV.UK), Wikinews, Global Voices, European Commission Press Corner (⚠️ disabled, see note), FEMA, EPA, TechCrunch |
+| REQUIRES_PERMISSION | 5 | Breaking News English (⚠️ already in production), UN Tourism, WHO, Smithsonian Magazine, British Council LearnEnglish |
 | NOT_ALLOWED | 3 | Reader's Digest, News in Levels, ProPublica |
 | Needs more research | 2 | ESL Fast, USA.gov |
 
 **The 15-source target is met without relying on Breaking News English**,
 which is deliberate given its REQUIRES_PERMISSION status above — the
-recommended 15 production-safe sources for LinguABC are the full APPROVED
-list.
+recommended production-safe sources for LinguABC are the full APPROVED
+list, currently 13 actually enabled (European Commission Press Corner is
+APPROVED but operationally disabled — see its status note above).
 
 ## Recommended next steps (not implemented — policy only, per this task)
 
