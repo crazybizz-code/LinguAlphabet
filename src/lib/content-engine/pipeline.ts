@@ -124,6 +124,11 @@ export async function runIngestionPipeline(
   let itemsFetched = 0;
   let itemsPublished = 0;
   let itemsRejected = 0;
+  // The one rejection branch below (raw upsert failure) has no
+  // content_raw_items row to attach a reason to, per this function's own
+  // docstring above -- captured here instead so the real Postgres error
+  // isn't silently discarded the way it was before.
+  const rawInsertFailures: Array<{ externalId: string; message: string }> = [];
 
   try {
     const rawItems = await provider.fetchRawItems(options.sourceConfig);
@@ -161,6 +166,10 @@ export async function runIngestionPipeline(
 
       if (rawInsertError || !rawRow) {
         itemsRejected += 1;
+        rawInsertFailures.push({
+          externalId: raw.externalId,
+          message: rawInsertError?.message ?? "upsert returned no row",
+        });
         continue;
       }
 
@@ -298,6 +307,7 @@ export async function runIngestionPipeline(
         items_published: itemsPublished,
         items_rejected: itemsRejected,
         status: "completed",
+        error: rawInsertFailures.length > 0 ? ({ rawInsertFailures } as unknown as Json) : null,
       })
       .eq("id", run.id);
 
