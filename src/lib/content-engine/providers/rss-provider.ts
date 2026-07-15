@@ -114,8 +114,17 @@ function extractOgImage(document: Document): string | undefined {
  * server decision. Returns nulls on any unrecoverable failure — a
  * paywall, a layout Readability can't parse, or suspiciously short
  * extracted text — so the caller can fall back to the RSS-provided text.
+ *
+ * `reason` records exactly why a null came back — this used to be
+ * swallowed entirely (a bare `return { body: null }` with no trace of
+ * whether it was a bad HTTP status, a network error, or Readability
+ * finding nothing usable), which made "production stores short RSS
+ * excerpts instead of full articles" impossible to actually diagnose
+ * from real ingestion runs. Logged via console.warn (captured by Vercel's
+ * function logs) rather than persisted to a new column — this is
+ * production-run visibility, not a schema/architecture change.
  */
-async function fetchArticlePage(url: string): Promise<{ body: string | null; ogImage?: string }> {
+async function fetchArticlePage(url: string): Promise<{ body: string | null; ogImage?: string; reason?: string }> {
   for (let attempt = 1; attempt <= ARTICLE_FETCH_MAX_ATTEMPTS; attempt++) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), ARTICLE_FETCH_TIMEOUT_MS);
@@ -124,27 +133,29 @@ async function fetchArticlePage(url: string): Promise<{ body: string | null; ogI
         signal: controller.signal,
         headers: { "User-Agent": "LinguABCBot/1.0 (content ingestion for an English-learning app)" },
       });
-      if (!response.ok) return { body: null };
+      if (!response.ok) return { body: null, reason: `http_${response.status}` };
 
       const html = await response.text();
       const dom = new JSDOM(html, { url });
       const ogImage = extractOgImage(dom.window.document);
       const article = new Readability(dom.window.document).parse();
-      if (!article?.content) return { body: null, ogImage };
-      if ((article.textContent ?? "").trim().length < MIN_EXTRACTED_TEXT_LENGTH) return { body: null, ogImage };
+      if (!article?.content) return { body: null, ogImage, reason: "readability_no_content" };
+      const textLength = (article.textContent ?? "").trim().length;
+      if (textLength < MIN_EXTRACTED_TEXT_LENGTH) return { body: null, ogImage, reason: `readability_too_short_${textLength}chars` };
 
       return { body: article.content, ogImage };
-    } catch {
+    } catch (error) {
       if (attempt < ARTICLE_FETCH_MAX_ATTEMPTS) {
         await sleep(ARTICLE_FETCH_RETRY_DELAY_MS);
         continue;
       }
-      return { body: null };
+      const message = error instanceof Error ? error.message : String(error);
+      return { body: null, reason: `fetch_threw_${message}` };
     } finally {
       clearTimeout(timeout);
     }
   }
-  return { body: null };
+  return { body: null, reason: "unreachable" };
 }
 
 /**
@@ -162,8 +173,19 @@ export async function mapFeedItemToRaw(item: FeedItem): Promise<RawContentItem> 
   }
 
   const rssBody = extractBodyFromRssFields(item);
-  const { body: fullBody, ogImage } = item.link ? await fetchArticlePage(item.link) : { body: null, ogImage: undefined };
+  const { body: fullBody, ogImage, reason } = item.link
+    ? await fetchArticlePage(item.link)
+    : { body: null, ogImage: undefined, reason: "no_link" };
   const rssImage = extractImageFromRssFields(item);
+  const thumbnailUrl = rssImage ?? ogImage;
+
+  if (!fullBody || !thumbnailUrl) {
+    console.warn(
+      `[rss-provider] ${item.link ?? externalId}: body=${fullBody ? "full" : `rss_fallback(${reason})`}, image=${
+        rssImage ? "rss_media" : ogImage ? "og_image" : "none"
+      }`,
+    );
+  }
 
   return {
     externalId,
@@ -171,7 +193,7 @@ export async function mapFeedItemToRaw(item: FeedItem): Promise<RawContentItem> 
     body: fullBody ?? rssBody,
     url: item.link,
     publishedAt: item.isoDate ?? item.pubDate,
-    thumbnailUrl: rssImage ?? ogImage,
+    thumbnailUrl,
     // rss-parser normalizes RSS's <dc:creator> to `.creator`; Atom's
     // <author><name> lands on `.creator` too, but some feeds only expose
     // a raw `author` string field — checked as a fallback.

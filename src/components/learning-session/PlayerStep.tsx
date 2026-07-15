@@ -344,6 +344,67 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
     setListenedSeconds(duration);
   }
 
+  // Media Session API: gives the OS a "now playing" surface (lock screen,
+  // notification shade, headset/earbud buttons, smartwatch) wired to this
+  // exact audio element — on mobile browsers that support it (current
+  // Chrome/Edge on Android, Safari on iOS 15+), this is what keeps
+  // playback going and controllable when the screen turns off, not a
+  // separate mechanism. Feature-checked and a no-op everywhere else
+  // (older browsers, SSR) — every browser-supported technique here is
+  // just "correctly hand control of the existing <audio> element to the
+  // Media Session API," nothing about playback itself changes.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: content.title,
+      artist: "LinguABC",
+      artwork: content.thumbnailUrl ? [{ src: content.thumbnailUrl, sizes: "512x512", type: "image/jpeg" }] : [],
+    });
+
+    return () => {
+      navigator.mediaSession.metadata = null;
+    };
+  }, [content.title, content.thumbnailUrl]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+
+    const audio = audioRef.current;
+    navigator.mediaSession.setActionHandler("play", () => audio?.play());
+    navigator.mediaSession.setActionHandler("pause", () => audio?.pause());
+    navigator.mediaSession.setActionHandler("seekbackward", (details) => skip(-(details.seekOffset ?? SKIP_SECONDS)));
+    navigator.mediaSession.setActionHandler("seekforward", (details) => skip(details.seekOffset ?? SKIP_SECONDS));
+    navigator.mediaSession.setActionHandler("seekto", (details) => {
+      if (details.seekTime != null) seek(details.seekTime);
+    });
+
+    return () => {
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
+      navigator.mediaSession.setActionHandler("seekbackward", null);
+      navigator.mediaSession.setActionHandler("seekforward", null);
+      navigator.mediaSession.setActionHandler("seekto", null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duration]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator) || !("setPositionState" in navigator.mediaSession)) return;
+    if (!duration || duration <= 0) return;
+    try {
+      navigator.mediaSession.setPositionState({ duration, playbackRate, position: Math.min(currentTime, duration) });
+    } catch {
+      // Some browsers throw if called with a stale/inconsistent position
+      // during a seek — harmless to skip a single update.
+    }
+  }, [duration, currentTime, playbackRate]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+  }, [isPlaying]);
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 30 }}

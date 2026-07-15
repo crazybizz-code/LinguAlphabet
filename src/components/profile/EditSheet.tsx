@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState, type ReactNode } from "react";
+import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { X } from "lucide-react";
 
 export interface EditSheetProps {
@@ -42,6 +42,12 @@ function useLockBodyScroll(locked: boolean) {
   }, [locked]);
 }
 
+/** Drag-to-expand/dismiss thresholds — offset in px, velocity in px/s. Matches the feel of native iOS/Android bottom sheets: a small flick counts the same as a slow, longer drag. */
+const EXPAND_OFFSET_THRESHOLD = 60;
+const COLLAPSE_OFFSET_THRESHOLD = 60;
+const DISMISS_OFFSET_THRESHOLD = 100;
+const VELOCITY_THRESHOLD = 500;
+
 /**
  * Shared chrome for every Learning Profile field editor (English Level,
  * Goal, Daily Time, Interests) — bottom sheet on mobile, centered modal on
@@ -51,6 +57,36 @@ function useLockBodyScroll(locked: boolean) {
  */
 export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
   useLockBodyScroll(open);
+  // Resets to collapsed every time the sheet opens — AnimatePresence fully
+  // unmounts this subtree while closed, so a fresh `useState(false)` here
+  // is enough, no extra effect needed.
+  const [expanded, setExpanded] = useState(false);
+
+  /**
+   * Three snap points, one step at a time (full -> partial -> dismissed),
+   * matching how native bottom sheets behave — not a straight-line
+   * mapping from drag distance to dismiss, so a small overshoot while
+   * trying to collapse from full never accidentally closes the sheet.
+   * A fast flick counts the same as a slower, longer drag, same as a
+   * native sheet's velocity-aware snapping.
+   */
+  function handleHandleDragEnd(_event: unknown, info: PanInfo) {
+    const offsetY = info.offset.y;
+    const isFastUp = info.velocity.y < -VELOCITY_THRESHOLD;
+    const isFastDown = info.velocity.y > VELOCITY_THRESHOLD;
+
+    if (!expanded) {
+      if (offsetY < -EXPAND_OFFSET_THRESHOLD || isFastUp) {
+        setExpanded(true);
+      } else if (offsetY > DISMISS_OFFSET_THRESHOLD || isFastDown) {
+        onClose();
+      }
+      // else: released in the dead zone — Framer's dragConstraints
+      // already snaps the handle back, nothing else to do.
+    } else if (offsetY > COLLAPSE_OFFSET_THRESHOLD || isFastDown) {
+      setExpanded(false);
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -80,12 +116,27 @@ export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
             // per normal CSS cascade — same 85% proportion on every unit,
             // just no longer thrown off by mobile browser chrome resizing
             // the viewport (the classic plain-vh bottom-sheet bug).
-            className="relative z-10 flex max-h-[85vh] max-h-[85svh] max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-[2rem] bg-bg-card shadow-card-hero sm:max-w-lg sm:rounded-[2rem]"
+            // `expanded` swaps the mobile height to a full 100dvh sheet —
+            // desktop is unaffected (sm:max-h-none/sm:h-auto below always
+            // wins on desktop regardless of `expanded`, since there's no
+            // handle to drag there in the first place).
+            className={`relative z-10 flex w-full flex-col overflow-hidden rounded-t-[2rem] bg-bg-card shadow-card-hero transition-[max-height,height] duration-300 ease-out sm:h-auto sm:max-h-[85vh] sm:max-w-lg sm:rounded-[2rem] ${
+              expanded
+                ? "h-[100vh] h-[100svh] h-[100dvh] max-h-none"
+                : "max-h-[85vh] max-h-[85svh] max-h-[85dvh]"
+            }`}
           >
-            <div className="flex shrink-0 justify-center pt-3 sm:hidden" aria-hidden="true">
+            <motion.div
+              className="flex shrink-0 touch-none justify-center py-3 sm:hidden"
+              aria-hidden="true"
+              drag="y"
+              dragConstraints={{ top: 0, bottom: 0 }}
+              dragElastic={0.15}
+              onDragEnd={handleHandleDragEnd}
+            >
               <div className="h-1.5 w-10 rounded-full bg-border" />
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 pt-3 sm:pt-6">
+            </motion.div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 pt-0 sm:pt-6">
               <div className="mb-5 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-text-primary">{title}</h2>
                 <button
