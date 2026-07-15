@@ -7,6 +7,24 @@ under what conditions. This document is the single source of truth for
 that decision — a source should never be added to `content_sources` without
 an entry here first.
 
+## ⚠️ Current production state: reset to exactly one source
+
+Every source below except **TechCrunch** was disabled and its published
+articles deleted (`supabase/content-engine-reset-single-source.sql`) after
+production repeatedly failed to produce full article bodies through the
+page-fetch + Readability path every other source depended on.
+`rss-provider.ts` no longer does a second HTTP fetch or Readability
+extraction at all — it only stores what the RSS feed itself returns.
+TechCrunch is the sole active source because its feed is confirmed to
+carry the complete article in `content:encoded`, needing no page fetch.
+Every entry below (including the ones marked APPROVED) reflects the
+*legal/licensing* research done before this reset and is not itself a
+statement of what's currently enabled — check `content_sources` in
+Supabase for that. Additional sources will be re-added one at a time,
+each independently verified against real production data, per the
+"only after one source works perfectly will we add additional sources"
+directive that produced this reset.
+
 ## Why this exists
 
 The Content Engine's architecture (providers, pipeline, quality gate) is
