@@ -14,10 +14,19 @@
 //   SELECT id FROM content_sources WHERE provider_id = 'the_conversation';
 //
 // Requires tsx (npm install --no-save tsx) and real Supabase env vars
-// (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY) available in
-// this shell/.env.
+// (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY) in .env.local
+// or .env.
 //
 // Run: npx tsx scripts/check-conversation-pipeline.mjs <source-id>
+
+// tsx does NOT auto-load .env.local -- that's a Next.js behavior, done by
+// Next itself at server startup. Standalone runs must load it explicitly,
+// and @next/env (bundled with Next) is the exact loader Next uses, so
+// .env.local/.env precedence matches production exactly. Safe here even
+// though ESM imports are hoisted: createServiceClient() reads process.env
+// inside its function body at call time, after this has run.
+import { loadEnvConfig } from "@next/env";
+loadEnvConfig(process.cwd());
 
 import { createHash } from "node:crypto";
 import { theConversationProvider } from "../src/lib/content-engine/providers/the-conversation-provider.ts";
