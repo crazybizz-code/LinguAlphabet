@@ -22,11 +22,16 @@
 // tsx does NOT auto-load .env.local -- that's a Next.js behavior, done by
 // Next itself at server startup. Standalone runs must load it explicitly,
 // and @next/env (bundled with Next) is the exact loader Next uses, so
-// .env.local/.env precedence matches production exactly. Safe here even
-// though ESM imports are hoisted: createServiceClient() reads process.env
-// inside its function body at call time, after this has run.
-import { loadEnvConfig } from "@next/env";
-loadEnvConfig(process.cwd());
+// .env.local/.env precedence matches production exactly. Must be a
+// default import: @next/env is a CJS bundle whose exports are defined via
+// Object.defineProperty getters, which Node's static CJS-named-export
+// detection can't see -- a named `import { loadEnvConfig }` throws
+// SyntaxError under ESM even though the function exists at runtime.
+// Safe here even though ESM imports are hoisted: createServiceClient()
+// reads process.env inside its function body at call time, after this
+// has run.
+import nextEnv from "@next/env";
+nextEnv.loadEnvConfig(process.cwd());
 
 import { createHash } from "node:crypto";
 import { theConversationProvider } from "../src/lib/content-engine/providers/the-conversation-provider.ts";
