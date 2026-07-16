@@ -418,6 +418,40 @@ resolved for the government-source cohort as a whole.
   the same verification discipline TechCrunch's assumed body length
   needed and didn't get before enabling.
 
+### The Conversation
+- **Copyright:** CC BY-ND (Attribution-**No**-Derivatives) — confirmed via
+  their own Republishing Guidelines. Stricter than every other source
+  used so far: the text may not be altered at all beyond the publisher's
+  own defined house-style exceptions.
+- **RSS availability:** Yes, confirmed — `theconversation.com/articles.atom`
+  (their global Atom feed; `/global/articles.rss` was tested first and
+  confirmed wrong — HTTP 406, `Content-Type: text/html`).
+- **Republish mechanism:** Confirmed via a real Playwright network capture
+  of the "Republish this article" button on a live article page (not
+  guessed, not scraped from the public page): `GET
+  https://theconversation.com/share/{articleId}`, no auth, plain browser
+  headers. The response's `<textarea name="non-attributed-body">` holds
+  The Conversation's own complete required republish package — article
+  body, author attribution, CC notice, and their tracking counter,
+  bundled together by them.
+- **Commercial usage rights:** Permitted under their republishing terms.
+- **Attribution requirements:** Required — satisfied by keeping the whole
+  textarea package intact in `body` (not split apart), so the attribution
+  line and tracking counter survive into whatever eventually renders it,
+  without any change to `ReadingStep.tsx`.
+- **Readability compatibility:** N/A by design — no page scraping, no
+  Readability; body comes exclusively from the confirmed share endpoint.
+- **AI enrichment compatibility:** Good — full narrative feature/opinion
+  journalism, academic bylines (name + institution combined in the feed's
+  own author field).
+- **Risk level:** Low, given the confirmed endpoint and the ND-compliant
+  "preserve the whole package verbatim" design.
+- **Notes:** Replaces TechCrunch (`supabase/content-source-replace-techcrunch-with-conversation.sql`)
+  — TechCrunch's `rss` provider and `content_sources` row are fully
+  removed; TechCrunch never had a successful publish (root-caused
+  separately as a missing `canonical_url` column visible to PostgREST),
+  so there was no published content to migrate away from.
+
 ### TechCrunch — moved from REQUIRES_PERMISSION, both conditions now met
 - **Copyright:** Standard commercial copyright (Yahoo/TechCrunch Media).
 - **RSS availability:** Yes, confirmed working, full content via
