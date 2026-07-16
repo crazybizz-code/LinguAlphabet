@@ -1,5 +1,6 @@
 import { registerProvider } from "./registry";
 import { rssArticleProvider } from "./rss-provider";
+import { plosArticleProvider } from "./plos-provider";
 
 /**
  * Registers every real Content Provider once, at process startup.
@@ -10,3 +11,4 @@ import { rssArticleProvider } from "./rss-provider";
  * a change to the registry or the pipeline.
  */
 registerProvider(rssArticleProvider);
+registerProvider(plosArticleProvider);

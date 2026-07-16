@@ -38,20 +38,20 @@ export async function GET(request: Request) {
   const { data: sources, error } = await supabase
     .from("content_sources")
     .select("*")
-    .eq("provider_id", "rss")
     .eq("enabled", true);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const provider = contentEngine.getProvider("rss");
-  if (!provider) {
-    return NextResponse.json({ error: "rss provider not registered" }, { status: 500 });
-  }
-
   const runs = [];
   for (const source of sources ?? []) {
+    const provider = contentEngine.getProvider(source.provider_id);
+    if (!provider) {
+      runs.push({ sourceId: source.id, status: "failed", error: `provider '${source.provider_id}' not registered` });
+      continue;
+    }
+
     const result = await contentEngine.runIngestionPipeline(supabase, provider, {
       sourceId: source.id,
       sourceConfig: source.config as Record<string, unknown>,

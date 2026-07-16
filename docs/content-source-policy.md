@@ -389,6 +389,35 @@ resolved for the government-source cohort as a whole.
 - **Notes:** Straightforward, no caveats found beyond the general "verify
   any embedded third-party material" federal-content default.
 
+### PLOS (Public Library of Science)
+- **Copyright:** All PLOS research articles are published under CC BY 4.0
+  — PLOS is a fully open-access publisher, this is well-established and
+  not source-specific research the way several entries above required.
+- **RSS availability:** N/A — not an RSS source. Ingested via the official
+  PLOS Search API (`api.plos.org/search`, JSON), a different provider
+  (`plos-provider.ts`) than the RSS one every other source above uses.
+- **Commercial usage rights:** Permitted — CC BY has no non-commercial
+  restriction.
+- **Educational reuse rights:** Explicitly permitted.
+- **Attribution requirements:** Required per CC BY (credit + link) — same
+  obligation the existing `ReadingStep.tsx` attribution UI already covers
+  (author + source link).
+- **Readability compatibility:** N/A by design — no page fetch happens for
+  this source at all.
+- **AI enrichment compatibility:** Unverified content-length caveat — the
+  Search API's documented fields expose the article's **abstract**, not
+  the full manuscript body; there is no confirmed full-text field
+  returned by this endpoint. Body length depends on abstract length, not
+  full-article length. Register content is also peer-reviewed science
+  writing — expect a high CEFR skew (B2–C1+), likely higher than any
+  source enabled so far.
+- **Risk level:** Low legally, medium on content-fit/length until
+  verified against a real API response.
+- **Notes:** Confirm real field names and body length from a live
+  `api.plos.org/search` response before treating this source as solved —
+  the same verification discipline TechCrunch's assumed body length
+  needed and didn't get before enabling.
+
 ### TechCrunch — moved from REQUIRES_PERMISSION, both conditions now met
 - **Copyright:** Standard commercial copyright (Yahoo/TechCrunch Media).
 - **RSS availability:** Yes, confirmed working, full content via
