@@ -39,6 +39,66 @@ import { runIngestionPipeline } from "../src/lib/content-engine/pipeline.ts";
 import { createServiceClient } from "../src/lib/supabase/service-client.ts";
 import { estimateReadingTimeMinutes } from "../src/lib/content-engine/ai-processing.ts";
 
+// ---- Diagnostic fetch instrumentation (this script only) ----
+// "TypeError: fetch failed" is Node/undici's generic wrapper; the real
+// reason (DNS, ECONNREFUSED, TLS, proxy) lives in error.cause, which
+// default logging never shows. Wrap the global fetch so every request
+// the pipeline makes is logged with its destination classified, and any
+// failure prints the full cause chain + stack before rethrowing
+// unchanged (behavior identical, visibility only).
+//
+// Coverage note: supabase-js and the provider's share-endpoint/Gemini
+// calls all use global fetch. rss-parser does NOT -- parser.parseURL
+// goes through node:http(s) directly. So if this run fails with "fetch
+// failed" but NO "FETCH FAILED" line appears below, the failure is the
+// Atom-feed fetch inside rss-parser, not any of the wrapped calls.
+function classifyUrl(url) {
+  try {
+    const host = new URL(url).host;
+    if (host.includes("supabase.")) return "Supabase REST";
+    if (host.includes("generativelanguage.googleapis.com")) return "Gemini API";
+    if (host.includes("theconversation.com")) return "The Conversation";
+    return `other external request (${host})`;
+  } catch {
+    return "unparseable URL";
+  }
+}
+
+function formatCauseChain(error) {
+  const lines = [];
+  let current = error;
+  let depth = 0;
+  while (current && depth < 10) {
+    const name = current.name ?? "Error";
+    const code = current.code ? ` code=${current.code}` : "";
+    const errno = current.errno ? ` errno=${current.errno}` : "";
+    const syscall = current.syscall ? ` syscall=${current.syscall}` : "";
+    const address = current.address ? ` address=${current.address}` : "";
+    const port = current.port ? ` port=${current.port}` : "";
+    lines.push(`${"  ".repeat(depth)}[${depth}] ${name}: ${current.message}${code}${errno}${syscall}${address}${port}`);
+    current = current.cause;
+    depth += 1;
+  }
+  return lines.join("\n");
+}
+
+const realFetch = globalThis.fetch;
+globalThis.fetch = async function instrumentedFetch(input, init) {
+  const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+  const method = init?.method ?? "GET";
+  console.log(`[fetch] ${method} ${url}  -> ${classifyUrl(url)}`);
+  try {
+    return await realFetch(input, init);
+  } catch (error) {
+    console.log(`\n[fetch] FETCH FAILED: ${method} ${url}`);
+    console.log(`[fetch] destination: ${classifyUrl(url)}`);
+    console.log(`[fetch] cause chain:\n${formatCauseChain(error)}`);
+    console.log(`[fetch] full stack:\n${error instanceof Error ? error.stack : String(error)}`);
+    if (error?.cause?.stack) console.log(`[fetch] cause stack:\n${error.cause.stack}`);
+    throw error;
+  }
+};
+
 const sourceId = process.argv[2] || process.env.SOURCE_ID;
 if (!sourceId) {
   console.log("Usage: npx tsx scripts/check-conversation-pipeline.mjs <content_sources.id for The Conversation>");
