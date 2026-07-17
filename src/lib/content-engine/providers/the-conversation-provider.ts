@@ -1,4 +1,4 @@
-import { JSDOM } from "jsdom";
+import * as cheerio from "cheerio";
 import Parser from "rss-parser";
 import type { ContentProvider, RawContentItem } from "../types";
 
@@ -21,10 +21,15 @@ import type { ContentProvider, RawContentItem } from "../types";
  * tracking counter, all bundled together by them, not assembled here.
  *
  * `body` below is that textarea's value taken exactly as given -- no
- * rewriting, no summarizing, no re-paragraphing. It is decoded via a real
- * DOM (`textarea.value`, which is HTML-entity-decoded by definition) so
- * nothing is mis-decoded the way a hand-rolled entity table could get
- * wrong. The tracking counter and CC notice are deliberately NOT split
+ * rewriting, no summarizing, no re-paragraphing. Parsed with cheerio
+ * (parse5-based, spec-compliant RCDATA/entity handling -- `.text()` on a
+ * textarea yields the same decoded value a real DOM's `textarea.value`
+ * would) rather than jsdom: jsdom is in Next's serverExternalPackages
+ * list, so it is require()d unbundled at runtime, and its dependency
+ * chain (html-encoding-sniffer -> @exodus/bytes) is ESM-only, which
+ * fails that require with ERR_REQUIRE_ESM on Vercel. cheerio is bundled
+ * by Next like any normal dependency, so no runtime require happens at
+ * all. The tracking counter and CC notice are deliberately NOT split
  * out of `body` -- ReadingStep.tsx has no separate slot to re-render them
  * if they were, and CC BY-ND prohibits recombining/altering the package
  * The Conversation hands over anyway. `author`/original URL are preserved
@@ -55,9 +60,11 @@ async function fetchRepublishHtml(articleId: string): Promise<string | null> {
   }
 
   const html = await response.text();
-  const dom = new JSDOM(html);
-  const textarea = dom.window.document.querySelector('textarea[name="non-attributed-body"]');
-  return textarea ? (textarea as HTMLTextAreaElement).value : null;
+  const $ = cheerio.load(html);
+  const textarea = $('textarea[name="non-attributed-body"]');
+  // .text() would be "" for a missing element -- keep the old explicit
+  // null-when-absent contract instead of conflating it with empty content.
+  return textarea.length > 0 ? textarea.text() : null;
 }
 
 export const theConversationProvider: ContentProvider = {
