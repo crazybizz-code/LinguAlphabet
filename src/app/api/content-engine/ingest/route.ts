@@ -6,6 +6,11 @@ import { estimateReadingTimeMinutes } from "@/lib/content-engine/ai-processing";
 import { createServiceClient } from "@/lib/supabase/service-client";
 
 export const dynamic = "force-dynamic";
+// Full ingestion (per-article share fetch + Gemini enrichment, sequential)
+// far exceeds Vercel's default function timeout -- raise to the 300s
+// ceiling. Per-run volume is bounded by each source's maxItemsPerRun
+// config so a run fits inside this window.
+export const maxDuration = 300;
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
