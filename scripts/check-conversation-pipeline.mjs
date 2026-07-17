@@ -98,6 +98,60 @@ async function main() {
 
   console.log("\nresult from runIngestionPipeline:");
   console.log(JSON.stringify(result, null, 2));
+
+  // ---- Read back the rejection details the pipeline already persisted ----
+  // No production behavior change: the pipeline records per-item outcomes
+  // in content_raw_items (status/rejection_reason/quality_gate_reasons/
+  // gemini_error/normalization_error) and run-level raw-insert failures in
+  // content_ingestion_runs.error. This just SELECTs and prints them.
+
+  const { data: runRow, error: runReadError } = await supabase
+    .from("content_ingestion_runs")
+    .select("*")
+    .eq("id", result.runId)
+    .single();
+  console.log("\n---- content_ingestion_runs row for this run ----");
+  if (runReadError) {
+    console.log(`could not read run row: ${runReadError.message}`);
+  } else {
+    console.log(JSON.stringify(runRow, null, 2));
+  }
+
+  const { data: rawRows, error: rawReadError } = await supabase
+    .from("content_raw_items")
+    .select("external_id, status, rejection_reason, quality_gate_reasons, gemini_error, normalization_error, stage_updated_at, processed_at, content_item_id")
+    .eq("source_id", sourceId)
+    .order("stage_updated_at", { ascending: false })
+    .limit(5);
+  console.log("\n---- content_raw_items rows for this source (latest 5) ----");
+  if (rawReadError) {
+    console.log(`could not read raw item rows: ${rawReadError.message}`);
+  } else if (!rawRows || rawRows.length === 0) {
+    console.log("NO ROWS -- the item never reached content_raw_items at all.");
+    console.log("That means the raw upsert itself failed; the exact DB error is in the");
+    console.log("run row's error.rawInsertFailures above.");
+  } else {
+    console.log(JSON.stringify(rawRows, null, 2));
+  }
+
+  // ---- Classify which stage rejected the item ----
+  console.log("\n---- Failure-stage classification ----");
+  const row = rawRows?.[0];
+  if (!row) {
+    console.log("STAGE: raw-item INSERT (before validation/dedup/enrichment/publishing).");
+  } else if (row.status === "DUPLICATE") {
+    console.log(`STAGE: deduplication. ${row.rejection_reason ?? ""}`);
+  } else if (row.normalization_error) {
+    console.log(`STAGE: validation/normalization. ${row.normalization_error}`);
+  } else if (row.gemini_error) {
+    console.log(`STAGE: AI enrichment (status=${row.status}). ${row.gemini_error}`);
+  } else if (row.status === "QUALITY_GATE_FAILED") {
+    console.log(`STAGE: quality gate. reasons: ${JSON.stringify(row.quality_gate_reasons)}`);
+  } else if (row.status === "FAILED") {
+    console.log(`STAGE: storage/publishing. ${row.rejection_reason ?? "(no reason recorded)"}`);
+  } else {
+    console.log(`STAGE: none recorded as failed -- status=${row.status}, rejection_reason=${row.rejection_reason ?? "(none)"}`);
+  }
 }
 
 main().catch((error) => {
