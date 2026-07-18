@@ -116,11 +116,18 @@ learner as a number or percentage. What the learner sees is:
 
 ## 5. How Content Is Surfaced on Home
 
-Today's Mission is computed **once per calendar day**, not on every app
-open (see Learning Brain Philosophy §"When should recommendations change"
-below for why). Within that same day, reopening the app shows the same
-mission until it's completed or the day rolls over. This is what makes
-Home feel like a considered daily choice rather than a slot machine.
+Today's Mission is a **finite daily plan**, not an endless recommendation
+stream: exactly one article slot and one podcast slot, each computed
+**once per calendar day**, not on every app open (see Learning Brain
+Philosophy §"When should recommendations change" below for why), and each
+tracked to completion independently. Within that same day, reopening the
+app shows the same two slots — completing one never causes the other, or
+a third item, to be generated. This is what makes Home feel like a
+considered daily plan rather than a slot machine.
+
+Once both slots are completed, Home shows an explicit "Today's Mission
+Completed" state for the rest of that calendar day, with a countdown to
+when tomorrow's plan unlocks — never a silently-regenerated new mission.
 
 ---
 

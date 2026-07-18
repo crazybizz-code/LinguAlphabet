@@ -279,6 +279,7 @@ export interface Database {
         Row: {
           user_id: string;
           mission_date: string;
+          content_type: "article" | "podcast";
           content_item_id: string;
           is_resume: boolean;
           created_at: string;
@@ -286,6 +287,7 @@ export interface Database {
         Insert: {
           user_id: string;
           mission_date: string;
+          content_type: "article" | "podcast";
           content_item_id: string;
           is_resume?: boolean;
           created_at?: string;

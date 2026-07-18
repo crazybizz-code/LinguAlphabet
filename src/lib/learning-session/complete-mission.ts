@@ -43,12 +43,15 @@ export async function completeMission(params: {
   const today = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
 
-  const [{ data: profile }, { data: missionRow }] = await Promise.all([
+  const [{ data: profile }, { data: missionRows }] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", user.id).single(),
-    supabase.from("daily_missions").select("*").eq("user_id", user.id).eq("mission_date", today).maybeSingle(),
+    supabase.from("daily_missions").select("*").eq("user_id", user.id).eq("mission_date", today),
   ]);
 
-  const isMission = missionRow?.content_item_id === params.contentId;
+  // Today's Mission is a finite daily plan of two independent slots
+  // (article + podcast, docs/content-lifecycle.md §5) — completing either
+  // one counts as "today's guided mission" for streak/XP purposes.
+  const isMission = (missionRows ?? []).some((row) => row.content_item_id === params.contentId);
 
   const xpEarned = computeXpEarned({ isMission, correctAnswers: params.correctAnswers });
   const xpResult = applyXp({

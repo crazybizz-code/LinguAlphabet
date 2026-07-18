@@ -1,6 +1,9 @@
 -- ============================================================
 -- Learning Brain persistence (docs/content-lifecycle.md §5/§10).
 -- Additive migration — run after supabase/content-schema.sql.
+-- Followed by supabase/daily-missions-finite-plan.sql, which widens this
+-- table's grain to one row per (user_id, mission_date, content_type) —
+-- run that migration too, this file alone is stale on its own.
 --
 -- Today's Mission is computed once per calendar day, not on every app
 -- open, so a returning learner sees the same mission until it's

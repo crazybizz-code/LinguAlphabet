@@ -362,8 +362,11 @@ items (steep, not absolute — see `content-lifecycle.md` §9 for why).
 
 **Layer 3 — Context-specific selection**, all built on the same Layer 2
 score, but consumed differently:
-- **Today's Mission**: resume-priority item if one exists, else the single
-  top score. Exactly one result, locked for the calendar day.
+- **Today's Mission**: a finite daily plan of two independent slots, one
+  article and one podcast — each slot is its resume-priority item if one
+  exists, else the top score for that content type. Each slot is locked
+  for the calendar day once assigned, and is never re-assigned once
+  completed (no third slot, no regeneration mid-day).
 - **Continue Learning**: not a score at all — a direct Resume Progress
   (§16) query.
 - **Tuto Recommends**: the next several scored items, excluding whatever is

@@ -1,27 +1,22 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type { LearnerContext, Mission } from "../types";
+import type { DailyMissionSlot, LearnerContext, MissionSlotContentType } from "../types";
 import { ruleBasedLearningBrain } from "../rule-engine";
 import { continueLearningStrategy } from "./continue-learning";
 import { todaysMissionStrategy, type MissionContent } from "./todays-mission";
-import { tutoRecommendsStrategy } from "./tuto-recommends";
 
 type Client = SupabaseClient<Database>;
 type ProgressRow = Database["public"]["Tables"]["progress"]["Row"];
+type DailyMissionRow = Database["public"]["Tables"]["daily_missions"]["Row"];
+
+const SLOT_TYPES: readonly MissionSlotContentType[] = ["article", "podcast"];
 
 export interface HomeRecommendations {
-  mission: Mission | null;
+  /** Exactly one slot per SLOT_TYPES entry: today's article plan, today's podcast plan. */
+  missions: DailyMissionSlot[];
+  /** True once every slot with eligible content has been completed today — the finite daily plan is done. */
+  allMissionsCompleted: boolean;
   tutoRecommends: MissionContent[];
-  /**
-   * Set when today's originally-assigned mission was just completed this
-   * calendar day. The Learning Brain re-picks `mission` fresh the instant
-   * this happens (see below) — this field is what lets Home show an
-   * explicit "Today's Mission Complete" acknowledgment instead of silently
-   * swapping in a new mission with no visible sign the previous one
-   * counted (product decision: completion must visibly change Home, never
-   * hand back an outwardly-unchanged screen).
-   */
-  completedTodaysMissionTitle: string | null;
 }
 
 function todayIsoDate(): string {
@@ -29,10 +24,71 @@ function todayIsoDate(): string {
 }
 
 /**
+ * Resolves a single day/type slot: reuses an existing locked assignment
+ * if one exists and isn't completed yet, reports completion if it is, or
+ * mints and persists a fresh pick only when this slot has never been
+ * assigned today. This is what makes a completed slot terminal for the
+ * rest of the calendar day instead of triggering a new pick (the
+ * "infinite generator" bug this plan replaces).
+ */
+async function resolveSlot(params: {
+  supabase: Client;
+  userId: string;
+  today: string;
+  contentType: MissionSlotContentType;
+  byId: Map<string, MissionContent>;
+  catalogForType: MissionContent[];
+  rankedForType: MissionContent[];
+  progressRows: ProgressRow[];
+  context: LearnerContext;
+  existingRow: DailyMissionRow | undefined;
+}): Promise<DailyMissionSlot> {
+  const { supabase, userId, today, contentType, byId, catalogForType, rankedForType, progressRows, context, existingRow } = params;
+
+  const assignedContent = existingRow ? byId.get(existingRow.content_item_id) : undefined;
+  const assignmentCompleted = assignedContent ? context.completedContentIds.has(assignedContent.id) : false;
+
+  if (assignedContent && assignmentCompleted) {
+    return { contentType, mission: null, completedTitle: assignedContent.title };
+  }
+
+  if (assignedContent && !assignmentCompleted) {
+    const resumeCandidate = continueLearningStrategy.find(progressRows, catalogForType);
+    const resumePositionSeconds =
+      existingRow!.is_resume && resumeCandidate?.content.id === assignedContent.id ? resumeCandidate.positionSeconds : undefined;
+    return {
+      contentType,
+      mission: todaysMissionStrategy.present(assignedContent, existingRow!.is_resume, resumePositionSeconds),
+      completedTitle: null,
+    };
+  }
+
+  const resumeCandidate = continueLearningStrategy.find(progressRows, catalogForType);
+  const mission = todaysMissionStrategy.decide({ resumeCandidate, ranked: rankedForType });
+
+  if (mission) {
+    try {
+      await supabase.from("daily_missions").upsert({
+        user_id: userId,
+        mission_date: today,
+        content_type: contentType,
+        content_item_id: mission.contentId,
+        is_resume: mission.kind === "continue_podcast" || mission.kind === "continue_article",
+      });
+    } catch {
+      // Non-fatal — worst case this slot is recomputed on the next request today.
+    }
+  }
+
+  return { contentType, mission, completedTitle: null };
+}
+
+/**
  * Orchestrates the strategies above into what Home actually needs, and
- * owns the one piece of Learning Brain state that's genuinely
- * persistent: docs/content-lifecycle.md §5's "Today's Mission is computed
- * once per calendar day, not on every app open." This is product-flow
+ * owns the one piece of Learning Brain state that's genuinely persistent:
+ * docs/content-lifecycle.md §5's "Today's Mission is a finite daily plan
+ * — one article slot and one podcast slot, each computed once per
+ * calendar day and never replaced once completed." This is product-flow
  * behavior that stays true regardless of which engine implements the
  * underlying ranking, so it sits above the swappable strategies rather
  * than inside any one of them.
@@ -50,50 +106,38 @@ export const dailyMissionGenerator = {
     const byId = new Map(catalog.map((item) => [item.id, item]));
     const today = todayIsoDate();
 
-    const resumeCandidate = continueLearningStrategy.find(progressRows, catalog);
     const ranked = await ruleBasedLearningBrain.rank(catalog, context);
 
-    const { data: existingAssignment } = await supabase
+    const { data: existingRows } = await supabase
       .from("daily_missions")
       .select("*")
       .eq("user_id", userId)
-      .eq("mission_date", today)
-      .maybeSingle();
+      .eq("mission_date", today);
 
-    const assignedContent = existingAssignment ? byId.get(existingAssignment.content_item_id) : undefined;
-    const assignmentStillValid = assignedContent && !context.completedContentIds.has(assignedContent.id);
-    const completedTodaysMissionTitle =
-      assignedContent && context.completedContentIds.has(assignedContent.id) ? assignedContent.title : null;
+    const existingByType = new Map((existingRows ?? []).map((row) => [row.content_type, row]));
 
-    let mission: Mission | null;
-    let needsPersist = false;
+    const missions = await Promise.all(
+      SLOT_TYPES.map((contentType) =>
+        resolveSlot({
+          supabase,
+          userId,
+          today,
+          contentType,
+          byId,
+          catalogForType: catalog.filter((item) => item.contentType === contentType),
+          rankedForType: ranked.filter((item) => item.contentType === contentType),
+          progressRows,
+          context,
+          existingRow: existingByType.get(contentType),
+        }),
+      ),
+    );
 
-    if (assignedContent && assignmentStillValid) {
-      const resumePositionSeconds =
-        existingAssignment!.is_resume && resumeCandidate?.content.id === assignedContent.id
-          ? resumeCandidate.positionSeconds
-          : undefined;
-      mission = todaysMissionStrategy.present(assignedContent, existingAssignment!.is_resume, resumePositionSeconds);
-    } else {
-      mission = todaysMissionStrategy.decide({ resumeCandidate, ranked });
-      needsPersist = mission !== null;
-    }
+    const allMissionsCompleted = missions.every((slot) => slot.completedTitle !== null);
 
-    if (mission && needsPersist) {
-      try {
-        await supabase.from("daily_missions").upsert({
-          user_id: userId,
-          mission_date: today,
-          content_item_id: mission.contentId,
-          is_resume: mission.kind === "continue_podcast" || mission.kind === "continue_article",
-        });
-      } catch {
-        // Non-fatal — worst case the mission is recomputed on the next request today.
-      }
-    }
+    const excludeIds = new Set(missions.map((slot) => slot.mission?.contentId).filter((id): id is string => id !== undefined));
+    const tutoRecommends = ranked.filter((item) => !excludeIds.has(item.id)).slice(0, recommendCount);
 
-    const tutoRecommends = tutoRecommendsStrategy.pick(ranked, mission?.contentId, recommendCount);
-
-    return { mission, tutoRecommends, completedTodaysMissionTitle };
+    return { missions, allMissionsCompleted, tutoRecommends };
   },
 };
