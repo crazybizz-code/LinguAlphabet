@@ -28,6 +28,7 @@ export function toLearningSessionContent(podcast: PodcastContent): LearningSessi
     // not depend on that — a temporary placeholder keeps the session fully
     // functional if a future ingested item is missing either field.
     summary: podcast.summary?.trim() || `A recap of "${podcast.title}" is on its way — for now, here's what to focus on: ${podcast.topics.join(", ") || "the vocabulary below"}.`,
+    takeaways: podcast.takeaways,
     vocabulary: podcast.vocabulary,
     quiz: podcast.quiz,
     reflectionPrompt:

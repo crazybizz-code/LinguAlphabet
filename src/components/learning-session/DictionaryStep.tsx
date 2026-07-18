@@ -63,7 +63,7 @@ export function DictionaryStep({ content, onNext }: { content: LearningSessionCo
           onClick={onNext}
           className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-text-on-primary transition-all hover:opacity-90 active:scale-[0.98]"
         >
-          Continue to Summary
+          Continue
           <ArrowRight className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>

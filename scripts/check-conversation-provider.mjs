@@ -25,6 +25,9 @@ async function main() {
 
   console.log(`\nfirst item title: ${first.title}`);
   console.log(`first item externalId: ${first.externalId}`);
+  console.log(`first item thumbnailUrl: ${first.thumbnailUrl ?? "(none extracted)"}`);
+  const withImages = items.filter((item) => item.thumbnailUrl).length;
+  console.log(`items with a thumbnail: ${withImages}/${items.length}`);
   console.log(`\nfirst 500 chars of body:`);
   console.log(first.body.slice(0, 500));
 }

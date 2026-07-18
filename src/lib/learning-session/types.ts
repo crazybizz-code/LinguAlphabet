@@ -31,6 +31,8 @@ export interface LearningSessionContent {
   /** Original author byline — populated by the article adapter when the source provides one; empty for podcast and for anything without one. Some approved sources (docs/content-source-policy.md, e.g. Global Voices) require this alongside sourceUrl. */
   author: string;
   summary: string;
+  /** Key takeaways from enrichment — shown on the post-quiz Summary recap; empty when the source item has none. */
+  takeaways: string[];
   vocabulary: VocabularyEntry[];
   quiz: QuizQuestion[];
   reflectionPrompt: string;
@@ -61,15 +63,18 @@ export const SESSION_STEP_LABELS: Record<SessionStep, string> = {
   complete: "Complete",
 };
 
-const PODCAST_FLOW: SessionStep[] = ["player", "summary", "vocabulary", "flashcards", "quiz", "reflection", "complete"];
+// Summary comes AFTER the quiz, as the session's recap/reward screen
+// (product direction: intake -> practice -> quiz -> summary -> complete).
+// Reflection is intentionally absent from both flows -- the session ends
+// on Summary's "Finish Session", which triggers completion directly.
+const PODCAST_FLOW: SessionStep[] = ["player", "vocabulary", "flashcards", "quiz", "summary", "complete"];
 const ARTICLE_FLOW: SessionStep[] = [
   "reading",
   "dictionary",
-  "summary",
   "vocabulary",
   "flashcards",
   "quiz",
-  "reflection",
+  "summary",
   "complete",
 ];
 
@@ -77,9 +82,9 @@ const ARTICLE_FLOW: SessionStep[] = [
  * The ordered step sequence for a content type — the one place the state
  * machine (LearningSessionView) and its stepper (SessionStepper) look to
  * know where a session starts and what comes after its "intake" step(s).
- * Everything from "summary" onward is identical across content types; only
- * how a learner first consumes the content (listening vs. reading + looking
- * up words) differs.
+ * Everything from "vocabulary" onward is identical across content types;
+ * only how a learner first consumes the content (listening vs. reading +
+ * looking up words) differs.
  */
 export function getSessionFlow(contentType: ContentItem["contentType"]): SessionStep[] {
   return contentType === "article" ? ARTICLE_FLOW : PODCAST_FLOW;

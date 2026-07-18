@@ -63,6 +63,7 @@ export function toLearningSessionContent(article: ArticleContent): LearningSessi
     summary:
       article.summary?.trim() ||
       `A recap of "${article.title}" is on its way — for now, here's what to focus on: ${article.topics.join(", ") || "the vocabulary below"}.`,
+    takeaways: article.takeaways,
     vocabulary: article.vocabulary,
     quiz: article.quiz,
     reflectionPrompt:

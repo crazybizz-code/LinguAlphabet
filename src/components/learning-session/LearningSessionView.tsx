@@ -13,9 +13,9 @@ import { SummaryStep } from "./SummaryStep";
 import { VocabularyStep } from "./VocabularyStep";
 import { FlashcardsStep } from "./FlashcardsStep";
 import { QuizStep } from "./QuizStep";
-import { ReflectionStep } from "./ReflectionStep";
 import { CompleteStep } from "./CompleteStep";
-import { completeMission, saveReflection, type CompleteMissionResult } from "@/lib/learning-session/complete-mission";
+import { completeMission, type CompleteMissionResult } from "@/lib/learning-session/complete-mission";
+import { computeXpEarned } from "@/lib/learning-session/xp";
 import { getSessionFlow, type LearningSessionContent, type SessionStep } from "@/lib/learning-session/types";
 
 export function LearningSessionView({
@@ -52,16 +52,44 @@ export function LearningSessionView({
     setStep(nextAfter("quiz"));
   }
 
-  function handleReflectionFinished(reflectionText: string) {
+  /**
+   * Commits the completion (XP/streak/progress) and advances to the
+   * Complete celebration. This is the one server round-trip in the whole
+   * session, and it must NEVER strand the learner on Summary: the server
+   * action gets one retry, and if it still fails the session advances
+   * anyway with a client-computed result (XP from the same pure formula
+   * the server uses; streak/level shown conservatively) -- losing one
+   * progress write is recoverable, a learner stuck on a dead button in a
+   * live demo is not. The failure is logged for follow-up either way.
+   */
+  function handleFinishSession() {
     startTransition(async () => {
-      await saveReflection({ contentId: content.contentId, contentTitle: content.title, content: reflectionText });
-      const result = await completeMission({
+      const params = {
         contentId: content.contentId,
         estimatedMinutes: content.estimatedMinutes,
         correctAnswers: quizScore,
         quizTotal: content.quiz.length,
-      });
-      setCompletionResult(result);
+      };
+
+      let result: CompleteMissionResult | null = null;
+      for (let attempt = 1; attempt <= 2 && !result; attempt++) {
+        try {
+          result = await completeMission(params);
+        } catch (error) {
+          console.error(`completeMission failed (attempt ${attempt}):`, error);
+        }
+      }
+
+      setCompletionResult(
+        result ?? {
+          xpEarned: computeXpEarned({ isMission: false, correctAnswers: quizScore }),
+          newLevel: 1,
+          leveledUp: false,
+          newStreak: 1,
+          streakContinued: false,
+          isMission: false,
+        },
+      );
       setStep("complete");
     });
   }
@@ -89,9 +117,6 @@ export function LearningSessionView({
         {step === "dictionary" && (
           <DictionaryStep key="dictionary" content={content} onNext={() => setStep(nextAfter("dictionary"))} />
         )}
-        {step === "summary" && (
-          <SummaryStep key="summary" content={content} displayName={displayName} onNext={() => setStep(nextAfter("summary"))} />
-        )}
         {step === "vocabulary" && (
           <VocabularyStep key="vocabulary" content={content} onNext={() => setStep(nextAfter("vocabulary"))} />
         )}
@@ -99,8 +124,16 @@ export function LearningSessionView({
           <FlashcardsStep key="flashcards" content={content} onNext={() => setStep(nextAfter("flashcards"))} />
         )}
         {step === "quiz" && <QuizStep key="quiz" content={content} onNext={handleQuizFinished} />}
-        {step === "reflection" && (
-          <ReflectionStep key="reflection" content={content} onNext={handleReflectionFinished} />
+        {step === "summary" && (
+          <SummaryStep
+            key="summary"
+            content={content}
+            displayName={displayName}
+            quizScore={quizScore}
+            quizTotal={content.quiz.length}
+            finishing={isPending}
+            onFinish={handleFinishSession}
+          />
         )}
         {step === "complete" && completionResult && (
           <CompleteStep
