@@ -1,0 +1,18 @@
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Health">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="800" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#34C759"/>
+      <stop offset="1" stop-color="#14532D"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="70"/>
+    </filter>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="640" cy="160" r="190" fill="#ffffff" opacity="0.12" filter="url(#blur)"/>
+  <circle cx="120" cy="670" r="220" fill="#000000" opacity="0.14" filter="url(#blur)"/>
+  <g transform="translate(400,400)" fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" opacity="0.94">
+    <path d="M -110 -20 C -110 -80 -40 -80 0 -20 C 40 -80 110 -80 110 -20 C 110 40 20 110 0 130 C -20 110 -110 40 -110 -20 Z"/>
+  </g>
+  <text x="64" y="712" font-family="system-ui, -apple-system, sans-serif" font-size="34" font-weight="700" fill="#ffffff" fill-opacity="0.85" letter-spacing="2">HEALTH</text>
+</svg>

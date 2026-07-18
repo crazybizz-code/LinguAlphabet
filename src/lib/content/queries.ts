@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { ArticleContent, CefrLevel, PodcastContent } from "@/types/content";
+import { resolveThumbnailFallback } from "./thumbnailFallback";
 
 type Client = SupabaseClient<Database>;
 type ContentItemRow = Database["public"]["Tables"]["content_items"]["Row"];
@@ -20,7 +21,11 @@ function toPodcastContent(item: ContentItemRow, details: PodcastDetailsRow): Pod
     goalAlignment: item.goal_alignment,
     tags: item.tags,
     estimatedTimeMinutes: item.estimated_time_minutes,
-    thumbnailUrl: item.thumbnail_url ?? "",
+    // TEMP DEMO FALLBACK
+    // Remove after thumbnail extraction is fixed.
+    // `||` (not `??`) deliberately treats both null AND "" as missing —
+    // the ingestion pipeline can produce either for a failed extraction.
+    thumbnailUrl: item.thumbnail_url || resolveThumbnailFallback({ id: item.id, topics: item.topics, tags: item.tags }),
     status: item.status,
     featured: item.featured,
     premium: item.premium,
@@ -97,7 +102,11 @@ function toArticleContent(item: ContentItemRow, details: ArticleDetailsRow): Art
     goalAlignment: item.goal_alignment,
     tags: item.tags,
     estimatedTimeMinutes: item.estimated_time_minutes,
-    thumbnailUrl: item.thumbnail_url ?? "",
+    // TEMP DEMO FALLBACK
+    // Remove after thumbnail extraction is fixed.
+    // `||` (not `??`) deliberately treats both null AND "" as missing —
+    // the ingestion pipeline can produce either for a failed extraction.
+    thumbnailUrl: item.thumbnail_url || resolveThumbnailFallback({ id: item.id, topics: item.topics, tags: item.tags }),
     status: item.status,
     featured: item.featured,
     premium: item.premium,

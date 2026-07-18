@@ -1,0 +1,21 @@
+<svg width="800" height="800" viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Science">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="800" y2="800" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#06D6A0"/>
+      <stop offset="1" stop-color="#04785A"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="70"/>
+    </filter>
+  </defs>
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <circle cx="640" cy="160" r="190" fill="#ffffff" opacity="0.12" filter="url(#blur)"/>
+  <circle cx="120" cy="670" r="220" fill="#000000" opacity="0.14" filter="url(#blur)"/>
+  <g transform="translate(400,400)" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.94">
+    <ellipse cx="0" cy="0" rx="150" ry="60"/>
+    <ellipse cx="0" cy="0" rx="150" ry="60" transform="rotate(60)"/>
+    <ellipse cx="0" cy="0" rx="150" ry="60" transform="rotate(120)"/>
+    <circle cx="0" cy="0" r="26" fill="#ffffff" stroke="none"/>
+  </g>
+  <text x="64" y="712" font-family="system-ui, -apple-system, sans-serif" font-size="34" font-weight="700" fill="#ffffff" fill-opacity="0.85" letter-spacing="2">SCIENCE</text>
+</svg>
