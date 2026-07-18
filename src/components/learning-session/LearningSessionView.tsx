@@ -26,19 +26,30 @@ export function LearningSessionView({
   displayName: string;
 }) {
   const router = useRouter();
-  const flow = getSessionFlow(content.contentType);
+  // Steps whose data is empty are removed from the flow entirely -- an
+  // article ingested with no vocabulary/quiz (real rows exist like this)
+  // would otherwise dead-end the session on a Flashcards deck of zero
+  // cards or a "Question 1 of 0" quiz. The stepper renders the same
+  // filtered flow, so the dots always match what actually happens.
+  const flow = getSessionFlow(content.contentType).filter((s) => {
+    if ((s === "vocabulary" || s === "flashcards") && content.vocabulary.length === 0) return false;
+    if (s === "quiz" && content.quiz.length === 0) return false;
+    return true;
+  });
   const [step, setStep] = useState<SessionStep>(flow[0]);
   const [quizScore, setQuizScore] = useState(0);
   const [completionResult, setCompletionResult] = useState<CompleteMissionResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  function handleFlashcardsFinished() {
-    setStep(content.quiz.length > 0 ? "quiz" : "reflection");
+  /** The step after `current` in this session's (already filtered) flow. */
+  function nextAfter(current: SessionStep): SessionStep {
+    const index = flow.indexOf(current);
+    return flow[Math.min(index + 1, flow.length - 1)];
   }
 
   function handleQuizFinished(score: number) {
     setQuizScore(score);
-    setStep("reflection");
+    setStep(nextAfter("quiz"));
   }
 
   function handleReflectionFinished(reflectionText: string) {
@@ -73,19 +84,19 @@ export function LearningSessionView({
       </div>
 
       <AnimatePresence mode="wait">
-        {step === "player" && <PlayerStep key="player" content={content} onNext={() => setStep("summary")} />}
-        {step === "reading" && <ReadingStep key="reading" content={content} onNext={() => setStep("dictionary")} />}
+        {step === "player" && <PlayerStep key="player" content={content} onNext={() => setStep(nextAfter("player"))} />}
+        {step === "reading" && <ReadingStep key="reading" content={content} onNext={() => setStep(nextAfter("reading"))} />}
         {step === "dictionary" && (
-          <DictionaryStep key="dictionary" content={content} onNext={() => setStep("summary")} />
+          <DictionaryStep key="dictionary" content={content} onNext={() => setStep(nextAfter("dictionary"))} />
         )}
         {step === "summary" && (
-          <SummaryStep key="summary" content={content} displayName={displayName} onNext={() => setStep("vocabulary")} />
+          <SummaryStep key="summary" content={content} displayName={displayName} onNext={() => setStep(nextAfter("summary"))} />
         )}
         {step === "vocabulary" && (
-          <VocabularyStep key="vocabulary" content={content} onNext={() => setStep("flashcards")} />
+          <VocabularyStep key="vocabulary" content={content} onNext={() => setStep(nextAfter("vocabulary"))} />
         )}
         {step === "flashcards" && (
-          <FlashcardsStep key="flashcards" content={content} onNext={handleFlashcardsFinished} />
+          <FlashcardsStep key="flashcards" content={content} onNext={() => setStep(nextAfter("flashcards"))} />
         )}
         {step === "quiz" && <QuizStep key="quiz" content={content} onNext={handleQuizFinished} />}
         {step === "reflection" && (

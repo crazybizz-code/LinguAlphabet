@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPublishedPodcasts } from "@/lib/content/queries";
+import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
 import { buildWeeklyMinutes, startOfWeek } from "@/lib/content/home";
 import { buildMonthActivity, buildRecentActivity, buildWeekActivity } from "@/lib/content/progress";
 import { buildDailyActivityIndex } from "@/lib/content/daily-activity";
@@ -18,13 +18,14 @@ export default async function ProgressPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, podcasts, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }] = await Promise.all([
+  const [{ data: profile }, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }] = await Promise.all([
     supabase
       .from("profiles")
       .select("streak, longest_streak, level, xp, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed")
       .eq("user_id", user.id)
       .single(),
     getPublishedPodcasts(supabase),
+    getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
     supabase.from("vocabulary").select("*").eq("user_id", user.id),
     supabase.from("notes").select("*").eq("user_id", user.id),
@@ -34,7 +35,8 @@ export default async function ProgressPage() {
 
   const rows = progressRows ?? [];
   const dailyGoalMinutes = profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES;
-  const byId = new Map(podcasts.map((podcast) => [podcast.id, podcast]));
+  const catalog = [...podcasts, ...articles];
+  const byId = new Map(catalog.map((item) => [item.id, item]));
   const completedRows = rows.filter((row) => row.completed);
 
   const weekStart = startOfWeek(new Date());
@@ -52,7 +54,7 @@ export default async function ProgressPage() {
     ? Math.floor((now - new Date(profile.last_study_date).getTime()) / (24 * 60 * 60 * 1000))
     : null;
 
-  const weeklyMinutes = buildWeeklyMinutes(podcasts, rows);
+  const weeklyMinutes = buildWeeklyMinutes(catalog, rows);
   const weeklyGoalMinutes = dailyGoalMinutes * 7;
 
   const tutoNote = buildTutoNote({
@@ -65,7 +67,7 @@ export default async function ProgressPage() {
 
   const dailyActivityIndex = buildDailyActivityIndex({
     progressRows: rows,
-    podcasts,
+    podcasts: catalog,
     vocabularyRows: vocabularyRows ?? [],
     noteRows: noteRows ?? [],
   });
@@ -82,9 +84,9 @@ export default async function ProgressPage() {
       weekActivity={buildWeekActivity(rows)}
       totalCompleted={completedRows.length}
       completedThisWeek={completedThisWeek}
-      monthActivity={buildMonthActivity(rows, podcasts, dailyGoalMinutes)}
+      monthActivity={buildMonthActivity(rows, catalog, dailyGoalMinutes)}
       dailyActivityIndex={dailyActivityIndex}
-      recentActivity={buildRecentActivity(podcasts, rows)}
+      recentActivity={buildRecentActivity(catalog, rows)}
       earnedAchievementIds={computeEarnedAchievementIds({ completedCount: completedRows.length, longestStreak, level })}
       tutoNote={tutoNote}
     />

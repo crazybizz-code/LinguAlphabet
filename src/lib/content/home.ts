@@ -1,5 +1,4 @@
 import type { Database } from "@/types/supabase";
-import type { PodcastContent } from "@/types/content";
 
 type ProgressRow = Database["public"]["Tables"]["progress"]["Row"];
 
@@ -32,8 +31,11 @@ export function startOfWeek(date: Date): Date {
  * (docs/domain-model.md §21), deliberately independent from Streak (§19):
  * volume with gap tolerance, not daily consistency.
  */
-export function buildWeeklyMinutes(podcasts: PodcastContent[], progressRows: ProgressRow[]): number {
-  const byId = new Map(podcasts.map((podcast) => [podcast.id, podcast]));
+export function buildWeeklyMinutes(
+  catalog: Array<{ id: string; estimatedTimeMinutes: number }>,
+  progressRows: ProgressRow[],
+): number {
+  const byId = new Map(catalog.map((item) => [item.id, item]));
   const weekStart = startOfWeek(new Date());
 
   return progressRows

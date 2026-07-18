@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPublishedPodcasts } from "@/lib/content/queries";
+import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
 import { buildWeeklyMinutes } from "@/lib/content/home";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
@@ -17,13 +17,14 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, podcasts, { data: progressRows }, { data: previousMission }] = await Promise.all([
+  const [{ data: profile }, podcasts, articles, { data: progressRows }, { data: previousMission }] = await Promise.all([
     supabase
       .from("profiles")
       .select("username, level, streak, last_study_date, english_level, goal, daily_time_minutes, interests, onboarding_completed")
       .eq("user_id", user.id)
       .single(),
     getPublishedPodcasts(supabase),
+    getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
     supabase
       .from("daily_missions")
@@ -39,15 +40,18 @@ export default async function DashboardPage() {
 
   const rows = progressRows ?? [];
   const dailyMinutes = profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES;
-  const byId = new Map(podcasts.map((podcast) => [podcast.id, podcast]));
+  // Articles are full mission citizens alongside podcasts -- one combined
+  // catalog feeds ranking, mission selection, and completion lookups.
+  const catalog = [...podcasts, ...articles];
+  const byId = new Map(catalog.map((item) => [item.id, item]));
 
   const previousMissionContent = previousMission ? byId.get(previousMission.content_item_id) : undefined;
 
   const completedRows = rows.filter((row) => row.completed);
   const recentCompletions: RecentCompletion[] = completedRows
     .map((row) => {
-      const podcast = byId.get(row.content_item_id);
-      return podcast ? { cefrLevel: podcast.cefrLevelMin, completedAt: row.updated_at } : null;
+      const item = byId.get(row.content_item_id);
+      return item ? { cefrLevel: item.cefrLevelMin, completedAt: row.updated_at } : null;
     })
     .filter((completion): completion is RecentCompletion => completion !== null);
 
@@ -65,7 +69,7 @@ export default async function DashboardPage() {
   const { mission, tutoRecommends, completedTodaysMissionTitle } = await learningBrain.getHomeRecommendations({
     supabase,
     userId: user.id,
-    catalog: podcasts,
+    catalog,
     progressRows: rows,
     context,
   });
@@ -80,7 +84,7 @@ export default async function DashboardPage() {
     ? Math.floor((now - new Date(profile.last_study_date).getTime()) / (24 * 60 * 60 * 1000))
     : null;
 
-  const weeklyMinutes = buildWeeklyMinutes(podcasts, rows);
+  const weeklyMinutes = buildWeeklyMinutes(catalog, rows);
   const weeklyGoalMinutes = dailyMinutes * 7;
 
   const tutoNote = buildTutoNote({

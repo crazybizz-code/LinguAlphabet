@@ -1,5 +1,5 @@
 import type { Database } from "@/types/supabase";
-import type { PodcastContent } from "@/types/content";
+import type { ArticleContent, PodcastContent } from "@/types/content";
 
 type ProgressRow = Database["public"]["Tables"]["progress"]["Row"];
 type NoteRow = Database["public"]["Tables"]["notes"]["Row"];
@@ -62,7 +62,7 @@ export function dailyActivityDateKey(date: Date): string {
  */
 export function buildDailyActivityIndex(params: {
   progressRows: ProgressRow[];
-  podcasts: PodcastContent[];
+  podcasts: Array<PodcastContent | ArticleContent>;
   vocabularyRows: VocabularyRow[];
   noteRows: NoteRow[];
 }): Record<string, DailyActivity> {

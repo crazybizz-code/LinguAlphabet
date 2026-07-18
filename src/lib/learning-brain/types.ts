@@ -40,6 +40,8 @@ export interface LearningBrainRanker {
 export type MissionKind =
   | "continue_podcast"
   | "new_podcast"
+  | "continue_article"
+  | "new_article"
   | "flashcard_review"
   | "vocabulary_review"
   | "quiz_retry"

@@ -1,5 +1,5 @@
 import type { Database } from "@/types/supabase";
-import type { PodcastContent } from "@/types/content";
+import type { ArticleContent, PodcastContent } from "@/types/content";
 import { startOfWeek } from "./home";
 
 type ProgressRow = Database["public"]["Tables"]["progress"]["Row"];
@@ -69,7 +69,7 @@ function computeIntensityLevel(minutes: number, goalMinutes: number): 0 | 1 | 2 
  * so intensity is relative to them, never an arbitrary fixed threshold. */
 export function buildMonthActivity(
   progressRows: ProgressRow[],
-  podcasts: PodcastContent[],
+  podcasts: Array<PodcastContent | ArticleContent>,
   goalMinutes: number,
   now: Date = new Date(),
 ): MonthActivity {
@@ -125,7 +125,7 @@ function formatRelativeDays(date: Date, now: Date): string {
 /** Recent completions, newest first — the Progress tab's narrative view
  * summarized from History (docs/domain-model.md §18), not a raw event log. */
 export function buildRecentActivity(
-  podcasts: PodcastContent[],
+  podcasts: Array<PodcastContent | ArticleContent>,
   progressRows: ProgressRow[],
   limit = 5,
   now: Date = new Date(),

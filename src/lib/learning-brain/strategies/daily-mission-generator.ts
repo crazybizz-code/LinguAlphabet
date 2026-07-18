@@ -1,10 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type { PodcastContent } from "@/types/content";
 import type { LearnerContext, Mission } from "../types";
 import { ruleBasedLearningBrain } from "../rule-engine";
 import { continueLearningStrategy } from "./continue-learning";
-import { todaysMissionStrategy } from "./todays-mission";
+import { todaysMissionStrategy, type MissionContent } from "./todays-mission";
 import { tutoRecommendsStrategy } from "./tuto-recommends";
 
 type Client = SupabaseClient<Database>;
@@ -12,7 +11,7 @@ type ProgressRow = Database["public"]["Tables"]["progress"]["Row"];
 
 export interface HomeRecommendations {
   mission: Mission | null;
-  tutoRecommends: PodcastContent[];
+  tutoRecommends: MissionContent[];
   /**
    * Set when today's originally-assigned mission was just completed this
    * calendar day. The Learning Brain re-picks `mission` fresh the instant
@@ -42,7 +41,7 @@ export const dailyMissionGenerator = {
   async generate(params: {
     supabase: Client;
     userId: string;
-    catalog: PodcastContent[];
+    catalog: MissionContent[];
     progressRows: ProgressRow[];
     context: LearnerContext;
     recommendCount?: number;
@@ -86,7 +85,7 @@ export const dailyMissionGenerator = {
           user_id: userId,
           mission_date: today,
           content_item_id: mission.contentId,
-          is_resume: mission.kind === "continue_podcast",
+          is_resume: mission.kind === "continue_podcast" || mission.kind === "continue_article",
         });
       } catch {
         // Non-fatal — worst case the mission is recomputed on the next request today.

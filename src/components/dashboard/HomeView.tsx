@@ -3,12 +3,13 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Clock, Flame, Headphones, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, Clock, Flame, Headphones, Sparkles } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { PodcastCard } from "@/components/content/PodcastCard";
+import { ArticleCard } from "@/components/content/ArticleCard";
 import { getTimeGreeting } from "@/lib/content/home";
-import type { PodcastContent } from "@/types/content";
+import type { ArticleContent, PodcastContent } from "@/types/content";
 import type { Mission } from "@/lib/learning-brain";
 import type { TutoNote } from "@/lib/tuto/messages";
 import { fadeSlideUp } from "@/lib/motion/variants";
@@ -23,7 +24,7 @@ export interface HomeViewProps {
   /** Today's originally-assigned mission, if it was just completed this calendar day. */
   completedTodaysMissionTitle: string | null;
   tutoNote: TutoNote | null;
-  recommendations: PodcastContent[];
+  recommendations: Array<PodcastContent | ArticleContent>;
 }
 
 export function HomeView({
@@ -150,7 +151,11 @@ export function HomeView({
                 </div>
                 <div className="mt-4 flex items-center gap-3">
                   <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
-                    <Headphones className="h-6 w-6 text-white" aria-hidden="true" />
+                    {mission.kind === "new_article" || mission.kind === "continue_article" ? (
+                      <BookOpen className="h-6 w-6 text-white" aria-hidden="true" />
+                    ) : (
+                      <Headphones className="h-6 w-6 text-white" aria-hidden="true" />
+                    )}
                   </span>
                   <div>
                     <h2 className="text-xl font-bold leading-tight text-white sm:text-2xl">{mission.title}</h2>
@@ -235,9 +240,13 @@ export function HomeView({
             <h3 className="text-sm font-semibold text-text-primary">Recommended by Tuto</h3>
           </div>
           <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-md:grid-cols-1">
-            {recommendations.map((podcast, index) => (
-              <PodcastCard key={podcast.id} podcast={podcast} tutosPick index={index} />
-            ))}
+            {recommendations.map((item, index) =>
+              item.contentType === "article" ? (
+                <ArticleCard key={item.id} article={item} tutosPick index={index} />
+              ) : (
+                <PodcastCard key={item.id} podcast={item} tutosPick index={index} />
+              ),
+            )}
           </div>
         </motion.section>
       )}

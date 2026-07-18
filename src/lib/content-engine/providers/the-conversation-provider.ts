@@ -51,7 +51,25 @@ function extractArticleId(articleUrl: string): string | null {
   return match ? match[1] : null;
 }
 
-async function fetchRepublishHtml(articleId: string): Promise<string | null> {
+/** First real content image inside the republish package -- skips The
+ * Conversation's 1x1 tracking counter (which is also an <img>) and
+ * anything without an absolute https src. No extra network request: the
+ * republish HTML is already in hand. */
+function extractThumbnailUrl(republishHtml: string): string | undefined {
+  const $ = cheerio.load(republishHtml);
+  for (const img of $("img").toArray()) {
+    const src = $(img).attr("src")?.trim() ?? "";
+    const width = $(img).attr("width");
+    const height = $(img).attr("height");
+    if (!src.startsWith("https://")) continue;
+    if (width === "1" || height === "1") continue;
+    if (src.includes("counter.theconversation.com")) continue;
+    return src;
+  }
+  return undefined;
+}
+
+async function fetchRepublishHtml(articleId: string): Promise<{ body: string; thumbnailUrl?: string } | null> {
   const response = await fetch(`${SHARE_ENDPOINT_BASE}${articleId}`, {
     headers: { "User-Agent": BROWSER_USER_AGENT, Accept: "text/html" },
   });
@@ -64,7 +82,9 @@ async function fetchRepublishHtml(articleId: string): Promise<string | null> {
   const textarea = $('textarea[name="non-attributed-body"]');
   // .text() would be "" for a missing element -- keep the old explicit
   // null-when-absent contract instead of conflating it with empty content.
-  return textarea.length > 0 ? textarea.text() : null;
+  if (textarea.length === 0) return null;
+  const body = textarea.text();
+  return { body, thumbnailUrl: extractThumbnailUrl(body) };
 }
 
 export const theConversationProvider: ContentProvider = {
@@ -97,20 +117,21 @@ export const theConversationProvider: ContentProvider = {
 
       // A single fetch per article -- if it fails, this item is skipped
       // (not retried) so one broken article doesn't drop the whole feed.
-      let republishHtml: string | null;
+      let republish: { body: string; thumbnailUrl?: string } | null;
       try {
-        republishHtml = await fetchRepublishHtml(articleId);
+        republish = await fetchRepublishHtml(articleId);
       } catch {
         continue;
       }
-      if (!republishHtml) continue;
+      if (!republish) continue;
 
       items.push({
         externalId,
         title: item.title ?? "Untitled",
-        body: republishHtml,
+        body: republish.body,
         url: item.link,
         publishedAt: item.isoDate ?? item.pubDate,
+        thumbnailUrl: republish.thumbnailUrl,
         author: item.creator,
         raw: {
           feedItem: item,

@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      // The Conversation article thumbnails (extracted from their official
+      // republish package) are served from images.theconversation.com --
+      // the wildcard also covers their other asset subdomains. next/image
+      // THROWS on any host not listed here, crashing the whole page, so
+      // this must stay in sync with what ingestion can store.
+      {
+        protocol: "https",
+        hostname: "**.theconversation.com",
+      },
     ],
   },
   async headers() {

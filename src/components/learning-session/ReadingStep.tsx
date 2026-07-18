@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, ExternalLink } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
@@ -71,6 +72,18 @@ export function ReadingStep({ content, onNext }: { content: LearningSessionConte
             </span>
           </div>
           <h3 className="mb-5 text-xl font-bold text-text-primary">{content.title}</h3>
+
+          {content.thumbnailUrl && (
+            <div className="relative mb-5 aspect-video overflow-hidden rounded-2xl">
+              <Image
+                src={content.thumbnailUrl}
+                alt=""
+                fill
+                sizes="(min-width: 640px) 42rem, 100vw"
+                className="object-cover"
+              />
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
             {content.paragraphs.map((paragraph, index) => (
