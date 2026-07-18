@@ -51,25 +51,40 @@ function extractArticleId(articleUrl: string): string | null {
   return match ? match[1] : null;
 }
 
-/** First real content image inside the republish package -- skips The
- * Conversation's 1x1 tracking counter (which is also an <img>) and
- * anything without an absolute https src. No extra network request: the
- * republish HTML is already in hand. */
-function extractThumbnailUrl(republishHtml: string): string | undefined {
-  const $ = cheerio.load(republishHtml);
+/** First real content image in an HTML fragment -- skips The
+ * Conversation's 1x1 tracking counter (also an <img>), tiny icons, and
+ * anything without an absolute https URL. Checks src, then srcset/
+ * data-src (lazy-loading variants). */
+function firstContentImage(html: string): string | undefined {
+  if (!html) return undefined;
+  const $ = cheerio.load(html);
   for (const img of $("img").toArray()) {
-    const src = $(img).attr("src")?.trim() ?? "";
-    const width = $(img).attr("width");
-    const height = $(img).attr("height");
+    const el = $(img);
+    const src = el.attr("src")?.trim() || el.attr("data-src")?.trim() || el.attr("srcset")?.trim().split(/[\s,]/)[0] || "";
     if (!src.startsWith("https://")) continue;
-    if (width === "1" || height === "1") continue;
+    if (el.attr("width") === "1" || el.attr("height") === "1") continue;
     if (src.includes("counter.theconversation.com")) continue;
+    if (src.endsWith(".svg")) continue;
     return src;
   }
   return undefined;
 }
 
-async function fetchRepublishHtml(articleId: string): Promise<{ body: string; thumbnailUrl?: string } | null> {
+/** Layered thumbnail extraction, all from documents already in hand (no
+ * extra requests): the republish package's own images first, then any
+ * article image elsewhere on the share page (the "non-attributed" body
+ * may legitimately contain no <img> at all -- The Conversation's
+ * republish text is text-focused), then whatever image the Atom entry's
+ * own content markup carries. Which layer fired is reported by
+ * scripts/check-conversation-provider.mjs for real-feed verification. */
+function extractThumbnailUrl(republishBody: string, sharePageHtml: string, feedItemHtml: string): string | undefined {
+  return firstContentImage(republishBody) ?? firstContentImage(sharePageHtml) ?? firstContentImage(feedItemHtml);
+}
+
+async function fetchRepublishHtml(
+  articleId: string,
+  feedItemHtml: string,
+): Promise<{ body: string; thumbnailUrl?: string } | null> {
   const response = await fetch(`${SHARE_ENDPOINT_BASE}${articleId}`, {
     headers: { "User-Agent": BROWSER_USER_AGENT, Accept: "text/html" },
   });
@@ -84,7 +99,10 @@ async function fetchRepublishHtml(articleId: string): Promise<{ body: string; th
   // null-when-absent contract instead of conflating it with empty content.
   if (textarea.length === 0) return null;
   const body = textarea.text();
-  return { body, thumbnailUrl: extractThumbnailUrl(body) };
+  // The textarea's own content must not be scanned as part of the share
+  // page -- remove it so layer 2 only sees the page around it.
+  textarea.remove();
+  return { body, thumbnailUrl: extractThumbnailUrl(body, $.html(), feedItemHtml) };
 }
 
 export const theConversationProvider: ContentProvider = {
@@ -115,11 +133,18 @@ export const theConversationProvider: ContentProvider = {
       const articleId = extractArticleId(item.link);
       if (!articleId) continue;
 
+      // rss-parser maps an Atom entry's <content> onto .content and
+      // <summary> onto .summary/.contentSnippet -- either may carry the
+      // entry's own image markup, used as the last extraction layer.
+      const feedItemHtml =
+        (typeof item.content === "string" ? item.content : "") ||
+        (typeof (item as Record<string, unknown>).summary === "string" ? ((item as Record<string, unknown>).summary as string) : "");
+
       // A single fetch per article -- if it fails, this item is skipped
       // (not retried) so one broken article doesn't drop the whole feed.
       let republish: { body: string; thumbnailUrl?: string } | null;
       try {
-        republish = await fetchRepublishHtml(articleId);
+        republish = await fetchRepublishHtml(articleId, feedItemHtml);
       } catch {
         continue;
       }
