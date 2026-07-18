@@ -15,12 +15,6 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   images: {
-    // TEMP DEMO FALLBACK — remove after thumbnail extraction is fixed.
-    // next/image refuses to optimize .svg by default (untrusted-SVG risk).
-    // The only SVGs this app ever passes to <Image> are the 10 hand-authored
-    // placeholders in public/assets/placeholders (src/lib/content/thumbnailFallback.ts)
-    // -- no user-supplied or remote SVG ever reaches this path.
-    dangerouslyAllowSVG: true,
     remotePatterns: [
       {
         protocol: "https",

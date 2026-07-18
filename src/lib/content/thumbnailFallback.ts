@@ -16,8 +16,16 @@
 // comes from hashing the item's own id (stable for the item's whole
 // life), not Math.random() or anything time-based.
 
-/** 10 hand-authored, locally-hosted placeholder images (public/assets/placeholders) —
- * local files, not a remote host, so there's nothing to 404 mid-demo. */
+/**
+ * 10 real editorial photos, one per category, served locally from
+ * public/images/article-fallbacks/ — not hand-drawn illustrations, not a
+ * remote host (nothing to 404 mid-demo, works fully offline). These are
+ * NOT checked into this commit: drop a royalty-free (Unsplash/Pexels)
+ * landscape JPG at each path below, named exactly as listed, before the
+ * demo. Until a file exists at a given path, that one category's image
+ * 404s — every OTHER category is unaffected, and this is the one line
+ * to change if the file layout ever moves.
+ */
 interface PlaceholderTheme {
   category: string;
   /** Matched case-insensitively as a substring against the item's topics/tags. */
@@ -26,16 +34,16 @@ interface PlaceholderTheme {
 }
 
 const PLACEHOLDER_THEMES: readonly PlaceholderTheme[] = [
-  { category: "Technology", keywords: ["technology", "tech", "gaming", "ai", "software"], src: "/assets/placeholders/technology.svg" },
-  { category: "Business", keywords: ["business", "finance", "economy", "economic", "work", "job"], src: "/assets/placeholders/business.svg" },
-  { category: "Science", keywords: ["science", "research", "space", "physics", "biology"], src: "/assets/placeholders/science.svg" },
-  { category: "Health", keywords: ["health", "medicine", "medical", "wellness"], src: "/assets/placeholders/health.svg" },
-  { category: "Education", keywords: ["education", "school", "books", "learning", "university"], src: "/assets/placeholders/education.svg" },
-  { category: "Politics", keywords: ["politics", "political", "government", "congress", "election", "policy"], src: "/assets/placeholders/politics.svg" },
-  { category: "Environment", keywords: ["environment", "climate", "nature", "wildlife"], src: "/assets/placeholders/environment.svg" },
-  { category: "Culture", keywords: ["culture", "movies", "music", "art", "books"], src: "/assets/placeholders/culture.svg" },
-  { category: "Travel", keywords: ["travel", "tourism"], src: "/assets/placeholders/travel.svg" },
-  { category: "Sports", keywords: ["sports", "food"], src: "/assets/placeholders/sports.svg" },
+  { category: "Technology", keywords: ["technology", "tech", "gaming", "ai", "software"], src: "/images/article-fallbacks/technology.jpg" },
+  { category: "Business", keywords: ["business", "finance", "economy", "economic", "work", "job"], src: "/images/article-fallbacks/business.jpg" },
+  { category: "Science", keywords: ["science", "research", "space", "physics", "biology"], src: "/images/article-fallbacks/science.jpg" },
+  { category: "Health", keywords: ["health", "medicine", "medical", "wellness"], src: "/images/article-fallbacks/health.jpg" },
+  { category: "Education", keywords: ["education", "school", "books", "learning", "university"], src: "/images/article-fallbacks/education.jpg" },
+  { category: "Politics", keywords: ["politics", "political", "government", "congress", "election", "policy"], src: "/images/article-fallbacks/politics.jpg" },
+  { category: "Environment", keywords: ["environment", "climate", "nature", "wildlife"], src: "/images/article-fallbacks/environment.jpg" },
+  { category: "Culture", keywords: ["culture", "movies", "music", "art", "books"], src: "/images/article-fallbacks/culture.jpg" },
+  { category: "Travel", keywords: ["travel", "tourism"], src: "/images/article-fallbacks/travel.jpg" },
+  { category: "Sports", keywords: ["sports", "food"], src: "/images/article-fallbacks/sports.jpg" },
 ];
 
 /** djb2 — a small, dependency-free string hash. Deterministic and stable across processes/sessions (unlike Math.random or Date-based selection). */
