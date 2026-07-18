@@ -1,3 +1,4 @@
+import { writeFileSync } from "node:fs";
 import * as cheerio from "cheerio";
 import Parser from "rss-parser";
 import type { ContentProvider, RawContentItem } from "../types";
@@ -43,6 +44,43 @@ const SHARE_ENDPOINT_BASE = "https://theconversation.com/share/";
 const BROWSER_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
+/**
+ * TEMPORARY diagnostic instrumentation for the thumbnail_url=NULL
+ * production blocker. Traces one real article, by a stable title
+ * substring (survives curly-vs-straight-apostrophe differences), through
+ * every stage of this file's real, unmodified extraction path -- no new
+ * algorithm, no new fallback, just console.log at each checkpoint. Remove
+ * once the root cause is confirmed and fixed.
+ */
+const TRACE_TITLE_MATCH = "SAVE America Act";
+function isTraceTarget(title: string | undefined): boolean {
+  return typeof title === "string" && title.includes(TRACE_TITLE_MATCH);
+}
+function trace(stage: string, message: string): void {
+  console.log(`[thumbnail-trace] ${stage}: ${message}`);
+}
+/** Enumerates every <img>/<figure> in an HTML fragment exactly as firstContentImage() itself will see them -- what stage 3 needs to know before extraction runs. */
+function traceImageInventory(stage: string, html: string): void {
+  if (!html) {
+    trace(stage, "empty HTML -- 0 <img> tags, 0 <figure> tags");
+    return;
+  }
+  const $ = cheerio.load(html);
+  const imgs = $("img").toArray();
+  trace(stage, `<img> tag count: ${imgs.length}`);
+  imgs.forEach((img, i) => {
+    const el = $(img);
+    trace(stage, `  img[${i}] src=${el.attr("src") ?? "(none)"}`);
+    trace(stage, `  img[${i}] srcset=${el.attr("srcset") ?? "(none)"}`);
+    trace(stage, `  img[${i}] data-src=${el.attr("data-src") ?? "(none)"}`);
+  });
+  const figures = $("figure").toArray();
+  trace(stage, `<figure> tag count: ${figures.length}`);
+  figures.forEach((fig, i) => {
+    trace(stage, `  figure[${i}] outerHTML=${$.html(fig)?.slice(0, 400)}`);
+  });
+}
+
 /** The Conversation's article URLs end in "-<numeric id>" (confirmed
  * against the real URL used to find the share endpoint,
  * .../could-count-binface-actually-win-287611). */
@@ -77,15 +115,36 @@ function firstContentImage(html: string): string | undefined {
  * republish text is text-focused), then whatever image the Atom entry's
  * own content markup carries. Which layer fired is reported by
  * scripts/check-conversation-provider.mjs for real-feed verification. */
-function extractThumbnailUrl(republishBody: string, sharePageHtml: string, feedItemHtml: string): string | undefined {
-  return firstContentImage(republishBody) ?? firstContentImage(sharePageHtml) ?? firstContentImage(feedItemHtml);
+function extractThumbnailUrl(
+  republishBody: string,
+  sharePageHtml: string,
+  feedItemHtml: string,
+  traceTarget = false,
+): string | undefined {
+  const fromRepublishBody = firstContentImage(republishBody);
+  const fromSharePage = fromRepublishBody ?? firstContentImage(sharePageHtml);
+  const result = fromSharePage ?? firstContentImage(feedItemHtml);
+
+  if (traceTarget) {
+    trace("STAGE 4", `firstContentImage(republishBody) = ${fromRepublishBody ?? "(none)"}`);
+    trace("STAGE 4", `firstContentImage(sharePageHtml) = ${fromRepublishBody ? "(skipped, layer 1 already matched)" : (firstContentImage(sharePageHtml) ?? "(none)")}`);
+    trace("STAGE 4", `firstContentImage(feedItemHtml) = ${fromSharePage ? "(skipped, an earlier layer already matched)" : (firstContentImage(feedItemHtml) ?? "(none)")}`);
+    // Required exact-format output for stage 4.
+    console.log(result ? `Found image:\n${result}` : "No image found.");
+  }
+
+  return result;
 }
 
 async function fetchRepublishHtml(
   articleId: string,
   feedItemHtml: string,
+  traceTarget = false,
 ): Promise<{ body: string; thumbnailUrl?: string } | null> {
-  const response = await fetch(`${SHARE_ENDPOINT_BASE}${articleId}`, {
+  const shareUrl = `${SHARE_ENDPOINT_BASE}${articleId}`;
+  if (traceTarget) trace("STAGE 2 Share page", `URL fetched: ${shareUrl}`);
+
+  const response = await fetch(shareUrl, {
     headers: { "User-Agent": BROWSER_USER_AGENT, Accept: "text/html" },
   });
   if (!response.ok) {
@@ -93,16 +152,39 @@ async function fetchRepublishHtml(
   }
 
   const html = await response.text();
+  if (traceTarget) {
+    trace("STAGE 2 Share page", `HTML fetched: ${html.length} chars`);
+    // Writes the exact bytes this run saw to disk so they can actually be
+    // opened/diffed, not just measured -- /tmp is the one writable path on
+    // Vercel's serverless filesystem. Best-effort: a filesystem failure
+    // here must never break the real pipeline.
+    try {
+      writeFileSync("/tmp/thumbnail-trace-share-page.html", html);
+      trace("STAGE 2 Share page", "HTML saved to /tmp/thumbnail-trace-share-page.html");
+    } catch (error) {
+      trace("STAGE 2 Share page", `HTML save to disk failed (non-fatal): ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
   const $ = cheerio.load(html);
   const textarea = $('textarea[name="non-attributed-body"]');
   // .text() would be "" for a missing element -- keep the old explicit
   // null-when-absent contract instead of conflating it with empty content.
-  if (textarea.length === 0) return null;
+  if (textarea.length === 0) {
+    if (traceTarget) trace("STAGE 2 Share page", 'no <textarea name="non-attributed-body"> found on the page');
+    return null;
+  }
   const body = textarea.text();
   // The textarea's own content must not be scanned as part of the share
   // page -- remove it so layer 2 only sees the page around it.
   textarea.remove();
-  return { body, thumbnailUrl: extractThumbnailUrl(body, $.html(), feedItemHtml) };
+
+  if (traceTarget) {
+    traceImageInventory("STAGE 3 Republish HTML (non-attributed-body textarea)", body);
+    traceImageInventory("STAGE 3 Share page HTML (rest of page, textarea removed)", $.html());
+  }
+
+  return { body, thumbnailUrl: extractThumbnailUrl(body, $.html(), feedItemHtml, traceTarget) };
 }
 
 export const theConversationProvider: ContentProvider = {
@@ -133,6 +215,14 @@ export const theConversationProvider: ContentProvider = {
       const articleId = extractArticleId(item.link);
       if (!articleId) continue;
 
+      const traceTarget = isTraceTarget(item.title);
+      if (traceTarget) {
+        trace(
+          "STAGE 1 Atom feed entry",
+          `title: ${item.title ?? "(untitled)"} | link: ${item.link} | content snippet: ${(item.contentSnippet ?? "").slice(0, 300)}`,
+        );
+      }
+
       // rss-parser maps an Atom entry's <content> onto .content and
       // <summary> onto .summary/.contentSnippet -- either may carry the
       // entry's own image markup, used as the last extraction layer.
@@ -144,11 +234,17 @@ export const theConversationProvider: ContentProvider = {
       // (not retried) so one broken article doesn't drop the whole feed.
       let republish: { body: string; thumbnailUrl?: string } | null;
       try {
-        republish = await fetchRepublishHtml(articleId, feedItemHtml);
-      } catch {
+        republish = await fetchRepublishHtml(articleId, feedItemHtml, traceTarget);
+      } catch (error) {
+        if (traceTarget) trace("STAGE 2/3/4", `fetchRepublishHtml threw: ${error instanceof Error ? error.message : String(error)}`);
         continue;
       }
-      if (!republish) continue;
+      if (!republish) {
+        if (traceTarget) trace("STAGE 2/3/4", "fetchRepublishHtml returned null (no republish textarea) -- item skipped entirely");
+        continue;
+      }
+
+      if (traceTarget) trace("STAGE 5 RawContentItem.thumbnailUrl", republish.thumbnailUrl ?? "(undefined)");
 
       items.push({
         externalId,

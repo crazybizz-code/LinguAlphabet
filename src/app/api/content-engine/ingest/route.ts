@@ -61,24 +61,35 @@ export async function GET(request: Request) {
       sourceId: source.id,
       sourceConfig: source.config as Record<string, unknown>,
       autoPublish: true,
-      normalize: (raw) => ({
-        id: `article-${createHash("sha256").update(raw.externalId).digest("hex").slice(0, 16)}`,
-        contentType: "article",
-        title: raw.title,
-        description: excerpt(raw.body),
-        skills: ["Reading"],
-        goalAlignment: [],
-        tags: [],
-        thumbnailUrl: raw.thumbnailUrl ?? "",
-        publishedAt: raw.publishedAt,
-        detailsTable: "article_details",
-        detailsRow: {
-          body: raw.body,
-          source_url: raw.url ?? "",
-          author: raw.author ?? "",
-          reading_time_minutes: estimateReadingTimeMinutes(raw.body),
-        },
-      }),
+      normalize: (raw) => {
+        const thumbnailUrl = raw.thumbnailUrl ?? "";
+        // TEMPORARY diagnostic instrumentation for the thumbnail_url=NULL
+        // production blocker -- traces the same one article this file's
+        // provider-level trace targets. Remove once the root cause is fixed.
+        if (raw.title?.includes("SAVE America Act")) {
+          console.log(
+            `[thumbnail-trace] STAGE 6 draft.thumbnailUrl: ${thumbnailUrl ? thumbnailUrl : "(empty string)"} (raw.thumbnailUrl was: ${raw.thumbnailUrl ?? "(undefined)"})`,
+          );
+        }
+        return {
+          id: `article-${createHash("sha256").update(raw.externalId).digest("hex").slice(0, 16)}`,
+          contentType: "article",
+          title: raw.title,
+          description: excerpt(raw.body),
+          skills: ["Reading"],
+          goalAlignment: [],
+          tags: [],
+          thumbnailUrl,
+          publishedAt: raw.publishedAt,
+          detailsTable: "article_details",
+          detailsRow: {
+            body: raw.body,
+            source_url: raw.url ?? "",
+            author: raw.author ?? "",
+            reading_time_minutes: estimateReadingTimeMinutes(raw.body),
+          },
+        };
+      },
     });
     runs.push({ sourceId: source.id, ...result });
   }
