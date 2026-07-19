@@ -1,10 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
+import { subscribeSheetOpen, getIsAnySheetOpen } from "@/lib/ui/sheetOpenStore";
+
+/**
+ * Mobile-only bottom offset for both the trigger button and its teaser
+ * card. Must clear DashboardBottomNav's real on-screen height, including
+ * the safe-area inset that nav bar adds below `md` -- a fixed px value
+ * (the previous `bottom-24`) undercounted that inset on real notched
+ * phones, so the two fixed-position elements would visually and
+ * hit-test overlap (confirmed by measuring both elements' real
+ * bounding boxes: an ~26x51px overlap directly over the Profile tab,
+ * which any equal-z-index later-DOM-order element wins, swallowing the
+ * tap before it ever reaches the nav Link underneath -- PRIORITY 1's
+ * "multiple taps needed" root cause). 6.5rem (104px) plus the same
+ * env() the nav bar itself adds leaves a consistent ~20px clearance
+ * above the nav on every device, notched or not.
+ */
+const BUTTON_BOTTOM_OFFSET = "bottom-[calc(6.5rem+env(safe-area-inset-bottom))]";
+const TEASER_BOTTOM_OFFSET = "bottom-[calc(11rem+env(safe-area-inset-bottom))]";
 
 /**
  * Global "Ask Tuto" entry point — persists on every shell screen except the
@@ -18,12 +36,21 @@ import { Tuto } from "@/components/mascot/Tuto";
  * wire a real "notify me" signup to either — the CTA is a plainly
  * disabled "coming soon" state, not a fake toggle that pretends to
  * register interest with nothing persisted behind it.
+ *
+ * PRIORITY 2: hidden entirely whenever a bottom sheet (EditSheet) is open
+ * — a fixed-position button with no awareness of what else is on screen
+ * has no safe way to "move above" an arbitrarily tall sheet, so hiding is
+ * the one guarantee that it can never cover sheet content. Getting the
+ * `isAnySheetOpen` signal via useSyncExternalStore (see sheetOpenStore.ts)
+ * rather than prop-drilling keeps EditSheet and FloatingTuto decoupled —
+ * neither needs to import or know about the other.
  */
 export function FloatingTuto() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const isAnySheetOpen = useSyncExternalStore(subscribeSheetOpen, getIsAnySheetOpen, () => false);
 
-  if (pathname === "/tuto-chat") return null;
+  if (pathname === "/tuto-chat" || isAnySheetOpen) return null;
 
   return (
     <>
@@ -34,7 +61,7 @@ export function FloatingTuto() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 10 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-24 right-4 z-50 w-80 rounded-3xl border border-border bg-bg-card p-5 shadow-xl max-lg:bottom-44 lg:right-8"
+            className={`fixed right-4 z-50 w-80 rounded-3xl border border-border bg-bg-card p-5 shadow-xl lg:bottom-24 lg:right-8 ${TEASER_BOTTOM_OFFSET}`}
           >
             <button
               type="button"
@@ -75,7 +102,7 @@ export function FloatingTuto() {
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen((value) => !value)}
         aria-label={open ? "Close Tuto chat teaser" : "Open Tuto chat teaser"}
-        className="fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-text-on-primary shadow-glow max-lg:bottom-24 lg:bottom-6 lg:right-8"
+        className={`fixed right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-text-on-primary shadow-glow lg:bottom-6 lg:right-8 ${BUTTON_BOTTOM_OFFSET}`}
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
       </motion.button>
