@@ -25,7 +25,7 @@ function toPodcastContent(item: ContentItemRow, details: PodcastDetailsRow): Pod
     // Remove after thumbnail extraction is fixed.
     // `||` (not `??`) deliberately treats both null AND "" as missing —
     // the ingestion pipeline can produce either for a failed extraction.
-    thumbnailUrl: item.thumbnail_url || resolveThumbnailFallback({ id: item.id, topics: item.topics, tags: item.tags }),
+    thumbnailUrl: item.thumbnail_url || resolveThumbnailFallback({ topics: item.topics, tags: item.tags }),
     status: item.status,
     featured: item.featured,
     premium: item.premium,
@@ -106,7 +106,7 @@ function toArticleContent(item: ContentItemRow, details: ArticleDetailsRow): Art
     // Remove after thumbnail extraction is fixed.
     // `||` (not `??`) deliberately treats both null AND "" as missing —
     // the ingestion pipeline can produce either for a failed extraction.
-    thumbnailUrl: item.thumbnail_url || resolveThumbnailFallback({ id: item.id, topics: item.topics, tags: item.tags }),
+    thumbnailUrl: item.thumbnail_url || resolveThumbnailFallback({ topics: item.topics, tags: item.tags }),
     status: item.status,
     featured: item.featured,
     premium: item.premium,
