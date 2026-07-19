@@ -16,7 +16,14 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <DashboardSidebar />
       <main className="pl-[260px] max-lg:pl-0">
         {children}
-        <div className="h-24 lg:hidden" />
+        {/* Clears BOTH the floating bottom nav and the Ask Tuto FAB above it
+            (FloatingTuto.tsx) on tablet/mobile — 96px alone only cleared the
+            nav bar, leaving the FAB (which rests higher, at ~104-160px from
+            the viewport bottom, safe-area included) free to sit on top of
+            whatever content happened to end at the bottom of the page. This
+            gives every page's last card real breathing room to scroll clear
+            of both fixed elements instead of ending directly under them. */}
+        <div className="h-[calc(11rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true" />
       </main>
       <DashboardBottomNav />
       <FloatingTuto />

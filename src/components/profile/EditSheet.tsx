@@ -53,6 +53,20 @@ function useLockBodyScroll(locked: boolean) {
  * is still sitting there, we pop it ourselves in cleanup — otherwise the
  * learner would need to press Back twice (once to silently discard our
  * marker entry, once more to actually leave) to get off the page for real.
+ *
+ * That cleanup-time `history.back()` used to run synchronously and
+ * unconditionally, which collided with React's dev-mode double effect
+ * invocation (mount -> cleanup -> mount, run synchronously to catch missing
+ * cleanup bugs — see react.dev's "Strict Mode" docs): the first
+ * (StrictMode-diagnostic) cleanup called `history.back()`, whose resulting
+ * `popstate` fires asynchronously and landed on the SECOND (real) effect
+ * instance's listener, which read it as "the user pressed Back" and
+ * immediately closed the sheet the instant it opened — reproduced with a
+ * calendar day tap: state set correctly, then reset to null on the very
+ * next render, confirmed via trace logging before this fix. `pendingBackRef`
+ * defers the `history.back()` by one microtask and lets a synchronous
+ * re-mount (StrictMode's churn, or a genuinely fast reopen) cancel it
+ * before it ever fires, while a real close still calls it right after.
  */
 function useBackButtonClosesSheet(open: boolean, onClose: () => void) {
   const onCloseRef = useRef(onClose);
@@ -64,8 +78,17 @@ function useBackButtonClosesSheet(open: boolean, onClose: () => void) {
     onCloseRef.current = onClose;
   });
 
+  const pendingBackRef = useRef<{ cancelled: boolean } | null>(null);
+
   useEffect(() => {
     if (!open) return;
+
+    // A previous close's deferred history.back() hasn't fired yet -- this
+    // fresh mount means that entry is ours now, not stale, so cancel it.
+    if (pendingBackRef.current) {
+      pendingBackRef.current.cancelled = true;
+      pendingBackRef.current = null;
+    }
 
     let consumedByBackButton = false;
     history.pushState({ sheetOpen: true }, "");
@@ -79,7 +102,11 @@ function useBackButtonClosesSheet(open: boolean, onClose: () => void) {
     return () => {
       window.removeEventListener("popstate", handlePopState);
       if (!consumedByBackButton) {
-        history.back();
+        const token = { cancelled: false };
+        pendingBackRef.current = token;
+        queueMicrotask(() => {
+          if (!token.cancelled) history.back();
+        });
       }
     };
   }, [open]);

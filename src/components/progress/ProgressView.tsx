@@ -82,23 +82,23 @@ export function ProgressView({
 
       {/* Weekly Goal (minutes, not sessions — docs/domain-model.md §21, deliberately
           independent from Streak) and lifetime completion count, side by side. */}
-      <div className="mt-5 grid grid-cols-2 gap-4 max-md:grid-cols-1">
+      <div className="mt-6 grid grid-cols-2 gap-4 max-md:grid-cols-1">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.15 }}
-          className="rounded-[1.5rem] border border-border bg-bg-muted p-5"
+          className="rounded-[1.5rem] border border-border bg-bg-muted p-6"
         >
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3.5 flex items-center gap-2">
             <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
             <h3 className="text-sm font-semibold text-text-primary">Weekly Goal</h3>
           </div>
           <p className="text-2xl font-bold text-text-primary">
             {Math.round(weeklyMinutes)} / {Math.round(weeklyGoalMinutes)}
           </p>
-          <p className="mt-0.5 text-xs text-text-tertiary">minutes this week</p>
+          <p className="mt-1 text-xs text-text-tertiary">minutes this week</p>
           <div
-            className="mt-3 h-2 w-full overflow-hidden rounded-full bg-border"
+            className="mt-4 h-2 w-full overflow-hidden rounded-full bg-border"
             role="progressbar"
             aria-label="Weekly goal progress"
             aria-valuenow={Math.round(weeklyPercentage)}
@@ -107,7 +107,7 @@ export function ProgressView({
           >
             <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${weeklyPercentage}%` }} />
           </div>
-          <div className="mt-3 flex gap-1.5">
+          <div className="mt-4 flex gap-2">
             {weekActivity.map((day) => (
               <div key={day.label} className="flex flex-1 flex-col items-center gap-1.5">
                 <div
@@ -123,16 +123,16 @@ export function ProgressView({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="rounded-[1.5rem] border border-border bg-bg-muted p-5"
+          className="rounded-[1.5rem] border border-border bg-bg-muted p-6"
         >
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3.5 flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-primary" aria-hidden="true" />
             <h3 className="text-sm font-semibold text-text-primary">Completed Lessons</h3>
           </div>
           <p className="text-2xl font-bold text-text-primary">{totalCompleted}</p>
-          <p className="mt-0.5 text-xs text-text-tertiary">all-time lessons</p>
+          <p className="mt-1 text-xs text-text-tertiary">all-time lessons</p>
           {completedThisWeek > 0 && (
-            <p className="mt-3 text-xs font-semibold text-success">+{completedThisWeek} this week</p>
+            <p className="mt-4 text-xs font-semibold text-success">+{completedThisWeek} this week</p>
           )}
         </motion.div>
       </div>
@@ -144,7 +144,7 @@ export function ProgressView({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.25 }}
-        className="mt-5 rounded-[1.5rem] border border-border bg-bg-card p-5"
+        className="mt-6 rounded-[1.5rem] border border-border bg-bg-card p-6"
       >
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-lighter text-sm font-bold text-primary">
@@ -157,7 +157,7 @@ export function ProgressView({
           <Award className="ml-auto h-5 w-5 text-primary" aria-hidden="true" />
         </div>
         <div
-          className="mt-4 h-2 w-full overflow-hidden rounded-full bg-border"
+          className="mt-5 h-2 w-full overflow-hidden rounded-full bg-border"
           role="progressbar"
           aria-label={`Progress toward level ${level + 1}`}
           aria-valuenow={Math.round(xpPercentage)}
@@ -176,7 +176,7 @@ export function ProgressView({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
-        className="mt-5 rounded-[1.5rem] border border-border bg-bg-card p-5"
+        className="mt-6 rounded-[1.5rem] border border-border bg-bg-card p-6"
       >
         <LearningCalendar
           monthActivity={monthActivity}
@@ -192,13 +192,13 @@ export function ProgressView({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.35 }}
-          className="mt-5 rounded-[1.5rem] border border-border bg-bg-card p-5"
+          className="mt-6 rounded-[1.5rem] border border-border bg-bg-card p-6"
         >
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3.5 flex items-center gap-2">
             <Clock className="h-5 w-5 text-primary" aria-hidden="true" />
             <p className="text-sm font-semibold text-text-primary">Recent Activity</p>
           </div>
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col gap-3.5">
             {recentActivity.map((item, index) => (
               <li key={`${item.title}-${index}`} className="flex items-center justify-between gap-3">
                 <p className="min-w-0 truncate text-sm text-text-secondary">{item.title}</p>

@@ -46,7 +46,7 @@ export function LearningCalendar({ monthActivity, dailyActivityIndex, streak, lo
         <h3 className="text-sm font-semibold text-text-primary">Learning Calendar</h3>
         <span className="ml-auto text-xs text-text-tertiary">{monthActivity.monthLabel}</span>
       </div>
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="grid grid-cols-7 gap-2">
         {monthActivity.days.map(({ day, isToday, isFuture, intensityLevel }) => (
           <button
             key={day}
