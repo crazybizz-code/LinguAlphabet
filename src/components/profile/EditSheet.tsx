@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { X } from "lucide-react";
+import { markSheetOpen, markSheetClosed } from "@/lib/ui/sheetOpenStore";
 
 export interface EditSheetProps {
   open: boolean;
@@ -112,6 +113,15 @@ export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
   useBackButtonClosesSheet(open, onClose);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // PRIORITY 2: lets unrelated fixed-position UI (the floating Ask Tuto
+  // button) know a sheet is up so it can get out of the way instead of
+  // sitting on top of it -- see FloatingTuto.tsx's subscribeSheetOpen use.
+  useEffect(() => {
+    if (!open) return;
+    markSheetOpen();
+    return () => markSheetClosed();
+  }, [open]);
+
   // CRITICAL ISSUE #5: a reopened sheet must always start scrolled to the
   // top, never wherever it happened to be scrolled to last time. The
   // subtree below fully unmounts on close (`{open && ...}`), which already
@@ -173,7 +183,7 @@ export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
               <div className="h-1.5 w-10 rounded-full bg-border" />
             </motion.div>
 
-            <div className="flex shrink-0 items-center justify-between px-6 pb-3 sm:pt-6">
+            <div className="flex shrink-0 items-center justify-between px-6 pb-4 pt-1 sm:pt-6">
               <h2 className="text-lg font-bold text-text-primary">{title}</h2>
               <button
                 type="button"
@@ -188,12 +198,15 @@ export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
             {/* Independently scrollable content — never the drag target,
                 never fights the handle's gesture. overscroll-contain stops
                 an over-scroll here from rubber-banding the (locked)
-                page behind it. Bottom padding respects the iOS home
-                indicator / Android gesture bar safe area. */}
+                page behind it. pt-1 gives the content its own breathing
+                room below the header instead of butting straight up
+                against it; bottom padding respects the iOS home indicator /
+                Android gesture bar safe area on top of a generous base gap
+                so the last card never reads as cut off. */}
             <div
               ref={contentRef}
-              className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6"
-              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)" }}
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-1"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 2rem)" }}
             >
               {children}
             </div>
