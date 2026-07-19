@@ -15,8 +15,15 @@ type ContentItemsInsert = Database["public"]["Tables"]["content_items"]["Insert"
  * no user session to write under.
  */
 
+// TEMPORARY diagnostic instrumentation for the thumbnail_url=NULL
+// production blocker -- gated by title so it stays silent for every other
+// article. Remove once the root cause is fixed.
+function isThumbnailTraceTarget(title: string): boolean {
+  return title.includes("SAVE America Act");
+}
+
 function toContentItemsRow(draft: ContentItemDraft, status: "draft" | "published"): ContentItemsInsert {
-  return {
+  const row: ContentItemsInsert = {
     id: draft.id,
     content_type: draft.contentType,
     title: draft.title,
@@ -32,6 +39,12 @@ function toContentItemsRow(draft: ContentItemDraft, status: "draft" | "published
     status,
     published_at: draft.publishedAt,
   };
+  if (isThumbnailTraceTarget(draft.title)) {
+    console.log(
+      `[thumbnail-trace] STAGE 7 content_items.thumbnail_url before persistence (id=${draft.id}): ${JSON.stringify(row.thumbnail_url)}`,
+    );
+  }
+  return row;
 }
 
 export async function upsertContentItem(
@@ -39,7 +52,17 @@ export async function upsertContentItem(
   draft: ContentItemDraft,
   status: "draft" | "published",
 ): Promise<void> {
-  const { error } = await supabase.from("content_items").upsert(toContentItemsRow(draft, status), { onConflict: "id" });
+  const trace = isThumbnailTraceTarget(draft.title);
+  // .select().single() is added here purely so stage 8 can print exactly
+  // what Postgres persisted -- the upsert itself is unchanged.
+  const query = supabase.from("content_items").upsert(toContentItemsRow(draft, status), { onConflict: "id" });
+  if (trace) {
+    const { data, error } = await query.select().single();
+    if (error) throw new Error(`Storage: failed to upsert content_items row ${draft.id}: ${error.message}`);
+    console.log(`[thumbnail-trace] STAGE 8 row returned after upsert (id=${draft.id}): thumbnail_url=${JSON.stringify(data?.thumbnail_url)}`);
+    return;
+  }
+  const { error } = await query;
   if (error) throw new Error(`Storage: failed to upsert content_items row ${draft.id}: ${error.message}`);
 }
 

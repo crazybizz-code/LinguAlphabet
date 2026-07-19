@@ -34,14 +34,15 @@ content or recommendation concept in more depth, see `content-lifecycle.md`.
 
 - **Entry point**: Home, immediately after A1.
 - **User actions**: reads the mission card; no action required to "see" it.
-- **System actions**: mission card renders the single top-ranked
-  recommendation (title, content type, estimated time, why-now framing kept
-  soft — "Perfect for your goal," not a visible score).
+- **System actions**: mission card renders today's finite daily plan — one
+  article slot, one podcast slot, each its own top-ranked recommendation
+  (title, estimated time, why-now framing kept soft — "Perfect for your
+  goal," not a visible score) and its own completion checkmark once done.
 - **Tuto interactions**: the mission is framed as coming from Tuto ("Tuto
   picked this for you today"), not from "the system."
-- **Exit state**: learner either starts the mission (A3), or navigates away
+- **Exit state**: learner either starts either slot (A3), or navigates away
   to Explore/Progress/Profile without starting anything — a valid, non-error
-  exit state. The mission persists unchanged if they return later the same
+  exit state. Both slots persist unchanged if they return later the same
   day.
 
 ### A3. Learner starts today's mission
@@ -89,19 +90,24 @@ content or recommendation concept in more depth, see `content-lifecycle.md`.
 
 ### A6. Learner finishes Today's Mission specifically
 
-- **Entry point**: A5, where the completed item was the mission.
+- **Entry point**: A5, where the completed item was one of today's two
+  mission slots (article or podcast).
 - **User actions**: none beyond A5's completion.
-- **System actions**: marks the day's mission complete; updates streak
-  (increments if this is the first mission-completion of the calendar day);
+- **System actions**: marks that slot complete (checkmark, never
+  re-assigned for the rest of the day — see Learning Brain philosophy on
+  same-day behavior below); updates streak (increments if this is the
+  first mission-completion of the calendar day, regardless of which slot);
   awards XP (see A7).
-- **Tuto interactions**: this is the single biggest celebratory moment in
-  the product — Tuto's most expressive pose/animation, a specific
-  "you did it today" message, tied to the streak if relevant ("3 days in a
-  row!").
-- **Exit state**: a brief celebration state, then back to Home, where the
-  mission card now shows a completed state (not a new mission — see
-  Learning Brain philosophy on same-day behavior below) for the rest of that
-  calendar day.
+- **Tuto interactions**: finishing either slot gets a short celebratory
+  acknowledgment; finishing the *second* slot (completing the full daily
+  plan) is the single biggest celebratory moment in the product — Tuto's
+  most expressive pose/animation, tied to the streak if relevant ("3 days
+  in a row!").
+- **Exit state**: back to Home. If one slot remains, the mission card shows
+  the updated checklist (one done, one still to go) — not a new item in its
+  place. If both slots are now done, the card switches to a "Today's
+  Mission Completed" state with a countdown to tomorrow, for the rest of
+  that calendar day.
 
 ### A7. Learner receives XP
 

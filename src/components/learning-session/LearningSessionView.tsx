@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useLayoutEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
@@ -40,6 +40,18 @@ export function LearningSessionView({
   const [quizScore, setQuizScore] = useState(0);
   const [completionResult, setCompletionResult] = useState<CompleteMissionResult | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // CRITICAL ISSUE #1/#6: Reading -> Dictionary -> Vocabulary -> Flashcards
+  // -> Quiz -> Summary are all client-side state swaps on ONE url (no real
+  // navigation), so the browser's own scroll position and any leftover
+  // focus/keyboard from the previous step would otherwise carry straight
+  // into the next one. Every step must open like a brand new page: reset
+  // to scrollTop 0 and drop focus (which also dismisses the mobile
+  // keyboard) the instant `step` changes, before the browser paints it.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    (document.activeElement as HTMLElement | null)?.blur?.();
+  }, [step]);
 
   /** The step after `current` in this session's (already filtered) flow. */
   function nextAfter(current: SessionStep): SessionStep {

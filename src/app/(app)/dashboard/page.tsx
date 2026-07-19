@@ -66,7 +66,7 @@ export default async function DashboardPage() {
     previousMissionContentType: previousMissionContent?.contentType ?? null,
   };
 
-  const { mission, tutoRecommends, completedTodaysMissionTitle } = await learningBrain.getHomeRecommendations({
+  const { missions, allMissionsCompleted, tutoRecommends } = await learningBrain.getHomeRecommendations({
     supabase,
     userId: user.id,
     catalog,
@@ -75,6 +75,7 @@ export default async function DashboardPage() {
   });
 
   const now = new Date().getTime();
+  const completedMissionTitles = new Set(missions.map((slot) => slot.completedTitle).filter((title): title is string => title !== null));
   const recentCompletionRow = completedRows
     .filter((row) => now - new Date(row.updated_at).getTime() <= RECENT_COMPLETION_WINDOW_MS)
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
@@ -91,9 +92,10 @@ export default async function DashboardPage() {
     streak: profile?.streak ?? 0,
     weeklyMinutes,
     weeklyGoalMinutes,
-    // The Today's Mission Complete banner already congratulates the learner
-    // by name for this exact completion — don't say it twice in Tuto's note.
-    recentCompletionTitle: recentCompletionTitle === completedTodaysMissionTitle ? null : recentCompletionTitle,
+    // Today's Mission's own checklist/celebration already congratulates the
+    // learner by name for this exact completion — don't say it twice in
+    // Tuto's note.
+    recentCompletionTitle: recentCompletionTitle && completedMissionTitles.has(recentCompletionTitle) ? null : recentCompletionTitle,
     daysSinceLastStudy,
   });
 
@@ -104,8 +106,8 @@ export default async function DashboardPage() {
       level={profile?.level ?? 1}
       weeklyMinutes={weeklyMinutes}
       weeklyGoalMinutes={weeklyGoalMinutes}
-      mission={mission}
-      completedTodaysMissionTitle={completedTodaysMissionTitle}
+      missions={missions}
+      allMissionsCompleted={allMissionsCompleted}
       tutoNote={tutoNote}
       recommendations={tutoRecommends}
     />

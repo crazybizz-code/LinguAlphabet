@@ -26,6 +26,6 @@ export const learningBrain = {
   getEffectiveLevel: difficultyProgressionStrategy.computeEffectiveLevel,
 };
 
-export type { LearnerContext, LearningBrainRanker, Mission, MissionKind } from "./types";
+export type { DailyMissionSlot, LearnerContext, LearningBrainRanker, Mission, MissionKind, MissionSlotContentType } from "./types";
 export type { HomeRecommendations } from "./strategies/daily-mission-generator";
 export type { RecentCompletion } from "./strategies/difficulty-progression";

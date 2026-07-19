@@ -83,10 +83,14 @@ Top to bottom, in priority order:
 
 1. **Greeting** — personalized, time-of-day aware ("Good morning, {name}"),
    with streak indicator if the learner has one. Small, quiet, not a hero.
-2. **Today's Mission** — the hero of the screen. One card, one piece of
-   content, one CTA ("Continue" or "Start"). This is the Learning Brain's
-   single top-ranked recommendation for *right now*. There is deliberately
-   only one — never a top-3 "choose one" list here, that's Explore's job.
+2. **Today's Mission** — the hero of the screen. One card, presenting a
+   **finite daily plan**: exactly one article and one podcast, each the
+   Learning Brain's top-ranked pick for *right now*, each with its own
+   CTA ("Continue" or "Start") and tracked to completion independently.
+   There are deliberately only ever these two — never a top-3 "choose one"
+   list here, that's Explore's job. Once both are completed, the card
+   becomes a "Today's Mission Completed" state with a countdown to
+   tomorrow, not a freshly-generated third item.
 3. **Tuto's note** — a short, contextual, personality-driven message tied to
    the learner's actual state (e.g. "Two more days to a 7-day streak" /
    "Nice work finishing yesterday's podcast"). Optional per visit — Tuto

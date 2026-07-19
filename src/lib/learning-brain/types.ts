@@ -66,3 +66,26 @@ export interface Mission {
   /** 0-100, or null when this mission kind has no meaningful "in progress" state. */
   progressPercentage: number | null;
 }
+
+/**
+ * Today's Mission is a finite daily plan, not an endless recommendation
+ * stream (docs/content-lifecycle.md §5): exactly one article slot and one
+ * podcast slot per calendar day, tracked independently. `MissionSlotState`
+ * is what Home actually renders per slot.
+ */
+export type MissionSlotContentType = "article" | "podcast";
+
+export interface DailyMissionSlot {
+  contentType: MissionSlotContentType;
+  /**
+   * Non-null while this slot's assigned content hasn't been completed
+   * today (or is null when no eligible content exists yet for this type).
+   */
+  mission: Mission | null;
+  /**
+   * Set once this slot's assigned content was completed today. A
+   * completed slot is never replaced with a fresh assignment for the rest
+   * of the calendar day — that's what makes the daily plan finite.
+   */
+  completedTitle: string | null;
+}

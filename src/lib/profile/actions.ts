@@ -24,20 +24,19 @@ export interface LearningProfileUpdate {
  * from the Learning Profile on every render, so a fresh render is all they
  * need.
  *
- * Today's Mission is the one exception: it's deliberately locked for the
- * calendar day once assigned (content-lifecycle.md §5), so simply
- * revalidating the page wouldn't change it. A learner explicitly editing
+ * Today's Mission is the one exception: it's a finite daily plan of two
+ * independent slots (article + podcast, content-lifecycle.md §5), each
+ * deliberately locked for the calendar day once assigned, so simply
+ * revalidating the page wouldn't change them. A learner explicitly editing
  * their Learning Profile is a deliberate signal, not passive background
- * drift, so it's treated as grounds to drop today's assignment and let it
- * be re-picked fresh from the new context on the next Home render.
- * `todaysMissionStrategy.decide` still checks Continue Learning first, so
- * an in-progress podcast is never yanked away by this — only a
- * not-yet-started mission is re-picked. And if today's mission was already
- * completed, the row is left alone — Home's "Today's Mission Complete"
- * acknowledgment reads its title from that row, and the next mission it
- * shows already recomputes live from the new context on every render
- * regardless (see daily-mission-generator.ts's `assignmentStillValid`
- * branch), so nothing is lost by not touching it.
+ * drift, so it's treated as grounds to drop whichever slots aren't yet
+ * completed and let them be re-picked fresh from the new context on the
+ * next Home render. `todaysMissionStrategy.decide` still checks Continue
+ * Learning first, so an in-progress item is never yanked away by this —
+ * only a not-yet-started slot is re-picked. A slot that's already
+ * completed today is left alone — its checkmark and title stay put, and
+ * the finite daily plan never re-assigns a completed slot regardless of a
+ * profile change.
  */
 export async function updateLearningProfile(update: LearningProfileUpdate): Promise<void> {
   const supabase = await createClient();
@@ -54,21 +53,35 @@ export async function updateLearningProfile(update: LearningProfileUpdate): Prom
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [, { data: existingAssignment }] = await Promise.all([
+  const [, { data: existingAssignments }] = await Promise.all([
     supabase.from("profiles").update(patch).eq("user_id", user.id),
-    supabase.from("daily_missions").select("content_item_id").eq("user_id", user.id).eq("mission_date", today).maybeSingle(),
+    supabase.from("daily_missions").select("content_type, content_item_id").eq("user_id", user.id).eq("mission_date", today),
   ]);
 
-  if (existingAssignment) {
-    const { data: progressRow } = await supabase
+  if (existingAssignments && existingAssignments.length > 0) {
+    const { data: progressRows } = await supabase
       .from("progress")
-      .select("completed")
+      .select("content_item_id, completed")
       .eq("user_id", user.id)
-      .eq("content_item_id", existingAssignment.content_item_id)
-      .maybeSingle();
+      .in(
+        "content_item_id",
+        existingAssignments.map((assignment) => assignment.content_item_id),
+      );
 
-    if (!progressRow?.completed) {
-      await supabase.from("daily_missions").delete().eq("user_id", user.id).eq("mission_date", today);
+    const completedContentIds = new Set(
+      (progressRows ?? []).filter((row) => row.completed).map((row) => row.content_item_id),
+    );
+    const unfinishedTypes = existingAssignments
+      .filter((assignment) => !completedContentIds.has(assignment.content_item_id))
+      .map((assignment) => assignment.content_type);
+
+    if (unfinishedTypes.length > 0) {
+      await supabase
+        .from("daily_missions")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("mission_date", today)
+        .in("content_type", unfinishedTypes);
     }
   }
 

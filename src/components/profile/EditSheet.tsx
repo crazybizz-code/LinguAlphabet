@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -42,50 +42,94 @@ function useLockBodyScroll(locked: boolean) {
   }, [locked]);
 }
 
-/** Drag-to-expand/dismiss thresholds — offset in px, velocity in px/s. Matches the feel of native iOS/Android bottom sheets: a small flick counts the same as a slow, longer drag. */
-const EXPAND_OFFSET_THRESHOLD = 60;
-const COLLAPSE_OFFSET_THRESHOLD = 60;
+/**
+ * CRITICAL ISSUE #3: on Android, hardware/gesture Back must close an open
+ * sheet, never exit the page underneath it. The standard cross-browser fix:
+ * push one extra history entry the instant the sheet opens, so a Back press
+ * fires `popstate` here instead of actually leaving the page — we just
+ * treat that as a close. If the sheet is closed any OTHER way (X button,
+ * backdrop tap, swipe-down, or the consumer unmounting it) while that entry
+ * is still sitting there, we pop it ourselves in cleanup — otherwise the
+ * learner would need to press Back twice (once to silently discard our
+ * marker entry, once more to actually leave) to get off the page for real.
+ */
+function useBackButtonClosesSheet(open: boolean, onClose: () => void) {
+  const onCloseRef = useRef(onClose);
+  // Keeps the ref pointed at the latest callback without making it a
+  // dependency of the effect below — refs must only be written outside of
+  // render, so this runs as its own no-deps effect (fires after every
+  // render) rather than as a plain assignment in the function body.
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  useEffect(() => {
+    if (!open) return;
+
+    let consumedByBackButton = false;
+    history.pushState({ sheetOpen: true }, "");
+
+    function handlePopState() {
+      consumedByBackButton = true;
+      onCloseRef.current();
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      if (!consumedByBackButton) {
+        history.back();
+      }
+    };
+  }, [open]);
+}
+
+/** Swipe-down-to-dismiss thresholds — offset in px, velocity in px/s. A small fast flick counts the same as a slower, longer drag, matching native iOS/Android sheets. */
 const DISMISS_OFFSET_THRESHOLD = 100;
 const VELOCITY_THRESHOLD = 500;
 
+/** ~78% of viewport height — the "never randomly cover the whole screen" middle of the requested 75-80vh range. svh/dvh override the plain vh fallback where supported (mobile browser chrome resize-safe), same cascade trick used for max-h elsewhere in this file. */
+const SHEET_HEIGHT_CLASSES = "h-[78vh] h-[78svh] h-[78dvh]";
+
 /**
- * Shared chrome for every Learning Profile field editor (English Level,
- * Goal, Daily Time, Interests) — bottom sheet on mobile, centered modal on
- * desktop, per docs/design-system.md's premium-not-generic-dashboard bar.
- * Centering is done with flex, not a translate-based transform, so it
- * doesn't fight Framer Motion's own `y` transform on the panel.
+ * Shared chrome for every bottom sheet in the app (Learning Profile field
+ * editors, the Live Dictionary lookup, the Learning Calendar's Daily
+ * Activity panel) — bottom sheet on mobile, centered modal on desktop, per
+ * docs/design-system.md's premium-not-generic-dashboard bar.
+ *
+ * One fixed snap point, not a drag-to-fullscreen expand: a sheet that can
+ * balloon to cover the entire screen on a stray upward flick reads as
+ * broken, not native (Apple Maps/Music/Google Maps all open to one
+ * considered height and dismiss on a downward drag, they don't expand to
+ * fullscreen from a bottom sheet). Drag is intentionally scoped to the
+ * handle only — the content pane is a separate, independently scrollable
+ * element, so a vertical swipe over content always scrolls and a
+ * vertical drag from the handle always moves the sheet; the two can never
+ * fight each other for the same gesture.
  */
 export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
   useLockBodyScroll(open);
-  // Resets to collapsed every time the sheet opens — AnimatePresence fully
-  // unmounts this subtree while closed, so a fresh `useState(false)` here
-  // is enough, no extra effect needed.
-  const [expanded, setExpanded] = useState(false);
+  useBackButtonClosesSheet(open, onClose);
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  /**
-   * Three snap points, one step at a time (full -> partial -> dismissed),
-   * matching how native bottom sheets behave — not a straight-line
-   * mapping from drag distance to dismiss, so a small overshoot while
-   * trying to collapse from full never accidentally closes the sheet.
-   * A fast flick counts the same as a slower, longer drag, same as a
-   * native sheet's velocity-aware snapping.
-   */
+  // CRITICAL ISSUE #5: a reopened sheet must always start scrolled to the
+  // top, never wherever it happened to be scrolled to last time. The
+  // subtree below fully unmounts on close (`{open && ...}`), which already
+  // gives every reopen a brand new, scrollTop-0 DOM node -- this is an
+  // explicit belt-and-suspenders reset for the one case that wouldn't be
+  // true (a consumer that keeps `open` truthy but swaps `children`).
+  useEffect(() => {
+    if (open) contentRef.current?.scrollTo(0, 0);
+  }, [open]);
+
   function handleHandleDragEnd(_event: unknown, info: PanInfo) {
-    const offsetY = info.offset.y;
-    const isFastUp = info.velocity.y < -VELOCITY_THRESHOLD;
     const isFastDown = info.velocity.y > VELOCITY_THRESHOLD;
-
-    if (!expanded) {
-      if (offsetY < -EXPAND_OFFSET_THRESHOLD || isFastUp) {
-        setExpanded(true);
-      } else if (offsetY > DISMISS_OFFSET_THRESHOLD || isFastDown) {
-        onClose();
-      }
-      // else: released in the dead zone — Framer's dragConstraints
-      // already snaps the handle back, nothing else to do.
-    } else if (offsetY > COLLAPSE_OFFSET_THRESHOLD || isFastDown) {
-      setExpanded(false);
+    if (info.offset.y > DISMISS_OFFSET_THRESHOLD || isFastDown) {
+      onClose();
     }
+    // Released without crossing the threshold: Framer's own drag release
+    // physics (dragConstraints + dragElastic below) spring the handle back
+    // to rest on its own, no extra code needed.
   }
 
   return (
@@ -104,50 +148,53 @@ export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
           />
           <motion.div
             key="sheet"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ duration: 0.3, ease: [0, 0, 0.2, 1] }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 32, stiffness: 320 }}
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            // max-h-[85vh] is the fallback for browsers without dvh/svh
-            // support; the later dvh/svh declarations win when supported,
-            // per normal CSS cascade — same 85% proportion on every unit,
-            // just no longer thrown off by mobile browser chrome resizing
-            // the viewport (the classic plain-vh bottom-sheet bug).
-            // `expanded` swaps the mobile height to a full 100dvh sheet —
-            // desktop is unaffected (sm:max-h-none/sm:h-auto below always
-            // wins on desktop regardless of `expanded`, since there's no
-            // handle to drag there in the first place).
-            className={`relative z-10 flex w-full flex-col overflow-hidden rounded-t-[2rem] bg-bg-card shadow-card-hero transition-[max-height,height] duration-300 ease-out sm:h-auto sm:max-h-[85vh] sm:max-w-lg sm:rounded-[2rem] ${
-              expanded
-                ? "h-[100vh] h-[100svh] h-[100dvh] max-h-none"
-                : "max-h-[85vh] max-h-[85svh] max-h-[85dvh]"
-            }`}
+            className={`relative z-10 flex w-full flex-col overflow-hidden rounded-t-[2rem] bg-bg-card shadow-card-hero sm:h-auto sm:max-h-[85vh] sm:max-w-lg sm:rounded-[2rem] ${SHEET_HEIGHT_CLASSES}`}
           >
+            {/* Drag handle — the ONLY draggable region, deliberately kept
+                separate from the scrollable content pane below so a swipe
+                never has to be disambiguated between "scroll" and "drag
+                the sheet." Hidden on desktop, where this renders as a
+                centered modal with no handle to grab. */}
             <motion.div
               className="flex shrink-0 touch-none justify-center py-3 sm:hidden"
               aria-hidden="true"
               drag="y"
               dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={0.15}
+              dragElastic={{ top: 0, bottom: 0.6 }}
               onDragEnd={handleHandleDragEnd}
             >
               <div className="h-1.5 w-10 rounded-full bg-border" />
             </motion.div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-6 pt-0 sm:pt-6">
-              <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-text-primary">{title}</h2>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Close"
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-text-tertiary transition-colors hover:bg-bg-muted"
-                >
-                  <X className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </div>
+
+            <div className="flex shrink-0 items-center justify-between px-6 pb-3 sm:pt-6">
+              <h2 className="text-lg font-bold text-text-primary">{title}</h2>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-text-tertiary transition-colors hover:bg-bg-muted"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+
+            {/* Independently scrollable content — never the drag target,
+                never fights the handle's gesture. overscroll-contain stops
+                an over-scroll here from rubber-banding the (locked)
+                page behind it. Bottom padding respects the iOS home
+                indicator / Android gesture bar safe area. */}
+            <div
+              ref={contentRef}
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6"
+              style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1.5rem)" }}
+            >
               {children}
             </div>
           </motion.div>
