@@ -171,8 +171,15 @@ export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
 
   return (
     <AnimatePresence>
+      {/* z-[60]: strictly above the persistent bottom nav / FAB (both
+          z-50) so the sheet's own bottom edge is never stacked behind
+          them — on mobile viewports the nav bar's fixed 97px band and
+          the sheet's bottom edge occupy the same screen region, and at
+          equal z-index DOM order let the nav win the tie, visually
+          covering the sheet's last scrollable content even though its
+          internal scrollTop had genuinely reached its max. */}
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6">
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
