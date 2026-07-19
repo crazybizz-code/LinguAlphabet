@@ -1,4 +1,4 @@
-import { Tuto } from "@/components/mascot/Tuto";
+import { PageLoading } from "@/components/layout/PageLoading";
 
 /**
  * Shown while the Server Component page awaits profile/content/progress
@@ -8,10 +8,5 @@ import { Tuto } from "@/components/mascot/Tuto";
  * mission → Typing Laptop).
  */
 export default function DashboardLoading() {
-  return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-6 text-center">
-      <Tuto pose="typing-laptop" size="sm" animation="floatSm" />
-      <p className="text-sm font-medium text-text-tertiary">Tuto is preparing your mission&hellip;</p>
-    </div>
-  );
+  return <PageLoading pose="typing-laptop" message="Tuto is preparing your mission…" />;
 }
