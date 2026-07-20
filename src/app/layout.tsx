@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -19,6 +20,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 // canonical host — set NEXT_PUBLIC_SITE_URL to the real production domain
 // when deploying. Falls back to localhost so dev/build never breaks.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+const CLARITY_PROJECT_ID = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
 
 const TITLE = "LinguABC — AI Coach for Language Mastery";
 const DESCRIPTION =
@@ -62,6 +65,15 @@ export default function RootLayout({
       <body className={`${inter.variable} ${plusJakartaSans.variable} h-full min-h-full antialiased`}>
         {children}
         <Analytics />
+        {process.env.NODE_ENV === "production" && CLARITY_PROJECT_ID && (
+          <Script id="microsoft-clarity" strategy="afterInteractive">
+            {`(function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "${CLARITY_PROJECT_ID}");`}
+          </Script>
+        )}
       </body>
     </html>
   );
