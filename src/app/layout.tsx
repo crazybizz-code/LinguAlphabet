@@ -55,6 +55,22 @@ export const viewport: Viewport = {
   themeColor: "#FF6B00",
 };
 
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "LinguABC",
+  url: SITE_URL,
+  logo: `${SITE_URL}/favicon.svg`,
+  description: DESCRIPTION,
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "LinguABC",
+  url: SITE_URL,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -63,6 +79,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className={`${inter.variable} ${plusJakartaSans.variable} h-full min-h-full antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         {children}
         <Analytics />
         {process.env.NODE_ENV === "production" && CLARITY_PROJECT_ID && (

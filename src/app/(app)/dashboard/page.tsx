@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
@@ -6,9 +7,17 @@ import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
 import { buildTutoNote } from "@/lib/tuto/messages";
 import { HomeView } from "@/components/dashboard/HomeView";
+import { buildMetadata } from "@/lib/seo/metadata";
 
 const DEFAULT_DAILY_MINUTES = 20;
 const RECENT_COMPLETION_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+export const metadata: Metadata = buildMetadata({
+  title: "Dashboard",
+  description: "Your personalized English learning dashboard — track today's mission, streaks, and progress with Tuto.",
+  path: "/dashboard",
+  index: false,
+});
 
 export default async function DashboardPage() {
   const supabase = await createClient();

@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Tuto } from "@/components/mascot/Tuto";
 import { Button } from "@/components/ui/Button";
+
+// Next.js automatically adds `noindex` for this boundary regardless of any
+// `robots` value set here, so it's deliberately omitted to avoid emitting a
+// duplicate <meta name="robots"> tag.
+export const metadata: Metadata = {
+  title: "Page Not Found",
+  description: "The page you're looking for doesn't exist or has moved.",
+};
 
 /**
  * Branded 404 — replaces Next's default unstyled page for any unmatched

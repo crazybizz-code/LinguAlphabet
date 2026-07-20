@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
 import { ProfileView } from "@/components/profile/ProfileView";
+import { buildMetadata } from "@/lib/seo/metadata";
 
 const DEFAULT_DAILY_MINUTES = 20;
+
+export const metadata: Metadata = buildMetadata({
+  title: "Profile",
+  description: "View your English learning achievements, stats, and milestones.",
+  path: "/profile",
+  index: false,
+});
 
 export default async function ProfilePage() {
   const supabase = await createClient();

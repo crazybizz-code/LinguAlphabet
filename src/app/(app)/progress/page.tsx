@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
@@ -7,9 +8,17 @@ import { buildDailyActivityIndex } from "@/lib/content/daily-activity";
 import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
 import { buildTutoNote } from "@/lib/tuto/messages";
 import { ProgressView } from "@/components/progress/ProgressView";
+import { buildMetadata } from "@/lib/seo/metadata";
 
 const DEFAULT_DAILY_MINUTES = 20;
 const RECENT_COMPLETION_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+export const metadata: Metadata = buildMetadata({
+  title: "Progress",
+  description: "Track your weekly learning minutes, streaks, and English learning activity over time.",
+  path: "/progress",
+  index: false,
+});
 
 export default async function ProgressPage() {
   const supabase = await createClient();

@@ -1,11 +1,20 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
 import { ExploreView } from "@/components/explore/ExploreView";
+import { buildMetadata } from "@/lib/seo/metadata";
 
 const RECOMMEND_COUNT = 4;
+
+export const metadata: Metadata = buildMetadata({
+  title: "Explore",
+  description: "Discover podcasts curated to your English level, goals, and interests in the Knowledge Hub.",
+  path: "/explore",
+  index: false,
+});
 
 export default async function ExplorePage() {
   const supabase = await createClient();
