@@ -34,8 +34,12 @@ export const metadata: Metadata = {
     template: "%s — LinguABC",
   },
   description: DESCRIPTION,
+  // Explicitly listing `icon` here suppresses Next's automatic file-convention
+  // icon detection entirely, so apple-icon.tsx (app/apple-icon.tsx) has to be
+  // restated as `apple` or its <link rel="apple-touch-icon"> never renders.
   icons: {
     icon: "/favicon.svg",
+    apple: "/apple-icon",
   },
   openGraph: {
     title: TITLE,

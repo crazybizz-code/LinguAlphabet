@@ -22,7 +22,7 @@ export default function LevelPage() {
   return (
     <OnboardingLayout step={3} totalSteps={7} variant="checklist">
       <Tuto pose="thinking" size="md" animation="breathe" priority className="mx-auto mb-6" />
-      <h2 className="mb-2 font-heading text-h1 font-bold text-text-primary">Your English level</h2>
+      <h1 className="mb-2 font-heading text-h1 font-bold text-text-primary">Your English level</h1>
       <p className="mb-8 text-body text-text-secondary">There&apos;s no wrong answer — I&apos;ll adapt to you</p>
 
       <div className="mx-auto grid max-w-lg grid-cols-1 gap-3 sm:grid-cols-2">

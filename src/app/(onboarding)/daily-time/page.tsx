@@ -21,7 +21,7 @@ export default function DailyTimePage() {
   return (
     <OnboardingLayout step={5} totalSteps={7} variant="checklist">
       <Tuto pose="holding-clock" size="md" animation="floatSm" priority className="mx-auto mb-6" />
-      <h2 className="mb-2 font-heading text-h1 font-bold text-text-primary">Daily learning time</h2>
+      <h1 className="mb-2 font-heading text-h1 font-bold text-text-primary">Daily learning time</h1>
       <p className="mb-8 text-body text-text-secondary">Even 10 minutes a day makes a difference</p>
 
       <div className="mx-auto max-w-sm space-y-3">

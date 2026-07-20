@@ -23,7 +23,7 @@ export default function GoalPage() {
   return (
     <OnboardingLayout step={4} totalSteps={7} variant="checklist">
       <Tuto pose="pointing" size="md" animation="float" priority className="mx-auto mb-6" />
-      <h2 className="mb-2 font-heading text-h1 font-bold text-text-primary">Your learning goal</h2>
+      <h1 className="mb-2 font-heading text-h1 font-bold text-text-primary">Your learning goal</h1>
       <p className="mb-8 text-body text-text-secondary">This shapes the content I&apos;ll prepare for you</p>
 
       <div className="mx-auto grid max-w-lg grid-cols-2 gap-3 sm:grid-cols-3">

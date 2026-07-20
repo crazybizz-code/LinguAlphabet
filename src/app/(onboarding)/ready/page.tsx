@@ -18,9 +18,9 @@ export default function ReadyPage() {
         transition={{ delay: 0.3, duration: 0.6 }}
         className="mx-auto max-w-md"
       >
-        <h2 className="mb-4 font-heading text-display font-extrabold leading-tight text-text-primary">
+        <h1 className="mb-4 font-heading text-display font-extrabold leading-tight text-text-primary">
           You&apos;re going to do amazing{displayName ? `, ${displayName}` : ""}.
-        </h2>
+        </h1>
         <p className="text-body leading-relaxed text-text-secondary">
           Based on your English level, your learning goal, daily learning time, and interests, I&apos;ve
           created the perfect English learning path just for you.

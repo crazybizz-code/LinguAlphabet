@@ -49,7 +49,7 @@ export default function InterestsPage() {
   return (
     <OnboardingLayout step={6} totalSteps={7} variant="checklist">
       <Tuto pose="happy" size="md" animation="float" priority className="mx-auto mb-6" />
-      <h2 className="mb-2 font-heading text-h1 font-bold text-text-primary">Your interests</h2>
+      <h1 className="mb-2 font-heading text-h1 font-bold text-text-primary">Your interests</h1>
       <p className="mb-8 text-body text-text-secondary">Pick a few topics — I&apos;ll use these for your content</p>
 
       <div className="mx-auto grid max-w-lg grid-cols-2 gap-3 sm:grid-cols-3">

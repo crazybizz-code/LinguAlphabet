@@ -15,7 +15,7 @@ export default function NamePage() {
   return (
     <OnboardingLayout step={2} totalSteps={7} variant="checklist">
       <Tuto pose="listening" size="md" animation="floatSm" priority className="mx-auto mb-6" />
-      <h2 className="mb-2 font-heading text-h1 font-bold text-text-primary">What&apos;s your name?</h2>
+      <h1 className="mb-2 font-heading text-h1 font-bold text-text-primary">What&apos;s your name?</h1>
       <p className="mb-8 text-body text-text-secondary">So I can personalize your experience</p>
 
       <div className="mx-auto max-w-xs">
