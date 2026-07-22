@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const inter = Inter({
@@ -65,6 +66,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${plusJakartaSans.variable} h-full min-h-full antialiased`}>
         {children}
         <Analytics />
+        <SpeedInsights />
         {process.env.NODE_ENV === "production" && CLARITY_PROJECT_ID && (
           <Script id="microsoft-clarity" strategy="afterInteractive">
             {`(function(c,l,a,r,i,t,y){
