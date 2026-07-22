@@ -1,11 +1,13 @@
 # AI Architecture — Tuto's Foundation
 
-Status: **foundation complete, no conversational feature wired to a screen
-yet.** This is Sprint 1: the production-ready plumbing every future Tuto
-feature (in-lesson help, vocabulary explanations, quiz feedback, free
-chat, whatever comes next) will build on, not a chat feature itself. If
-you're looking for a chat UI, there isn't one — `/api/ai/chat` exists and
-works, but nothing in the app calls it yet.
+Status: **foundation + context pipeline complete, no conversational
+feature wired to a screen yet.** Sprint 1 built the provider/prompt/
+service/API plumbing; Sprint 2 (this update) made Tuto context-aware —
+richer `LearningContext` fields and a prompt-enrichment renderer that
+turns structured context into the labeled block Tuto's system prompt
+reads. Neither sprint wires this into a real screen. If you're looking
+for a chat UI, there isn't one — `/api/ai/chat` exists and works, but
+nothing in the app calls it yet.
 
 Companion to `docs/coding-standards.md` (general conventions) and
 `docs/domain-model.md` (the app's actual data model, which the AI module
@@ -61,28 +63,77 @@ in `bootstrap.ts` — nothing else changes.**
 awareness, grammar correction style, encouragement style, educational
 priorities, refusal behavior, formatting rules) as an independent,
 named constant — editing how Tuto corrects grammar never touches how it
-encourages. `index.ts`'s `buildTutoSystemPrompt(context?)` joins them into
-the final system prompt and, if a `LearningContext` is passed, appends a
-"Current learner context" block built only from whatever fields are
-actually populated — it never fabricates a level, goal, or selection that
-wasn't provided.
+encourages.
+
+`context-block.ts` (Sprint 2) is the prompt-enrichment renderer: it turns
+a `LearningContext` into a labeled-block instruction —
+
+```
+User is studying:
+Podcast
+
+Podcast title:
+Everyday Conversations Vol. 3
+
+Selected sentence:
+I couldn't agree more.
+
+User level:
+B1
+
+Learning goal:
+IELTS 7
+```
+
+— rendering only the fields the caller actually populated (never
+fabricates a level, goal, or selection that wasn't provided) and
+returning `null` for an empty context so no block gets appended at all.
+Kept in its own file, separate from `index.ts`'s section-joining, because
+it's the piece most likely to grow as more context fields ship.
+
+`index.ts`'s `buildTutoSystemPrompt(context?)` joins the sections, and —
+when `context-block.ts` produced one — appends the block under a short
+instruction ("Use it naturally in your response — don't just repeat it
+back"), directly serving the brief's "The AI should naturally use this
+context."
 
 ### 3. Context Engine — `src/ai/context/`
 
-`types.ts` defines `LearningContext` (Zod schema + inferred type): CEFR
-level, learning goal, current screen, current content, current lesson,
-and any selected word/sentence/paragraph — the fields the product
-examples named (Home, Podcast, Article, Quiz, Vocabulary, Daily Mission
-screens; a selected word from Live Dictionary; a selected sentence/
-paragraph from a reading step). Every field is nullable and optional at
-the call site. `builder.ts`'s `buildLearningContext()` normalizes a
-partial object into a complete one, defaulting anything unset to `null`.
+`types.ts` defines `LearningContext` (Zod schema + inferred type).
+Every field is nullable, optional at the call site, and independent of
+every other field — a caller sends only what it actually knows:
+
+| Field | Shape | Notes |
+|---|---|---|
+| `currentScreen` | `Screen` enum | Home, Podcast, Article, Quiz, Vocabulary, Daily Mission — extend the enum for a new screen, nothing else changes |
+| `currentActivity` | `string` | Free-form, e.g. "reading the transcript" — this module doesn't validate its vocabulary |
+| `currentLesson` / `previousLesson` | `TitledReference` (`{id, title}`) | Just a pointer — no transcript/body, that's the "no podcast/article analysis" boundary |
+| `currentPodcast` / `currentArticle` / `currentQuiz` | `TitledReference` | Same shape, one per content type so the prompt can say "Podcast title" vs "Article title" |
+| `selectedWord` / `selectedSentence` / `selectedParagraph` | `string` | Whatever text the learner has selected right now |
+| `transcriptTimestamp` | `number` (seconds, ≥0) | Position in an audio/video transcript, if one is playing |
+| `userLevel` | `CefrLevel` enum | The module's own A1–C2 union, not the app's |
+| `learningGoal` | `string` | Free-form — the AI module doesn't own the canonical goal list |
+| `streak` | `number` (int, ≥0) | Consecutive days |
+| `xp` | `number` (int, ≥0) | Total experience points |
+
+`builder.ts`'s `buildLearningContext()` normalizes a partial object into
+a complete one via `LearningContextSchema.parse()`, defaulting anything
+unset to `null` — this is also where an invalid value (a negative streak,
+an unrecognized CEFR level) gets rejected, and the same schema backs the
+API route's request validation, so a bad `context` in an HTTP request
+fails exactly the same way.
 
 **Nothing calls `buildLearningContext()` from a real screen yet** — this
 is the architecture, not the wiring. The natural future call sites are
 each learning-session step component (`src/components/learning-session/`)
 and the dashboard, passing whatever they already know (current CEFR
 level, the content on screen, a selected word) into the API request body.
+
+Sprint 1 shipped a single generic `currentContent: {contentType, id,
+title}` field instead of the three type-specific fields above — replaced
+in Sprint 2 once the brief asked for `currentPodcast`/`currentArticle`/
+`currentQuiz` distinctly. Safe to change in place: nothing outside this
+module referenced the old field yet.
 
 ### 4. Schemas — `src/ai/schemas/`
 
@@ -176,13 +227,15 @@ sequenceDiagram
 
 `LearningContext.userLevel` is its own `CefrLevel` union
 (`"A1"|"A2"|"B1"|"B2"|"C1"|"C2"`), not the app's `CefrLevel` from
-`@/types/content`. `currentContent` is a generic `{ contentType, id,
-title }`, not a `PodcastContent`/`ArticleContent`. This is deliberate:
-the brief was "no feature-specific code," and importing the app's content
-types would quietly couple the AI foundation to whatever those types look
-like today. The app maps its own types onto this shape at the call site
-(once a call site exists) — the AI module never reaches back into
-`src/lib/content` or `src/types`.
+`@/types/content`. `currentPodcast`/`currentArticle`/`currentQuiz` are all
+the same generic `TitledReference` (`{id, title}`), not a
+`PodcastContent`/`ArticleContent`/quiz type — deliberately too thin to
+support "podcast analysis" or "article analysis" even by accident. This
+is deliberate: the brief was "no feature-specific code," and importing
+the app's content types would quietly couple the AI foundation to
+whatever those types look like today. The app maps its own types onto
+this shape at the call site (once a call site exists) — the AI module
+never reaches back into `src/lib/content` or `src/types`.
 
 ---
 
@@ -227,8 +280,9 @@ context object.
 
 ---
 
-## Verification performed this sprint
+## Verification performed
 
+### Sprint 1
 - `npm run build` — succeeds; `/api/ai/chat` registers as a dynamic route
   alongside every existing route, no regressions.
 - `npx eslint src/ai src/app/api/ai` — clean.
@@ -245,9 +299,30 @@ context object.
     `linguabc.xyz` DNS issue). In production this reaches OpenRouter
     normally.
 
-## Explicitly out of scope this sprint
+### Sprint 2
+- `npm run build` and `npx tsc --noEmit` — both clean after expanding
+  `LearningContext` to the full field set.
+- `npx eslint src/ai src/app/api/ai` — clean.
+- Unit-level check of `buildTutoSystemPrompt(buildLearningContext(...))`
+  with every new field populated (screen, podcast, selected sentence,
+  level, goal, streak, XP, transcript timestamp, previous lesson) —
+  confirmed the rendered block matches the brief's example format
+  exactly, and confirmed an empty context renders no block at all (no
+  stray heading, no empty instruction).
+- Live smoke test against a local `next start`, through the real
+  `POST /api/ai/chat` route (not just the unit-level prompt check):
+  - Full rich context (screen, podcast reference, selected sentence,
+    level, goal, streak, XP, transcript timestamp) → `200`, streamed
+    cleanly, no validation errors.
+  - Negative `streak` → `400` with a field-level Zod error.
+  - Invalid `userLevel` (`"Z9"`) → `400` with a field-level Zod error.
+  - Confirmed SSE headers (`text/event-stream`, chunked) are unaffected
+    by the schema change.
 
-Per the brief: no memory implementation, no RAG, no vector DB, no
-podcast/article/quiz-specific logic, no UI. No screen calls
-`/api/ai/chat` yet — that's the next sprint, once a specific feature
-(and its own scope) is defined.
+## Explicitly out of scope
+
+Per both sprints' briefs: no memory implementation, no RAG, no vector DB,
+no database-backed context (streak/XP/level are passed in by the caller,
+never queried by this module), no podcast/article/quiz content analysis,
+no UI. No screen calls `/api/ai/chat` yet — that's a future sprint, once
+a specific feature (and its own scope) is defined.
