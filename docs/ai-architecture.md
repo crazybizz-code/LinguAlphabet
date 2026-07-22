@@ -1,13 +1,13 @@
 # AI Architecture — Tuto's Foundation
 
-Status: **foundation + context pipeline complete, no conversational
-feature wired to a screen yet.** Sprint 1 built the provider/prompt/
-service/API plumbing; Sprint 2 (this update) made Tuto context-aware —
-richer `LearningContext` fields and a prompt-enrichment renderer that
-turns structured context into the labeled block Tuto's system prompt
-reads. Neither sprint wires this into a real screen. If you're looking
-for a chat UI, there isn't one — `/api/ai/chat` exists and works, but
-nothing in the app calls it yet.
+Status: **foundation, context pipeline, and tool system complete, no
+conversational feature wired to a screen yet.** Sprint 1 built the
+provider/prompt/service/API plumbing; Sprint 2 made Tuto context-aware;
+Sprint 3 (this update) gave Tuto six real tools backed by mock data and a
+full tool-calling execution loop, so Tuto can answer from LinguABC's own
+content instead of the LLM's training data alone. No sprint wires this
+into a real screen. If you're looking for a chat UI, there isn't one —
+`/api/ai/chat` exists and works, but nothing in the app calls it yet.
 
 Companion to `docs/coding-standards.md` (general conventions) and
 `docs/domain-model.md` (the app's actual data model, which the AI module
@@ -29,12 +29,14 @@ architecture.
 
 ---
 
-## The eight pieces
+## The nine pieces
 
 ### 1. Providers — `src/ai/providers/`
 
 `AIProvider` (`types.ts`) is the contract: `complete()` for a full
-response, `stream()` for an async-generator of text deltas. Everything
+response (optionally offered a `tools` list and able to return
+`toolCalls`, added in Sprint 3), `stream()` for an async-generator of
+text deltas (text-only — see "Streaming + tools" below for why). Everything
 above this layer (the service, the API route) only ever talks to this
 interface.
 
@@ -142,27 +144,83 @@ Zod schemas (and their inferred TypeScript types) for every message shape:
 `ConversationMessageSchema` discriminated union of all three,
 `ToolResultSchema`, and `ConversationContextSchema` (a full request:
 message history + optional partial `LearningContext`). These are the
-runtime-validated boundary the API route enforces against — see Phase 7
-below for why a client-supplied `"system"` message is rejected, not
-silently dropped.
+runtime-validated boundary the API route enforces against — see "API
+Route" below for why a client-supplied `"system"` message is rejected,
+not silently dropped.
 
-### 5. AI Service — `src/ai/services/ai-service.ts`
+### 5. AI Service — `src/ai/services/`
 
 The single entry point: `generateResponse()` (one full reply) and
-`streamResponse()` (an async generator of text deltas). **No UI, no API
-route, no future feature should ever import from `src/ai/providers`
-directly** — everything goes through this service, which resolves the
-active provider, builds Tuto's system prompt from the caller's
-`LearningContext`, prepends it to the conversation, and calls the
-provider. Swapping providers, changing the system prompt, or adding
-memory/tool injection later all happen here, invisibly to every caller.
+`streamResponse()` (an async generator of text deltas), both in
+`ai-service.ts`. **No UI, no API route, no future feature should ever
+import from `src/ai/providers` or `src/ai/tools` directly** — everything
+goes through this service.
 
-### 6. Tools — `src/ai/tools/` (scaffolding only)
+`tool-loop.ts`'s `runToolLoop()` is the Tool Execution Layer (Sprint 3):
 
-`ToolDefinition`/`ToolCall` types define the shape a future tool (e.g.
-"look up a word's definition," "check the learner's current streak")
-must have. `registeredTools` is an empty array today. See "How tools will
-work" below for the intended integration point.
+```
+AI → Tool Selection → Execute Tool → Return Structured Result → Continue AI Response
+```
+
+It asks `src/ai/tools`'s registry for every registered tool (never a
+hardcoded list), calls the provider with them attached, and — if the
+provider responds with `toolCalls` instead of a final answer — executes
+each one via `executeToolCall()`, appends a `"tool"` role message with
+the JSON-stringified structured result, and calls the provider again.
+This repeats until the provider answers with no further tool calls, or
+`MAX_TOOL_ITERATIONS` (4) is hit, at which point one final call drops the
+`tools` option entirely to force a plain answer — a safety valve against
+a model stuck calling tools forever. `generateResponse()` surfaces every
+tool call made along the way on the returned `AssistantMessage.toolResults`.
+
+Both entry points still build the system prompt from the caller's
+`LearningContext` exactly as Sprint 1/2 did; the tool loop only changes
+what happens between sending that prompt and getting a final answer.
+
+### 6. Tools — `src/ai/tools/` (Sprint 3: real tools, mock data)
+
+`types.ts`'s `ToolDefinition<TArgs, TResult>` is the common interface
+every tool implements: `name`, `description`, a JSON Schema `parameters`
+for `TArgs`, an optional `resultSchema` (a Zod schema for `TResult`), and
+`execute(args, context)`. The second parameter, `ToolExecutionContext`
+(`{ learningContext }`), is how a tool named `getCurrentPodcast` knows
+*which* podcast without the model ever having to guess or pass an id —
+the AI Service supplies it from the request's own `LearningContext`
+(Sprint 2), the model only ever supplies `TArgs`.
+
+**The six tools** (`src/ai/tools/definitions/`), each mirroring the
+brief's names exactly:
+
+| Tool | Reads from context | Mock data source |
+|---|---|---|
+| `getCurrentPodcast` | `currentPodcast` | `MOCK_PODCASTS` |
+| `getPodcastTranscript` | `currentPodcast` (+ optional `maxSegments` arg) | `MOCK_TRANSCRIPTS` |
+| `getCurrentArticle` | `currentArticle` | `MOCK_ARTICLES` |
+| `getCurrentQuiz` | `currentQuiz` | `MOCK_QUIZZES` (includes the answer key — Tuto needs it to explain *why* a choice is right) |
+| `getSelectedVocabulary` | `selectedWord` | `MOCK_VOCABULARY` |
+| `getLearningProgress` | `streak`/`xp`/`userLevel` (blended with supplemental mock stats context doesn't carry yet) | `MOCK_PROGRESS` |
+
+Every tool degrades gracefully instead of throwing: no `currentPodcast` in
+context → `{ found: false, reason: "..." }`, not an exception. All mock
+data lives in one file, `mock-data.ts` — realistic static records, no
+database, no Supabase, per this sprint's explicit rule.
+
+**Registry** (`registry.ts`) mirrors `src/ai/providers/registry.ts`
+exactly: a `Map<name, ToolDefinition>`, `registerTool()`/`getTool()`, plus
+`listTools()` — the mechanism behind "the AI must be able to discover
+tools automatically." Nothing in the AI Service (or anywhere else) lists
+tool names by hand; it always calls `listTools()`. **Adding a seventh
+tool is one new file under `definitions/` plus one line in
+`bootstrap.ts` — nothing else changes,** same shape as adding a provider.
+
+**Execution layer** (`execute.ts`)'s `executeToolCall()` is where "never
+plain text" is actually enforced: it looks the tool up by name (unknown
+name → structured error, not a throw), parses the model's JSON arguments
+(malformed → structured error), runs `execute()`, and — when the tool
+declared a `resultSchema` — validates the output against it before
+handing it back. A tool that throws produces a structured `{ error: "..."
+}` result, never an unhandled exception that would crash the
+conversation.
 
 ### 7. Memory — `src/ai/memory/` (scaffolding only)
 
@@ -192,34 +250,74 @@ for any mid-stream failure. Verified locally end to end: malformed JSON →
 400, an empty/invalid message array → 400 with field-level detail via
 `z.treeifyError()`, a client-sent system message → 400, and a
 well-formed request with no `OPENROUTER_API_KEY` configured → a clean SSE
-error event rather than a crash.
+error event rather than a crash. **Nothing about this route changed in
+Sprint 3** — it still just calls `streamResponse()`; the tool loop is
+entirely inside the service.
 
 ---
 
 ## Request flow
+
+Two paths, depending on whether the model calls a tool.
+
+**No tool needed** (identical to Sprint 1/2 — true token-by-token streaming):
 
 ```mermaid
 sequenceDiagram
     participant Client
     participant Route as /api/ai/chat
     participant Service as AI Service
-    participant Prompt as buildTutoSystemPrompt
     participant Provider as OpenRouter Provider
     participant OpenRouter
 
     Client->>Route: POST { messages, context }
-    Route->>Route: validate (Zod) — reject bad/system-role input
-    Route->>Route: buildLearningContext(context)
+    Route->>Route: validate (Zod), buildLearningContext(context)
     Route->>Service: streamResponse({ messages, learningContext })
-    Service->>Prompt: buildTutoSystemPrompt(learningContext)
-    Prompt-->>Service: system prompt string
     Service->>Provider: stream({ system + history })
     Provider->>OpenRouter: POST chat/completions (stream: true)
     OpenRouter-->>Provider: SSE deltas
-    Provider-->>Service: AsyncGenerator<delta>
     Service-->>Route: AsyncGenerator<string>
     Route-->>Client: SSE (delta / done / error)
 ```
+
+**Tool needed** (Sprint 3 — the Tool Execution Layer, `tool-loop.ts`):
+
+```mermaid
+sequenceDiagram
+    participant Service as AI Service
+    participant Loop as runToolLoop
+    participant Provider as OpenRouter Provider
+    participant Tools as Tool Registry + Execution
+    participant Client
+
+    Service->>Loop: runToolLoop(provider, messages, learningContext)
+    Loop->>Provider: complete({ messages, tools: listTools() })
+    Provider-->>Loop: toolCalls: [getCurrentPodcast]
+    Loop->>Tools: executeToolCall(call, { learningContext })
+    Tools-->>Loop: { found: true, podcast: {...} } (structured JSON)
+    Loop->>Provider: complete({ messages + tool result })
+    Provider-->>Loop: final content, no more tool calls
+    Loop-->>Service: { completion, toolResults }
+    Service-->>Client: yields completion.content (single chunk)
+```
+
+### Streaming + tools
+
+Once the tool loop runs, the final answer is delivered as a single
+`yield` from `streamResponse()`, not incremental token deltas — a real
+tradeoff, not an oversight. A tool call has to be a fully-formed
+`{ name, arguments }` before it can be executed at all, so every turn
+that might call a tool goes through `complete()`, never `stream()`.
+Adding true token-level streaming *after* the last tool call resolves
+would mean accumulating a provider's streamed `tool_calls` deltas
+correctly (a well-known but genuinely fiddly parsing problem: arguments
+arrive as partial JSON string fragments across many chunks) — real,
+scoped future work, not attempted this sprint. `streamResponse()` still
+checks `listTools().length === 0` and falls back to pure streaming when
+true — in practice, since `bootstrap.ts` always registers the six
+built-in tools, every real request goes through the tool loop today; the
+empty-registry branch exists so the old pure-streaming behavior is still
+reachable (and tested) rather than silently gone.
 
 ---
 
@@ -237,7 +335,39 @@ whatever those types look like today. The app maps its own types onto
 this shape at the call site (once a call site exists) — the AI module
 never reaches back into `src/lib/content` or `src/types`.
 
+Same principle in `src/ai/tools/mock-data.ts`: `MockPodcast`,
+`MockArticle`, etc. are their own minimal shapes, not the app's
+`PodcastContent`/`ArticleContent` from `@/types/content` — the tool
+layer is exactly as self-contained as the context layer.
+
 ---
+
+## Tool lifecycle
+
+1. **Definition** — a file under `src/ai/tools/definitions/` exports a
+   `ToolDefinition`: `name`, `description`, a JSON Schema `parameters`,
+   an optional `resultSchema`, and `execute(args, context)`.
+2. **Registration** — `bootstrap.ts` calls `registerTool()` for it once
+   per server instance (idempotent — safe to call on every request).
+3. **Discovery** — `runToolLoop()` never names a tool; it calls
+   `listTools()` and hands the *entire* registered set to the provider on
+   every turn. The model decides whether any tool is relevant.
+4. **Selection** — the provider (OpenRouter) returns `toolCalls` on its
+   completion if it chose to call one or more tools instead of (or before)
+   answering directly.
+5. **Execution** — `executeToolCall()` looks the tool up by name, parses
+   the model-supplied JSON arguments, calls `execute(args, { learningContext })`,
+   and validates the result against `resultSchema` if one exists. Every
+   outcome — success, unknown tool, bad arguments, a thrown error — becomes
+   a structured result; nothing here ever throws back into the loop.
+6. **Continuation** — the structured result is JSON-stringified into a
+   `"tool"` role message and appended to the conversation; the provider is
+   called again with it in context, and can either answer or call another
+   tool (bounded by `MAX_TOOL_ITERATIONS`).
+7. **Response** — once the provider answers with no further tool calls,
+   that's the final content `generateResponse()`/`streamResponse()`
+   returns, along with every tool call made along the way
+   (`AssistantMessage.toolResults`).
 
 ## Future expansion
 
@@ -253,30 +383,44 @@ providers register, and the AI Service would accept an optional
 public signature (`generateResponse`/`streamResponse`) needs to change to
 add this — it's an additive parameter.
 
-### How tools will work
-
-`src/ai/tools/types.ts`'s `ToolDefinition` (`name`, `description`, a JSON
-Schema for `parameters`, and `execute()`) is the seam. Once a real tool
-exists (e.g. "get the learner's current streak"), `registeredTools` stops
-being empty, the OpenRouter provider's `complete()`/`stream()` calls pass
-`tools: registeredTools.map(toOpenAiToolSchema)` in the request body, and
-the AI Service gains a loop: if the provider's response includes a tool
-call, execute the matching `ToolDefinition`, append a `ToolResult` (already
-modeled in `src/ai/schemas/tools.ts` and on `AssistantMessage`), and call
-the provider again with the result appended — the standard function-calling
-loop, not a new concept.
-
 ### How RAG will plug in
 
 No vector DB, no embeddings, no retrieval exist today, and none should be
-inferred from anything in this module. If/when retrieval is added (e.g.
-"find the vocabulary entries most relevant to what the learner just
-asked"), the natural seam is `src/ai/context/builder.ts`:
-`buildLearningContext()` would gain an optional async retrieval step that
-enriches the context object with retrieved snippets *before* it reaches
-`buildTutoSystemPrompt()` — the prompt layer and the service layer
-wouldn't need to know retrieval happened at all, they'd just see a richer
-context object.
+inferred from anything in this module. Now that Sprint 3 shipped a real
+tool system, there are two natural seams, and which one fits depends on
+*what* is being retrieved:
+
+- **Retrieval as a tool** — e.g. "find the vocabulary entries most
+  relevant to what the learner just asked" fits the existing pattern
+  exactly: a new `ToolDefinition` (a `searchVocabulary` tool, say) whose
+  `execute()` queries a vector store instead of `mock-data.ts`. Nothing
+  about the registry, the loop, or the provider layer changes — this is
+  the same seam "Future database integration" below uses.
+- **Retrieval as ambient context** — e.g. "always ground Tuto's answers
+  in the current lesson's material" doesn't wait for the model to decide
+  to call a tool; it belongs in `src/ai/context/builder.ts`:
+  `buildLearningContext()` would gain an optional async retrieval step
+  that enriches the context object with retrieved snippets *before* it
+  reaches `buildTutoSystemPrompt()` — the prompt layer and the service
+  layer wouldn't need to know retrieval happened at all.
+
+### Future database integration
+
+Every tool's mock data lookup (`MOCK_PODCASTS[id]`, `MOCK_ARTICLES[id]`,
+etc. in `src/ai/tools/mock-data.ts`) is a single, isolated line inside
+that tool's `execute()`. Replacing mocks with real data is a change to
+*that line* — e.g. `getCurrentPodcastTool.execute()` swaps
+`MOCK_PODCASTS[ref.id]` for `await getPodcastById(supabase, ref.id)`
+(`src/lib/content/queries.ts` already exists and does exactly this for
+the rest of the app) — not a change to `ToolDefinition`, the registry,
+the execution layer, the tool loop, or the AI Service. **The AI layer
+doesn't change**, exactly as the brief requires. The one adjustment a
+real implementation needs that the mock doesn't: `execute()` would become
+genuinely async against a network call, which the interface already
+supports (`execute(): Promise<TResult>`), and it would need a Supabase
+client passed in somehow (likely added to `ToolExecutionContext`
+alongside `learningContext`) — a small, additive interface change, not a
+redesign.
 
 ---
 
@@ -319,10 +463,45 @@ context object.
   - Confirmed SSE headers (`text/event-stream`, chunked) are unaffected
     by the schema change.
 
+### Sprint 3
+- `npm run build`, `npx tsc --noEmit`, `npx eslint src/ai src/app/api/ai`
+  — all clean after adding the tool system and extending the provider
+  interface with `tools`/`toolCalls`.
+- **Full pipeline, mock provider** (a scripted fake `AIProvider`, no
+  network involved) — verified end to end:
+  - `runToolLoop()` offered the provider all six registered tools by
+    name, with no hardcoded list.
+  - The mock "chose" to call `getCurrentPodcast`; `executeToolCall()`
+    resolved it against a `LearningContext` with `currentPodcast: {id:
+    "p1", ...}`, returned the real mock podcast record as structured
+    JSON, and the loop's second provider call correctly received it as a
+    `"tool"` role message and produced a final answer referencing the
+    actual mock title.
+  - **Graceful degradation**: an empty `LearningContext` (no
+    `currentPodcast` set) → tool returns `{ found: false, reason: "..."
+    }`, no exception. A model requesting a nonexistent tool name →
+    `{ error: "Unknown tool ..." }`, no exception.
+  - **Safety valve**: a mock provider that requests a tool call on every
+    single turn (simulating a stuck model) was capped at exactly
+    `MAX_TOOL_ITERATIONS + 1` (5) provider calls, confirming the loop
+    terminates instead of running forever.
+- **Live smoke test against a local `next start`, through the real
+  `POST /api/ai/chat` route**:
+  - Rich context including a `currentPodcast` reference, no
+    `OPENROUTER_API_KEY` set → `200`, clean SSE error event — the tool
+    loop's first `complete()` call still fails at the same
+    config-check as before, and the failure still surfaces correctly.
+  - Fake `OPENROUTER_API_KEY`/`OPENROUTER_MODEL` set → confirmed the
+    request (now with `tools` attached) reaches an actual outbound
+    `fetch()` to `openrouter.ai`, blocked only by this sandbox's network
+    allowlist, not a code defect.
+
 ## Explicitly out of scope
 
-Per both sprints' briefs: no memory implementation, no RAG, no vector DB,
-no database-backed context (streak/XP/level are passed in by the caller,
-never queried by this module), no podcast/article/quiz content analysis,
-no UI. No screen calls `/api/ai/chat` yet — that's a future sprint, once
-a specific feature (and its own scope) is defined.
+Per every sprint's brief so far: no memory implementation, no RAG, no
+vector DB, no vector search, no database (every tool reads from
+`src/ai/tools/mock-data.ts`, never Supabase), no podcast/article/quiz
+content *analysis* (tools return metadata/transcripts/questions
+verbatim from mock data — nothing summarizes, grades, or interprets
+them), no UI. No screen calls `/api/ai/chat` yet — that's a future
+sprint, once a specific feature (and its own scope) is defined.

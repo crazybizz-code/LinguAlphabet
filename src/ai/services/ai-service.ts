@@ -1,8 +1,11 @@
 import { getDefaultProvider } from "@/ai/providers";
 import type { AIProviderMessage } from "@/ai/providers";
 import { buildTutoSystemPrompt } from "@/ai/prompts";
+import { buildLearningContext } from "@/ai/context";
 import type { LearningContext } from "@/ai/context";
-import type { AssistantMessage, ConversationMessage } from "@/ai/schemas";
+import type { AssistantMessage, ConversationMessage, ToolResult } from "@/ai/schemas";
+import { listTools, bootstrapTools } from "@/ai/tools";
+import { runToolLoop } from "./tool-loop";
 
 export interface GenerateResponseInput {
   /** User/assistant turns only — a client-supplied "system" message is rejected before this point (src/app/api/ai/chat). */
@@ -20,23 +23,53 @@ function toProviderMessages(input: GenerateResponseInput): AIProviderMessage[] {
   return [{ role: "system", content: systemPrompt }, ...history];
 }
 
+function toToolResults(loopToolResults: Awaited<ReturnType<typeof runToolLoop>>["toolResults"]): ToolResult[] | undefined {
+  if (loopToolResults.length === 0) return undefined;
+  return loopToolResults.map((executed) => ({
+    toolCallId: executed.toolCallId,
+    toolName: executed.toolName,
+    content: JSON.stringify(executed.result),
+    isError: executed.isError,
+  }));
+}
+
 /**
- * The single entry point for talking to an AI provider (Sprint 1, Phase 6).
- * Nothing outside src/ai — not a Client Component, not another route —
- * should ever import from src/ai/providers directly; everything goes
- * through generateResponse()/streamResponse() so the provider, the system
- * prompt, and the context wiring can all change without touching a caller.
+ * The single entry point for talking to an AI provider (Sprint 1, Phase 6;
+ * tool-calling added in Sprint 3). Nothing outside src/ai — not a Client
+ * Component, not another route — should ever import from src/ai/providers
+ * or src/ai/tools directly; everything goes through generateResponse()/
+ * streamResponse() so the provider, the system prompt, the context
+ * wiring, and now the tool loop can all change without touching a caller.
  */
 export async function generateResponse(input: GenerateResponseInput): Promise<AssistantMessage> {
   const provider = getDefaultProvider();
-  const result = await provider.complete({ messages: toProviderMessages(input) });
-  return { role: "assistant", content: result.content };
+  const learningContext = input.learningContext ?? buildLearningContext();
+  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input), learningContext);
+
+  return { role: "assistant", content: completion.content, toolResults: toToolResults(toolResults) };
 }
 
-/** Streaming counterpart — yields text deltas as they arrive from the provider. */
+/**
+ * Streaming counterpart. With no tools registered, this streams text
+ * deltas exactly as Sprint 1/2 did. Once any tool is registered (true
+ * from Sprint 3 on, since src/ai/tools/bootstrap.ts always registers the
+ * six built-in tools), a request runs the full tool loop first — which is
+ * non-streaming, a tool call must be fully assembled before it can be
+ * executed — and yields its final answer as a single chunk. See
+ * docs/ai-architecture.md's "Streaming + tools" note for this tradeoff.
+ */
 export async function* streamResponse(input: GenerateResponseInput): AsyncGenerator<string> {
   const provider = getDefaultProvider();
-  for await (const chunk of provider.stream({ messages: toProviderMessages(input) })) {
-    if (chunk.delta) yield chunk.delta;
+  bootstrapTools();
+
+  if (listTools().length === 0) {
+    for await (const chunk of provider.stream({ messages: toProviderMessages(input) })) {
+      if (chunk.delta) yield chunk.delta;
+    }
+    return;
   }
+
+  const learningContext = input.learningContext ?? buildLearningContext();
+  const { completion } = await runToolLoop(provider, toProviderMessages(input), learningContext);
+  if (completion.content) yield completion.content;
 }

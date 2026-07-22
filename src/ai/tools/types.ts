@@ -1,15 +1,31 @@
+import type { ZodType } from "zod";
+import type { LearningContext } from "@/ai/context";
+
 /**
- * Scaffolding only — no concrete tool is registered yet (Sprint 1 rule: no
- * feature creep). This defines the shape a future tool must have so the
- * AI Service's tool-calling loop, once built, has a stable contract to
- * code against instead of inventing one ad hoc per tool.
+ * Ambient state every tool execution gets alongside the model-supplied
+ * arguments — this is how a `getCurrentPodcast()` tool knows *which*
+ * podcast without the model having to guess or pass an id. The model only
+ * ever supplies `TArgs`; the AI Service supplies `ToolExecutionContext`
+ * from the request's own LearningContext (src/ai/context).
+ */
+export interface ToolExecutionContext {
+  learningContext: LearningContext;
+}
+
+/**
+ * The common interface every tool implements (Sprint 3). `parameters` is
+ * a JSON Schema for `TArgs` in the provider's function-calling format.
+ * `resultSchema`, when present, is enforced by the execution layer
+ * (src/ai/tools/execute.ts) before a result is ever sent back to the
+ * model — the mechanism behind "every tool returns typed JSON, never
+ * plain text."
  */
 export interface ToolDefinition<TArgs = unknown, TResult = unknown> {
   name: string;
   description: string;
-  /** JSON Schema describing TArgs, in the shape the active provider's function-calling API expects. */
   parameters: unknown;
-  execute(args: TArgs): Promise<TResult>;
+  resultSchema?: ZodType<TResult>;
+  execute(args: TArgs, context: ToolExecutionContext): Promise<TResult>;
 }
 
 export interface ToolCall {

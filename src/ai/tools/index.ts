@@ -1,6 +1,5 @@
-import type { ToolDefinition } from "./types";
-
 export * from "./types";
-
-/** Empty until a real tool ships — see docs/ai-architecture.md's "How tools will work" section. */
-export const registeredTools: ToolDefinition[] = [];
+export { registerTool, getTool, listTools } from "./registry";
+export { bootstrapTools } from "./bootstrap";
+export { executeToolCall } from "./execute";
+export type { ToolExecutionResult } from "./execute";

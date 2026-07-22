@@ -1,10 +1,30 @@
-import type { AIProvider, AIProviderCompletionInput, AIProviderCompletionResult, AIProviderStreamChunk } from "../types";
+import type {
+  AIProvider,
+  AIProviderCompletionInput,
+  AIProviderCompletionResult,
+  AIProviderMessage,
+  AIProviderStreamChunk,
+  AIProviderToolCall,
+  AIProviderToolSpec,
+} from "../types";
 import { AIProviderError } from "../errors";
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
+interface OpenRouterWireToolCall {
+  id: string;
+  function: { name: string; arguments: string };
+}
+
+interface OpenRouterWireMessage {
+  role: string;
+  content: string | null;
+  tool_call_id?: string;
+  tool_calls?: { id: string; type: "function"; function: { name: string; arguments: string } }[];
+}
+
 interface OpenRouterChoice {
-  message?: { content?: string };
+  message?: { content?: string | null; tool_calls?: OpenRouterWireToolCall[] };
   delta?: { content?: string };
   finish_reason?: string | null;
 }
@@ -42,6 +62,33 @@ function isRetryableStatus(status: number): boolean {
   return status === 429 || status >= 500;
 }
 
+/** OpenAI-compatible wire format: a "tool" message needs `tool_call_id`; an assistant tool-call turn needs `tool_calls`. */
+function toWireMessage(message: AIProviderMessage): OpenRouterWireMessage {
+  const wire: OpenRouterWireMessage = { role: message.role, content: message.content || null };
+  if (message.toolCallId) wire.tool_call_id = message.toolCallId;
+  if (message.toolCalls && message.toolCalls.length > 0) {
+    wire.tool_calls = message.toolCalls.map((call) => ({
+      id: call.id,
+      type: "function",
+      function: { name: call.name, arguments: call.arguments },
+    }));
+  }
+  return wire;
+}
+
+function toWireTools(tools?: AIProviderToolSpec[]) {
+  if (!tools || tools.length === 0) return undefined;
+  return tools.map((tool) => ({
+    type: "function" as const,
+    function: { name: tool.name, description: tool.description, parameters: tool.parameters },
+  }));
+}
+
+function fromWireToolCalls(wireCalls?: OpenRouterWireToolCall[]): AIProviderToolCall[] | undefined {
+  if (!wireCalls || wireCalls.length === 0) return undefined;
+  return wireCalls.map((call) => ({ id: call.id, name: call.function.name, arguments: call.function.arguments }));
+}
+
 /**
  * Server-only: OPENROUTER_API_KEY must never reach a Client Component,
  * same convention as GEMINI_API_KEY (docs/coding-standards.md). Model is
@@ -56,9 +103,10 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
     headers: buildHeaders(apiKey),
     body: JSON.stringify({
       model,
-      messages: input.messages,
+      messages: input.messages.map(toWireMessage),
       temperature: input.temperature,
       max_tokens: input.maxTokens,
+      tools: toWireTools(input.tools),
       stream: false,
     }),
   });
@@ -70,14 +118,18 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
 
   const data: OpenRouterResponse = await response.json();
   const choice = data.choices?.[0];
-  const content = choice?.message?.content;
-  if (!content) {
+  const content = choice?.message?.content ?? "";
+  const toolCalls = fromWireToolCalls(choice?.message?.tool_calls);
+
+  // A tool-call turn can legitimately have empty content — only a response with neither is broken.
+  if (!content && !toolCalls) {
     throw new AIProviderError("OpenRouter returned no content", 502, true);
   }
 
   return {
     content,
     finishReason: choice?.finish_reason ?? null,
+    toolCalls,
     usage: data.usage
       ? {
           promptTokens: data.usage.prompt_tokens,
@@ -93,6 +145,14 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
  * in `data: [DONE]`, plus the occasional `: OPENROUTER PROCESSING`
  * keepalive comment line — filtered out by the `data:` prefix check below,
  * same shape their own docs describe.
+ *
+ * Text-only by design — it does not accept `tools` and never surfaces
+ * `toolCalls`. Accumulating a tool call's streamed argument-string deltas
+ * correctly is a well-defined but nontrivial feature; the AI Service's
+ * tool loop (src/ai/services/tool-loop.ts) uses `complete()` for every
+ * tool-selection turn and only reaches for `stream()` once no more tools
+ * are being called — see docs/ai-architecture.md's "Streaming + tools"
+ * note for the tradeoff this implies.
  */
 async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProviderStreamChunk> {
   const { apiKey, model } = getConfig();
@@ -102,7 +162,7 @@ async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProvi
     headers: buildHeaders(apiKey),
     body: JSON.stringify({
       model,
-      messages: input.messages,
+      messages: input.messages.map(toWireMessage),
       temperature: input.temperature,
       max_tokens: input.maxTokens,
       stream: true,
