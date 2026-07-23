@@ -1,14 +1,18 @@
 # AI Architecture — Tuto's Foundation
 
-Status: **foundation, context pipeline, tool system, and the first real
-feature (Vocabulary Intelligence) complete. No UI component calls either
-AI route yet — this remains backend architecture + API surface, not a
-wired-up screen.** Sprint 1 built the provider/prompt/service/API
-plumbing; Sprint 2 made Tuto context-aware; Sprint 3 gave Tuto six real
-tools backed by mock data; Sprint 4 (this update) built on all three,
-unchanged, to ship `POST /api/ai/vocabulary` — ask about any selected
-word, get back a fully structured, schema-validated explanation. See
-"Vocabulary Intelligence" below.
+Status: **foundation complete and now considered stable — Sprints 4-5
+onward are feature sprints built on top of it, not further architecture
+changes.** Sprint 1 built the provider/prompt/service/API plumbing;
+Sprint 2 made Tuto context-aware; Sprint 3 gave Tuto six real tools
+backed by mock data; Sprint 4 shipped Vocabulary Intelligence
+(`POST /api/ai/vocabulary`); Sprint 5 (this update) shipped Article
+Intelligence — four of its nine capabilities needed *zero new code*
+(they're ordinary `/api/ai/chat` turns once the right context fields are
+set), and the rest needed exactly one small, justified addition each to
+the tool and prompt layers, plus one new consolidated route
+(`POST /api/ai/article`) rather than three feature-specific ones. No UI
+component calls any AI route yet — this remains backend architecture +
+API surface, not a wired-up screen.
 
 Companion to `docs/coding-standards.md` (general conventions) and
 `docs/domain-model.md` (the app's actual data model, which the AI module
@@ -483,6 +487,127 @@ first one.
   only constrains the model's *final* content turn — a tool-call turn is
   unaffected, so tool use and structured output compose cleanly.
 
+---
+
+## Article Intelligence (Sprint 5)
+
+The brief listed nine capabilities. The first insight worth stating
+plainly: **four of them needed no new code at all.** They just needed
+verifying.
+
+### Capabilities that already worked (verified, not built)
+
+Explaining highlighted text, simplifying a difficult paragraph,
+translating selected text, and explaining grammar in context are all
+ordinary `/api/ai/chat` turns — Sprint 2's `selectedSentence`/
+`selectedParagraph`/`currentArticle` context fields and Sprint 1's
+`buildTutoSystemPrompt()` already put the selected text in front of the
+model on every turn. What was missing wasn't infrastructure, it was
+*intent* — nothing told Tuto how to behave once that text showed up in
+context. `src/ai/prompts/tuto/sections.ts`'s new `READING_ASSISTANCE`
+section is that: one more named constant, one more line in
+`buildTutoSystemPrompt()`'s join list, same mechanism every other section
+already uses. It's four sentences, one per capability, including a
+concrete decision the brief didn't specify (translate to Uzbek by default,
+matching Sprint 4's `uzbekTranslation` field, unless the learner asks for
+another language) rather than leaving Tuto to guess.
+
+Verified directly: built a `LearningContext` with `currentArticle`,
+`selectedParagraph`, and `userLevel: "A2"` set, confirmed
+`buildTutoSystemPrompt()`'s output contains the `# Reading assistance`
+section, the Uzbek instruction, the actual selected paragraph text, the
+article title, and `User level:\nA2` — then ran a full `generateResponse()`
+turn asking Tuto to simplify that paragraph and confirmed the system
+prompt it actually sent included all of it.
+
+**Explaining vocabulary in context** (the fifth capability) is Sprint 4's
+`explainVocabulary()` unchanged — it already accepts arbitrary
+`LearningContext` fields alongside `selectedWord`, so passing
+`currentArticle` alongside it "just works." **Adapting to CEFR level**
+(the ninth) is `CEFR_AWARENESS` (Sprint 1), also unchanged — every
+capability above already inherits it because they all go through
+`buildTutoSystemPrompt()`.
+
+### The one small Tool System addition: reading the article, not just describing it
+
+`getCurrentArticle` (Sprint 3) only ever returned metadata — title,
+description, CEFR level. Summarizing an article or generating questions
+about it needs the actual text, which nothing exposed. This is the "small
+improvement" the brief allowed for: `getArticleParagraphs`
+(`src/ai/tools/definitions/get-article-paragraphs.ts`) mirrors
+`getPodcastTranscript` exactly — same shape, same optional
+`maxParagraphs` arg, same graceful `{ found: false, reason }` when there's
+no current article — reading from a new `MOCK_ARTICLE_PARAGRAPHS` map in
+`mock-data.ts` (plain prose paragraphs, the article counterpart to
+`MOCK_TRANSCRIPTS`). One new tool file, one new bootstrap line, one new
+mock-data map — no change to the registry, the execution layer, the loop,
+or any other tool.
+
+### Three capabilities that need real structured output
+
+Summarizing the article, generating discussion questions, and generating
+comprehension questions all produce something a UI would want to render
+as a distinct element (a summary card, a question list) — the same
+reasoning that made Vocabulary Intelligence a `generateStructuredResponse()`
+call rather than a chat turn. `src/ai/features/article/` follows that
+exact pattern: `schema.ts` (three independent Zod schemas —
+`ArticleSummarySchema`, `DiscussionQuestionsSchema`,
+`ComprehensionQuestionsSchema`, the last one reusing the same
+`{prompt, choices, correctChoiceIndex}` shape `getCurrentQuiz`'s mock
+questions already use, so a future UI can share one rendering component),
+`prompt.ts` (one request-message builder per capability, each explicitly
+instructing the model to call `getArticleParagraphs` first rather than
+guess at content), and `service.ts` (`summarizeArticle()`,
+`generateDiscussionQuestions()`, `generateComprehensionQuestions()`),
+each forcing the caller's article reference into
+`LearningContext.currentArticle` automatically — the same "the caller
+passes what's current, the service folds it into context" contract as
+`explainVocabulary()`.
+
+### One consolidated route, not three
+
+`POST /api/ai/article` takes an `action: "summary" | "discussion-questions"
+| "comprehension-questions"` discriminator and dispatches to the matching
+service function — one route serving three independent, on-demand
+capabilities, rather than three feature-specific endpoints. This is the
+minimal, concrete version of the endpoint-consolidation discussion from
+before this sprint: not a generalized capability-registry system (that
+would be new infrastructure, which this sprint explicitly avoided), just
+the same "cluster by response contract, not by feature" judgment applied
+directly. Like `/api/ai/vocabulary`, the request schema omits
+`currentArticle` from the accepted `context` shape — callers supply
+`article` once, and can't send a `context.currentArticle` that disagrees
+with it.
+
+### Verification
+
+- Prompt-level: confirmed `buildTutoSystemPrompt()` renders the reading-
+  assistance guidance, the Uzbek instruction, the selected paragraph, the
+  article title, and the CEFR level, all together, from one
+  `LearningContext`.
+- Tool-level: confirmed `getArticleParagraphs` is auto-discovered
+  alongside the other six tools (no hardcoded list — now seven), executes
+  through the real registry, returns the correct mock paragraphs for the
+  requested article, and degrades gracefully (`{ found: false, ... }`,
+  not an exception) when no article is current.
+- Structured capabilities: confirmed all three
+  (`summarizeArticle`/`generateDiscussionQuestions`/
+  `generateComprehensionQuestions`) call `getArticleParagraphs` before
+  answering, each pass their own distinct `responseFormat` name
+  (`article_summary`/`article_discussion_questions`/
+  `article_comprehension_questions`) to the provider, and each result
+  validates against its schema.
+- Live smoke test against a real `next start`, through the real
+  `POST /api/ai/article` route: missing/invalid `action` → `400`;
+  `context.currentArticle` in the request body → silently stripped,
+  confirming it can't disagree with `article`; valid request with no
+  `OPENROUTER_API_KEY` → the same clear config error every other route
+  produces; a placeholder key → confirmed the request reaches an actual
+  outbound `fetch()` to `openrouter.ai`, blocked only by this sandbox's
+  network allowlist.
+- `npm run build`, `npx tsc --noEmit`, `npx eslint src/ai src/app/api/ai`
+  — all clean.
+
 ## Future expansion
 
 ### How memory will work
@@ -653,17 +778,33 @@ redesign.
     (`403`, blocked only by this sandbox's network allowlist — the
     status code itself confirms it reached the real host, not a stub).
 
+### Sprint 5
+
+Full detail is in "Article Intelligence" above, not repeated here — in
+short: prompt-level verification that reading-assistance guidance and
+context render together correctly, tool-level verification that
+`getArticleParagraphs` is auto-discovered and degrades gracefully, all
+three structured capabilities validated against their schemas, a live
+smoke test against the real `POST /api/ai/article` route, and clean
+`build`/`tsc --noEmit`/`eslint`.
+
 ## Explicitly out of scope
 
 Per every sprint's brief so far: no memory implementation, no RAG, no
 vector DB, no vector search, no database (every tool reads from
 `src/ai/tools/mock-data.ts`, never Supabase), no podcast/article/quiz
-content *analysis* (tools return metadata/transcripts/questions
-verbatim from mock data — nothing summarizes, grades, or interprets
-them). No UI redesign (Sprint 4's brief explicitly said so) — no
-component under `src/components/` changed, and the existing Live
-Dictionary word-tap interaction (`PlayerStep.tsx`/`DictionaryStep.tsx`)
-was read for context but not touched; wiring `POST /api/ai/vocabulary`
-into it is future work. No screen calls either AI route yet — that's a
-future sprint, once a specific UI integration (and its own scope) is
-defined.
+content *analysis* beyond what a tool call returns verbatim from mock
+data (Article Intelligence's summaries/questions are the model's own
+synthesis over real mock text via `getArticleParagraphs`, not the tool
+layer doing the analysis). No UI redesign (explicit in both Sprint 4's
+and Sprint 5's briefs) — no component under `src/components/` changed;
+the existing Live Dictionary word-tap interaction
+(`PlayerStep.tsx`/`DictionaryStep.tsx`) was read for context but not
+touched, and wiring either `/api/ai/vocabulary` or `/api/ai/article` into
+a real screen is future work. No new infrastructure (Sprint 5's brief
+explicitly said so) — the provider/service/context/tool layers are
+unchanged from Sprint 4 except the one new tool
+(`getArticleParagraphs`) and one new prompt section
+(`READING_ASSISTANCE`), both explicitly justified as feature-driven, not
+architectural. No screen calls any AI route yet — that's a future
+sprint, once a specific UI integration (and its own scope) is defined.

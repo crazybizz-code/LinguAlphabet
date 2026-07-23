@@ -8,15 +8,17 @@ import {
   EDUCATIONAL_PRIORITIES,
   REFUSAL_POLICY,
   FORMATTING_RULES,
+  READING_ASSISTANCE,
 } from "./sections";
 import { buildContextBlock } from "./context-block";
 
 /**
  * Tuto's master system prompt (Sprint 1 Phase 3; context enrichment added
- * in Sprint 2). Composed from independently maintainable sections
- * (./sections.ts) plus — when the caller has one — a rendered
- * LearningContext block (./context-block.ts) built from src/ai/context.
- * The AI Service (src/ai/services) is the only caller today.
+ * in Sprint 2; reading-assistance guidance added in Sprint 5). Composed
+ * from independently maintainable sections (./sections.ts) plus — when
+ * the caller has one — a rendered LearningContext block
+ * (./context-block.ts) built from src/ai/context. The AI Service
+ * (src/ai/services) is the only caller today.
  */
 export function buildTutoSystemPrompt(context?: LearningContext | null): string {
   const sections = [
@@ -36,6 +38,8 @@ export function buildTutoSystemPrompt(context?: LearningContext | null): string 
     REFUSAL_POLICY,
     "# Formatting rules",
     FORMATTING_RULES,
+    "# Reading assistance",
+    READING_ASSISTANCE,
   ];
 
   const contextBlock = buildContextBlock(context);

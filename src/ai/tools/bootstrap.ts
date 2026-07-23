@@ -2,6 +2,7 @@ import { registerTool } from "./registry";
 import { getCurrentPodcastTool } from "./definitions/get-current-podcast";
 import { getPodcastTranscriptTool } from "./definitions/get-podcast-transcript";
 import { getCurrentArticleTool } from "./definitions/get-current-article";
+import { getArticleParagraphsTool } from "./definitions/get-article-paragraphs";
 import { getCurrentQuizTool } from "./definitions/get-current-quiz";
 import { getSelectedVocabularyTool } from "./definitions/get-selected-vocabulary";
 import { getLearningProgressTool } from "./definitions/get-learning-progress";
@@ -19,6 +20,7 @@ export function bootstrapTools(): void {
   registerTool(getCurrentPodcastTool);
   registerTool(getPodcastTranscriptTool);
   registerTool(getCurrentArticleTool);
+  registerTool(getArticleParagraphsTool);
   registerTool(getCurrentQuizTool);
   registerTool(getSelectedVocabularyTool);
   registerTool(getLearningProgressTool);

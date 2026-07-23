@@ -102,6 +102,23 @@ export const MOCK_ARTICLES: Record<string, MockArticle> = {
   },
 };
 
+/** Plain prose paragraphs, in reading order — the article-body counterpart to MOCK_TRANSCRIPTS. */
+export const MOCK_ARTICLE_PARAGRAPHS: Record<string, string[]> = {
+  a1: [
+    "A decade ago, working from home was a rare exception, something reserved for a handful of freelancers or the occasional sick day. Today, for millions of office workers, it's simply how work happens.",
+    "The shift didn't happen because companies suddenly trusted their employees more. It happened because they had no choice, and once it worked, there was no going back for many of them.",
+    "Remote work forced a quiet renegotiation of what an office is even for. If a team can collaborate just as well from three different cities, what exactly is the building buying?",
+    "Not everyone is convinced. Some managers argue that spontaneous hallway conversations and shared physical space build a kind of trust that a video call never quite replicates. Others point out that the most productive years of their careers happened without a commute at all.",
+    "Whatever the outcome, one thing seems settled: the conversation is no longer about whether remote work is possible. It's about which parts of it are worth keeping.",
+  ],
+  a2: [
+    "The story of coffee begins, according to legend, with a goat herder in Ethiopia who noticed his goats became unusually energetic after eating berries from a certain bush.",
+    "Whether or not that story is true, coffee cultivation spread from the Ethiopian highlands to Yemen by the 15th century, where it was first roasted and brewed much as it is today.",
+    "From Yemen, coffee houses spread across the Middle East, then to Europe in the 17th century, where they quickly became centers of conversation, business, and even political debate.",
+    "By the time coffee reached the Americas, it had already changed how people socialized in dozens of cities. Today, it's one of the most widely traded commodities in the world, and for many people, the first thing they reach for every morning.",
+  ],
+};
+
 export const MOCK_QUIZZES: Record<string, MockQuiz> = {
   q1: {
     id: "q1",
