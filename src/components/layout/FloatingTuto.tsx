@@ -5,7 +5,19 @@ import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
+import { TutoChatSheet } from "@/components/tuto-chat/TutoChatSheet";
+import { useTutoChat } from "@/hooks/useTutoChat";
 import { subscribeSheetOpen, getIsAnySheetOpen } from "@/lib/ui/sheetOpenStore";
+import type { Screen } from "@/ai/context";
+import type { TutoContextInput } from "@/lib/tuto-chat/types";
+
+/** Best-effort — this button has no specific content in scope, only whatever screen it happens to be floating over. Anything that doesn't map to a known AI screen is simply left out of the context rather than guessed. */
+function screenFromPathname(pathname: string): Screen | null {
+  if (pathname.startsWith("/podcast")) return "podcast";
+  if (pathname.startsWith("/article")) return "article";
+  if (pathname === "/dashboard") return "home";
+  return null;
+}
 
 /**
  * Mobile-only bottom offset for both the trigger button and its teaser
@@ -32,10 +44,11 @@ const TEASER_BOTTOM_OFFSET = "bottom-[calc(11rem+env(safe-area-inset-bottom))]";
  * the expanded teaser uses the full Tuto mascot (never a cropped circular
  * avatar) sized to fit the card, per product decision.
  *
- * Tuto Chat itself isn't built yet (task #36) and there's no backend to
- * wire a real "notify me" signup to either — the CTA is a plainly
- * disabled "coming soon" state, not a fake toggle that pretends to
- * register interest with nothing persisted behind it.
+ * Opens the same Tuto Chat (useTutoChat + TutoChatSheet) already wired
+ * into DictionaryOverlay and ReadingStep (AI UX Integration sprint) —
+ * this is that same chat's third, most global entry point, not a
+ * separate chat experience. No specific word/article is in scope here,
+ * so its LearningContext is just a best-effort current screen.
  *
  * PRIORITY 2: hidden entirely whenever a bottom sheet (EditSheet) is open
  * — a fixed-position button with no awareness of what else is on screen
@@ -48,64 +61,96 @@ const TEASER_BOTTOM_OFFSET = "bottom-[calc(11rem+env(safe-area-inset-bottom))]";
 export function FloatingTuto() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const isAnySheetOpen = useSyncExternalStore(subscribeSheetOpen, getIsAnySheetOpen, () => false);
 
-  if (pathname === "/tuto-chat" || isAnySheetOpen) return null;
+  const context: TutoContextInput = { currentScreen: screenFromPathname(pathname) };
+  const chat = useTutoChat({ context });
+
+  if (pathname === "/tuto-chat") return null;
+
+  // Hides the trigger + teaser whenever any sheet is open, including the
+  // chat sheet this button itself opens below — but the chat sheet is
+  // rendered unconditionally, outside this check, since hiding on its own
+  // `isAnySheetOpen` signal would otherwise unmount (and thus instantly
+  // close) the very sheet the click just opened.
+  const hideTrigger = isAnySheetOpen;
+
+  function openChat() {
+    setOpen(false);
+    setChatOpen(true);
+  }
 
   return (
     <>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className={`fixed right-4 z-50 w-80 rounded-3xl border border-border bg-bg-card p-5 shadow-xl lg:bottom-24 lg:right-8 ${TEASER_BOTTOM_OFFSET}`}
-          >
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Close"
-              className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full hover:bg-bg-muted"
-            >
-              <X className="h-4 w-4 text-text-tertiary" />
-            </button>
-
-            <div className="flex flex-col items-center text-center">
-              {/* `wave` is reserved for Welcome/first-time onboarding — this
-                  teaser appears on every screen for returning learners, so
-                  it gets Tuto's normal presence instead. */}
-              <Tuto pose="neutral" size="sm" animation="float" />
-              <p className="mt-2 text-sm font-bold text-text-primary">Ask Tuto</p>
-              <p className="text-xs text-text-tertiary">Your English learning coach</p>
-              <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                &ldquo;Have a question about grammar or vocabulary? I&apos;m here to help!&rdquo;
-              </p>
-              <div
-                aria-disabled="true"
-                className="mt-4 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-bg-muted py-3 text-sm font-bold text-text-tertiary"
+      {!hideTrigger && (
+        <>
+          <AnimatePresence>
+            {open && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                transition={{ duration: 0.2 }}
+                className={`fixed right-4 z-50 w-80 rounded-3xl border border-border bg-bg-card p-5 shadow-xl lg:bottom-24 lg:right-8 ${TEASER_BOTTOM_OFFSET}`}
               >
-                Tuto Chat — Coming Soon
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
+                  className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full hover:bg-bg-muted"
+                >
+                  <X className="h-4 w-4 text-text-tertiary" />
+                </button>
 
-      <motion.button
-        type="button"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5, duration: 0.3 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => setOpen((value) => !value)}
-        aria-label={open ? "Close Tuto chat teaser" : "Open Tuto chat teaser"}
-        className={`fixed right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-text-on-primary shadow-glow lg:bottom-6 lg:right-8 ${BUTTON_BOTTOM_OFFSET}`}
-      >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </motion.button>
+                <div className="flex flex-col items-center text-center">
+                  {/* `wave` is reserved for Welcome/first-time onboarding — this
+                      teaser appears on every screen for returning learners, so
+                      it gets Tuto's normal presence instead. */}
+                  <Tuto pose="neutral" size="sm" animation="float" />
+                  <p className="mt-2 text-sm font-bold text-text-primary">Ask Tuto</p>
+                  <p className="text-xs text-text-tertiary">Your English learning coach</p>
+                  <p className="mt-3 text-sm leading-relaxed text-text-secondary">
+                    &ldquo;Have a question about grammar or vocabulary? I&apos;m here to help!&rdquo;
+                  </p>
+                  <button
+                    type="button"
+                    onClick={openChat}
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-text-on-primary transition-all hover:opacity-90 active:scale-[0.98]"
+                  >
+                    Chat with Tuto
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setOpen((value) => !value)}
+            aria-label={open ? "Close Tuto chat teaser" : "Open Tuto chat teaser"}
+            className={`fixed right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-text-on-primary shadow-glow lg:bottom-6 lg:right-8 ${BUTTON_BOTTOM_OFFSET}`}
+          >
+            {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+          </motion.button>
+        </>
+      )}
+
+      <TutoChatSheet
+        open={chatOpen}
+        title="Ask Tuto"
+        onClose={() => setChatOpen(false)}
+        messages={chat.messages}
+        status={chat.status}
+        error={chat.error}
+        onSend={chat.sendMessage}
+        placeholder="Ask Tuto anything…"
+      />
     </>
   );
 }
