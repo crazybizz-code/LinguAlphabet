@@ -27,12 +27,21 @@ export interface AIProviderMessage {
   toolCallId?: string;
 }
 
+/** Constrains the provider's final answer to valid JSON matching `schema` (Sprint 4) — never applies to a tool-call turn. */
+export interface AIProviderResponseFormat {
+  name: string;
+  /** JSON Schema, typically derived from a Zod schema via `z.toJSONSchema()` at the call site. */
+  schema: unknown;
+}
+
 export interface AIProviderCompletionInput {
   messages: AIProviderMessage[];
   temperature?: number;
   maxTokens?: number;
   /** Tools the provider may call this turn. Omitted or empty means "no tools available". */
   tools?: AIProviderToolSpec[];
+  /** When set, the provider is asked to return content matching this JSON Schema instead of free text. */
+  responseFormat?: AIProviderResponseFormat;
 }
 
 export interface AIProviderUsage {

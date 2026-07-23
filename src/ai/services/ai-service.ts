@@ -1,4 +1,6 @@
-import { getDefaultProvider } from "@/ai/providers";
+import type { ZodType } from "zod";
+import { z } from "zod";
+import { getDefaultProvider, AIProviderError } from "@/ai/providers";
 import type { AIProviderMessage } from "@/ai/providers";
 import { buildTutoSystemPrompt } from "@/ai/prompts";
 import { buildLearningContext } from "@/ai/context";
@@ -38,8 +40,9 @@ function toToolResults(loopToolResults: Awaited<ReturnType<typeof runToolLoop>>[
  * tool-calling added in Sprint 3). Nothing outside src/ai — not a Client
  * Component, not another route — should ever import from src/ai/providers
  * or src/ai/tools directly; everything goes through generateResponse()/
- * streamResponse() so the provider, the system prompt, the context
- * wiring, and now the tool loop can all change without touching a caller.
+ * streamResponse()/generateStructuredResponse() so the provider, the
+ * system prompt, the context wiring, and the tool loop can all change
+ * without touching a caller.
  */
 export async function generateResponse(input: GenerateResponseInput): Promise<AssistantMessage> {
   const provider = getDefaultProvider();
@@ -72,4 +75,43 @@ export async function* streamResponse(input: GenerateResponseInput): AsyncGenera
   const learningContext = input.learningContext ?? buildLearningContext();
   const { completion } = await runToolLoop(provider, toProviderMessages(input), learningContext);
   if (completion.content) yield completion.content;
+}
+
+export interface GenerateStructuredResponseInput<T> extends GenerateResponseInput {
+  /** A short stable identifier for this response shape, sent to the provider as the JSON Schema's name (e.g. "vocabulary_explanation"). */
+  responseFormatName: string;
+  resultSchema: ZodType<T>;
+}
+
+/**
+ * Structured-output counterpart to generateResponse() (Sprint 4): derives
+ * a JSON Schema from `resultSchema` (via `z.toJSONSchema()`) and asks the
+ * provider to constrain its final answer to it, then re-validates the
+ * parsed JSON against that same Zod schema before returning — defense in
+ * depth, since OpenRouter fans a request out to many different underlying
+ * models and not all of them honor strict JSON Schema mode equally well.
+ * Still runs the full tool loop exactly like generateResponse() — a
+ * structured-output request can still call a tool first to ground its
+ * answer in real data before formatting the final JSON.
+ */
+export async function generateStructuredResponse<T>(input: GenerateStructuredResponseInput<T>): Promise<T> {
+  const provider = getDefaultProvider();
+  const learningContext = input.learningContext ?? buildLearningContext();
+  const responseFormat = { name: input.responseFormatName, schema: z.toJSONSchema(input.resultSchema) };
+
+  const { completion } = await runToolLoop(provider, toProviderMessages(input), learningContext, { responseFormat });
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(completion.content);
+  } catch {
+    throw new AIProviderError("The AI did not return valid JSON for a structured response.", 502, true);
+  }
+
+  const result = input.resultSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new AIProviderError(`The AI's structured response didn't match the expected shape: ${result.error.message}`, 502, true);
+  }
+
+  return result.data;
 }

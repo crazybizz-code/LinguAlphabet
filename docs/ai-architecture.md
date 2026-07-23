@@ -1,13 +1,14 @@
 # AI Architecture — Tuto's Foundation
 
-Status: **foundation, context pipeline, and tool system complete, no
-conversational feature wired to a screen yet.** Sprint 1 built the
-provider/prompt/service/API plumbing; Sprint 2 made Tuto context-aware;
-Sprint 3 (this update) gave Tuto six real tools backed by mock data and a
-full tool-calling execution loop, so Tuto can answer from LinguABC's own
-content instead of the LLM's training data alone. No sprint wires this
-into a real screen. If you're looking for a chat UI, there isn't one —
-`/api/ai/chat` exists and works, but nothing in the app calls it yet.
+Status: **foundation, context pipeline, tool system, and the first real
+feature (Vocabulary Intelligence) complete. No UI component calls either
+AI route yet — this remains backend architecture + API surface, not a
+wired-up screen.** Sprint 1 built the provider/prompt/service/API
+plumbing; Sprint 2 made Tuto context-aware; Sprint 3 gave Tuto six real
+tools backed by mock data; Sprint 4 (this update) built on all three,
+unchanged, to ship `POST /api/ai/vocabulary` — ask about any selected
+word, get back a fully structured, schema-validated explanation. See
+"Vocabulary Intelligence" below.
 
 Companion to `docs/coding-standards.md` (general conventions) and
 `docs/domain-model.md` (the app's actual data model, which the AI module
@@ -35,10 +36,11 @@ architecture.
 
 `AIProvider` (`types.ts`) is the contract: `complete()` for a full
 response (optionally offered a `tools` list and able to return
-`toolCalls`, added in Sprint 3), `stream()` for an async-generator of
-text deltas (text-only — see "Streaming + tools" below for why). Everything
-above this layer (the service, the API route) only ever talks to this
-interface.
+`toolCalls`, added in Sprint 3; optionally given a `responseFormat` — a
+name plus a JSON Schema — to constrain its answer to valid JSON, added in
+Sprint 4), `stream()` for an async-generator of text deltas (text-only —
+see "Streaming + tools" below for why). Everything above this layer (the
+service, the API route) only ever talks to this interface.
 
 `openrouter/client.ts` is the first (and today, only) implementation —
 a thin `fetch()` wrapper against OpenRouter's OpenAI-compatible
@@ -150,11 +152,22 @@ not silently dropped.
 
 ### 5. AI Service — `src/ai/services/`
 
-The single entry point: `generateResponse()` (one full reply) and
-`streamResponse()` (an async generator of text deltas), both in
-`ai-service.ts`. **No UI, no API route, no future feature should ever
-import from `src/ai/providers` or `src/ai/tools` directly** — everything
-goes through this service.
+The single entry point: `generateResponse()` (one full reply),
+`streamResponse()` (an async generator of text deltas), and
+`generateStructuredResponse<T>()` (Sprint 4 — a full reply constrained to
+valid JSON matching a Zod schema), all in `ai-service.ts`. **No UI, no
+API route, no future feature should ever import from `src/ai/providers`
+or `src/ai/tools` directly** — everything goes through this service.
+
+`generateStructuredResponse()` derives a JSON Schema from the caller's
+Zod `resultSchema` via `z.toJSONSchema()` — one schema, two jobs: sent to
+the provider as `responseFormat` to constrain its answer, and used again
+afterward to `safeParse()` the returned JSON before it's trusted. Defense
+in depth, not redundant — OpenRouter fans a request out to many different
+underlying models, and not all of them honor strict JSON Schema mode
+equally well. A parse or validation failure throws a catchable
+`AIProviderError`, same error type every other service function already
+uses, so the calling route doesn't need a second error-handling path.
 
 `tool-loop.ts`'s `runToolLoop()` is the Tool Execution Layer (Sprint 3):
 
@@ -369,6 +382,107 @@ layer is exactly as self-contained as the context layer.
    returns, along with every tool call made along the way
    (`AssistantMessage.toolResults`).
 
+---
+
+## Vocabulary Intelligence (Sprint 4)
+
+The first real, feature-specific AI capability: a learner selects a word
+anywhere in LinguABC (Tutorial, Podcast, Article, Quiz — anywhere the
+existing Live Dictionary word-tap interaction already lives, e.g.
+`handleWordClick` in `src/components/learning-session/PlayerStep.tsx` and
+`DictionaryStep.tsx`) and asks Tuto about it. Lives in
+`src/ai/features/vocabulary/`, built entirely *on top of* Sprints 1-3 —
+nothing in `providers/`, `context/`, `tools/`, or the core of
+`services/` had to change its existing behavior for any other caller.
+
+### Why a new module instead of extending an existing one
+
+Every earlier sprint's rule was "no feature-specific code" in the
+foundation layers. Vocabulary Intelligence *is* feature-specific by
+design — Sprint 4's brief is "implement the first real AI-powered
+learning feature" — so it gets its own `src/ai/features/` home rather
+than leaking word-explanation logic into `context/` or `schemas/`. This
+is the pattern Sprint 1 promised: "every future conversational feature is
+a new call site, never a new architecture."
+
+### The selected word automatically becomes part of the LearningContext
+
+This is `src/ai/features/vocabulary/service.ts`'s entire job:
+
+```ts
+export async function explainVocabulary(word: string, contextInput: Partial<LearningContext> = {}) {
+  const learningContext = buildLearningContext({ ...contextInput, selectedWord: word });
+  return generateStructuredResponse({ /* ... */ learningContext, /* ... */ });
+}
+```
+
+A caller passes the word once — whatever it already has selected — plus
+anything else of `LearningContext` it knows (level, screen, current
+podcast/article), and never sets `selectedWord` itself. The API route
+(`src/app/api/ai/vocabulary/route.ts`) goes one step further: its request
+schema **omits `selectedWord` from the accepted `context` shape entirely**
+(`LearningContextSchema.omit({ selectedWord: true })`), so a caller can't
+even accidentally send a `context.selectedWord` that disagrees with
+`word` — there is exactly one way for the selected word to reach context.
+
+### Response format — what the UI can extract
+
+```ts
+{
+  vocabularyItem: {
+    word, partOfSpeech, cefrLevel, meaning, simpleExplanation,
+    uzbekTranslation, pronunciation, collocations, synonyms, antonyms,
+    commonMistakes, memoryTips,
+  },
+  examples: [{ sentence, note? }, ...],
+  grammarNotes: string[],
+  followUpPractice: string,
+  suggestedNextAction: string,
+}
+```
+
+`src/ai/features/vocabulary/schema.ts`'s `VocabularyExplanationSchema`
+(Zod) is the single source of truth for this shape — every capability the
+brief listed (meaning, simple English, Uzbek translation, pronunciation,
+CEFR level, part of speech, collocations, synonyms, antonyms, examples,
+common mistakes, memory tips) is a named field, not buried in prose the
+UI would have to regex out. `generateStructuredResponse()` (Sprint 4
+addition to the AI Service, see above) is what makes this a *guarantee*
+rather than a hope: the schema becomes the provider's `response_format`
+JSON Schema, and the response is re-validated against the same schema
+before `explainVocabulary()` ever returns.
+
+### Why this isn't just another turn on `/api/ai/chat`
+
+Tuto's regular system prompt (`src/ai/prompts/tuto/sections.ts`'s
+`FORMATTING_RULES`) explicitly asks for short, plain conversational
+replies — 2-4 sentences, no headings, no bullet lists except for 3+
+genuinely parallel items. That's the right behavior for open-ended chat
+and the wrong behavior for a UI that needs to extract twelve distinct
+fields. Rather than compromise one to serve the other, Vocabulary
+Intelligence is a new route, `POST /api/ai/vocabulary`, with its own
+non-streaming, single-JSON-object response contract — a genuine second
+call site, exactly as Sprint 1 anticipated, not a repurposing of the
+first one.
+
+### Still the existing AI Service, Context Engine, and Tool System — not bypassed
+
+- **AI Service**: `explainVocabulary()` calls `generateStructuredResponse()`,
+  which is `generateResponse()`'s sibling in the same file, sharing the
+  same `toProviderMessages()` (so Tuto's identity/personality still comes
+  from `buildTutoSystemPrompt()`) and the same `runToolLoop()`.
+- **Context Engine**: `buildLearningContext()`, unchanged from Sprint 2,
+  is what turns `word` + whatever else the caller knows into a complete
+  `LearningContext`.
+- **Tool System**: because `generateStructuredResponse()` still runs
+  `runToolLoop()`, every registered tool is still offered to the model —
+  in practice this means Tuto can (and, verified below, does) call
+  `getSelectedVocabulary` first to ground its answer in LinguABC's own
+  mock dictionary before elaborating the rest of the explanation (Uzbek
+  translation, memory tips, etc.) from its own knowledge. `responseFormat`
+  only constrains the model's *final* content turn — a tool-call turn is
+  unaffected, so tool use and structured output compose cleanly.
+
 ## Future expansion
 
 ### How memory will work
@@ -496,6 +610,49 @@ redesign.
     `fetch()` to `openrouter.ai`, blocked only by this sandbox's network
     allowlist, not a code defect.
 
+### Sprint 4
+- `npm run build`, `npx tsc --noEmit`, `npx eslint src/ai src/app/api/ai`
+  — all clean after adding structured-output support to the provider
+  layer and the AI Service, and the new vocabulary feature module.
+- **Full pipeline, mock provider** (scripted, no network) — verified
+  every item Sprint 4 asked for:
+  - **Selected word reaches context**: called `explainVocabulary("reckon",
+    { userLevel: "B1", currentScreen: "podcast" })` — note `selectedWord`
+    was *not* in the input. The mock's first turn called
+    `getSelectedVocabulary` (no arguments — it reads context, it doesn't
+    take a word as a parameter) and it correctly resolved and returned
+    the mock dictionary entry for "reckon," proving `explainVocabulary()`
+    had already folded the word into `LearningContext.selectedWord`
+    before the tool ever ran.
+  - **Tool execution**: confirmed via the same call — `getSelectedVocabulary`
+    executed successfully through the real registry/execution layer, not
+    a stub.
+  - **AI response**: the mock's second turn (after receiving the tool
+    result) produced the final answer.
+  - **Structured output**: the value `explainVocabulary()` returned
+    parsed and passed `VocabularyExplanationSchema.parse()` — every
+    field from the brief present (`vocabularyItem` with all twelve
+    capabilities, `examples`, `grammarNotes`, `followUpPractice`,
+    `suggestedNextAction`). Confirmed `responseFormat` (name
+    `"vocabulary_explanation"`) was actually passed to the provider on
+    both calls, not just constructed and discarded.
+  - **Failure paths**: a mock returning prose instead of JSON, and a mock
+    returning JSON missing required fields, both threw a catchable
+    `AIProviderError` with a clear message — `explainVocabulary()` never
+    returns a value that hasn't passed schema validation.
+- **Live smoke test against a local `next start`, through the real
+  `POST /api/ai/vocabulary` route**:
+  - Missing `word` → `400` with a field-level Zod error.
+  - `context.selectedWord` included in the request body → silently
+    stripped by the request schema (`.omit({ selectedWord: true })`),
+    confirming a caller cannot make it disagree with `word`.
+  - Valid request, no `OPENROUTER_API_KEY` set → `500` with the same
+    clear config error `AIProviderError` already produces elsewhere.
+  - Fake `OPENROUTER_API_KEY`/`OPENROUTER_MODEL` set → confirmed the
+    request reaches an actual outbound `fetch()` to `openrouter.ai`
+    (`403`, blocked only by this sandbox's network allowlist — the
+    status code itself confirms it reached the real host, not a stub).
+
 ## Explicitly out of scope
 
 Per every sprint's brief so far: no memory implementation, no RAG, no
@@ -503,5 +660,10 @@ vector DB, no vector search, no database (every tool reads from
 `src/ai/tools/mock-data.ts`, never Supabase), no podcast/article/quiz
 content *analysis* (tools return metadata/transcripts/questions
 verbatim from mock data — nothing summarizes, grades, or interprets
-them), no UI. No screen calls `/api/ai/chat` yet — that's a future
-sprint, once a specific feature (and its own scope) is defined.
+them). No UI redesign (Sprint 4's brief explicitly said so) — no
+component under `src/components/` changed, and the existing Live
+Dictionary word-tap interaction (`PlayerStep.tsx`/`DictionaryStep.tsx`)
+was read for context but not touched; wiring `POST /api/ai/vocabulary`
+into it is future work. No screen calls either AI route yet — that's a
+future sprint, once a specific UI integration (and its own scope) is
+defined.

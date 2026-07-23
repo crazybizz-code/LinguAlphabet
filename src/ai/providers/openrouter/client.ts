@@ -3,6 +3,7 @@ import type {
   AIProviderCompletionInput,
   AIProviderCompletionResult,
   AIProviderMessage,
+  AIProviderResponseFormat,
   AIProviderStreamChunk,
   AIProviderToolCall,
   AIProviderToolSpec,
@@ -89,11 +90,24 @@ function fromWireToolCalls(wireCalls?: OpenRouterWireToolCall[]): AIProviderTool
   return wireCalls.map((call) => ({ id: call.id, name: call.function.name, arguments: call.function.arguments }));
 }
 
+/** OpenAI-compatible structured outputs — constrains `content` to valid JSON matching `schema`; never applies to a tool-call turn. */
+function toWireResponseFormat(responseFormat?: AIProviderResponseFormat) {
+  if (!responseFormat) return undefined;
+  return {
+    type: "json_schema" as const,
+    json_schema: { name: responseFormat.name, strict: true, schema: responseFormat.schema },
+  };
+}
+
 /**
  * Server-only: OPENROUTER_API_KEY must never reach a Client Component,
  * same convention as GEMINI_API_KEY (docs/coding-standards.md). Model is
  * never hardcoded — OPENROUTER_MODEL is read fresh on every call so
  * changing it is a config change, not a deploy.
+ *
+ * `responseFormat` (Sprint 4) only ever constrains `content` — a turn
+ * where the model calls a tool instead still returns `toolCalls` exactly
+ * as it would without one.
  */
 async function complete(input: AIProviderCompletionInput): Promise<AIProviderCompletionResult> {
   const { apiKey, model } = getConfig();
@@ -107,6 +121,7 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
       temperature: input.temperature,
       max_tokens: input.maxTokens,
       tools: toWireTools(input.tools),
+      response_format: toWireResponseFormat(input.responseFormat),
       stream: false,
     }),
   });
