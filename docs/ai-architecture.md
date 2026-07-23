@@ -953,6 +953,130 @@ next step"), not a generic "you might also want to study more grammar."
   all clean; the build's route list is unchanged from Sprint 8, since
   registering tools adds no new app route.
 
+## Learner Intelligence (Sprint 10)
+
+Sprints 7-9 made Tuto teach better and teach *from* consistent content;
+Sprint 10 designs the model of *who* it's teaching — the learner. Same
+shape as Sprint 8: schemas, interfaces, and example data only. No memory
+implementation, no vector database, no daily plans, no spaced repetition,
+no recommendations, and — deliberately, unlike Sprint 9 — nothing wired
+into `ai-service.ts`, the prompt, or a tool yet. The brief separated
+"design the learner model" (this sprint) from making Tuto actually use it
+the same way it separated Sprint 8 from Sprint 9, so this stays
+design-only until a future integration sprint mirrors what Sprint 9 did
+for the Knowledge Base.
+
+### `src/ai/learner/`
+
+- **`types.ts`** — `LearnerProfileSchema`: a compact personalization
+  snapshot, every field nullable/defaulted exactly like
+  `LearningContextSchema`'s own pattern (`src/ai/context/types.ts`) —
+  `cefrLevel`, `learningGoal`, `nativeLanguage`, `strongGrammarTopics`/
+  `weakGrammarTopics`, `strongVocabularyAreas`/`weakVocabularyAreas`,
+  `recentlyStudiedTopics`, `recentMistakes`, `preferredLearningStyle`
+  (a five-value enum: visual/conversational/structured/reading-focused/
+  practice-heavy), `learningPace` (fast/steady/needs-more-repetition —
+  not "slow", per Sprint 7's own "never condescending" rule applied to
+  how the AI module labels a learner internally), `streak`, `xp`, and
+  `studyConsistency` (days studied in the last 30, average session
+  length, longest streak).
+- **`performance.ts`** — the six Performance Tracking record schemas from
+  the brief (`GrammarMistakeRecord`, `VocabularyMistakeRecord`,
+  `PronunciationIssueRecord`, `QuizPerformanceRecord`,
+  `WritingFeedbackRecord`, `SpeakingFeedbackRecord`), a discriminated
+  `PerformanceRecordSchema` union, and a `PerformanceHistorySchema`
+  wrapping a learner's records — interfaces only, nothing persists them.
+  `grammarUnitId`/`promptId` fields point at `src/ai/knowledge` ids when a
+  record maps to a known unit or asset, the same forward-compatible,
+  loosely-coupled-by-string-id pattern `LearnerProfile`'s own topic lists
+  use.
+- **`profiles.ts`** — six complete example `LearnerProfile` records, one
+  per the brief's own Teaching Adaptation categories: `beginner`,
+  `intermediate`, `advanced`, `repeatedMistakes`, `fastLearner`,
+  `needsMoreRepetition`. Plus `EXAMPLE_GRAMMAR_MISTAKE_RECORDS` — three
+  real `GrammarMistakeRecord`s for the `repeatedMistakes` learner (Karim),
+  showing the same present-perfect mistake recurring across three
+  sessions, which is what `LearnerProfile.recentMistakes` for that
+  example digests down to.
+- **`registry.ts`** — `getExampleLearnerProfile`/`listExampleLearnerProfiles`,
+  mirroring `src/ai/knowledge/registry.ts`'s shape so a real,
+  Supabase-backed profile store can implement the same read interface
+  later without any caller changing.
+- **`index.ts`** — re-exports `types.ts`, `performance.ts`, and
+  `registry.ts` only; the raw `EXAMPLE_LEARNER_PROFILES` Record and
+  `EXAMPLE_GRAMMAR_MISTAKE_RECORDS` array aren't re-exported, same reason
+  as the knowledge module: go through the registry, not the raw data.
+
+### Teaching Adaptation
+
+Documented here, not yet enforced by a prompt section (that's the future
+integration sprint's job) — the same question, "Can you explain the
+present perfect?", answered differently per profile. Every response below
+is illustrative (no live model call was possible in this sandbox, the
+same constraint as every prior sprint), but each is grounded in a real
+`LearnerProfile` field, not an arbitrary guess:
+
+- **Beginner** (Aziz, A2, present-continuous is his current weak topic,
+  present-perfect isn't in his `recentlyStudiedTopics` at all) — Tuto
+  keeps it very short and defers: "That's a bit further ahead — here's the
+  short version: 'have/has' plus a special verb form shows something that
+  happened before but still matters now, like 'I have finished my
+  homework.' Let's keep working on 'is/am/are + verb-ing' for now, since
+  that's what we're building this week." Calibrated down hard
+  (`CEFR_AWARENESS`'s A1-A2 register) and redirected toward his actual
+  current weak topic instead of opening a new one.
+- **Intermediate** (Dilnoza, B1, present-perfect is her recorded weak
+  topic with a specific logged mistake) — Grammar Coach mode, references
+  her own history directly: "Last time this came up you said 'I have seen
+  him yesterday' — close! The rule: present perfect skips a specific past
+  time word like 'yesterday'; when there's one, switch to simple past
+  ('I saw him yesterday'). Want to try one?" Personalized to a real
+  past mistake, not a generic explanation.
+- **Advanced** (Elyor, C1, present-perfect is already a *strong* topic) —
+  near-peer register, skips the basics entirely: "You've got the basic
+  form down — the more interesting question at this level is discourse
+  function: present perfect often signals 'this is relevant to my point
+  right now' rather than just 'this happened before,' which is why news
+  reports lean on it so heavily." No correction, no exercise — treated as
+  a genuine near-peer conversation about nuance.
+- **Repeated mistakes** (Karim — the same present-perfect-plus-specific-
+  past-time error logged three times across sessions) — Tuto recognizes
+  the *pattern*, not just the latest instance: "I've noticed this exact
+  mix-up a few times now — 'have seen... yesterday,' 'have finished...
+  last week.' Let's try a different angle: whenever you're about to say a
+  specific time word, pause and ask 'do I need "have"'? If a time word is
+  coming, the answer's no." A different explanation and a targeted
+  mini-exercise, not the same one-line correction repeated a fourth time.
+- **Fast learner** (Sara, B2, present-perfect is already strong, reported
+  speech is her one weak topic) — Tuto answers briefly and pivots to
+  where the real gap is: "You've clearly got this one — quick nuance:
+  present perfect continuous adds a sense of 'still going' ('I've been
+  working on this all day'). Since you're solid here, want to look at
+  reported speech instead? That's the one still catching you." Moves fast
+  rather than over-explaining something already mastered, per
+  `ACTIVE_LEARNING`'s "challenge advanced learners" instinct.
+- **Needs more repetition** (Jamshid, A2, `recentlyStudiedTopics` shows
+  present-simple studied twice already with present-continuous still
+  weak) — patient, and honest about sequencing, while crediting the
+  effort: "That's great that you're curious about it! Before we add
+  present perfect, let's make sure 'is/am/are + verb-ing' feels solid —
+  you've shown up consistently for 90 days, so we've got the time to get
+  this right rather than rush ahead." Sprint 7's `ENCOURAGEMENT_STYLE`
+  ("celebrate effort and consistency... as much as correctness") applied
+  to a learner whose consistency is real even though their pace is slow.
+
+### Verification
+
+- A throwaway API route (`src/app/api/dev-verify-learner/route.ts`,
+  deleted before committing) ran `LearnerProfileSchema.safeParse()`
+  against all six example profiles and `PerformanceRecordSchema.safeParse()`
+  against all three example `GrammarMistakeRecord`s — all nine validated
+  successfully — and confirmed `getExampleLearnerProfile` resolves a known
+  key and returns `null` for an unknown one.
+- `npx tsc --noEmit`, `npx eslint src/ai/learner`, and a full
+  `npm run build` — all clean; the build's route list is unchanged from
+  Sprint 9, confirming nothing new was added to the app surface.
+
 ## Future expansion
 
 ### How memory will work
@@ -966,6 +1090,17 @@ providers register, and the AI Service would accept an optional
 `memoryStore.set()` after a reply completes. Nothing about the service's
 public signature (`generateResponse`/`streamResponse`) needs to change to
 add this — it's an additive parameter.
+
+Sprint 10's `LearnerProfile` (`src/ai/learner/`) is the structured
+long-term half of this picture — a `MemoryStore` conversation summary is
+short-term ("what did we just discuss"), while a `LearnerProfile` is the
+durable, slowly-changing model ("what does this learner consistently
+struggle with"). The same future integration would likely resolve a
+`LearnerProfile` alongside `memoryStore.get()` and fold both into the
+prompt's context — daily learning plans, personalized review, spaced
+repetition, and recommendations (all named in Sprint 10's brief as future
+consumers) would all read from that same profile rather than each
+inventing their own model of the learner.
 
 ### How RAG will plug in
 
@@ -1175,6 +1310,19 @@ insensitive lookup, combined filters, and the existing unknown-tool error
 shape); no RAG, no embeddings, no vector search, no change to
 `ai-service.ts`/the tool loop/the registry mechanism; clean `tsc --noEmit`
 / `eslint` / `build` with the app's route list unchanged from Sprint 8.
+
+### Sprint 10
+
+Full detail is in "Learner Intelligence" above. In short: `src/ai/learner/`
+added (`LearnerProfileSchema`, six Performance Tracking record schemas,
+six example profiles matching the brief's own adaptation categories,
+three example `GrammarMistakeRecord`s, a read-only registry); all six
+profiles and all three records verified to validate against their
+schemas via a throwaway route (deleted before committing); nothing wired
+into the AI Service/prompts/tools yet (by design, mirroring Sprint 8 —
+this sprint scoped to the learner model itself, not yet using it); clean
+`tsc --noEmit` / `eslint` / `build` with the app's route list unchanged
+from Sprint 9.
 
 ## Explicitly out of scope
 
