@@ -67,11 +67,14 @@ in `bootstrap.ts` — nothing else changes.**
 
 ### 2. Prompts — `src/ai/prompts/tuto/`
 
-`sections.ts` holds each concern (personality, teaching philosophy, CEFR
-awareness, grammar correction style, encouragement style, educational
-priorities, refusal behavior, formatting rules) as an independent,
-named constant — editing how Tuto corrects grammar never touches how it
-encourages.
+`sections.ts` holds each concern (personality, teaching philosophy, active
+learning, CEFR-adaptive explanations, teaching modes, grammar correction
+style, encouragement style, follow-up learning, educational priorities,
+refusal behavior, formatting rules) as an independent, named constant —
+editing how Tuto corrects grammar never touches how it encourages. The
+teaching-specific concerns (active learning, teaching modes, follow-up
+learning, and the CEFR rewrite) were added/rewritten in Sprint 7 — see
+"Teaching Framework" below for why each exists and what it changed.
 
 `context-block.ts` (Sprint 2) is the prompt-enrichment renderer: it turns
 a `LearningContext` into a labeled-block instruction —
@@ -608,6 +611,129 @@ with it.
 - `npm run build`, `npx tsc --noEmit`, `npx eslint src/ai src/app/api/ai`
   — all clean.
 
+## Teaching Framework (Sprint 7)
+
+Sprint 6 wired the existing AI capabilities into the UI; Sprint 7 doesn't
+add any new capability or infrastructure — it rewrites *how Tuto teaches*
+inside the one place that already governs every request's behavior:
+`src/ai/prompts/tuto/sections.ts` and `index.ts`. No new files outside
+that module, no schema changes, no new context fields — the brief was
+explicit that architecture should only change if it directly improves the
+learner experience, and a system prompt is exactly the layer teaching
+quality lives in.
+
+### What changed
+
+Every existing section was reviewed and rewritten in an experienced
+teacher's voice rather than generic AI-assistant policy language
+(`REFUSAL_POLICY` and `FORMATTING_RULES` read the most like the latter
+before this pass). Three new sections were added:
+
+- **`ACTIVE_LEARNING`** — Tuto's default instinct is to prompt the learner
+  toward the answer (a guiding question, a chance to self-correct) rather
+  than hand over a finished explanation immediately, calibrated by level:
+  more guided at B1+, more direct at A1-A2 where guessing games just
+  frustrate a learner who lacks the words to reason with.
+- **`TEACHING_MODES`** — eight implicit teaching styles (Tutor, Coach,
+  Examiner, Conversation, Grammar Coach, Writing Coach, Vocabulary Coach,
+  Listening Coach), each triggered by signals already present in
+  `LearningContext` and the learner's own message (a quiz in context →
+  Examiner; a selected word → Vocabulary Coach; a grammar question asked
+  anywhere → Grammar Coach, even on the Podcast screen). No new context
+  field or classifier — the mode is inferred by the model from context
+  that already exists, and never announced to the learner.
+- **`FOLLOW_UP_LEARNING`** — after answering, Tuto considers ending with
+  *at most one* of: a follow-up question, a two-line mini-exercise, one
+  new closely related word, or a nudge toward a LinguABC activity —
+  explicitly not forced every turn, skipped when the learner seems
+  confused, frustrated, or just wants a quick fact.
+
+`CEFR_AWARENESS` (composed under the header "Adaptive explanations by
+CEFR level") was rewritten from three abbreviated bullet points into a
+concrete instruction with a worked example — the same question
+("What does 'used to' mean?") answered three genuinely different ways at
+A1, B2, and C2, not the same paragraph in smaller words at lower levels.
+See the section itself in `sections.ts` for the full example.
+
+`GRAMMAR_CORRECTION_STYLE` gained one clause tying it to
+`ACTIVE_LEARNING`: for an error the learner likely already knows the rule
+for, prompt self-correction ("what happens to the verb with he/she/it?")
+before supplying the fix. `EDUCATIONAL_PRIORITIES` gained a clause that
+teaching the learner to work something out outranks just giving them the
+answer, provided it doesn't stall the conversation or override the
+top-priority "keep them willing to speak or write."
+
+### Why this needed no infrastructure change
+
+Every AI-backed feature (chat, Vocabulary Intelligence, Article
+Intelligence) already routes through `ai-service.ts`, which calls
+`buildTutoSystemPrompt()` for every single request — Sprint 1's original
+design decision that there be exactly one place the system prompt is
+assembled is what made a teaching-quality sprint possible without
+touching a single route, tool, or schema. Composing three additional
+sections into the same `sections.join("\n\n")` in `index.ts` is the
+entire integration surface.
+
+### Before / after
+
+Same message, same `LearningContext`, before this sprint's prompt vs.
+after — illustrative, not captured from a live model (no `OPENROUTER_API_KEY`
+in this environment; see Verification below for what was actually run).
+
+**Learner (B1, reading an article about remote work) asks: "what's the
+difference between 'used to' and 'would' for past habits?"**
+
+- *Before*: a single, mostly complete explanation of both forms back to
+  back, likely 5-8 sentences, no attempt to check what the learner already
+  knows, no example calibrated to B1 specifically versus any other level.
+- *After*: a short guiding question first ("Which one sounds more natural
+  to you: 'I would live in Spain' or 'I used to live in Spain'?"), then —
+  after their answer — the actual distinction in 2-3 B1-register
+  sentences with one example each, closing with a one-line mini-exercise
+  ("Try one sentence with 'would' about your childhood") rather than a
+  bare answer and silence. Grammar Coach mode implicitly, since the
+  question is squarely about a grammar point.
+
+**Learner (A1) asks the identical question.**
+
+- *Before*: the same explanation, just with instructions elsewhere in the
+  prompt to "keep it simple" — in practice mostly meaning shorter
+  sentences, not a different teaching move.
+- *After*: `CEFR_AWARENESS` routes this to direct explanation rather than
+  a guided question (`ACTIVE_LEARNING`'s explicit A1-A2 carve-out, since a
+  guessing game with no vocabulary to reason with just frustrates) — one
+  clear sentence per form, one example each, no mini-exercise appended
+  since a brand-new A1 concept isn't the moment to also ask for
+  production.
+
+**Learner asks Tuto to check a paragraph they wrote.**
+
+- *Before*: generic correction pass, errors listed, no explicit structure.
+- *After*: Writing Coach mode — what already works, named specifically,
+  then what to improve, then one rewritten example sentence, in that
+  order, per `TEACHING_MODES`.
+
+### Verification
+
+- Read every section in `sections.ts` before and after to confirm the
+  brief's ten teaching principles are each addressed somewhere (active
+  learning → `ACTIVE_LEARNING`; CEFR adaptation → `CEFR_AWARENESS`;
+  reinforcing previous knowledge → `TEACHING_PHILOSOPHY`; not overwhelming
+  beginners / challenging advanced learners → `CEFR_AWARENESS`; new
+  vocabulary and examples → `FOLLOW_UP_LEARNING` and `CEFR_AWARENESS`'s
+  worked example; short answers → `FORMATTING_RULES`).
+- Confirmed no other module references the renamed/added section
+  constants (`grep` across `src/` for each export name — only
+  `src/ai/prompts/tuto/index.ts` imports from `sections.ts`).
+- `npx tsc --noEmit`, `npx eslint src/ai/prompts`, and a full
+  `npm run build` — all clean; the build's route list is unchanged from
+  Sprint 6, confirming no new surface was added.
+- Deliberately did not attempt a live model call for the before/after
+  examples above — `openrouter.ai` is unreachable from this sandbox
+  (confirmed in Sprint 4/5), so a live response would be indistinguishable
+  from a fabricated one. The before/after section above documents the
+  prompt-level behavior change directly instead.
+
 ## Future expansion
 
 ### How memory will work
@@ -787,6 +913,14 @@ context render together correctly, tool-level verification that
 three structured capabilities validated against their schemas, a live
 smoke test against the real `POST /api/ai/article` route, and clean
 `build`/`tsc --noEmit`/`eslint`.
+
+### Sprint 7
+
+Full detail is in "Teaching Framework" above. In short: every prompt
+section reviewed for teacher-voice quality, three new sections added
+(`ACTIVE_LEARNING`, `TEACHING_MODES`, `FOLLOW_UP_LEARNING`), no schema or
+route changes, confirmed no other module references the prompt section
+exports, and clean `tsc --noEmit` / `eslint` / `build`.
 
 ## Explicitly out of scope
 
