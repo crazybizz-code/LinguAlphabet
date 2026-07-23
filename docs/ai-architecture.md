@@ -807,27 +807,13 @@ prompt. `getAssetsForGrammarUnit("conditionals")` returns
 whether you arrive at it from the Conditionals grammar unit or from
 Exam Preparation directly. One asset, reused from two directions.
 
-### Why this isn't wired in yet
+### Why this wasn't wired in yet (as of Sprint 8)
 
-The brief is explicit that this sprint designs the structure, and that
+The brief was explicit that Sprint 8 designs the structure only, and that
 RAG/memory/personalization are *future* consumers of it — so
-`ai-service.ts`, `buildTutoSystemPrompt()`, and the tool system are
-untouched. The natural seams for wiring it in later, when a specific
-feature needs it:
-
-- **As ambient context** — `buildLearningContext()`
-  (`src/ai/context/builder.ts`) could resolve the relevant `GrammarUnit`/
-  `KnowledgeVocabularyEntry` for whatever the learner is doing and fold a
-  rendered summary into the prompt's context block, the same seam
-  "How RAG will plug in" below already describes.
-- **As a tool** — a `getGrammarUnit`/`getVocabularyEntry` `ToolDefinition`
-  would let the model pull a specific unit or entry mid-conversation,
-  exactly like `getArticleParagraphs` (Sprint 5) lets it read real article
-  text instead of guessing.
-
-Neither is built this sprint — both are one small, additive change away,
-once a feature actually needs it, consistent with every prior sprint's
-"don't build infrastructure the current feature doesn't need" rule.
+`ai-service.ts`, `buildTutoSystemPrompt()`, and the tool system were left
+untouched that sprint. Sprint 9 (below) is that "one small, additive
+change" — as a tool, exactly as anticipated here.
 
 ### Verification
 
@@ -841,6 +827,131 @@ once a feature actually needs it, consistent with every prior sprint's
 - `npx tsc --noEmit`, `npx eslint src/ai/knowledge`, and a full
   `npm run build` — all clean; the build's route list is unchanged from
   Sprint 7, confirming nothing new was added to the app surface.
+
+## Knowledge Integration (Sprint 9)
+
+Sprint 8 designed the knowledge base; Sprint 9 makes Tuto actually reach
+for it. The entire integration is four new tools registered exactly like
+every existing one — no RAG, no embeddings, no vector search, no change
+to `ai-service.ts`, the tool loop, or the registry mechanism itself.
+
+### The four knowledge-lookup tools
+
+All in `src/ai/tools/definitions/`, all consuming `src/ai/knowledge`'s
+registry (never the raw Records) exactly like every other tool consumes
+`mock-data.ts`:
+
+- **`getGrammarUnit({ topic })`** — matches loosely (exact id, exact
+  title, or a substring of either) since there are only six units and the
+  model's own phrasing won't always be the id verbatim; this is plain
+  string matching over a small fixed list, explicitly not semantic
+  search. Its result embeds the unit's exercises already resolved (via
+  `getExercisesForGrammarUnit`), so one call gives Tuto the explanation,
+  mistakes, examples, *and* practice material without a second round
+  trip — a deliberate efficiency against the tool loop's
+  `MAX_TOOL_ITERATIONS = 4` safety valve (`src/ai/services/tool-loop.ts`).
+  A miss returns `availableTopics` so the model can offer the closest real
+  option instead of silently inventing one.
+- **`getVocabularyEntry({ word })`** — the curated counterpart to Sprint
+  3's `getSelectedVocabulary` tool. That one only ever looks up whatever
+  word is *currently selected* in the learner context, against the older
+  `mock-data.ts` dictionary; this one lets the model look up *any* word by
+  name (one mentioned mid-conversation, not selected) against Sprint 8's
+  curated entries. Deliberately two separate tools over two separate data
+  sources, not a rewrite of the existing one — Sprint 9's brief says reuse
+  the Tool System, not consolidate everything that touches vocabulary.
+- **`getTeachingAssets({ domain?, type?, grammarUnitId?, vocabularyWord? })`**
+  — browses the fifteen reusable assets with combinable filters. Needed a
+  small additive registry helper, `listTeachingAssets()` (one line,
+  `Object.values(TEACHING_ASSETS)`), since Sprint 8's registry only
+  exposed single-filter accessors and this tool composes several at once.
+- **`getRelatedGrammar({ grammarUnitId })`** — resolves a unit's own
+  `relatedGrammarUnitIds` into the full related units, using the `unit.id`
+  a prior `getGrammarUnit` call already returned.
+
+Registering them in `src/ai/tools/bootstrap.ts` is the entire wiring —
+`listTools()` (called unfiltered by every AI-backed feature via
+`tool-loop.ts`) now returns eleven tools instead of seven, on every
+request: `/api/ai/chat`, Vocabulary Intelligence, and Article Intelligence
+all gained knowledge-lookup access with zero changes to any of those
+three call sites.
+
+### Teaching consistency — the prompt side
+
+Registering the tools only makes them *available*; a new prompt section,
+`KNOWLEDGE_BASE_USAGE` (`src/ai/prompts/tuto/sections.ts`, composed under
+"# Knowledge base" right after Teaching modes in `index.ts`), tells Tuto
+*when* to reach for them and how to use what comes back: consult
+`getGrammarUnit`/`getVocabularyEntry` before explaining from general
+knowledge; adapt the returned explanation's wording and depth to the
+learner's level rather than replacing its substance with an invented one;
+prefer a returned example over generating a new one; offer a unit's
+resolved exercises rather than inventing a mini-exercise; and never
+narrate the lookup to the learner. This is the mechanism behind the
+brief's "GPT should adapt the explanation, not invent a completely new
+one" — a tool without this instruction would just sit unused, since
+nothing forces a model to call an available tool it wasn't told to prefer.
+
+### Illustrative conversations
+
+Real tool outputs (verified below), not fabricated — the model's own
+reply text is illustrative, since no live model call was possible in this
+sandbox (`openrouter.ai` unreachable, same constraint as every prior
+sprint).
+
+**"What is Present Perfect?"** → `getGrammarUnit({ topic: "present perfect" })`
+returns the Sprint 8 unit verbatim: the "have/has + past participle... the
+exact time doesn't matter" explanation, its two common mistakes, its two
+examples, and its one resolved exercise
+(`ex-present-perfect-vs-simple`, "Choose the correct form..."). Tuto's
+reply adapts that into a B1-register answer with one of the two supplied
+examples and offers the resolved exercise as the natural follow-up — not
+a different explanation invented on the spot, and not a different
+exercise than the one LinguABC actually teaches this unit with.
+
+**A learner asks what "procrastinate" means mid-conversation** (no word
+selected — this is `getVocabularyEntry`, not the context-driven
+`getSelectedVocabulary`) → returns the curated entry with its one example
+("I always procrastinate before exams") and its `commonMistakes` entry
+distinguishing it from "postpone". Tuto reuses that example rather than
+generating a new sentence, per `KNOWLEDGE_BASE_USAGE`'s explicit
+preference.
+
+**A learner is preparing for an exam and asks for essay practice** →
+Writing Coach mode calls `getTeachingAssets({ domain: "examPreparation",
+type: "writingPrompt" })` and gets back `write-opinion-essay-examprep`
+verbatim (the technology-in-education prompt with its structure
+guidance) instead of drafting a new essay prompt from scratch. That same
+asset's `relatedVocabularyWords: ["substantiate"]` gives Tuto a real,
+pre-selected word to weave into feedback on the resulting essay, rather
+than picking one arbitrarily.
+
+**After teaching Conditionals, Tuto looks ahead** →
+`getRelatedGrammar({ grammarUnitId: "conditionals" })` returns Passive
+Voice — a real, curated connection ("commonly confused with or a natural
+next step"), not a generic "you might also want to study more grammar."
+
+### Verification
+
+- A throwaway API route (`src/app/api/dev-verify-tools/route.ts`, deleted
+  before committing) called `executeToolCall` directly — the same
+  function `tool-loop.ts` uses — against all four new tools, confirming:
+  `listTools()` returns eleven tools (the original seven plus these
+  four); `getGrammarUnit` finds "present perfect" and returns its
+  exercises resolved; a genuinely unmatched topic
+  ("future perfect continuous") returns `found: false` with
+  `availableTopics` listing all six real unit titles; `getVocabularyEntry`
+  is case-insensitive ("PROCRASTINATE" still resolves); `getRelatedGrammar`
+  on "conditionals" returns the real Passive Voice unit;
+  `getTeachingAssets` correctly filters by domain+type together
+  (`examPreparation` + `writingPrompt` → exactly the one matching asset)
+  and by `vocabularyWord` (`"reckon"` → exactly the one matching mini
+  exercise); and an unknown tool name still produces the existing graceful
+  `{ isError: true }` shape (Sprint 3's execution-layer guarantee), not a
+  crash.
+- `npx tsc --noEmit`, `npx eslint src/ai`, and a full `npm run build` —
+  all clean; the build's route list is unchanged from Sprint 8, since
+  registering tools adds no new app route.
 
 ## Future expansion
 
@@ -859,20 +970,25 @@ add this — it's an additive parameter.
 ### How RAG will plug in
 
 No vector DB, no embeddings, no retrieval exist today, and none should be
-inferred from anything in this module. Sprint 8's `src/ai/knowledge/` is
-the first concrete content a retrieval layer would sit in front of —
-today it's looked up by exact ID/word; RAG is what would let "find the
-grammar unit relevant to what the learner just asked" work for phrasing
-that doesn't match an ID directly. Now that Sprint 3 shipped a real tool
-system, there are two natural seams, and which one fits depends on *what*
-is being retrieved:
+inferred from anything in this module. Sprint 9's four knowledge-lookup
+tools (`getGrammarUnit`, etc.) already sit in front of
+`src/ai/knowledge/` exactly as "Retrieval as a tool" below anticipated —
+but they're still exact/loose string matching over a small fixed list,
+not semantic search. RAG is what would let "find the grammar unit
+relevant to what the learner just asked" work for phrasing that doesn't
+match an id or title at all (e.g. a learner describing the *symptom* of a
+grammar mistake without naming the rule). Now that Sprint 3 shipped a
+real tool system, there are two natural seams, and which one fits depends
+on *what* is being retrieved:
 
-- **Retrieval as a tool** — e.g. "find the vocabulary entries most
-  relevant to what the learner just asked" fits the existing pattern
-  exactly: a new `ToolDefinition` (a `searchVocabulary` tool, say) whose
-  `execute()` queries a vector store instead of `mock-data.ts`. Nothing
-  about the registry, the loop, or the provider layer changes — this is
-  the same seam "Future database integration" below uses.
+- **Retrieval as a tool** — Sprint 9's `getGrammarUnit`/`getVocabularyEntry`
+  are today's version of this seam, over string matching; upgrading them
+  to real retrieval later is a change to *inside* each tool's `execute()`
+  — swap the loose string match for a vector search over
+  `src/ai/knowledge/` — not to `ToolDefinition`, the registry, the loop,
+  or any call site. Nothing about the registry, the loop, or the provider
+  layer changes — this is the same seam "Future database integration"
+  below uses.
 - **Retrieval as ambient context** — e.g. "always ground Tuto's answers
   in the current lesson's material" doesn't wait for the model to decide
   to call a tool; it belongs in `src/ai/context/builder.ts`:
@@ -1044,6 +1160,21 @@ committing), nothing wired into the AI Service/prompts/tools yet (by
 design — the brief scoped this to content structure only), and clean
 `tsc --noEmit` / `eslint` / `build` with the app's route list unchanged
 from Sprint 7.
+
+### Sprint 9
+
+Full detail is in "Knowledge Integration" above. In short: four new tools
+(`getGrammarUnit`, `getVocabularyEntry`, `getTeachingAssets`,
+`getRelatedGrammar`) registered in `bootstrap.ts`, bringing the total to
+eleven; one new prompt section (`KNOWLEDGE_BASE_USAGE`) telling Tuto to
+consult them before explaining from general knowledge and to adapt, not
+replace, what comes back; one small additive registry helper
+(`listTeachingAssets()`); all four tools verified end-to-end through the
+real `executeToolCall` (including a genuine not-found path, case-
+insensitive lookup, combined filters, and the existing unknown-tool error
+shape); no RAG, no embeddings, no vector search, no change to
+`ai-service.ts`/the tool loop/the registry mechanism; clean `tsc --noEmit`
+/ `eslint` / `build` with the app's route list unchanged from Sprint 8.
 
 ## Explicitly out of scope
 

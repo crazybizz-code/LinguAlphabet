@@ -5,6 +5,7 @@ import {
   ACTIVE_LEARNING,
   CEFR_AWARENESS,
   TEACHING_MODES,
+  KNOWLEDGE_BASE_USAGE,
   GRAMMAR_CORRECTION_STYLE,
   ENCOURAGEMENT_STYLE,
   FOLLOW_UP_LEARNING,
@@ -19,7 +20,8 @@ import { buildContextBlock } from "./context-block";
  * Tuto's master system prompt (Sprint 1 Phase 3; context enrichment added
  * in Sprint 2; reading-assistance guidance added in Sprint 5; teaching
  * framework — active learning, adaptive explanations, teaching modes,
- * follow-up learning — added in Sprint 7). Composed from independently
+ * follow-up learning — added in Sprint 7; knowledge-base usage guidance
+ * added in Sprint 9). Composed from independently
  * maintainable sections (./sections.ts) plus — when the caller has one —
  * a rendered LearningContext block (./context-block.ts) built from
  * src/ai/context. The AI Service (src/ai/services) is the only caller
@@ -37,6 +39,8 @@ export function buildTutoSystemPrompt(context?: LearningContext | null): string 
     CEFR_AWARENESS,
     "# Teaching modes",
     TEACHING_MODES,
+    "# Knowledge base",
+    KNOWLEDGE_BASE_USAGE,
     "# Grammar correction style",
     GRAMMAR_CORRECTION_STYLE,
     "# Encouragement style",

@@ -37,6 +37,11 @@ export function getTeachingAsset(id: string): TeachingAsset | null {
   return TEACHING_ASSETS[id] ?? null;
 }
 
+/** Every teaching asset, unfiltered — the base a caller combines multiple filters over (Sprint 9's getTeachingAssets tool), since the single-filter helpers below don't compose on their own. */
+export function listTeachingAssets(): TeachingAsset[] {
+  return Object.values(TEACHING_ASSETS);
+}
+
 export function listTeachingAssetsByDomain(domain: KnowledgeDomain): TeachingAsset[] {
   return Object.values(TEACHING_ASSETS).filter((asset) => asset.domain === domain);
 }
