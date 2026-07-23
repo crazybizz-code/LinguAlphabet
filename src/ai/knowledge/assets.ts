@@ -1,0 +1,185 @@
+import type { TeachingAsset } from "./types";
+
+/**
+ * Reusable teaching assets (Sprint 8) — mini exercises and conversation/
+ * writing/listening/speaking prompts, each attachable to grammar units
+ * and/or vocabulary words via `relatedGrammarUnitIds`/
+ * `relatedVocabularyWords` rather than being written fresh per
+ * conversation. "examPreparation" entries below are deliberately generic
+ * (structured long-form essay, timed note-taking, a two-minute talk) —
+ * exam-skill practice, not one specific exam's branded task names.
+ */
+export const TEACHING_ASSETS: Record<string, TeachingAsset> = {
+  "ex-present-simple-third-person": {
+    type: "miniExercise",
+    id: "ex-present-simple-third-person",
+    title: "Fix the verb",
+    domain: "grammar",
+    cefrLevels: ["A1", "A2"],
+    prompt: "Correct this sentence: \"She work every morning.\"",
+    answer: "She works every morning.",
+    relatedGrammarUnitIds: ["present-simple"],
+    relatedVocabularyWords: [],
+  },
+  "ex-continuous-vs-simple": {
+    type: "miniExercise",
+    id: "ex-continuous-vs-simple",
+    title: "Simple or continuous?",
+    domain: "grammar",
+    cefrLevels: ["A2", "B1"],
+    prompt: "Choose the correct form: \"Right now, I (read / am reading) an amazing book.\"",
+    answer: "am reading",
+    relatedGrammarUnitIds: ["present-continuous", "present-simple"],
+    relatedVocabularyWords: [],
+  },
+  "ex-present-perfect-vs-simple": {
+    type: "miniExercise",
+    id: "ex-present-perfect-vs-simple",
+    title: "Perfect or simple past?",
+    domain: "grammar",
+    cefrLevels: ["B1", "B2"],
+    prompt: "Choose the correct form: \"I (saw / have seen) that movie last week.\"",
+    answer: "saw",
+    relatedGrammarUnitIds: ["present-perfect"],
+    relatedVocabularyWords: [],
+  },
+  "ex-conditionals-transform": {
+    type: "miniExercise",
+    id: "ex-conditionals-transform",
+    title: "Build the conditional",
+    domain: "grammar",
+    cefrLevels: ["B1", "B2"],
+    prompt: 'Complete: "If I ___ (have) more time, I ___ (learn) another language."',
+    answer: "had / would learn",
+    relatedGrammarUnitIds: ["conditionals"],
+    relatedVocabularyWords: [],
+  },
+  "ex-passive-transform": {
+    type: "miniExercise",
+    id: "ex-passive-transform",
+    title: "Make it passive",
+    domain: "grammar",
+    cefrLevels: ["B1", "B2"],
+    prompt: 'Rewrite in the passive: "Someone stole my bike last night."',
+    answer: "My bike was stolen last night.",
+    relatedGrammarUnitIds: ["passive-voice"],
+    relatedVocabularyWords: [],
+  },
+  "ex-reported-speech-transform": {
+    type: "miniExercise",
+    id: "ex-reported-speech-transform",
+    title: "Report it",
+    domain: "grammar",
+    cefrLevels: ["B2", "C1"],
+    prompt: 'Report this: She said, "I\'ll finish the report tomorrow."',
+    answer: "She said she would finish the report the next day.",
+    relatedGrammarUnitIds: ["reported-speech"],
+    relatedVocabularyWords: [],
+  },
+  "ex-vocab-reckon-context": {
+    type: "miniExercise",
+    id: "ex-vocab-reckon-context",
+    title: "Use it yourself",
+    domain: "vocabulary",
+    cefrLevels: ["B2"],
+    prompt: "Use 'reckon' in one sentence about your weekend plans.",
+    relatedGrammarUnitIds: [],
+    relatedVocabularyWords: ["reckon"],
+  },
+
+  "conv-weekend-plans": {
+    type: "conversationPrompt",
+    id: "conv-weekend-plans",
+    title: "Weekend plans",
+    domain: "speaking",
+    cefrLevels: ["A2", "B1"],
+    prompt: "What are you doing this weekend? Tell me about your plans.",
+    followUpQuestions: ["Why did you choose to do that?", "Have you done this before?"],
+    relatedGrammarUnitIds: ["present-continuous"],
+    relatedVocabularyWords: [],
+  },
+  "conv-opinion-technology": {
+    type: "conversationPrompt",
+    id: "conv-opinion-technology",
+    title: "Technology and daily life",
+    domain: "speaking",
+    cefrLevels: ["B1", "B2"],
+    prompt: "Do you think technology has made daily life easier or more stressful? Why?",
+    followUpQuestions: ["Can you give a specific example?", "Would your grandparents agree with you?"],
+    relatedGrammarUnitIds: [],
+    relatedVocabularyWords: [],
+  },
+
+  "write-describe-a-place": {
+    type: "writingPrompt",
+    id: "write-describe-a-place",
+    title: "Describe a place",
+    domain: "writing",
+    cefrLevels: ["A2", "B1"],
+    prompt: "Write a short paragraph describing your favorite place to relax.",
+    structureGuidance:
+      "One sentence to introduce the place, two or three sentences with sensory details, one closing sentence on why you like it.",
+    relatedGrammarUnitIds: ["present-simple"],
+    relatedVocabularyWords: [],
+  },
+  "write-opinion-essay-examprep": {
+    type: "writingPrompt",
+    id: "write-opinion-essay-examprep",
+    title: "Opinion essay practice",
+    domain: "examPreparation",
+    cefrLevels: ["B2", "C1"],
+    prompt:
+      "Some people believe technology has improved the quality of education. To what extent do you agree or disagree? Write a structured opinion essay.",
+    structureGuidance:
+      "Introduction with a clear position, two body paragraphs each built on one main idea with a supporting example, and a conclusion that restates the position without repeating it word-for-word — the standard shape of a long-form exam essay.",
+    relatedGrammarUnitIds: ["conditionals", "passive-voice"],
+    relatedVocabularyWords: ["substantiate"],
+  },
+
+  "listen-connected-speech": {
+    type: "listeningPrompt",
+    id: "listen-connected-speech",
+    title: "Catching connected speech",
+    domain: "listening",
+    cefrLevels: ["B1", "B2"],
+    prompt:
+      "Listen for words that blend together, like 'gonna', 'wanna', or 'kinda' — try to catch one example in the next segment.",
+    focusSkill: "connected speech",
+    relatedGrammarUnitIds: [],
+    relatedVocabularyWords: [],
+  },
+  "listen-note-taking-examprep": {
+    type: "listeningPrompt",
+    id: "listen-note-taking-examprep",
+    title: "Note-taking under time pressure",
+    domain: "examPreparation",
+    cefrLevels: ["B2", "C1"],
+    prompt: "While listening, jot down only keywords, not full sentences — then reconstruct the main points afterward from your notes alone.",
+    focusSkill: "note-taking",
+    relatedGrammarUnitIds: [],
+    relatedVocabularyWords: [],
+  },
+
+  "speak-describe-photo": {
+    type: "speakingPrompt",
+    id: "speak-describe-photo",
+    title: "Describe a scene",
+    domain: "speaking",
+    cefrLevels: ["A2", "B1"],
+    prompt: "Describe what you'd expect to see, hear, and smell on a busy city street at lunchtime.",
+    followUpQuestions: ["Would you enjoy being there? Why or why not?"],
+    relatedGrammarUnitIds: ["present-continuous"],
+    relatedVocabularyWords: [],
+  },
+  "speak-two-minute-topic-examprep": {
+    type: "speakingPrompt",
+    id: "speak-two-minute-topic-examprep",
+    title: "Two-minute topic talk",
+    domain: "examPreparation",
+    cefrLevels: ["B2", "C1"],
+    prompt: "Talk for about two minutes about a skill you'd like to learn — what it is, why it interests you, and how you'd start.",
+    followUpQuestions: ["What's stopping you from starting today?"],
+    relatedGrammarUnitIds: ["present-perfect"],
+    relatedVocabularyWords: ["procrastinate"],
+  },
+};

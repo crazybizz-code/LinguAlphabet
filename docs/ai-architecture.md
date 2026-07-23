@@ -734,6 +734,114 @@ difference between 'used to' and 'would' for past habits?"**
   from a fabricated one. The before/after section above documents the
   prompt-level behavior change directly instead.
 
+## Tuto Knowledge Base (Sprint 8)
+
+Sprint 7 improved *how* Tuto teaches (the system prompt); Sprint 8 improves
+*what* it teaches from — consistent, curated educational content instead
+of the model re-deriving an explanation from scratch every time the same
+grammar rule or word comes up. This is explicitly a content-design sprint,
+not an infrastructure one: no RAG, no embeddings, no database, and the
+module isn't wired into the AI Service, a tool, or a prompt section yet —
+see "Why this isn't wired in yet" below.
+
+### `src/ai/knowledge/`
+
+- **`types.ts`** — Zod schemas for the eight knowledge domains
+  (`KNOWLEDGE_DOMAINS`: grammar, vocabulary, pronunciation, listening,
+  reading, writing, speaking, `examPreparation`), `GrammarUnitSchema`,
+  `KnowledgeVocabularyEntrySchema`, and a discriminated
+  `TeachingAssetSchema` (`miniExercise` / `conversationPrompt` /
+  `writingPrompt` / `listeningPrompt` / `speakingPrompt`).
+- **`grammar.ts`** — six complete `GrammarUnit` records: Present Simple,
+  Present Continuous, Present Perfect, Conditionals, Passive Voice,
+  Reported Speech. Each has an explanation, its CEFR levels, common
+  mistakes, examples, `exerciseIds` (pointing at `assets.ts`),
+  follow-up suggestions, and `relatedGrammarUnitIds` (pointing at each
+  other) — exactly the brief's list, and every reference is an ID, never
+  a duplicated copy.
+- **`vocabulary.ts`** — five complete `KnowledgeVocabularyEntry` records
+  (reckon, procrastinate, negotiate, substantiate, commute) with meaning,
+  CEFR level, collocations, common mistakes, synonyms, antonyms, and
+  examples.
+- **`assets.ts`** — fifteen `TeachingAsset` records: seven mini exercises
+  (six mapped 1:1 to the grammar units above, one to a vocabulary word),
+  two conversation prompts, two writing prompts, two listening prompts,
+  two speaking prompts. Three are tagged `domain: "examPreparation"` — a
+  structured long-form opinion essay, a note-taking-under-time-pressure
+  listening drill, and a two-minute topic talk — deliberately generic
+  exam-skill practice, not one exam brand's named task, per CLAUDE.md's
+  "Exam Preparation, not IELTS" rule.
+- **`registry.ts`** — the only way anything should read this content:
+  `getGrammarUnit`/`listGrammarUnits`/`listGrammarUnitsByLevel`,
+  `getVocabularyEntry` (case-insensitive)/`listVocabularyEntries`,
+  `getTeachingAsset`/`listTeachingAssetsByDomain`/`listTeachingAssetsByType`,
+  and the cross-reference resolvers `getExercisesForGrammarUnit`,
+  `getAssetsForGrammarUnit`, `getAssetsForVocabularyWord`. Plain
+  object/array lookups, not a pluggable `Map`-based registry like
+  providers/tools — this content isn't registered from multiple sources,
+  it's a fixed library, so the simpler shape fit better here.
+- **`index.ts`** — re-exports `types.ts` and `registry.ts` only. The raw
+  `GRAMMAR_UNITS`/`VOCABULARY_ENTRIES`/`TEACHING_ASSETS` Records are
+  deliberately not re-exported — every caller goes through the registry
+  functions, so the storage shape can change later (e.g. to a database
+  query) without touching a call site.
+
+### How Tuto would reuse this across different conversations
+
+Two unrelated learners each ask about the present perfect in separate
+conversations. Both requests resolve `getGrammarUnit("present-perfect")`
+and get the *same* explanation, the *same* two common mistakes, and the
+*same* worked examples — not two independently-generated explanations
+that might subtly disagree (one might say "the exact time doesn't matter"
+and another might not mention it at all). Both follow-ups then resolve
+`getExercisesForGrammarUnit("present-perfect")` and land on the identical
+"Perfect or simple past?" mini-exercise, so if those two learners ever
+compare notes, LinguABC taught them the same thing, consistently.
+
+A learner reading an article selects the word "reckon". Later that same
+learner opens the exam-prep writing coach and gets an opinion-essay
+prompt. `getAssetsForGrammarUnit("conditionals")` returns
+`write-opinion-essay-examprep` alongside the grammar unit's own
+`ex-conditionals-transform` — because that essay prompt lists
+`conditionals` in its own `relatedGrammarUnitIds`, the same essay surfaces
+whether you arrive at it from the Conditionals grammar unit or from
+Exam Preparation directly. One asset, reused from two directions.
+
+### Why this isn't wired in yet
+
+The brief is explicit that this sprint designs the structure, and that
+RAG/memory/personalization are *future* consumers of it — so
+`ai-service.ts`, `buildTutoSystemPrompt()`, and the tool system are
+untouched. The natural seams for wiring it in later, when a specific
+feature needs it:
+
+- **As ambient context** — `buildLearningContext()`
+  (`src/ai/context/builder.ts`) could resolve the relevant `GrammarUnit`/
+  `KnowledgeVocabularyEntry` for whatever the learner is doing and fold a
+  rendered summary into the prompt's context block, the same seam
+  "How RAG will plug in" below already describes.
+- **As a tool** — a `getGrammarUnit`/`getVocabularyEntry` `ToolDefinition`
+  would let the model pull a specific unit or entry mid-conversation,
+  exactly like `getArticleParagraphs` (Sprint 5) lets it read real article
+  text instead of guessing.
+
+Neither is built this sprint — both are one small, additive change away,
+once a feature actually needs it, consistent with every prior sprint's
+"don't build infrastructure the current feature doesn't need" rule.
+
+### Verification
+
+- Confirmed every `exerciseIds`/`relatedGrammarUnitIds`/
+  `relatedVocabularyWords` cross-reference actually resolves to a real
+  record (no dangling IDs) via a throwaway API route that exercised every
+  registry function, including the case-insensitive vocabulary lookup and
+  the reverse lookups (`getAssetsForGrammarUnit`,
+  `getAssetsForVocabularyWord`) — output confirmed in this sprint's
+  session, route deleted before committing (never part of the product).
+- `npx tsc --noEmit`, `npx eslint src/ai/knowledge`, and a full
+  `npm run build` — all clean; the build's route list is unchanged from
+  Sprint 7, confirming nothing new was added to the app surface.
+
 ## Future expansion
 
 ### How memory will work
@@ -751,9 +859,13 @@ add this — it's an additive parameter.
 ### How RAG will plug in
 
 No vector DB, no embeddings, no retrieval exist today, and none should be
-inferred from anything in this module. Now that Sprint 3 shipped a real
-tool system, there are two natural seams, and which one fits depends on
-*what* is being retrieved:
+inferred from anything in this module. Sprint 8's `src/ai/knowledge/` is
+the first concrete content a retrieval layer would sit in front of —
+today it's looked up by exact ID/word; RAG is what would let "find the
+grammar unit relevant to what the learner just asked" work for phrasing
+that doesn't match an ID directly. Now that Sprint 3 shipped a real tool
+system, there are two natural seams, and which one fits depends on *what*
+is being retrieved:
 
 - **Retrieval as a tool** — e.g. "find the vocabulary entries most
   relevant to what the learner just asked" fits the existing pattern
@@ -921,6 +1033,17 @@ section reviewed for teacher-voice quality, three new sections added
 (`ACTIVE_LEARNING`, `TEACHING_MODES`, `FOLLOW_UP_LEARNING`), no schema or
 route changes, confirmed no other module references the prompt section
 exports, and clean `tsc --noEmit` / `eslint` / `build`.
+
+### Sprint 8
+
+Full detail is in "Tuto Knowledge Base" above. In short: `src/ai/knowledge/`
+added (six grammar units, five vocabulary entries, fifteen teaching
+assets, a read-only registry), every cross-reference between them
+verified to resolve via a throwaway API route (deleted before
+committing), nothing wired into the AI Service/prompts/tools yet (by
+design — the brief scoped this to content structure only), and clean
+`tsc --noEmit` / `eslint` / `build` with the app's route list unchanged
+from Sprint 7.
 
 ## Explicitly out of scope
 
