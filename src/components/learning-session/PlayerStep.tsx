@@ -543,6 +543,9 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         context={selectedContext}
         entry={selectedWord ? findVocabularyEntry(selectedWord) : null}
         sourceContentId={content.contentId}
+        contentTitle={content.title}
+        contentType={content.contentType}
+        cefrLevel={content.cefrLevel}
         onClose={() => setSelectedWord(null)}
       />
     </motion.div>
