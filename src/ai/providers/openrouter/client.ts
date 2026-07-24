@@ -36,6 +36,18 @@ interface OpenRouterResponse {
 }
 
 function getConfig(): { apiKey: string; model: string } {
+  // TEMPORARY DIAGNOSTICS — debugging "OPENROUTER_API_KEY is not configured"
+  // despite a populated .env.local; remove once root-caused.
+  console.log("[tuto-debug] process.cwd():", process.cwd());
+  console.log("[tuto-debug] OPENROUTER_API_KEY !== undefined:", process.env.OPENROUTER_API_KEY !== undefined);
+  console.log("[tuto-debug] OPENROUTER_MODEL !== undefined:", process.env.OPENROUTER_MODEL !== undefined);
+  console.log(
+    "[tuto-debug] env keys containing OPEN:",
+    Object.keys(process.env).filter((k) => k.includes("OPEN")),
+  );
+  console.log("[tuto-debug] runtime:", process.env.NEXT_RUNTIME ?? "unknown (NEXT_RUNTIME unset)");
+  // END TEMPORARY DIAGNOSTICS
+
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL;
   if (!apiKey) throw new AIProviderError("OPENROUTER_API_KEY is not configured", 500, false);
