@@ -42,10 +42,16 @@ function getConfig(): { apiKey: string; model: string } {
   console.log("[tuto-debug] OPENROUTER_API_KEY !== undefined:", process.env.OPENROUTER_API_KEY !== undefined);
   console.log("[tuto-debug] OPENROUTER_MODEL !== undefined:", process.env.OPENROUTER_MODEL !== undefined);
   console.log(
-    "[tuto-debug] env keys containing OPEN:",
-    Object.keys(process.env).filter((k) => k.includes("OPEN")),
+    "[tuto-debug] env keys containing OPEN (case-insensitive):",
+    Object.keys(process.env).filter((k) => k.toUpperCase().includes("OPEN")),
   );
   console.log("[tuto-debug] runtime:", process.env.NEXT_RUNTIME ?? "unknown (NEXT_RUNTIME unset)");
+  // Control check: this var is read from the SAME .env.local, the SAME
+  // way, and throws at import time (src/lib/env.ts) if missing — if it's
+  // present, .env.local IS loading correctly and the fault is specific to
+  // the two OPENROUTER_* lines, not env loading in general.
+  console.log("[tuto-debug] NEXT_PUBLIC_SUPABASE_URL !== undefined (control):", process.env.NEXT_PUBLIC_SUPABASE_URL !== undefined);
+  console.log("[tuto-debug] total process.env key count:", Object.keys(process.env).length);
   // END TEMPORARY DIAGNOSTICS
 
   const apiKey = process.env.OPENROUTER_API_KEY;
