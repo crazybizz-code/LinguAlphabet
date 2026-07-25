@@ -206,6 +206,21 @@ function SeekBar({
   );
 }
 
+/**
+ * Release Blocker fix: shown when the audio element fails to load — reuses
+ * the exact danger-banner visual language already used for form/chat errors
+ * elsewhere (border-danger/20 bg-danger/5 text-danger), not a new pattern.
+ * Continue is unblocked the instant this fires (see hasFinishedListening),
+ * so this is purely explanatory, not another dead end to recover from.
+ */
+function AudioErrorBanner() {
+  return (
+    <div className="mt-4 rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
+      This episode&apos;s audio couldn&apos;t load right now. You can still continue — try again later to listen.
+    </div>
+  );
+}
+
 /** Desktop-only — mobile's transport is already thumb-reachable enough that a rate control adds clutter rather than value there. */
 function PlaybackSpeedControl({ rate, onChange }: { rate: number; onChange: (rate: number) => void }) {
   return (
@@ -276,13 +291,34 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
   const [selectedContext, setSelectedContext] = useState("");
+  // Release Blocker fix: with no onError handling, a broken/unreachable
+  // audioUrl (bad CDN link, CORS, format issue — a realistic content-
+  // pipeline failure) left the learner with a Play button that silently
+  // did nothing and a Continue button gated on real listen-time that could
+  // never unlock — a true dead end with no error shown and no way forward.
+  const [audioError, setAudioError] = useState(false);
 
   // Cumulative real listened time — the gate for unlocking Continue.
   // Deliberately not derived from currentTime alone (see handleTimeUpdate):
   // currentTime reaching the end via a seek must not count as "listened."
   const [listenedSeconds, setListenedSeconds] = useState(0);
   const lastTimeRef = useRef(0);
-  const hasFinishedListening = duration > 0 && listenedSeconds >= duration * LISTEN_COMPLETION_THRESHOLD;
+  const hasFinishedListening = audioError || (duration > 0 && listenedSeconds >= duration * LISTEN_COMPLETION_THRESHOLD);
+
+  // Attached directly via addEventListener (not the onError prop) and also
+  // checked synchronously on mount: preload="metadata" starts loading the
+  // instant this element mounts, so a broken source can fail before this
+  // effect even runs — a real, observed race in testing, not theoretical.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    function handleError() {
+      setAudioError(true);
+    }
+    audio.addEventListener("error", handleError);
+    if (audio.error) setAudioError(true);
+    return () => audio.removeEventListener("error", handleError);
+  }, []);
 
   const activeIndex = useMemo(() => {
     const currentMs = currentTime * 1000;
@@ -453,6 +489,8 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
             <SeekBar currentTime={currentTime} duration={duration} onSeek={seek} />
           </div>
 
+          {audioError && <AudioErrorBanner />}
+
           {content.transcript.length > 0 && (
             <TranscriptPanel
               transcript={content.transcript}
@@ -491,6 +529,8 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
           <div className="mt-6">
             <SeekBar currentTime={currentTime} duration={duration} onSeek={seek} />
           </div>
+
+          {audioError && <AudioErrorBanner />}
 
           <div className="mt-6">
             <PlaybackSpeedControl rate={playbackRate} onChange={setPlaybackRate} />
