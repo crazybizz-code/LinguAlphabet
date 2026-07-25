@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
+import { ThinkingTimeline, type ThinkingFocus } from "./ThinkingTimeline";
+import { TutoMascotStatus } from "./TutoMascotStatus";
+import { useTutoMascotState } from "@/hooks/useTutoMascotState";
+import { fadeSlideUp } from "@/lib/motion/variants";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
 import type { TutoChatStatus } from "@/hooks/useTutoChat";
 
@@ -14,28 +19,44 @@ export interface TutoChatPanelProps {
   /** Rendered above the message list — e.g. a VocabularyCard for the word-lookup flow. Omit for a plain conversation. */
   header?: ReactNode;
   placeholder?: string;
+  /** Which ThinkingTimeline step leads first — a light hint, not a real trace of backend activity. Omit for a balanced default order. */
+  thinkingFocus?: ThinkingFocus;
 }
 
 /**
- * The reusable conversation surface behind every Tuto interaction in this
- * sprint (word lookup follow-ups, article selection actions, ask-about-
- * the-article) — one component, three trigger points, so streaming
- * rendering, loading states, and error handling are each built once.
+ * The reusable conversation surface behind every Tuto interaction (word
+ * lookup follow-ups, article selection actions, ask-about-the-article,
+ * the global floating chat) — one component, every trigger point, so
+ * streaming rendering, loading states, and error handling are each built
+ * once. Sprint UX-1 (Living Tuto) added the mascot status row and the
+ * thinking timeline on top of the same underlying useTutoChat contract —
+ * no change to that hook or anything upstream of it.
  *
  * Deliberately not its own scroll container: this renders inside
  * EditSheet's existing scrollable content pane (src/components/profile/EditSheet.tsx),
  * so the input row is `sticky bottom-0` rather than living in a separate
  * flex region — no change to EditSheet's layout needed for a pinned input.
  */
-export function TutoChatPanel({ messages, status, error, onSend, header, placeholder = "Ask Tuto a question…" }: TutoChatPanelProps) {
+export function TutoChatPanel({
+  messages,
+  status,
+  error,
+  onSend,
+  header,
+  placeholder = "Ask Tuto a question…",
+  thinkingFocus = null,
+}: TutoChatPanelProps) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
   const visibleMessages = messages.filter((message) => !message.hidden);
   const lastMessage = visibleMessages[visibleMessages.length - 1];
+  const mascotState = useTutoMascotState(status, messages);
+
+  const isThinking = status === "streaming" && (!lastMessage || lastMessage.role !== "assistant" || lastMessage.content.length === 0);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [visibleMessages.length, lastMessage?.content]);
+  }, [visibleMessages.length, lastMessage?.content, isThinking]);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -46,14 +67,21 @@ export function TutoChatPanel({ messages, status, error, onSend, header, placeho
 
   return (
     <div className="flex flex-col gap-3">
+      <TutoMascotStatus state={mascotState} />
       {header}
-      {visibleMessages.map((message, index) => (
-        <ChatBubble
-          key={message.id}
-          message={message}
-          streaming={status === "streaming" && index === visibleMessages.length - 1 && message.role === "assistant"}
-        />
-      ))}
+      {visibleMessages.map((message, index) => {
+        const isLastAssistant = index === visibleMessages.length - 1 && message.role === "assistant";
+        // The thinking timeline below covers this moment instead of an empty bubble.
+        if (isLastAssistant && status === "streaming" && message.content.length === 0) return null;
+        return <ChatBubble key={message.id} message={message} streaming={status === "streaming" && isLastAssistant} />;
+      })}
+      <AnimatePresence>
+        {isThinking && (
+          <motion.div variants={fadeSlideUp} initial="hidden" animate="visible" exit={{ opacity: 0 }}>
+            <ThinkingTimeline focus={thinkingFocus} />
+          </motion.div>
+        )}
+      </AnimatePresence>
       {error && <div className="rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>}
       <div ref={endRef} aria-hidden="true" />
 

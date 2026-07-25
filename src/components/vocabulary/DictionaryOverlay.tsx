@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { BookMarked, Check, MessageCircleQuestion, ArrowLeft } from "lucide-react";
 import { EditSheet } from "@/components/profile/EditSheet";
 import { TutoChatPanel } from "@/components/tuto-chat/TutoChatPanel";
+import { TypingIndicator } from "@/components/tuto-chat/TypingIndicator";
 import { VocabularyCard } from "@/components/tuto-chat/VocabularyCard";
 import { useTutoChat } from "@/hooks/useTutoChat";
 import { askVocabulary, type VocabularyExplanation } from "@/lib/tuto-chat/askVocabulary";
@@ -178,7 +179,7 @@ export function DictionaryOverlay({
 
           {isLoadingVocabulary ? (
             <div className="flex items-center gap-2 py-2 text-sm text-text-secondary">
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-border border-t-primary" aria-hidden="true" />
+              <TypingIndicator label="Tuto is thinking" />
               Tuto is thinking&hellip;
             </div>
           ) : vocabularyError && !vocabularyExplanation ? (
@@ -200,6 +201,7 @@ export function DictionaryOverlay({
               onSend={chat.sendMessage}
               header={vocabularyExplanation ? <VocabularyCard explanation={vocabularyExplanation} /> : undefined}
               placeholder={`Ask about "${word}"…`}
+              thinkingFocus="vocabulary"
             />
           )}
         </div>

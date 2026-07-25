@@ -46,6 +46,8 @@ const POSE_FILE: Record<TutoPose, string> = {
 };
 
 const SIZE_CLASSES = {
+  /** Compact inline presence — status rows, not a hero moment. */
+  xs: "w-10 h-10",
   sm: "w-28 h-28 sm:w-36 sm:h-36",
   md: "w-40 h-40 sm:w-48 sm:h-48",
   lg: "w-52 h-52 sm:w-64 sm:h-64",
@@ -55,6 +57,7 @@ const SIZE_CLASSES = {
 /** Matches SIZE_CLASSES' actual rendered widths so `next/image` requests an
  * appropriately-sized source instead of always fetching the xl variant. */
 const SIZE_SIZES = {
+  xs: "40px",
   sm: "(min-width: 640px) 144px, 112px",
   md: "(min-width: 640px) 192px, 160px",
   lg: "(min-width: 640px) 256px, 208px",
