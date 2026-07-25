@@ -4,15 +4,28 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Compass, ArrowRight } from "lucide-react";
 import { fadeScaleIn } from "@/lib/motion/variants";
+import type { CefrLevel } from "@/ai/context";
+
+export interface LearningPathCardProps {
+  /** The real signal already flowing through this conversation — lessonSummary.ts's extraction and the same CEFR level threaded via TutoContextInput. Both optional; the copy degrades gracefully to a generic nudge when neither is available, never inventing a fake recommendation. */
+  topic?: string | null;
+  level?: CefrLevel | null;
+}
 
 /**
- * Sprint UX-2: a gentle "keep going" nudge shown once a conversation has
- * gone on a while. Links to the real dashboard rather than inventing a
- * content picker — the Learning Brain (CLAUDE.md: not yet built) is what
- * will eventually decide what's next, so this never lets the learner
- * manually browse lessons here.
+ * Sprint UX-2's generic "keep going" nudge, made adaptive in Sprint UX-3
+ * ("Continue learning recommendation") — still shown once a conversation
+ * has gone on a while, still links to the real dashboard rather than
+ * inventing a content picker (the Learning Brain, per CLAUDE.md, isn't
+ * built yet), but the copy now reflects what was actually just covered
+ * and at what level, instead of being purely generic.
  */
-export function LearningPathCard() {
+export function LearningPathCard({ topic = null, level = null }: LearningPathCardProps) {
+  const title = topic ? `Ready to build on "${topic}"?` : "Ready to keep building?";
+  const subtitle = level
+    ? `Head back to your dashboard — we'll keep it at your ${level} level.`
+    : "Head back to your dashboard for what's next.";
+
   return (
     <motion.div
       variants={fadeScaleIn}
@@ -24,8 +37,8 @@ export function LearningPathCard() {
         <Compass className="h-5 w-5 text-primary" aria-hidden="true" />
       </span>
       <div className="flex-1">
-        <p className="text-sm font-bold text-text-primary">Ready to keep building?</p>
-        <p className="text-xs text-text-secondary">Head back to your dashboard for what&apos;s next.</p>
+        <p className="text-sm font-bold text-text-primary">{title}</p>
+        <p className="text-xs text-text-secondary">{subtitle}</p>
       </div>
       <Link
         href="/dashboard"

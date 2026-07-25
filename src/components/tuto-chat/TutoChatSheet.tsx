@@ -6,6 +6,7 @@ import { TutoChatPanel } from "./TutoChatPanel";
 import type { ThinkingFocus } from "./ThinkingTimeline";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
 import type { TutoChatStatus } from "@/hooks/useTutoChat";
+import type { CefrLevel } from "@/ai/context";
 
 export interface TutoChatSheetProps {
   open: boolean;
@@ -18,6 +19,7 @@ export interface TutoChatSheetProps {
   header?: ReactNode;
   placeholder?: string;
   thinkingFocus?: ThinkingFocus;
+  learnerLevel?: CefrLevel | null;
 }
 
 /** Ask-Tuto-about-the-article and text-selection-action results — the same bottom-sheet chrome as every other sheet in the app, housing a TutoChatPanel. */

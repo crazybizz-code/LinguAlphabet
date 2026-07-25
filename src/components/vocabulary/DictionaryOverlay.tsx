@@ -202,6 +202,7 @@ export function DictionaryOverlay({
               header={vocabularyExplanation ? <VocabularyCard explanation={vocabularyExplanation} /> : undefined}
               placeholder={`Ask about "${word}"…`}
               thinkingFocus="vocabulary"
+              learnerLevel={tutoContext.userLevel}
             />
           )}
         </div>

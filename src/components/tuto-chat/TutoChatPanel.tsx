@@ -11,6 +11,7 @@ import { useTutoMascotState } from "@/hooks/useTutoMascotState";
 import { fadeSlideUp } from "@/lib/motion/variants";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
 import type { TutoChatStatus } from "@/hooks/useTutoChat";
+import type { CefrLevel } from "@/ai/context";
 
 export interface TutoChatPanelProps {
   messages: ChatMessage[];
@@ -22,6 +23,8 @@ export interface TutoChatPanelProps {
   placeholder?: string;
   /** Which ThinkingTimeline step leads first — a light hint, not a real trace of backend activity. Omit for a balanced default order. */
   thinkingFocus?: ThinkingFocus;
+  /** Sprint UX-3: the same CEFR level already threaded through TutoContextInput at the call site — drives the adaptive level badge and the continue-learning card's copy. Omit when not known. */
+  learnerLevel?: CefrLevel | null;
 }
 
 /**
@@ -46,6 +49,7 @@ export function TutoChatPanel({
   header,
   placeholder = "Ask Tuto a question…",
   thinkingFocus = null,
+  learnerLevel = null,
 }: TutoChatPanelProps) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -70,7 +74,7 @@ export function TutoChatPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <TutoMascotStatus state={mascotState} />
+      <TutoMascotStatus state={mascotState} level={learnerLevel} />
       {header}
       {visibleMessages.map((message, index) => {
         const isLastAssistant = index === visibleMessages.length - 1 && message.role === "assistant";
@@ -92,6 +96,7 @@ export function TutoChatPanel({
           thinkingFocus={thinkingFocus}
           onSend={onSend}
           turnIndex={assistantTurnCount}
+          learnerLevel={learnerLevel}
         />
       )}
       {error && <div className="rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>}

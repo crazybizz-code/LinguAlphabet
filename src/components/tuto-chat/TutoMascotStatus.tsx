@@ -2,8 +2,10 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Tuto, type TutoPose } from "@/components/mascot/Tuto";
+import { AdaptiveLevelBadge } from "./AdaptiveLevelBadge";
 import { EASE } from "@/lib/motion/variants";
 import type { MascotState } from "@/hooks/useTutoMascotState";
+import type { CefrLevel } from "@/ai/context";
 
 const STATE_COPY: Record<MascotState, { pose: TutoPose; caption: string; animation: "breathe" | "floatSm" | "none" }> = {
   idle: { pose: "neutral", caption: "Ready when you are", animation: "floatSm" },
@@ -20,7 +22,7 @@ const STATE_COPY: Record<MascotState, { pose: TutoPose; caption: string; animati
  * already used in TutoChatPanel, so pinning this needs no change to
  * EditSheet (its `title` prop is a plain string, not a header slot).
  */
-export function TutoMascotStatus({ state }: { state: MascotState }) {
+export function TutoMascotStatus({ state, level }: { state: MascotState; level?: CefrLevel | null }) {
   const { pose, caption, animation } = STATE_COPY[state];
 
   return (
@@ -36,7 +38,8 @@ export function TutoMascotStatus({ state }: { state: MascotState }) {
           <Tuto pose={pose} size="xs" animation={animation} />
         </motion.div>
       </AnimatePresence>
-      <p className="text-sm font-semibold text-text-secondary">{caption}</p>
+      <p className="flex-1 text-sm font-semibold text-text-secondary">{caption}</p>
+      <AdaptiveLevelBadge level={level} />
     </div>
   );
 }

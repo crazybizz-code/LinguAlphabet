@@ -237,6 +237,7 @@ export function ReadingStep({ content, onNext }: { content: LearningSessionConte
         onSend={chat.sendMessage}
         placeholder="Ask Tuto a question…"
         thinkingFocus="article"
+        learnerLevel={baseContext.userLevel}
       />
     </motion.div>
   );
