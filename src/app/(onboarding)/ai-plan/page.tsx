@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -50,37 +50,48 @@ export default function AiPlanPage() {
   const [phase, setPhase] = useState<"loading" | "reveal">("loading");
   const [profile] = useState(() => readOnboardingData());
   const [revealed, setRevealed] = useState(false);
+  // Beta stability fix: the save could fail (session hiccup, network blip)
+  // while the reveal screen celebrated success regardless — the learner
+  // would then click "Done" and get silently bounced back to /welcome by
+  // the dashboard's onboarding_completed guard, with zero explanation for
+  // what looked like a fully successful flow. saveFailed lets "Done" retry
+  // instead of navigating into that confusing dead end.
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [finishing, setFinishing] = useState(false);
+
+  const persistProfile = useCallback(async (): Promise<boolean> => {
+    const supabase = createClient();
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return false;
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          username: profile.displayName || undefined,
+          english_level: profile.level || null,
+          goal: profile.goal || null,
+          daily_time_minutes: profile.dailyTime,
+          interests: profile.interests,
+          onboarding_completed: true,
+        })
+        .eq("user_id", user.id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }, [profile]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
-      const supabase = createClient();
-      let saved = false;
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const { error } = await supabase
-            .from("profiles")
-            .update({
-              username: profile.displayName || undefined,
-              english_level: profile.level || null,
-              goal: profile.goal || null,
-              daily_time_minutes: profile.dailyTime,
-              interests: profile.interests,
-              onboarding_completed: true,
-            })
-            .eq("user_id", user.id);
-          saved = !error;
-        }
-      } catch {
-        // saved stays false — handled below.
-      }
+      const saved = await persistProfile();
       // Only clear the local backup once it's actually persisted. If there
       // was no session or the write failed, keeping it means the learner's
       // answers survive to be saved on a later visit instead of being lost
       // silently (the old behavior cleared unconditionally here).
       if (saved) clearOnboardingData();
+      setSaveFailed(!saved);
       setPhase("reveal");
       setTimeout(() => setRevealed(true), 50);
     }, 3200);
@@ -88,6 +99,21 @@ export default function AiPlanPage() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function handleDone() {
+    if (!saveFailed) {
+      router.push("/dashboard");
+      return;
+    }
+    setFinishing(true);
+    const saved = await persistProfile();
+    setFinishing(false);
+    if (saved) {
+      clearOnboardingData();
+      setSaveFailed(false);
+      router.push("/dashboard");
+    }
+  }
 
   if (phase === "loading") {
     return (
@@ -229,10 +255,21 @@ export default function AiPlanPage() {
           transition={{ delay: 1.6 }}
           className="text-center"
         >
-          <Button variant="primary" className="h-14 rounded-full px-10 text-body" onClick={() => router.push("/dashboard")}>
+          <Button
+            variant="primary"
+            className="h-14 rounded-full px-10 text-body"
+            loading={finishing}
+            onClick={handleDone}
+          >
             Done
           </Button>
-          <p className="mt-4 text-caption text-text-tertiary">Your plan is ready</p>
+          {saveFailed && !finishing ? (
+            <p className="mt-4 text-caption text-danger">
+              We couldn&apos;t save your profile — check your connection and tap Done to try again.
+            </p>
+          ) : (
+            <p className="mt-4 text-caption text-text-tertiary">Your plan is ready</p>
+          )}
         </motion.div>
       </div>
     </div>

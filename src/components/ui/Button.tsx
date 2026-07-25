@@ -90,6 +90,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         type="button"
         disabled={disabled || loading}
+        aria-busy={loading || undefined}
         className={cn(
           "group inline-flex h-14 items-center justify-center rounded-lg px-8",
           "text-body font-semibold transition-all duration-fast ease-standard",
@@ -102,7 +103,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...rest}
       >
         {loading ? (
-          <Spinner />
+          <>
+            <Spinner />
+            {/* Beta a11y fix: the spinner alone left a loading button with
+                no accessible name at all (the label it replaces was the
+                button's only text) — this keeps the original label
+                available to screen readers without showing it visually. */}
+            <span className="sr-only">{children}</span>
+          </>
         ) : (
           <>
             <span>{children}</span>

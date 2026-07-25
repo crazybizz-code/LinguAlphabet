@@ -81,7 +81,7 @@ export async function getPublishedPodcasts(supabase: Client): Promise<PodcastCon
 /** A single published podcast by id — Podcast Detail/Player/Learning Session all need this. */
 export async function getPodcastById(supabase: Client, id: string): Promise<PodcastContent | null> {
   const [{ data: item }, { data: details }] = await Promise.all([
-    supabase.from("content_items").select("*").eq("id", id).eq("content_type", "podcast").maybeSingle(),
+    supabase.from("content_items").select("*").eq("id", id).eq("content_type", "podcast").eq("status", "published").maybeSingle(),
     supabase.from("podcast_details").select("*").eq("content_item_id", id).maybeSingle(),
   ]);
 
@@ -126,7 +126,7 @@ function toArticleContent(item: ContentItemRow, details: ArticleDetailsRow): Art
 /** A single published article by id — the Article Learning Session needs this, mirrors getPodcastById exactly. */
 export async function getArticleById(supabase: Client, id: string): Promise<ArticleContent | null> {
   const [{ data: item }, { data: details }] = await Promise.all([
-    supabase.from("content_items").select("*").eq("id", id).eq("content_type", "article").maybeSingle(),
+    supabase.from("content_items").select("*").eq("id", id).eq("content_type", "article").eq("status", "published").maybeSingle(),
     supabase.from("article_details").select("*").eq("content_item_id", id).maybeSingle(),
   ]);
 

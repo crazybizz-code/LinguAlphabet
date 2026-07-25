@@ -28,7 +28,13 @@ export function ClickableText({ text, onWordClick, className }: ClickableTextPro
             key={index}
             type="button"
             onClick={() => onWordClick(token.text, text)}
-            className="rounded-sm border-0 bg-transparent p-0 font-inherit text-inherit hover:bg-primary-lighter hover:text-primary-dark"
+            // Beta stability fix: p-0 alone left short words (a common case
+            // in real transcripts/articles) with a tap target well under
+            // any reasonable mobile touch-target minimum. The padding
+            // expands the actual hit area; the matching negative margin
+            // cancels it back out visually, so word spacing/line height
+            // are unchanged — a bigger tap target, not a layout change.
+            className="-m-1 rounded-sm border-0 bg-transparent p-1 font-inherit text-inherit hover:bg-primary-lighter hover:text-primary-dark"
           >
             {token.text}
           </button>

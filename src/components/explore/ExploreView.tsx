@@ -66,6 +66,18 @@ export function ExploreView({ podcasts, podcastRecommends, articles, articleReco
     [activeCatalog],
   );
 
+  // Beta performance fix: debounce the query text so a fast typist doesn't
+  // fire a rank pass on every keystroke — harmless at today's small catalog
+  // size, but the search-ranking code itself already anticipates a future,
+  // larger, possibly network-bound ranker (see the comment below), where an
+  // un-debounced call per keystroke would be a real, avoidable cost.
+  // Switching tabs (activeCatalog change) stays instant, not debounced.
+  const [debouncedQuery, setDebouncedQuery] = useState(query);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 200);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   // Universal Search is async (searchService.rank returns a Promise) so a
   // future AI-powered ranker is a drop-in here — today's deterministic
   // ranker resolves in the same tick, but the seam is already real.
@@ -73,13 +85,13 @@ export function ExploreView({ podcasts, podcastRecommends, articles, articleReco
 
   useEffect(() => {
     let cancelled = false;
-    searchService.rank(activeCatalog, query).then((results) => {
+    searchService.rank(activeCatalog, debouncedQuery).then((results) => {
       if (!cancelled) setSearchResults(results);
     });
     return () => {
       cancelled = true;
     };
-  }, [activeCatalog, query]);
+  }, [activeCatalog, debouncedQuery]);
 
   const filtered = useMemo(() => {
     let result = searchResults;
