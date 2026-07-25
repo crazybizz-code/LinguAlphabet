@@ -42,3 +42,24 @@ export function buildWeeklyMinutes(
     .filter((row) => row.completed && new Date(row.updated_at) >= weekStart)
     .reduce((sum, row) => sum + (byId.get(row.content_item_id)?.estimatedTimeMinutes ?? 0), 0);
 }
+
+/**
+ * Sprint Learning Polish 1 ("Daily Goal on Dashboard"): the exact same
+ * completed-minutes computation as buildWeeklyMinutes above, just bucketed
+ * to today's calendar date instead of the week — the learner's own chosen
+ * daily_time_minutes (already fetched, already editable in Profile) has
+ * never had a same-day counterpart to compare against; only the ×7 weekly
+ * aggregate existed before this.
+ */
+export function buildTodayMinutes(
+  catalog: Array<{ id: string; estimatedTimeMinutes: number }>,
+  progressRows: ProgressRow[],
+): number {
+  const byId = new Map(catalog.map((item) => [item.id, item]));
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  return progressRows
+    .filter((row) => row.completed && new Date(row.updated_at) >= todayStart)
+    .reduce((sum, row) => sum + (byId.get(row.content_item_id)?.estimatedTimeMinutes ?? 0), 0);
+}

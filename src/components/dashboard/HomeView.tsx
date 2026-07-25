@@ -21,6 +21,9 @@ export interface HomeViewProps {
   level: number;
   weeklyMinutes: number;
   weeklyGoalMinutes: number;
+  /** Sprint Learning Polish 1 ("Daily Goal on Dashboard"): the same daily_time_minutes already set in Profile and already used (×7) for weeklyGoalMinutes — this is its first same-day counterpart. */
+  todayMinutes: number;
+  dailyGoalMinutes: number;
   /** Today's finite daily plan: one article slot, one podcast slot (docs/content-lifecycle.md §5). */
   missions: DailyMissionSlot[];
   allMissionsCompleted: boolean;
@@ -34,12 +37,15 @@ export function HomeView({
   level,
   weeklyMinutes,
   weeklyGoalMinutes,
+  todayMinutes,
+  dailyGoalMinutes,
   missions,
   allMissionsCompleted,
   tutoNote,
   recommendations,
 }: HomeViewProps) {
   const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
+  const dailyPercentage = dailyGoalMinutes > 0 ? Math.min(100, (todayMinutes / dailyGoalMinutes) * 100) : 0;
 
   // The server has no idea what timezone the learner is in (and its own
   // clock is UTC on Vercel), so the greeting can only be correct if it's
@@ -96,7 +102,7 @@ export function HomeView({
           slot, tracked independently. Once both are completed the entire
           card switches to a celebration state with a countdown to
           tomorrow — no new mission is generated for the rest of the day. */}
-      <TodaysMissionCard missions={missions} allMissionsCompleted={allMissionsCompleted} />
+      <TodaysMissionCard missions={missions} allMissionsCompleted={allMissionsCompleted} tomorrowPreview={recommendations[0] ?? null} />
 
       {/* Tuto's note — optional, contextual, generated from the learner's actual state
           (docs/dashboard-architecture.md §4.3). Only appears when there's something
@@ -120,10 +126,14 @@ export function HomeView({
           transition={{ duration: 0.5, delay: 0.4 }}
           className="mt-8 px-5 sm:px-8"
         >
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-1 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
             <h3 className="text-sm font-semibold text-text-primary">Recommended by Tuto</h3>
           </div>
+          {/* Sprint Learning Polish 1 ("Mission vs Extra Practice distinction"):
+              only Today's Mission above counts toward streak/mission XP —
+              that was already true in the code, just never said anywhere. */}
+          <p className="mb-3 text-xs text-text-tertiary">Extra practice — great for bonus XP, but Today&apos;s Mission is what keeps your streak going.</p>
           <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-md:grid-cols-1">
             {recommendations.map((item, index) =>
               item.contentType === "article" ? (
@@ -163,6 +173,34 @@ export function HomeView({
                 <p className="text-sm font-semibold text-text-primary">Level {level}</p>
                 <p className="text-xs text-text-tertiary">Current level</p>
               </div>
+            </div>
+          </div>
+
+          <div className="my-6 h-px bg-border" />
+
+          <div>
+            {/* Sprint Learning Polish 1 ("Daily Goal on Dashboard"): the
+                learner's own daily_time_minutes (set in Profile) previously
+                only ever appeared multiplied ×7 as the Weekly Goal below —
+                same bar pattern, just for today. */}
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-semibold text-text-primary">Daily Goal</p>
+              <p className="text-sm font-semibold text-text-tertiary">
+                {Math.round(todayMinutes)} / {Math.round(dailyGoalMinutes)} min today
+              </p>
+            </div>
+            <div
+              className="h-2.5 w-full overflow-hidden rounded-full bg-border"
+              role="progressbar"
+              aria-label="Daily goal progress"
+              aria-valuenow={Math.round(dailyPercentage)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${dailyPercentage}%` }}
+              />
             </div>
           </div>
 

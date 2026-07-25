@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
-import { buildWeeklyMinutes } from "@/lib/content/home";
+import { buildWeeklyMinutes, buildTodayMinutes } from "@/lib/content/home";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
 import { buildTutoNote } from "@/lib/tuto/messages";
@@ -96,6 +96,7 @@ export default async function DashboardPage() {
 
   const weeklyMinutes = buildWeeklyMinutes(catalog, rows);
   const weeklyGoalMinutes = dailyMinutes * 7;
+  const todayMinutes = buildTodayMinutes(catalog, rows);
 
   const tutoNote = buildTutoNote({
     streak: profile?.streak ?? 0,
@@ -115,6 +116,8 @@ export default async function DashboardPage() {
       level={profile?.level ?? 1}
       weeklyMinutes={weeklyMinutes}
       weeklyGoalMinutes={weeklyGoalMinutes}
+      todayMinutes={todayMinutes}
+      dailyGoalMinutes={dailyMinutes}
       missions={missions}
       allMissionsCompleted={allMissionsCompleted}
       tutoNote={tutoNote}

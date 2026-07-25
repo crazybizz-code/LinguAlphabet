@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { applyXp, computeXpEarned } from "./xp";
 import { applyStreak } from "./streak";
 
+export type StreakStatus = "started" | "grew" | "same" | "reset";
+
 export interface CompleteMissionResult {
   xpEarned: number;
   newLevel: number;
@@ -11,6 +13,22 @@ export interface CompleteMissionResult {
   newStreak: number;
   streakContinued: boolean;
   isMission: boolean;
+  /** True only when the learner had zero completed sessions before this one — the whole product's very first "you did it" moment. */
+  isFirstSession: boolean;
+  /**
+   * Sprint Learning Polish 1 ("Streak Truth"): purely derived from numbers
+   * already computed by applyStreak — no new data, no new mechanic. Lets
+   * the Complete screen say what actually happened instead of showing the
+   * same bare number whether the streak grew, stayed flat, or reset.
+   */
+  streakStatus: StreakStatus;
+}
+
+/** Honest classification of what a streak update actually did — see StreakStatus. */
+function deriveStreakStatus(params: { previousStreak: number; newStreak: number; streakContinued: boolean }): StreakStatus {
+  if (params.streakContinued) return params.previousStreak === 0 ? "started" : "grew";
+  if (params.newStreak === 1 && params.previousStreak > 1) return "reset";
+  return "same";
 }
 
 /**
@@ -43,15 +61,21 @@ export async function completeMission(params: {
   const today = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
 
-  const [{ data: profile }, { data: missionRows }] = await Promise.all([
+  const [{ data: profile }, { data: missionRows }, { data: priorCompletedRows }] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", user.id).single(),
     supabase.from("daily_missions").select("*").eq("user_id", user.id).eq("mission_date", today),
+    // Same "progress" table + "completed" filter the Progress page already
+    // counts from (src/app/(app)/progress/page.tsx) — read here, before
+    // this session's own upsert, purely to know whether this is the
+    // learner's first-ever completion.
+    supabase.from("progress").select("content_item_id").eq("user_id", user.id).eq("completed", true),
   ]);
 
   // Today's Mission is a finite daily plan of two independent slots
   // (article + podcast, docs/content-lifecycle.md §5) — completing either
   // one counts as "today's guided mission" for streak/XP purposes.
   const isMission = (missionRows ?? []).some((row) => row.content_item_id === params.contentId);
+  const isFirstSession = (priorCompletedRows ?? []).length === 0;
 
   const xpEarned = computeXpEarned({ isMission, correctAnswers: params.correctAnswers });
   const xpResult = applyXp({
@@ -60,11 +84,17 @@ export async function completeMission(params: {
     currentXpToNext: profile?.xp_to_next ?? 300,
     xpEarned,
   });
+  const previousStreak = profile?.streak ?? 0;
   const streakResult = applyStreak({
-    currentStreak: profile?.streak ?? 0,
+    currentStreak: previousStreak,
     longestStreak: profile?.longest_streak ?? 0,
     lastStudyDate: profile?.last_study_date ?? null,
     isMission,
+  });
+  const streakStatus = deriveStreakStatus({
+    previousStreak,
+    newStreak: streakResult.newStreak,
+    streakContinued: streakResult.streakContinued,
   });
 
   await Promise.all([
@@ -102,6 +132,8 @@ export async function completeMission(params: {
     newStreak: streakResult.newStreak,
     streakContinued: streakResult.streakContinued,
     isMission,
+    isFirstSession,
+    streakStatus,
   };
 }
 

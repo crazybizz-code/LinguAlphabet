@@ -7,6 +7,13 @@ import { Tuto } from "@/components/mascot/Tuto";
 import { SESSION_STEP_CONTAINER, SESSION_STEP_CONTENT } from "./sessionStepLayout";
 import type { CompleteMissionResult } from "@/lib/learning-session/complete-mission";
 
+const STREAK_LABEL: Record<CompleteMissionResult["streakStatus"], string> = {
+  started: "Streak started!",
+  reset: "Fresh start today",
+  grew: "Day Streak",
+  same: "Day Streak",
+};
+
 export function CompleteStep({
   displayName,
   score,
@@ -52,16 +59,33 @@ export function CompleteStep({
           </motion.div>
           <h2 className="text-2xl font-bold text-white sm:text-3xl">Mission Complete!</h2>
           <p className="mt-2 text-white/80">Amazing work today, {displayName}!</p>
-          {result.leveledUp && (
-            <motion.p
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              className="relative mt-4 inline-block rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold text-white"
-            >
-              🎉 Level Up! You&apos;re now Level {result.newLevel}
-            </motion.p>
-          )}
+          <div className="mt-4 flex flex-col items-center gap-2">
+            {/* First Session Celebration — the single biggest moment in a new
+                learner's lifecycle deserves its own callout, not the same
+                treatment as session #500. Reuses the exact level-up pill
+                language rather than a new visual, and stacks independently
+                if a first session also happens to level someone up. */}
+            {result.isFirstSession && (
+              <motion.p
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="relative inline-block rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold text-white"
+              >
+                🌱 Your First Session — Welcome to your journey!
+              </motion.p>
+            )}
+            {result.leveledUp && (
+              <motion.p
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="relative inline-block rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold text-white"
+              >
+                🎉 Level Up! You&apos;re now Level {result.newLevel}
+              </motion.p>
+            )}
+          </div>
         </motion.div>
 
         <motion.div
@@ -82,7 +106,11 @@ export function CompleteStep({
               <Flame className="h-5 w-5 text-primary" aria-hidden="true" />
             </span>
             <p className="mt-2 text-xl font-bold text-text-primary">{result.newStreak}</p>
-            <p className="text-xs text-text-tertiary">Day Streak</p>
+            {/* Streak Truth: the same tile, but its caption now says what
+                actually happened (started / reset / continuing) instead of
+                a bare "Day Streak" label regardless of whether the streak
+                just reset from a much higher number — see StreakStatus. */}
+            <p className="text-xs text-text-tertiary">{STREAK_LABEL[result.streakStatus]}</p>
           </div>
           <div className="rounded-2xl border border-border bg-bg-card p-4 text-center">
             <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-primary-lighter">

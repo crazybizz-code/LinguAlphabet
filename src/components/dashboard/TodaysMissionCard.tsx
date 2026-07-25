@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, BookOpen, CheckCircle2, Clock, Headphones } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import type { DailyMissionSlot } from "@/lib/learning-brain";
+import type { ArticleContent, PodcastContent } from "@/types/content";
 
 const SLOT_LABEL: Record<DailyMissionSlot["contentType"], string> = {
   article: "Read today's article",
@@ -88,6 +89,13 @@ function MissionSlotRow({ slot }: { slot: DailyMissionSlot }) {
         <p className="mt-0.5 flex items-center gap-1 text-xs text-white/70">
           <Clock className="h-3 w-3" aria-hidden="true" />
           {Math.round(mission.estimatedMinutes)} min · Level {mission.cefrLevel}
+          {/* Sprint Learning Polish 1 ("Mission vs Extra Practice
+              distinction"): badgeLabel ("Prepared by Tuto" / "In Progress")
+              was already computed by buildMission but never rendered
+              anywhere — reinforces that this slot, unlike the Recommended
+              cards further down the page, is today's official pick. */}
+          <span aria-hidden="true">·</span>
+          {mission.badgeLabel}
         </p>
       </div>
       <span className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary sm:flex">
@@ -102,6 +110,16 @@ function MissionSlotRow({ slot }: { slot: DailyMissionSlot }) {
 export interface TodaysMissionCardProps {
   missions: DailyMissionSlot[];
   allMissionsCompleted: boolean;
+  /**
+   * Sprint Learning Polish 1 ("Tomorrow Preview"): the same tutoRecommends
+   * list HomeView already fetches and renders in "Recommended by Tuto" —
+   * its top item is a reasonable, already-computed preview of what Tuto is
+   * likely to suggest next. Deliberately not a commitment (tomorrow's real
+   * Mission is only assigned once tomorrow's calendar day actually starts,
+   * docs/content-lifecycle.md §5), so this is framed as a teaser, not a
+   * guarantee — no new ranking/logic, just reusing data already on hand.
+   */
+  tomorrowPreview: PodcastContent | ArticleContent | null;
 }
 
 /**
@@ -111,7 +129,7 @@ export interface TodaysMissionCardProps {
  * switches to a celebration state with a countdown to tomorrow — no new
  * mission is generated for the rest of the calendar day.
  */
-export function TodaysMissionCard({ missions, allMissionsCompleted }: TodaysMissionCardProps) {
+export function TodaysMissionCard({ missions, allMissionsCompleted, tomorrowPreview }: TodaysMissionCardProps) {
   if (allMissionsCompleted) {
     return (
       <motion.section
@@ -125,6 +143,11 @@ export function TodaysMissionCard({ missions, allMissionsCompleted }: TodaysMiss
           <p className="text-xl font-bold text-text-primary">🎉 Today&apos;s Mission Completed</p>
           <p className="max-w-sm text-sm text-text-secondary">Great work! Come back tomorrow for your next personalized mission.</p>
           <NextMissionCountdown />
+          {tomorrowPreview && (
+            <p className="mt-2 max-w-sm text-xs text-text-tertiary">
+              Tuto&apos;s already thinking about &ldquo;{tomorrowPreview.title}&rdquo; for next time.
+            </p>
+          )}
         </div>
       </motion.section>
     );

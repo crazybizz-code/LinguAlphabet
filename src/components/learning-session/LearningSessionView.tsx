@@ -100,6 +100,12 @@ export function LearningSessionView({
           newStreak: 1,
           streakContinued: false,
           isMission: false,
+          // The real write already failed once (that's why we're here) — we
+          // genuinely don't know the learner's real prior state, so this
+          // conservatively claims nothing rather than risk a false "first
+          // session!" or "streak reset" celebration.
+          isFirstSession: false,
+          streakStatus: "same",
         },
       );
       setStep("complete");
