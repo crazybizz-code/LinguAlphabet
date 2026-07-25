@@ -10,13 +10,6 @@ import type {
 } from "../types";
 import { AIProviderError } from "../errors";
 
-// TEMPORARY — a literal string hardcoded right now (not computed at
-// runtime, so it can only appear if THIS exact edit is what's actually
-// executing). If the running process doesn't print this exact marker,
-// it is executing older code — a stale process or a stale Turbopack
-// bundle, not a fresh one for this file.
-const DIAGNOSTIC_BUILD_MARKER = "client-marker-9f21ac-take5";
-
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 interface OpenRouterWireToolCall {
@@ -43,13 +36,14 @@ interface OpenRouterResponse {
 }
 
 function getConfig(): { apiKey: string; model: string } {
-  console.log("[tuto-debug] DIAGNOSTIC_BUILD_MARKER:", DIAGNOSTIC_BUILD_MARKER);
-  console.log("[tuto-debug] process.pid:", process.pid);
-  console.log("[tuto-debug] process.uptime() seconds:", process.uptime());
-
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL;
-  if (!apiKey) throw new AIProviderError("OPENROUTER_API_KEY is not configured", 500, false);
+  if (!apiKey) {
+    // TRACE (temporary) — remove once the execution path is confirmed.
+    console.log("[trace:3] client.ts getConfig() about to throw. import.meta.url:", import.meta.url);
+    console.log("[trace:3] full call stack:", new Error().stack);
+    throw new AIProviderError("OPENROUTER_API_KEY is not configured", 500, false);
+  }
   if (!model) throw new AIProviderError("OPENROUTER_MODEL is not configured", 500, false);
   return { apiKey, model };
 }
