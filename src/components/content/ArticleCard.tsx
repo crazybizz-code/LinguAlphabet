@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Sparkles } from "lucide-react";
+import { Clock, FileText, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { resolveThumbnailFallback } from "@/lib/content/thumbnailFallback";
 import type { ArticleContent } from "@/types/content";
 
 export interface ArticleCardProps {
@@ -18,12 +20,41 @@ function formatMinutes(minutes: number) {
 }
 
 /**
+ * Beta reliability fix: thumbnailUrl reaching this component is already
+ * guaranteed non-empty by the query layer (queries.ts falls back to
+ * resolveThumbnailFallback whenever the DB's thumbnail_url is missing) —
+ * so a plain truthy check was never the actual gap. The real bug is a URL
+ * that LOOKS valid but fails to load at runtime (a dead/expired remote
+ * link), which next/image has no built-in recovery for. Three tiers:
+ * the real thumbnail -> the same local, category-matched editorial photo
+ * the query layer already uses for a missing thumbnail (never a generic
+ * gray box) -> a pure CSS/icon placeholder that can never itself fail to
+ * render, for the vanishingly rare case where even the local asset can't
+ * load. Same aspect-square container at every tier, so layout never shifts.
+ */
+function useThumbnailState(thumbnailUrl: string, topics: readonly string[], tags: readonly string[], label: string) {
+  const [tier, setTier] = useState<"primary" | "fallback" | "failed">("primary");
+  const fallbackSrc = resolveThumbnailFallback({ topics, tags });
+
+  function handleError() {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(`[thumbnail] failed to load for "${label}":`, tier === "primary" ? thumbnailUrl : fallbackSrc);
+    }
+    setTier((current) => (current === "primary" ? "fallback" : "failed"));
+  }
+
+  return { src: tier === "primary" ? thumbnailUrl : fallbackSrc, failed: tier === "failed", handleError };
+}
+
+/**
  * Article tile for Explore's grid — mirrors PodcastCard exactly, including
  * its destination: the Article Learning Session (/article/[id]/learn),
  * not the original external source. Reading/Live Dictionary/Summary/
  * Vocabulary/Flashcards/Quiz/Reflection/Complete all happen in-app now.
  */
 export function ArticleCard({ article, tutosPick = false, index = 0 }: ArticleCardProps) {
+  const thumbnail = useThumbnailState(article.thumbnailUrl, article.topics, article.tags, article.title);
+
   return (
     <Link href={`/article/${article.id}/learn`} className="group block">
       <motion.div
@@ -33,16 +64,20 @@ export function ArticleCard({ article, tutosPick = false, index = 0 }: ArticleCa
         className="overflow-hidden rounded-2xl border border-border bg-bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
       >
         <div className="relative aspect-square overflow-hidden">
-          {article.thumbnailUrl ? (
+          {thumbnail.failed ? (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-bg-muted to-border/40">
+              <FileText className="h-8 w-8 text-text-tertiary" aria-hidden="true" />
+            </div>
+          ) : (
             <Image
-              src={article.thumbnailUrl}
+              key={thumbnail.src}
+              src={thumbnail.src}
               alt=""
               fill
               sizes="(min-width: 1024px) 25vw, 50vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={thumbnail.handleError}
             />
-          ) : (
-            <div className="h-full w-full bg-bg-muted" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           {tutosPick && (

@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, Sparkles } from "lucide-react";
+import { Clock, Headphones, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { resolveThumbnailFallback } from "@/lib/content/thumbnailFallback";
 import type { PodcastContent } from "@/types/content";
 
 export interface PodcastCardProps {
@@ -17,8 +19,37 @@ function formatMinutes(minutes: number) {
   return `${Math.round(minutes)} min`;
 }
 
+/**
+ * Beta reliability fix: mirrors ArticleCard's identical fix exactly.
+ * thumbnailUrl reaching this component is already guaranteed non-empty by
+ * the query layer (queries.ts falls back to resolveThumbnailFallback
+ * whenever the DB's thumbnail_url is missing) — so a plain truthy check
+ * was never the actual gap. The real bug is a URL that LOOKS valid but
+ * fails to load at runtime (a dead/expired remote link), which next/image
+ * has no built-in recovery for. Three tiers: the real thumbnail -> the
+ * same local, category-matched editorial photo the query layer already
+ * uses for a missing thumbnail (never a generic gray box) -> a pure
+ * CSS/icon placeholder that can never itself fail to render. Same
+ * aspect-square container at every tier, so layout never shifts.
+ */
+function useThumbnailState(thumbnailUrl: string, topics: readonly string[], tags: readonly string[], label: string) {
+  const [tier, setTier] = useState<"primary" | "fallback" | "failed">("primary");
+  const fallbackSrc = resolveThumbnailFallback({ topics, tags });
+
+  function handleError() {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(`[thumbnail] failed to load for "${label}":`, tier === "primary" ? thumbnailUrl : fallbackSrc);
+    }
+    setTier((current) => (current === "primary" ? "fallback" : "failed"));
+  }
+
+  return { src: tier === "primary" ? thumbnailUrl : fallbackSrc, failed: tier === "failed", handleError };
+}
+
 /** Podcast tile used by Home's "Recommended by Tuto" and Explore's grid. */
 export function PodcastCard({ podcast, tutosPick = false, index = 0 }: PodcastCardProps) {
+  const thumbnail = useThumbnailState(podcast.thumbnailUrl, podcast.topics, podcast.tags, podcast.title);
+
   return (
     // Podcast Detail (/podcast/[id]) isn't built yet (task #31) — the only
     // real destination for a podcast today is the Learning Session itself,
@@ -32,16 +63,20 @@ export function PodcastCard({ podcast, tutosPick = false, index = 0 }: PodcastCa
         className="overflow-hidden rounded-2xl border border-border bg-bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
       >
         <div className="relative aspect-square overflow-hidden">
-          {podcast.thumbnailUrl ? (
+          {thumbnail.failed ? (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-bg-muted to-border/40">
+              <Headphones className="h-8 w-8 text-text-tertiary" aria-hidden="true" />
+            </div>
+          ) : (
             <Image
-              src={podcast.thumbnailUrl}
+              key={thumbnail.src}
+              src={thumbnail.src}
               alt=""
               fill
               sizes="(min-width: 1024px) 25vw, 50vw"
               className="object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={thumbnail.handleError}
             />
-          ) : (
-            <div className="h-full w-full bg-bg-muted" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           {tutosPick && (
