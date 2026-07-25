@@ -6,6 +6,7 @@ import { ArrowUp } from "lucide-react";
 import { ChatBubble } from "./ChatBubble";
 import { ThinkingTimeline, type ThinkingFocus } from "./ThinkingTimeline";
 import { TutoMascotStatus } from "./TutoMascotStatus";
+import { ResponseActions } from "./ResponseActions";
 import { useTutoMascotState } from "@/hooks/useTutoMascotState";
 import { fadeSlideUp } from "@/lib/motion/variants";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
@@ -53,6 +54,8 @@ export function TutoChatPanel({
   const mascotState = useTutoMascotState(status, messages);
 
   const isThinking = status === "streaming" && (!lastMessage || lastMessage.role !== "assistant" || lastMessage.content.length === 0);
+  const assistantTurnCount = visibleMessages.filter((message) => message.role === "assistant").length;
+  const showResponseActions = status === "idle" && lastMessage?.role === "assistant" && lastMessage.content.length > 0;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -82,6 +85,15 @@ export function TutoChatPanel({
           </motion.div>
         )}
       </AnimatePresence>
+      {showResponseActions && (
+        <ResponseActions
+          key={lastMessage.id}
+          content={lastMessage.content}
+          thinkingFocus={thinkingFocus}
+          onSend={onSend}
+          turnIndex={assistantTurnCount}
+        />
+      )}
       {error && <div className="rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>}
       <div ref={endRef} aria-hidden="true" />
 
