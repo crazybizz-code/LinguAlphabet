@@ -9,8 +9,13 @@ import type {
   AIProviderToolSpec,
 } from "../types";
 import { AIProviderError } from "../errors";
-import { readdirSync, statSync, readFileSync } from "fs";
-import { join, resolve } from "path";
+
+// TEMPORARY — a literal string hardcoded right now (not computed at
+// runtime, so it can only appear if THIS exact edit is what's actually
+// executing). If the running process doesn't print this exact marker,
+// it is executing older code — a stale process or a stale Turbopack
+// bundle, not a fresh one for this file.
+const DIAGNOSTIC_BUILD_MARKER = "client-marker-9f21ac-take5";
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -38,22 +43,9 @@ interface OpenRouterResponse {
 }
 
 function getConfig(): { apiKey: string; model: string } {
-  const envFiles = readdirSync(process.cwd())
-    .filter((f) => f.startsWith(".env"))
-    .map((f) => {
-      const absPath = resolve(process.cwd(), f);
-      return { path: absPath, mtime: statSync(absPath).mtime };
-    });
-  console.log("[tuto-debug] .env* files under process.cwd():", envFiles);
-
-  let localFileContents = "";
-  try {
-    localFileContents = readFileSync(join(process.cwd(), ".env.local"), "utf8");
-  } catch (err) {
-    console.log("[tuto-debug] readFileSync('.env.local') failed:", err instanceof Error ? err.message : err);
-  }
-  console.log("[tuto-debug] .env.local contains 'TEST_ENV':", localFileContents.includes("TEST_ENV"));
-  console.log("[tuto-debug] .env.local contains 'OPENROUTER_API_KEY':", localFileContents.includes("OPENROUTER_API_KEY"));
+  console.log("[tuto-debug] DIAGNOSTIC_BUILD_MARKER:", DIAGNOSTIC_BUILD_MARKER);
+  console.log("[tuto-debug] process.pid:", process.pid);
+  console.log("[tuto-debug] process.uptime() seconds:", process.uptime());
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL;
