@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { ALLOWED_IMAGE_HOSTS } from "./src/lib/content/allowedImageHosts";
 
 // Baseline security headers only — no Content-Security-Policy yet. This
 // app loads Google Fonts, Framer Motion (inline transforms), Next/Image,
@@ -15,21 +16,13 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      // The Conversation article thumbnails (extracted from their official
-      // republish package) are served from images.theconversation.com --
-      // the wildcard also covers their other asset subdomains. next/image
-      // THROWS on any host not listed here, crashing the whole page, so
-      // this must stay in sync with what ingestion can store.
-      {
-        protocol: "https",
-        hostname: "**.theconversation.com",
-      },
-    ],
+    // Sourced from src/lib/content/allowedImageHosts.ts — the same list
+    // ArticleCard/PodcastCard check at runtime before ever handing a URL to
+    // <Image>. next/image THROWS on any host not listed here, crashing the
+    // whole page (confirmed in production when the active content source
+    // changed without this list being updated) — one shared list is what
+    // keeps this file and the runtime check from drifting apart again.
+    remotePatterns: ALLOWED_IMAGE_HOSTS.map((hostname) => ({ protocol: "https" as const, hostname })),
   },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];

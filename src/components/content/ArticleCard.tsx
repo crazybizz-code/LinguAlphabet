@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Clock, FileText, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { resolveThumbnailFallback } from "@/lib/content/thumbnailFallback";
+import { isAllowedImageHost } from "@/lib/content/allowedImageHosts";
 import type { ArticleContent } from "@/types/content";
 
 export interface ArticleCardProps {
@@ -20,21 +21,39 @@ function formatMinutes(minutes: number) {
 }
 
 /**
- * Beta reliability fix: thumbnailUrl reaching this component is already
- * guaranteed non-empty by the query layer (queries.ts falls back to
- * resolveThumbnailFallback whenever the DB's thumbnail_url is missing) —
- * so a plain truthy check was never the actual gap. The real bug is a URL
- * that LOOKS valid but fails to load at runtime (a dead/expired remote
- * link), which next/image has no built-in recovery for. Three tiers:
- * the real thumbnail -> the same local, category-matched editorial photo
- * the query layer already uses for a missing thumbnail (never a generic
- * gray box) -> a pure CSS/icon placeholder that can never itself fail to
- * render, for the vanishingly rare case where even the local asset can't
- * load. Same aspect-square container at every tier, so layout never shifts.
+ * Production bug fix: the previous version of this hook always started at
+ * tier "primary" and relied entirely on <Image>'s onError to catch a bad
+ * thumbnailUrl. That covered a URL that loads the image tag but fails at
+ * runtime (a dead link) — it did NOT cover a URL whose hostname isn't in
+ * next.config.ts's images.remotePatterns, which next/image rejects by
+ * THROWING a render exception ("Invalid src prop... hostname is not
+ * configured") before any <img> element — and therefore any onError event —
+ * ever exists. That's exactly what happened in production when the active
+ * content source changed to one whose domain was never allowlisted: every
+ * real thumbnailUrl crashed the whole page, and onError never fired because
+ * there was nothing to fire it. isAllowedImageHost is checked up front now,
+ * so a disallowed host starts directly at the "fallback" tier and <Image>
+ * never sees it at all.
+ *
+ * Tiers: the real thumbnail (only if its host is allowlisted) -> the same
+ * local, category-matched editorial photo the query layer already uses for
+ * a missing thumbnail (never a generic gray box) -> a pure CSS/icon
+ * placeholder that can never itself fail to render. Same aspect-square
+ * container at every tier, so layout never shifts.
  */
 function useThumbnailState(thumbnailUrl: string, topics: readonly string[], tags: readonly string[], label: string) {
-  const [tier, setTier] = useState<"primary" | "fallback" | "failed">("primary");
+  const [tier, setTier] = useState<"primary" | "fallback" | "failed">(() =>
+    isAllowedImageHost(thumbnailUrl) ? "primary" : "fallback",
+  );
   const fallbackSrc = resolveThumbnailFallback({ topics, tags });
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production" && tier === "fallback" && !isAllowedImageHost(thumbnailUrl)) {
+      console.warn(`[thumbnail] "${label}" thumbnailUrl host isn't in images.remotePatterns, skipping <Image>:`, thumbnailUrl);
+    }
+    // Only meant to log once for the initial disallowed-host case, not on every tier change (e.g. a later real load failure).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleError() {
     if (process.env.NODE_ENV !== "production") {
