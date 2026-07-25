@@ -9,6 +9,8 @@ import type {
   AIProviderToolSpec,
 } from "../types";
 import { AIProviderError } from "../errors";
+import { readdirSync, statSync, readFileSync } from "fs";
+import { join, resolve } from "path";
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -36,11 +38,22 @@ interface OpenRouterResponse {
 }
 
 function getConfig(): { apiKey: string; model: string } {
-  console.log({
-    TEST_ENV: process.env.TEST_ENV,
-    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY ? "present" : "missing",
-    OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
-  });
+  const envFiles = readdirSync(process.cwd())
+    .filter((f) => f.startsWith(".env"))
+    .map((f) => {
+      const absPath = resolve(process.cwd(), f);
+      return { path: absPath, mtime: statSync(absPath).mtime };
+    });
+  console.log("[tuto-debug] .env* files under process.cwd():", envFiles);
+
+  let localFileContents = "";
+  try {
+    localFileContents = readFileSync(join(process.cwd(), ".env.local"), "utf8");
+  } catch (err) {
+    console.log("[tuto-debug] readFileSync('.env.local') failed:", err instanceof Error ? err.message : err);
+  }
+  console.log("[tuto-debug] .env.local contains 'TEST_ENV':", localFileContents.includes("TEST_ENV"));
+  console.log("[tuto-debug] .env.local contains 'OPENROUTER_API_KEY':", localFileContents.includes("OPENROUTER_API_KEY"));
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL;
