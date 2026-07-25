@@ -23,8 +23,6 @@ function sseEvent(payload: Record<string, unknown>): string {
 }
 
 export async function POST(request: NextRequest) {
-  console.log("[trace:1] POST /api/ai/chat route handler entered. import.meta.url:", import.meta.url); // TEMPORARY
-
   let body: unknown;
   try {
     body = await request.json();

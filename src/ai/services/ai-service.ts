@@ -63,8 +63,6 @@ export async function generateResponse(input: GenerateResponseInput): Promise<As
  */
 export async function* streamResponse(input: GenerateResponseInput): AsyncGenerator<string> {
   const provider = getDefaultProvider();
-  // TRACE (temporary) — confirms which provider implementation was actually resolved.
-  console.log("[trace:2] streamResponse resolved provider.id:", provider.id);
   bootstrapTools();
 
   if (listTools().length === 0) {

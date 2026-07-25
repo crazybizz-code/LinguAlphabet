@@ -38,12 +38,7 @@ interface OpenRouterResponse {
 function getConfig(): { apiKey: string; model: string } {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL;
-  if (!apiKey) {
-    // TRACE (temporary) — remove once the execution path is confirmed.
-    console.log("[trace:3] client.ts getConfig() about to throw. import.meta.url:", import.meta.url);
-    console.log("[trace:3] full call stack:", new Error().stack);
-    throw new AIProviderError("OPENROUTER_API_KEY is not configured", 500, false);
-  }
+  if (!apiKey) throw new AIProviderError("OPENROUTER_API_KEY is not configured", 500, false);
   if (!model) throw new AIProviderError("OPENROUTER_MODEL is not configured", 500, false);
   return { apiKey, model };
 }
