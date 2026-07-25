@@ -238,6 +238,12 @@ export function ReadingStep({ content, onNext }: { content: LearningSessionConte
         placeholder="Ask Tuto a question…"
         thinkingFocus="article"
         learnerLevel={baseContext.userLevel}
+        emptyState={{
+          title: "Ask me about this article",
+          description: "I can explain a tricky sentence, define a word, or summarize what you just read.",
+          starters: ["Summarize this article", "Explain the hardest part", "Quiz me on this"],
+        }}
+        onRetry={chat.retryLast}
       />
     </motion.div>
   );

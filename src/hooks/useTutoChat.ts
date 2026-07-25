@@ -83,6 +83,22 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
   );
 
   /**
+   * Sprint UX-3.1 (Polish): re-sends the most recent user turn after an
+   * error, rather than leaving the learner to retype their question.
+   * Rebuilds from everything BEFORE that turn (not `messages` as-is) so
+   * the failed attempt's user message and its empty assistant stub are
+   * both replaced by a clean retry, not left behind as a stray blank
+   * bubble ahead of the new attempt.
+   */
+  const retryLast = useCallback(() => {
+    if (status === "streaming") return;
+    const lastUserIndex = messages.map((message) => message.role).lastIndexOf("user");
+    if (lastUserIndex === -1) return;
+    const lastUserMessage = messages[lastUserIndex];
+    void runTurn(messages.slice(0, lastUserIndex), lastUserMessage.content);
+  }, [messages, status, runTurn]);
+
+  /**
    * Starts a brand-new conversation with this message, discarding whatever
    * came before — used when a fresh trigger (a new text selection, a fresh
    * "ask about the article" open) shouldn't inherit an unrelated earlier
@@ -116,5 +132,5 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
     setMessages((prev) => [...prev, { id: nextMessageId(), role: "assistant", content, hidden: true }]);
   }, []);
 
-  return { messages, status, error, sendMessage, sendFresh, reset, stop, addHiddenContext };
+  return { messages, status, error, sendMessage, sendFresh, reset, stop, addHiddenContext, retryLast };
 }

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, X } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { TutoChatSheet } from "@/components/tuto-chat/TutoChatSheet";
+import type { TutoChatEmptyState } from "@/components/tuto-chat/TutoChatPanel";
 import { useTutoChat } from "@/hooks/useTutoChat";
 import { subscribeSheetOpen, getIsAnySheetOpen } from "@/lib/ui/sheetOpenStore";
 import type { Screen } from "@/ai/context";
@@ -17,6 +18,35 @@ function screenFromPathname(pathname: string): Screen | null {
   if (pathname.startsWith("/article")) return "article";
   if (pathname === "/dashboard") return "home";
   return null;
+}
+
+/**
+ * Sprint UX-3.1 (Polish): a blank box with no starting point was the
+ * highest-friction moment on the app's most-used chat entry point — this
+ * gives each known screen context (the same ones screenFromPathname
+ * already distinguishes) its own contextual starting copy instead of
+ * one generic message, or nothing at all.
+ */
+function emptyStateFor(screen: Screen | null): TutoChatEmptyState {
+  if (screen === "article") {
+    return {
+      title: "Ask me about this article",
+      description: "I can explain a tricky sentence, define a word, or summarize what you just read.",
+      starters: ["Summarize this article", "Explain the hardest part", "Quiz me on this"],
+    };
+  }
+  if (screen === "podcast") {
+    return {
+      title: "Ask me about this podcast",
+      description: "I can explain something you heard, define a word, or help you practice it.",
+      starters: ["What's this episode about?", "Explain what I just heard", "Teach me a word from it"],
+    };
+  }
+  return {
+    title: "Hey, I'm Tuto — your English coach",
+    description: "Ask me about grammar, vocabulary, or anything you're curious about.",
+    starters: ["What should I practice today?", "Explain a grammar rule", "Teach me a new word"],
+  };
 }
 
 /**
@@ -64,7 +94,8 @@ export function FloatingTuto() {
   const [chatOpen, setChatOpen] = useState(false);
   const isAnySheetOpen = useSyncExternalStore(subscribeSheetOpen, getIsAnySheetOpen, () => false);
 
-  const context: TutoContextInput = { currentScreen: screenFromPathname(pathname) };
+  const screen = screenFromPathname(pathname);
+  const context: TutoContextInput = { currentScreen: screen };
   const chat = useTutoChat({ context });
 
   if (pathname === "/tuto-chat") return null;
@@ -150,6 +181,8 @@ export function FloatingTuto() {
         error={chat.error}
         onSend={chat.sendMessage}
         placeholder="Ask Tuto anything…"
+        emptyState={emptyStateFor(screen)}
+        onRetry={chat.retryLast}
       />
     </>
   );

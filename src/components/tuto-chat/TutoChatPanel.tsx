@@ -7,11 +7,19 @@ import { ChatBubble } from "./ChatBubble";
 import { ThinkingTimeline, type ThinkingFocus } from "./ThinkingTimeline";
 import { TutoMascotStatus } from "./TutoMascotStatus";
 import { ResponseActions } from "./ResponseActions";
+import { QuickReplyChips } from "./QuickReplyChips";
 import { useTutoMascotState } from "@/hooks/useTutoMascotState";
-import { fadeSlideUp } from "@/lib/motion/variants";
+import { fadeSlideUp, fadeScaleIn } from "@/lib/motion/variants";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
 import type { TutoChatStatus } from "@/hooks/useTutoChat";
 import type { CefrLevel } from "@/ai/context";
+
+export interface TutoChatEmptyState {
+  title: string;
+  description: string;
+  /** Tappable starter prompts — sent exactly like a quick reply. Optional; omit for just title/description. */
+  starters?: string[];
+}
 
 export interface TutoChatPanelProps {
   messages: ChatMessage[];
@@ -25,6 +33,15 @@ export interface TutoChatPanelProps {
   thinkingFocus?: ThinkingFocus;
   /** Sprint UX-3: the same CEFR level already threaded through TutoContextInput at the call site — drives the adaptive level badge and the continue-learning card's copy. Omit when not known. */
   learnerLevel?: CefrLevel | null;
+  /**
+   * Sprint UX-3.1 (Polish): contextual copy shown in place of a blank box
+   * before the first message — only rendered when there's no header (a
+   * header, e.g. VocabularyCard, already fills that gap) and nothing's
+   * been sent yet. Omit for a plain blank start.
+   */
+  emptyState?: TutoChatEmptyState;
+  /** Sprint UX-3.1 (Polish): resends the last user turn after an error — omit to hide the retry action. */
+  onRetry?: () => void;
 }
 
 /**
@@ -50,6 +67,8 @@ export function TutoChatPanel({
   placeholder = "Ask Tuto a question…",
   thinkingFocus = null,
   learnerLevel = null,
+  emptyState,
+  onRetry,
 }: TutoChatPanelProps) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -60,6 +79,7 @@ export function TutoChatPanel({
   const isThinking = status === "streaming" && (!lastMessage || lastMessage.role !== "assistant" || lastMessage.content.length === 0);
   const assistantTurnCount = visibleMessages.filter((message) => message.role === "assistant").length;
   const showResponseActions = status === "idle" && lastMessage?.role === "assistant" && lastMessage.content.length > 0;
+  const showEmptyState = emptyState && !header && visibleMessages.length === 0 && status === "idle";
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -76,10 +96,27 @@ export function TutoChatPanel({
     <div className="flex flex-col gap-3">
       <TutoMascotStatus state={mascotState} level={learnerLevel} />
       {header}
+      {showEmptyState && (
+        <motion.div
+          variants={fadeScaleIn}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-bg-muted px-5 py-8 text-center"
+        >
+          <p className="text-sm font-bold text-text-primary">{emptyState.title}</p>
+          <p className="text-sm leading-relaxed text-text-secondary">{emptyState.description}</p>
+          {emptyState.starters && emptyState.starters.length > 0 && (
+            <QuickReplyChips replies={emptyState.starters} onSelect={onSend} />
+          )}
+        </motion.div>
+      )}
       {visibleMessages.map((message, index) => {
         const isLastAssistant = index === visibleMessages.length - 1 && message.role === "assistant";
-        // The thinking timeline below covers this moment instead of an empty bubble.
-        if (isLastAssistant && status === "streaming" && message.content.length === 0) return null;
+        // The thinking timeline covers this moment instead of an empty bubble —
+        // and an error leaves this same empty placeholder behind too (Sprint
+        // UX-3.1: the retry button sits right below it, so a stray blank
+        // bubble must never linger between the user's question and the error).
+        if (isLastAssistant && (status === "streaming" || status === "error") && message.content.length === 0) return null;
         return <ChatBubble key={message.id} message={message} streaming={status === "streaming" && isLastAssistant} />;
       })}
       <AnimatePresence>
@@ -99,7 +136,20 @@ export function TutoChatPanel({
           learnerLevel={learnerLevel}
         />
       )}
-      {error && <div className="rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>}
+      {error && (
+        <div className="flex flex-col items-start gap-2 rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
+          <span>{error}</span>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="text-xs font-bold text-danger underline underline-offset-2 hover:opacity-80"
+            >
+              Try again
+            </button>
+          )}
+        </div>
+      )}
       <div ref={endRef} aria-hidden="true" />
 
       <form

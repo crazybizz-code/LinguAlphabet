@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { EditSheet } from "@/components/profile/EditSheet";
-import { TutoChatPanel } from "./TutoChatPanel";
+import { TutoChatPanel, type TutoChatEmptyState } from "./TutoChatPanel";
 import type { ThinkingFocus } from "./ThinkingTimeline";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
 import type { TutoChatStatus } from "@/hooks/useTutoChat";
@@ -20,6 +20,8 @@ export interface TutoChatSheetProps {
   placeholder?: string;
   thinkingFocus?: ThinkingFocus;
   learnerLevel?: CefrLevel | null;
+  emptyState?: TutoChatEmptyState;
+  onRetry?: () => void;
 }
 
 /** Ask-Tuto-about-the-article and text-selection-action results — the same bottom-sheet chrome as every other sheet in the app, housing a TutoChatPanel. */

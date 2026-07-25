@@ -203,6 +203,7 @@ export function DictionaryOverlay({
               placeholder={`Ask about "${word}"…`}
               thinkingFocus="vocabulary"
               learnerLevel={tutoContext.userLevel}
+              onRetry={chat.retryLast}
             />
           )}
         </div>

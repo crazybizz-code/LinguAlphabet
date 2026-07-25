@@ -31,13 +31,23 @@ const LEARNING_PATH_AT_TURN = 3;
 /**
  * Everything below Tuto's last completed response — quick replies, smart
  * action cards, an optional quick-check quiz (with a confidence check-in
- * once answered), a lesson summary when one can be honestly extracted, a
- * follow-up suggestion, and (once, at turn 3) an adaptive continue-
- * learning nudge. Entirely frontend-generated; nothing here reflects a
+ * once answered), and at most ONE secondary card (a lesson summary, a
+ * follow-up suggestion, or — once, at turn 3 — an adaptive continue-
+ * learning nudge). Entirely frontend-generated; nothing here reflects a
  * real backend signal beyond what was already flowing through this
  * conversation (the CEFR level, Tuto's own reply text) — see each child
  * component's own doc comment for why (Sprint UX-2/UX-3 exclude AI
  * architecture, prompts, and tool changes).
+ *
+ * Sprint UX-3.1 (Polish): these three secondary cards used to all render
+ * together whenever their individual conditions happened to overlap
+ * (common, since a lesson topic and a long reply frequently coincide),
+ * stacking up to three near-identical bordered cards under a single
+ * reply. Capped at one per response now, picked by priority — the
+ * turn-3 milestone nudge (rarest, most significant) first, then the
+ * lesson summary (tied to real content), then the generic follow-up
+ * suggestion (most frequent, so lowest priority) — rather than showing
+ * every eligible card at once.
  */
 export function ResponseActions({ content, thinkingFocus, onSend, turnIndex, learnerLevel = null }: ResponseActionsProps) {
   const [quiz, setQuiz] = useState<MiniQuizQuestion | null>(null);
@@ -62,6 +72,8 @@ export function ResponseActions({ content, thinkingFocus, onSend, turnIndex, lea
   const followUpQuestion = showFollowUp ? getFollowUpSuggestion(thinkingFocus, turnIndex) : null;
   const showLearningPath = turnIndex === LEARNING_PATH_AT_TURN;
 
+  const secondaryCard = showLearningPath ? "learningPath" : lessonTopic ? "lessonSummary" : followUpQuestion ? "followUp" : null;
+
   return (
     <div className="flex flex-col gap-3">
       <QuickReplyChips replies={quickReplies} onSelect={onSend} />
@@ -79,9 +91,9 @@ export function ResponseActions({ content, thinkingFocus, onSend, turnIndex, lea
           {showConfidence && <ConfidenceSelector />}
         </div>
       )}
-      {lessonTopic && <LessonSummaryCard topic={lessonTopic} />}
-      {followUpQuestion && <FollowUpSuggestionCard question={followUpQuestion} onSelect={onSend} />}
-      {showLearningPath && <LearningPathCard topic={lessonTopic} level={learnerLevel} />}
+      {secondaryCard === "lessonSummary" && <LessonSummaryCard topic={lessonTopic as string} />}
+      {secondaryCard === "followUp" && <FollowUpSuggestionCard question={followUpQuestion as string} onSelect={onSend} />}
+      {secondaryCard === "learningPath" && <LearningPathCard topic={lessonTopic} level={learnerLevel} />}
     </div>
   );
 }
