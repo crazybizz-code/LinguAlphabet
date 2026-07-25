@@ -9,84 +9,6 @@ import type {
   AIProviderToolSpec,
 } from "../types";
 import { AIProviderError } from "../errors";
-import { loadEnvConfig } from "@next/env";
-
-// TEMPORARY DIAGNOSTICS — inspects @next/env's actual parse of .env.local
-// directly (not just process.env after the fact), to find exactly why
-// OPENROUTER_API_KEY/OPENROUTER_MODEL don't survive parsing even though
-// NEXT_PUBLIC_SUPABASE_URL (same file, same loader) does. Never logs a
-// secret value — only structural facts about each line (length, quote
-// characters, comment position).
-const SENSITIVE_KEY_PATTERN = /KEY|SECRET|TOKEN|PASSWORD/i;
-
-function maskAssignmentLine(line: string): string {
-  // Strip a leading comment marker first so a commented-out sensitive
-  // line (e.g. "# OPENROUTER_API_KEY=...") still gets its value redacted
-  // instead of printed in full — a real, demonstrated bug in an earlier
-  // version of this diagnostic.
-  const commentMatch = line.match(/^(\s*)(#\s*)(.*)$/);
-  const prefix = commentMatch ? commentMatch[1] + commentMatch[2] : "";
-  const body = commentMatch ? commentMatch[3] : line;
-
-  const match = body.match(/^(?:export\s+)?([\w.-]+)(\s*[=:]\s*)(.*)$/);
-  if (!match) return line;
-  const [, key, sep, rest] = match;
-  if (!SENSITIVE_KEY_PATTERN.test(key)) return line;
-  const hashIndex = rest.indexOf("#");
-  return (
-    `${prefix}${key}${sep}<redacted len=${rest.length} ` +
-    `startsWithQuote=${/^['"`]/.test(rest)} endsWithQuote=${/['"`]\s*$/.test(rest)} ` +
-    `hashAt=${hashIndex}>`
-  );
-}
-
-function logEnvParseDiagnostics() {
-  const { parsedEnv, loadedEnvFiles } = loadEnvConfig(process.cwd(), true, undefined, true);
-
-  console.log(
-    "[tuto-debug] loadedEnvFiles:",
-    loadedEnvFiles.map((f) => ({
-      path: f.path,
-      byteLength: f.contents.length,
-      hasCRLF: f.contents.includes("\r\n"),
-      hasLoneCR: /\r(?!\n)/.test(f.contents),
-      doubleQuoteCount: (f.contents.match(/"/g) ?? []).length,
-      singleQuoteCount: (f.contents.match(/'/g) ?? []).length,
-    })),
-  );
-
-  for (const file of loadedEnvFiles) {
-    if (!file.path.includes(".env.local")) continue;
-
-    const rawLines = file.contents.split(/\r\n|\r|\n/);
-    console.log(`[tuto-debug] ${file.path}: ${rawLines.length} raw lines, masked view:`);
-    rawLines.forEach((line, i) => {
-      console.log(`  [${file.path}:${i + 1}] ${JSON.stringify(maskAssignmentLine(line))}`);
-    });
-
-    console.log(`[tuto-debug] ${file.path} parsed keys (what dotenv actually produced):`, Object.keys(file.env));
-  }
-
-  // NOTE: @next/env caches its first-ever process.env snapshot for the
-  // life of the process and only reports "newly discovered" keys in
-  // `parsedEnv` against that stale baseline on repeat calls — since Next
-  // itself already called loadEnvConfig once before this diagnostic runs,
-  // `parsedEnv` reads empty here EVEN WHEN PARSING IS CORRECT. It is not
-  // a reliable signal; logged only for completeness, do not read into it.
-  console.log(
-    "[tuto-debug] (unreliable, see note above) parsedEnv keys containing OPEN:",
-    Object.fromEntries(
-      Object.entries(parsedEnv ?? {})
-        .filter(([k]) => /OPEN/i.test(k))
-        .map(([k, v]) => [k, v ? `<redacted len=${v.length}>` : v]),
-    ),
-  );
-
-  // The real ground truth for whether getConfig() below will succeed.
-  console.log("[tuto-debug] ACTUAL process.env.OPENROUTER_API_KEY !== undefined:", process.env.OPENROUTER_API_KEY !== undefined);
-  console.log("[tuto-debug] ACTUAL process.env.OPENROUTER_MODEL !== undefined:", process.env.OPENROUTER_MODEL !== undefined);
-}
-// END TEMPORARY DIAGNOSTICS
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
@@ -114,7 +36,11 @@ interface OpenRouterResponse {
 }
 
 function getConfig(): { apiKey: string; model: string } {
-  logEnvParseDiagnostics(); // TEMPORARY — see definition above
+  console.log({
+    TEST_ENV: process.env.TEST_ENV,
+    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY ? "present" : "missing",
+    OPENROUTER_MODEL: process.env.OPENROUTER_MODEL,
+  });
 
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL;
