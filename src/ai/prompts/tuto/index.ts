@@ -1,4 +1,6 @@
 import type { LearningContext } from "@/ai/context";
+import type { LearnerProfile } from "@/ai/learner";
+import type { ConversationMemory } from "@/ai/data";
 import {
   PERSONALITY,
   TEACHING_PHILOSOPHY,
@@ -15,19 +17,31 @@ import {
   READING_ASSISTANCE,
 } from "./sections";
 import { buildContextBlock } from "./context-block";
+import { buildLearnerMemoryBlock } from "./learner-memory-block";
+import { buildConversationMemoryBlock } from "./conversation-memory-block";
+
+export interface TutoPromptInput {
+  learningContext?: LearningContext | null;
+  /** Persistent, cross-session facts about the learner (src/ai/data's LearnerRepository) — see learner-memory-block.ts. */
+  learnerProfile?: LearnerProfile | null;
+  /** This-conversation-only recap (src/ai/data's ConversationRepository) — see conversation-memory-block.ts. Never mixed with learnerProfile — two different lifetimes, two different renderers. */
+  conversationMemory?: ConversationMemory | null;
+}
 
 /**
  * Tuto's master system prompt (Sprint 1 Phase 3; context enrichment added
  * in Sprint 2; reading-assistance guidance added in Sprint 5; teaching
  * framework — active learning, adaptive explanations, teaching modes,
  * follow-up learning — added in Sprint 7; knowledge-base usage guidance
- * added in Sprint 9). Composed from independently
- * maintainable sections (./sections.ts) plus — when the caller has one —
- * a rendered LearningContext block (./context-block.ts) built from
- * src/ai/context. The AI Service (src/ai/services) is the only caller
- * today.
+ * added in Sprint 9; Learner Memory + Conversation Memory added in
+ * Phase 2). Composed from independently maintainable sections
+ * (./sections.ts) plus — when the caller has them — rendered blocks for
+ * the learner's current-moment context (./context-block.ts), durable
+ * cross-session facts (./learner-memory-block.ts), and this
+ * conversation's own recap (./conversation-memory-block.ts). The AI
+ * Service (src/ai/services) is the only caller today.
  */
-export function buildTutoSystemPrompt(context?: LearningContext | null): string {
+export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
   const sections = [
     "# Who you are",
     PERSONALITY,
@@ -57,7 +71,23 @@ export function buildTutoSystemPrompt(context?: LearningContext | null): string 
     READING_ASSISTANCE,
   ];
 
-  const contextBlock = buildContextBlock(context);
+  const learnerMemoryBlock = buildLearnerMemoryBlock(input.learnerProfile);
+  if (learnerMemoryBlock) {
+    sections.push(
+      "# What you know about this learner\nDurable facts from past sessions — use them naturally to teach better, never announce that you're reading a profile.\n\n" +
+        learnerMemoryBlock,
+    );
+  }
+
+  const conversationMemoryBlock = buildConversationMemoryBlock(input.conversationMemory);
+  if (conversationMemoryBlock) {
+    sections.push(
+      "# Earlier in this conversation\nContinuity from a previous exchange with this learner — pick up naturally, don't re-introduce yourself or ask what they want to talk about if this already answers it.\n\n" +
+        conversationMemoryBlock,
+    );
+  }
+
+  const contextBlock = buildContextBlock(input.learningContext);
   if (contextBlock) {
     sections.push(
       "# Learner context\nHere is what the learner is currently doing in LinguABC. Use it naturally in your response — don't just repeat it back.\n\n" +

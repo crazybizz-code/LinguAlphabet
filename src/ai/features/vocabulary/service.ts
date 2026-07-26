@@ -1,7 +1,7 @@
 import { generateStructuredResponse } from "@/ai/services";
 import { buildLearningContext } from "@/ai/context";
 import type { LearningContext } from "@/ai/context";
-import type { ContentRepository } from "@/ai/data";
+import type { AIDependencies } from "@/ai/data";
 import { VocabularyExplanationSchema, type VocabularyExplanation } from "./schema";
 import { buildVocabularyRequestMessage } from "./prompt";
 
@@ -17,23 +17,25 @@ const RESPONSE_FORMAT_NAME = "vocabulary_explanation";
  * can never disagree.
  *
  * Goes through the existing AI Service (generateStructuredResponse(),
- * which itself runs the full Tool Execution Layer) — never calls a
- * provider directly. In practice this means Tuto can call
- * getSelectedVocabulary (src/ai/tools/definitions) to ground its answer
- * in LinguABC's own mock dictionary before elaborating with the rest of
- * the explanation from its own knowledge.
+ * which itself runs the full Tool Execution Layer and resolves Learner/
+ * Conversation Memory) — never calls a provider directly. In practice
+ * this means Tuto can call getSelectedVocabulary (src/ai/tools/definitions)
+ * to ground its answer in LinguABC's own dictionary before elaborating
+ * with the rest of the explanation from its own knowledge.
  */
 export async function explainVocabulary(
   word: string,
   contextInput: Partial<LearningContext> = {},
-  contentRepository?: ContentRepository,
+  dependencies?: AIDependencies,
+  conversationId?: string | null,
 ): Promise<VocabularyExplanation> {
   const learningContext = buildLearningContext({ ...contextInput, selectedWord: word });
 
   return generateStructuredResponse({
     messages: [buildVocabularyRequestMessage(word)],
     learningContext,
-    contentRepository,
+    dependencies,
+    conversationId,
     responseFormatName: RESPONSE_FORMAT_NAME,
     resultSchema: VocabularyExplanationSchema,
   });

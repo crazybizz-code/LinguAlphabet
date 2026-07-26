@@ -33,10 +33,10 @@ export const getPodcastTranscriptTool: ToolDefinition<Args, Result> = {
   async execute(args, context) {
     const ref = context.learningContext.currentPodcast;
     if (!ref) return { found: false, reason: "The learner is not currently viewing a podcast." };
-    if (!context.contentRepository) return { found: false, reason: "Content access is not available right now." };
+    if (!context.dependencies?.contentRepository) return { found: false, reason: "Content access is not available right now." };
 
     const parsedArgs = ArgsSchema.parse(args ?? {});
-    const segments = await context.contentRepository.getPodcastTranscript(ref.id, parsedArgs.maxSegments);
+    const segments = await context.dependencies.contentRepository.getPodcastTranscript(ref.id, parsedArgs.maxSegments);
     if (!segments) return { found: false, reason: `No transcript found for podcast id "${ref.id}".` };
 
     return { found: true, podcastId: ref.id, segments };

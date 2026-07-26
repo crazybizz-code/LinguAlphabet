@@ -29,9 +29,9 @@ export const getCurrentPodcastTool: ToolDefinition<Record<string, never>, Result
   async execute(_args, context) {
     const ref = context.learningContext.currentPodcast;
     if (!ref) return { found: false, reason: "The learner is not currently viewing a podcast." };
-    if (!context.contentRepository) return { found: false, reason: "Content access is not available right now." };
+    if (!context.dependencies?.contentRepository) return { found: false, reason: "Content access is not available right now." };
 
-    const podcast = await context.contentRepository.getPodcast(ref.id);
+    const podcast = await context.dependencies.contentRepository.getPodcast(ref.id);
     if (!podcast) return { found: false, reason: `No podcast data found for id "${ref.id}".` };
 
     return { found: true, podcast };

@@ -25,9 +25,9 @@ export const getCurrentArticleTool: ToolDefinition<Record<string, never>, Result
   async execute(_args, context) {
     const ref = context.learningContext.currentArticle;
     if (!ref) return { found: false, reason: "The learner is not currently viewing an article." };
-    if (!context.contentRepository) return { found: false, reason: "Content access is not available right now." };
+    if (!context.dependencies?.contentRepository) return { found: false, reason: "Content access is not available right now." };
 
-    const article = await context.contentRepository.getArticle(ref.id);
+    const article = await context.dependencies.contentRepository.getArticle(ref.id);
     if (!article) return { found: false, reason: `No article data found for id "${ref.id}".` };
 
     return { found: true, article };

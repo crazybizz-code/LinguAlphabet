@@ -46,9 +46,9 @@ export const getCurrentQuizTool: ToolDefinition<Record<string, never>, Result> =
         : null;
 
     if (!target) return { found: false, reason: "The learner is not currently studying any content with a quiz." };
-    if (!context.contentRepository) return { found: false, reason: "Content access is not available right now." };
+    if (!context.dependencies?.contentRepository) return { found: false, reason: "Content access is not available right now." };
 
-    const quiz = await context.contentRepository.getQuiz(target.contentType, target.id);
+    const quiz = await context.dependencies.contentRepository.getQuiz(target.contentType, target.id);
     if (!quiz) return { found: false, reason: `No quiz found for id "${target.id}".` };
 
     return {

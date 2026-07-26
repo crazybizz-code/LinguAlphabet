@@ -1,7 +1,7 @@
 import { generateStructuredResponse } from "@/ai/services";
 import { buildLearningContext } from "@/ai/context";
 import type { LearningContext, TitledReference } from "@/ai/context";
-import type { ContentRepository } from "@/ai/data";
+import type { AIDependencies } from "@/ai/data";
 import { ArticleSummarySchema, DiscussionQuestionsSchema, ComprehensionQuestionsSchema } from "./schema";
 import type { ArticleSummary, DiscussionQuestions, ComprehensionQuestions } from "./schema";
 import {
@@ -29,12 +29,14 @@ function toArticleLearningContext(article: TitledReference, contextInput: Partia
 export async function summarizeArticle(
   article: TitledReference,
   contextInput: Partial<LearningContext> = {},
-  contentRepository?: ContentRepository,
+  dependencies?: AIDependencies,
+  conversationId?: string | null,
 ): Promise<ArticleSummary> {
   return generateStructuredResponse({
     messages: [buildArticleSummaryRequestMessage(article)],
     learningContext: toArticleLearningContext(article, contextInput),
-    contentRepository,
+    dependencies,
+    conversationId,
     responseFormatName: "article_summary",
     resultSchema: ArticleSummarySchema,
   });
@@ -43,12 +45,14 @@ export async function summarizeArticle(
 export async function generateDiscussionQuestions(
   article: TitledReference,
   contextInput: Partial<LearningContext> = {},
-  contentRepository?: ContentRepository,
+  dependencies?: AIDependencies,
+  conversationId?: string | null,
 ): Promise<DiscussionQuestions> {
   return generateStructuredResponse({
     messages: [buildDiscussionQuestionsRequestMessage(article)],
     learningContext: toArticleLearningContext(article, contextInput),
-    contentRepository,
+    dependencies,
+    conversationId,
     responseFormatName: "article_discussion_questions",
     resultSchema: DiscussionQuestionsSchema,
   });
@@ -57,12 +61,14 @@ export async function generateDiscussionQuestions(
 export async function generateComprehensionQuestions(
   article: TitledReference,
   contextInput: Partial<LearningContext> = {},
-  contentRepository?: ContentRepository,
+  dependencies?: AIDependencies,
+  conversationId?: string | null,
 ): Promise<ComprehensionQuestions> {
   return generateStructuredResponse({
     messages: [buildComprehensionQuestionsRequestMessage(article)],
     learningContext: toArticleLearningContext(article, contextInput),
-    contentRepository,
+    dependencies,
+    conversationId,
     responseFormatName: "article_comprehension_questions",
     resultSchema: ComprehensionQuestionsSchema,
   });

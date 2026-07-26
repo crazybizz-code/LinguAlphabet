@@ -4,7 +4,7 @@ import { UserMessageSchema, AssistantMessageSchema } from "@/ai/schemas/messages
 import { LearningContextSchema, buildLearningContext } from "@/ai/context";
 import { streamResponse } from "@/ai/services";
 import { AIProviderError } from "@/ai/providers";
-import { createContentRepository } from "@/ai/data";
+import { createAIDependencies } from "@/ai/data";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -14,10 +14,15 @@ export const runtime = "nodejs";
  * prompt (src/ai/prompts/tuto) is always the service's own, never
  * client-supplied, so a "system" role message here is a validation error,
  * not silently dropped.
+ *
+ * `conversationId` is optional — no current UI entry point sends one yet
+ * (see below for the default), but a future one can pass an explicit id
+ * for a scoped thread without any schema change here.
  */
 const ChatRequestSchema = z.object({
   messages: z.array(z.union([UserMessageSchema, AssistantMessageSchema])).min(1).max(50),
   context: LearningContextSchema.partial().optional(),
+  conversationId: z.string().min(1).max(200).optional(),
 });
 
 function sseEvent(payload: Record<string, unknown>): string {
@@ -37,16 +42,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request", details: z.treeifyError(parsed.error) }, { status: 400 });
   }
 
-  const { messages, context } = parsed.data;
+  const { messages, context, conversationId: requestedConversationId } = parsed.data;
   const learningContext = buildLearningContext(context ?? {});
   const supabase = await createClient();
-  const contentRepository = createContentRepository(supabase);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const dependencies = user ? createAIDependencies(supabase, user.id) : undefined;
+  /**
+   * Defaulting to the learner's own user id (rather than requiring the
+   * client to invent one) means every existing chat entry point
+   * (FloatingTuto, ReadingStep, DictionaryOverlay) already shares one
+   * continuous Conversation Memory thread with zero UI change — see
+   * docs/ai-request-lifecycle.md's finding #1.
+   */
+  const conversationId = requestedConversationId ?? user?.id ?? null;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        for await (const delta of streamResponse({ messages, learningContext, contentRepository })) {
+        for await (const delta of streamResponse({ messages, learningContext, dependencies, conversationId })) {
           controller.enqueue(encoder.encode(sseEvent({ type: "delta", content: delta })));
         }
         controller.enqueue(encoder.encode(sseEvent({ type: "done" })));

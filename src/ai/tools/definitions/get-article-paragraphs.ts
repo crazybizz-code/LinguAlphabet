@@ -34,10 +34,10 @@ export const getArticleParagraphsTool: ToolDefinition<Args, Result> = {
   async execute(args, context) {
     const ref = context.learningContext.currentArticle;
     if (!ref) return { found: false, reason: "The learner is not currently viewing an article." };
-    if (!context.contentRepository) return { found: false, reason: "Content access is not available right now." };
+    if (!context.dependencies?.contentRepository) return { found: false, reason: "Content access is not available right now." };
 
     const parsedArgs = ArgsSchema.parse(args ?? {});
-    const paragraphs = await context.contentRepository.getArticleParagraphs(ref.id, parsedArgs.maxParagraphs);
+    const paragraphs = await context.dependencies.contentRepository.getArticleParagraphs(ref.id, parsedArgs.maxParagraphs);
     if (!paragraphs) return { found: false, reason: `No article body found for id "${ref.id}".` };
 
     return { found: true, articleId: ref.id, paragraphs };

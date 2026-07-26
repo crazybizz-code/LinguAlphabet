@@ -3,7 +3,7 @@ import { z } from "zod";
 import { LearningContextSchema } from "@/ai/context";
 import { explainVocabulary } from "@/ai/features/vocabulary";
 import { AIProviderError } from "@/ai/providers";
-import { createContentRepository } from "@/ai/data";
+import { createAIDependencies } from "@/ai/data";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -19,6 +19,7 @@ export const runtime = "nodejs";
 const VocabularyRequestSchema = z.object({
   word: z.string().min(1, "word is required").max(100, "word is too long"),
   context: LearningContextSchema.omit({ selectedWord: true }).partial().optional(),
+  conversationId: z.string().min(1).max(200).optional(),
 });
 
 /**
@@ -44,8 +45,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const supabase = await createClient();
-    const contentRepository = createContentRepository(supabase);
-    const explanation = await explainVocabulary(parsed.data.word, parsed.data.context ?? {}, contentRepository);
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const dependencies = user ? createAIDependencies(supabase, user.id) : undefined;
+    const conversationId = parsed.data.conversationId ?? user?.id ?? null;
+    const explanation = await explainVocabulary(parsed.data.word, parsed.data.context ?? {}, dependencies, conversationId);
     return NextResponse.json(explanation);
   } catch (error) {
     if (error instanceof AIProviderError) {
