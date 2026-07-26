@@ -12,6 +12,8 @@ import type { LearnerProfile } from "@/ai/learner";
 import type { LearnerState } from "@/ai/learning-engine";
 import type { TeachingPlan } from "@/ai/coach-planner";
 import { planTeaching } from "@/ai/coach-planner";
+import type { LearningSessionPlan } from "@/ai/learning-session-engine";
+import { planLearningSession } from "@/ai/learning-session-engine";
 import { runToolLoop } from "./tool-loop";
 
 export interface GenerateResponseInput {
@@ -56,23 +58,30 @@ async function resolveMemory(input: GenerateResponseInput): Promise<ResolvedMemo
 interface ResolvedTeaching {
   learnerState: LearnerState | null;
   teachingPlan: TeachingPlan | null;
+  sessionPlan: LearningSessionPlan | null;
 }
 
-const NO_TEACHING: ResolvedTeaching = { learnerState: null, teachingPlan: null };
+const NO_TEACHING: ResolvedTeaching = { learnerState: null, teachingPlan: null, sessionPlan: null };
 
 /**
- * Resolves the Learning Engine's LearnerState and the Coach Planner's
- * TeachingPlan (Phase 4B) — only called from generateResponse()/
+ * Resolves the Learning Engine's LearnerState, the Coach Planner's
+ * TeachingPlan (Phase 4B), and the Learning Session Engine's
+ * LearningSessionPlan (Phase 6) — only called from generateResponse()/
  * streamResponse(), the actual open-ended chat path. Deliberately not
  * called from generateStructuredResponse(): "deciding what to teach
- * next" doesn't apply to a one-shot vocabulary explanation or article
- * summary, which already have a fixed, narrow task — see
- * src/ai/coach-planner's own doc comment on why a lesson plan doesn't
- * belong there.
+ * next" and "how the session should flow" don't apply to a one-shot
+ * vocabulary explanation or article summary, which already have a fixed,
+ * narrow task — see src/ai/coach-planner's and
+ * src/ai/learning-session-engine's own doc comments for why neither a
+ * lesson plan nor a session structure belongs there.
  *
- * planTeaching() itself is pure/deterministic (src/ai/coach-planner/planner.ts)
- * — everything async here is fetching its inputs, never the decision
- * itself.
+ * planTeaching() and planLearningSession() are both pure/deterministic
+ * (src/ai/coach-planner/planner.ts, src/ai/learning-session-engine/engine.ts)
+ * — everything async here is fetching their inputs, never the decisions
+ * themselves. planLearningSession() needs no I/O of its own beyond what
+ * planTeaching() already required (it consumes the same learnerState and
+ * the TeachingPlan planTeaching() just produced), so no new fetch is
+ * added by this phase — only a second pure call.
  */
 async function resolveTeachingPlan(input: GenerateResponseInput, learningContext: LearningContext): Promise<ResolvedTeaching> {
   if (!input.dependencies) return NO_TEACHING;
@@ -89,7 +98,9 @@ async function resolveTeachingPlan(input: GenerateResponseInput, learningContext
     availableContent,
   });
 
-  return { learnerState, teachingPlan };
+  const sessionPlan = planLearningSession({ teachingPlan, learnerState, learningContext });
+
+  return { learnerState, teachingPlan, sessionPlan };
 }
 
 function toProviderMessages(input: GenerateResponseInput, memory: ResolvedMemory, teaching: ResolvedTeaching = NO_TEACHING): AIProviderMessage[] {
@@ -99,6 +110,7 @@ function toProviderMessages(input: GenerateResponseInput, memory: ResolvedMemory
     learnerProfile: memory.learnerProfile,
     learnerState: teaching.learnerState,
     teachingPlan: teaching.teachingPlan,
+    sessionPlan: teaching.sessionPlan,
   });
 
   const history: AIProviderMessage[] = input.messages

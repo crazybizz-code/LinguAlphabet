@@ -3,6 +3,7 @@ import type { LearnerProfile } from "@/ai/learner";
 import type { ConversationMemory } from "@/ai/data";
 import type { LearnerState } from "@/ai/learning-engine";
 import type { TeachingPlan } from "@/ai/coach-planner";
+import type { LearningSessionPlan } from "@/ai/learning-session-engine";
 import {
   PERSONALITY,
   TEACHING_PHILOSOPHY,
@@ -11,6 +12,7 @@ import {
   TEACHING_MODES,
   KNOWLEDGE_BASE_USAGE,
   TEACHING_PLAN_USAGE,
+  SESSION_PLAN_USAGE,
   GRAMMAR_CORRECTION_STYLE,
   ENCOURAGEMENT_STYLE,
   FOLLOW_UP_LEARNING,
@@ -24,6 +26,7 @@ import { buildLearnerMemoryBlock } from "./learner-memory-block";
 import { buildConversationMemoryBlock } from "./conversation-memory-block";
 import { buildLearnerStateBlock } from "./learner-state-block";
 import { buildTeachingPlanBlock } from "./teaching-plan-block";
+import { buildSessionPlanBlock } from "./session-plan-block";
 
 export interface TutoPromptInput {
   learningContext?: LearningContext | null;
@@ -35,6 +38,8 @@ export interface TutoPromptInput {
   learnerState?: LearnerState | null;
   /** The Coach Planner's decision (src/ai/coach-planner) — see teaching-plan-block.ts and TEACHING_PLAN_USAGE. The model follows this, it never derives its own strategy when one is present. */
   teachingPlan?: TeachingPlan | null;
+  /** The Learning Session Engine's structure (src/ai/learning-session-engine) — see session-plan-block.ts and SESSION_PLAN_USAGE. The model enacts this flow/pacing, it never invents its own session structure when one is present. */
+  sessionPlan?: LearningSessionPlan | null;
 }
 
 /**
@@ -69,6 +74,8 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
     KNOWLEDGE_BASE_USAGE,
     "# Teaching plan guidance",
     TEACHING_PLAN_USAGE,
+    "# Session plan guidance",
+    SESSION_PLAN_USAGE,
     "# Grammar correction style",
     GRAMMAR_CORRECTION_STYLE,
     "# Encouragement style",
@@ -120,6 +127,11 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
   const teachingPlanBlock = buildTeachingPlanBlock(input.teachingPlan);
   if (teachingPlanBlock) {
     sections.push("# Today's teaching plan\nDecided before this turn started — see Teaching plan guidance above for how to use it.\n\n" + teachingPlanBlock);
+  }
+
+  const sessionPlanBlock = buildSessionPlanBlock(input.sessionPlan);
+  if (sessionPlanBlock) {
+    sections.push("# Today's session structure\nDecided before this turn started — see Session plan guidance above for how to use it.\n\n" + sessionPlanBlock);
   }
 
   return sections.join("\n\n");
