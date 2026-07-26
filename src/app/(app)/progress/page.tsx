@@ -7,6 +7,7 @@ import { buildMonthActivity, buildRecentActivity, buildWeekActivity } from "@/li
 import { buildDailyActivityIndex } from "@/lib/content/daily-activity";
 import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
 import { buildTutoNote } from "@/lib/tuto/messages";
+import { createLearnerRepository } from "@/ai/data";
 import { ProgressView } from "@/components/progress/ProgressView";
 import { buildMetadata } from "@/lib/seo/metadata";
 
@@ -27,12 +28,13 @@ export default async function ProgressPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("streak, longest_streak, level, xp, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed")
-      .eq("user_id", user.id)
-      .single(),
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }] = await Promise.all([
+    supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed").eq("user_id", user.id).single(),
+    // streak/xp/longestStreak come from LearnerRepository (src/ai/data,
+    // frozen) — the same repository Tuto's own system prompt reads
+    // (ai-service.ts's resolveMemory()) and the Dashboard now reads too, so
+    // Progress can never independently drift on what these numbers mean.
+    createLearnerRepository(supabase, user.id).getProfile(),
     getPublishedPodcasts(supabase),
     getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
@@ -51,8 +53,8 @@ export default async function ProgressPage() {
   const weekStart = startOfWeek(new Date());
   const completedThisWeek = completedRows.filter((row) => new Date(row.updated_at) >= weekStart).length;
 
-  const streak = profile?.streak ?? 0;
-  const longestStreak = Math.max(streak, profile?.longest_streak ?? 0);
+  const streak = learnerProfile.streak ?? 0;
+  const longestStreak = Math.max(streak, learnerProfile.studyConsistency?.longestStreak ?? 0);
   const level = profile?.level ?? 1;
 
   const now = new Date().getTime();
@@ -86,7 +88,7 @@ export default async function ProgressPage() {
       streak={streak}
       longestStreak={longestStreak}
       level={level}
-      xp={profile?.xp ?? 0}
+      xp={learnerProfile.xp ?? 0}
       xpToNext={profile?.xp_to_next ?? 300}
       weeklyMinutes={weeklyMinutes}
       weeklyGoalMinutes={weeklyGoalMinutes}

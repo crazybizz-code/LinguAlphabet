@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
+import { createLearnerRepository } from "@/ai/data";
 import { ExploreView } from "@/components/explore/ExploreView";
 import { buildMetadata } from "@/lib/seo/metadata";
 
@@ -23,8 +24,13 @@ export default async function ExplorePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, podcasts, articles, { data: progressRows }] = await Promise.all([
-    supabase.from("profiles").select("english_level, goal, interests, onboarding_completed").eq("user_id", user.id).single(),
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }] = await Promise.all([
+    supabase.from("profiles").select("interests, onboarding_completed").eq("user_id", user.id).single(),
+    // Level/goal come from LearnerRepository (src/ai/data, frozen) — the
+    // same repository Tuto's system prompt and the Dashboard both read, so
+    // Explore's ranking can never independently drift on what "the
+    // learner's current level" means.
+    createLearnerRepository(supabase, user.id).getProfile(),
     getPublishedPodcasts(supabase),
     getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
@@ -43,12 +49,11 @@ export default async function ExplorePage() {
     })
     .filter((completion): completion is RecentCompletion => completion !== null);
 
-  const baseLevel = (profile?.english_level as LearnerContext["englishLevel"]) ?? null;
-  const effectiveLevel = learningBrain.getEffectiveLevel(baseLevel, recentCompletions);
+  const effectiveLevel = learningBrain.getEffectiveLevel(learnerProfile.cefrLevel, recentCompletions);
 
   const context: LearnerContext = {
     englishLevel: effectiveLevel,
-    goal: profile?.goal ?? null,
+    goal: learnerProfile.learningGoal,
     interests: profile?.interests ?? [],
     completedContentIds: new Set(completedRows.map((row) => row.content_item_id)),
     // Explore isn't mission-scoped, so the variety bonus term is a no-op here.
