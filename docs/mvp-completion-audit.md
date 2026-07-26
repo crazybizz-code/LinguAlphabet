@@ -116,7 +116,21 @@ experiences.
 
 ### P0.3 — The Dashboard's recommendation engine and Tuto's conversational AI never talk to each other
 
-**Why it matters:** This is the product-level version of "does this feel
+**Status: resolved for the load-bearing half.** Dashboard, Explore,
+Progress, and Profile were independently re-querying `profiles` for
+level/goal/streak/xp/longestStreak instead of reusing `LearnerRepository`
+(the same repository Tuto's own system prompt reads) — real drift risk
+(Dashboard's `english_level` was an unvalidated cast; streak defaults were
+inconsistent across pages). All four now call the identical
+`createLearnerRepository(...).getProfile()` Tuto uses — one source of
+truth for basic learner state across every surface, fixed and verified
+(tsc/eslint/vitest/build). The weak-topic → content-ranking idea below
+was descoped to P1.7 — a real product decision, not a bug: content items
+are tagged by subject (Technology/Business), weak topics are grammar
+structures (past-simple, reported-speech), and bridging the two needs new
+content tagging, out of scope for "reuse only, no new abstractions."
+
+**Why it mattered:** This is the product-level version of "does this feel
 like one coach or five disconnected systems." A learner who tells Tuto in
 chat "I keep messing up past tense" (already captured as a real,
 persisted signal — see below) will have that completely ignored by
@@ -344,6 +358,37 @@ code around).
 
 **Dependencies:** `src/lib/vocabulary/lookup.ts` (already built, reuse
 only).
+
+---
+
+### P1.7 — Content recommendations don't reflect grammar/vocab weak spots
+
+**Why it matters:** A learner who does badly on the same grammar point
+across quizzes gets no different Explore/Home ranking tomorrow — the
+adaptive half of "Tuto knows what you need" is still missing, even though
+the data (`LearnerState.weakGrammarTopics`/`weakVocabularyAreas`) is real
+and already flows into Tuto's chat via Coach Planner.
+
+**Current gap:** `src/lib/learning-brain/scoring.ts`'s `scoreContent()`
+has no signal for "does this content help with the learner's weak
+topics" — content items are tagged by subject (Technology/Business/...,
+`CONTROLLED_TOPICS`), while grammar mastery is tracked by grammar
+structure (past-simple, reported-speech, ...); the two taxonomies don't
+overlap today. The closest existing bridge is `grammarTopic` on individual
+*quiz questions* (`src/types/content.ts`), not on content items themselves.
+
+**Smallest implementation:** Requires a real (if small) product decision
+before an implementation, not just wiring: either (a) derive a
+content-item-level `grammarTopics` aggregate from its quiz's per-question
+`grammarTopic` tags at query time and add a scoring term keyed off it, or
+(b) tag content items with grammar focus at ingestion time
+(`src/lib/content-engine/ai-processing.ts`) the same way `topics` are
+already assigned. Deliberately not attempted as part of the P0 pass — it's
+new tagging/data-shape work, not a reuse of an existing capability.
+
+**Estimated effort:** Medium (2-4 days once the tagging approach is chosen).
+
+**Dependencies:** A product decision on (a) vs (b) above; `LearnerState.weakGrammarTopics`/`weakVocabularyAreas` (already real, frozen, reuse only).
 
 ---
 
