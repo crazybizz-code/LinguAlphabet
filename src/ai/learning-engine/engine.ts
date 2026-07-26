@@ -1,4 +1,4 @@
-import type { LearningSignal } from "@/ai/data";
+import type { LearningSignal, SignalSkill } from "@/ai/data";
 import type { LearnerState, TopicMasteryRecord, LearnerMomentum, LearnerStateOpenQuestion, MasteryStatus } from "./types";
 
 /** How many recent topics to surface — a summary, not a full history dump. */
@@ -84,44 +84,90 @@ function computeVocabularyMastery(signals: LearningSignal[], now: Date): TopicMa
 }
 
 /**
- * Reads quiz_answer_recorded — per-question, topic-tagged quiz evidence
- * (docs/learning-signal-specification.md's Tier 1 proposal). Nothing
- * emits this signal yet (QuizStep only reports an aggregate score
- * today), so this deterministically returns [] in production right now
- * — the correct, honest result of an aggregation with no matching
- * evidence, not a bug. The logic itself is written and ready for the
- * moment that evidence starts flowing.
+ * Scores one topic's worth of same-skill quiz answers into a single
+ * mastery record — the correctness-streak rule, extracted so it's
+ * applied identically no matter which skill the evidence declares.
+ * `topicAnswers` must already be sorted most-recent-first and must
+ * already be pre-filtered to one skill (see computeQuizAnswerMastery,
+ * the only caller) — this function trusts that and does no filtering of
+ * its own, on purpose: mixing filtering and scoring in one place is
+ * exactly how the skill-blindness bug happened.
  */
-function computeGrammarMastery(signals: LearningSignal[], now: Date): TopicMasteryRecord[] {
-  const answers = signals.filter((signal) => signal.type === "quiz_answer_recorded");
-  const byTopic = groupByTopic(answers);
-
-  const records: TopicMasteryRecord[] = [];
-  for (const [topic, topicAnswers] of byTopic) {
-    // topicAnswers is already sorted most-recent-first (inherited from computeLearnerState's sort).
-    let consecutiveCorrect = 0;
-    for (const answer of topicAnswers) {
-      if ((answer.evidence as { correct?: unknown }).correct === true) consecutiveCorrect += 1;
-      else break;
-    }
-    const incorrectCount = topicAnswers.filter((answer) => (answer.evidence as { correct?: unknown }).correct === false).length;
-
-    let status: MasteryStatus;
-    if (consecutiveCorrect >= GRAMMAR_MASTERY_STREAK) status = "mastered";
-    else if (consecutiveCorrect === 0 && incorrectCount >= GRAMMAR_WEAK_THRESHOLD) status = "weak";
-    else status = "developing";
-
-    const lastEvidenceAt = new Date(topicAnswers[0].createdAt);
-    records.push({
-      topic,
-      skill: "grammar",
-      status,
-      confidence: computeConfidence(topicAnswers.length, lastEvidenceAt, now),
-      evidenceCount: topicAnswers.length,
-      lastEvidenceAt: lastEvidenceAt.toISOString(),
-    });
+function scoreQuizAnswerTopic(topic: string, skill: SignalSkill, topicAnswers: LearningSignal[], now: Date): TopicMasteryRecord {
+  let consecutiveCorrect = 0;
+  for (const answer of topicAnswers) {
+    if ((answer.evidence as { correct?: unknown }).correct === true) consecutiveCorrect += 1;
+    else break;
   }
-  return records;
+  const incorrectCount = topicAnswers.filter((answer) => (answer.evidence as { correct?: unknown }).correct === false).length;
+
+  let status: MasteryStatus;
+  if (consecutiveCorrect >= GRAMMAR_MASTERY_STREAK) status = "mastered";
+  else if (consecutiveCorrect === 0 && incorrectCount >= GRAMMAR_WEAK_THRESHOLD) status = "weak";
+  else status = "developing";
+
+  const lastEvidenceAt = new Date(topicAnswers[0].createdAt);
+  return {
+    topic,
+    skill,
+    status,
+    confidence: computeConfidence(topicAnswers.length, lastEvidenceAt, now),
+    evidenceCount: topicAnswers.length,
+    lastEvidenceAt: lastEvidenceAt.toISOString(),
+  };
+}
+
+/**
+ * Reads quiz_answer_recorded — per-question, topic-tagged quiz evidence
+ * (docs/learning-signal-specification.md) — and derives mastery
+ * separately per the skill each answer actually declares, returned as a
+ * `Map<skill, records>` rather than a single flat list. This is the
+ * correctness fix for the bug reported after Phase 5 shipped real quiz
+ * evidence: the previous version filtered only by
+ * `type === "quiz_answer_recorded"` and hardcoded every resulting record
+ * to `skill: "grammar"`, so a vocabulary-tagged (or any other
+ * non-grammar-tagged) quiz answer was silently mislabeled and folded
+ * into grammar mastery instead of its own skill's bucket. That happened
+ * because filtering (which signals count) and labeling (what skill to
+ * stamp on the output) were two different steps that disagreed with each
+ * other — the filter accepted every skill, the labeling assumed only one.
+ *
+ * The fix removes the possibility of that disagreement structurally
+ * rather than special-casing it: signals are grouped by their own
+ * declared `skill` FIRST, before any topic grouping or scoring happens,
+ * and the skill stamped on each output record is always read back from
+ * that same grouping key — it can never be a literal hardcoded elsewhere
+ * in the function. A signal with `skill: null` is excluded (there's
+ * nothing to route it to), never defaulted to a guessed skill. This is
+ * also what makes a future skill (e.g. "listening", once a question is
+ * ever tagged with one) work automatically: `bySkill` is built from
+ * whatever skills actually appear in the evidence, never a hardcoded
+ * list of the two skills that happen to exist today, so supporting a new
+ * skill category requires zero changes to this function.
+ */
+function computeQuizAnswerMastery(signals: LearningSignal[], now: Date): Map<SignalSkill, TopicMasteryRecord[]> {
+  const answers = signals.filter(
+    (signal): signal is LearningSignal & { skill: SignalSkill } => signal.type === "quiz_answer_recorded" && signal.skill !== null,
+  );
+
+  const bySkill = new Map<SignalSkill, LearningSignal[]>();
+  for (const answer of answers) {
+    const existing = bySkill.get(answer.skill);
+    if (existing) existing.push(answer);
+    else bySkill.set(answer.skill, [answer]);
+  }
+
+  const result = new Map<SignalSkill, TopicMasteryRecord[]>();
+  for (const [skill, skillAnswers] of bySkill) {
+    const byTopic = groupByTopic(skillAnswers);
+    const records: TopicMasteryRecord[] = [];
+    for (const [topic, topicAnswers] of byTopic) {
+      // topicAnswers is already sorted most-recent-first (inherited from computeLearnerState's sort).
+      records.push(scoreQuizAnswerTopic(topic, skill, topicAnswers, now));
+    }
+    result.set(skill, records);
+  }
+  return result;
 }
 
 /** Raw Tier 1 evidence of engagement, not a mastery judgment — what topics the learner has actually touched recently. */
@@ -183,7 +229,7 @@ function computeOpenQuestions(signals: LearningSignal[]): LearnerStateOpenQuesti
       topic: null,
       question: "Which grammar topics has the learner mastered, and which need reinforcement?",
       reason:
-        "No quiz_answer_recorded signals exist yet — QuizStep only reports an aggregate score today (quiz_completed), not a per-question, topic-tagged result. The deterministic derivation is fully specified and implemented (see computeGrammarMastery); it has no evidence to run on. This is a data-instrumentation gap, not a deterministic-reasoning gap.",
+        "No quiz_answer_recorded signals exist yet — QuizStep only reports an aggregate score today (quiz_completed), not a per-question, topic-tagged result. The deterministic derivation is fully specified and implemented (see computeQuizAnswerMastery); it has no evidence to run on. This is a data-instrumentation gap, not a deterministic-reasoning gap.",
     });
   }
 
@@ -219,9 +265,32 @@ export function computeLearnerState(learnerId: string, rawSignals: LearningSigna
   const now = new Date();
   const signals = [...rawSignals].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const grammarMastery = computeGrammarMastery(signals, now);
-  const vocabularyMastery = computeVocabularyMastery(signals, now);
-  const topicMastery = [...grammarMastery, ...vocabularyMastery];
+  // Every quiz_answer_recorded signal is routed to mastery scoring under
+  // its OWN declared skill — never assumed, never hardcoded (see
+  // computeQuizAnswerMastery's doc comment for the bug this replaced).
+  const quizMasteryBySkill = computeQuizAnswerMastery(signals, now);
+  const vocabularyFromRepetition = computeVocabularyMastery(signals, now);
+
+  const grammarMastery = quizMasteryBySkill.get("grammar") ?? [];
+  // Vocabulary mastery has two independent evidence sources today — quiz
+  // answers tagged vocabularyWord, and view/save repetition — kept as two
+  // separate derivations (different rules, different evidence) and
+  // simply concatenated here, never merged into one reconciled-per-topic
+  // record: reconciling two different kinds of evidence into a single
+  // confidence score is a real design decision nobody has made yet, not
+  // something this bug fix should decide as a side effect.
+  const vocabularyMastery = [...vocabularyFromRepetition, ...(quizMasteryBySkill.get("vocabulary") ?? [])];
+
+  // topicMastery is the extensible superset every named field is a
+  // filtered view over (see types.ts's doc comment): every skill group
+  // quiz evidence actually produced, whatever skill it is — not just
+  // grammar and vocabulary — plus the view/save-derived vocabulary
+  // records. A future skill (e.g. "listening", once a question is ever
+  // tagged with one) appears here automatically with zero changes to
+  // this function; it just won't have its own named convenience field
+  // until one is deliberately added, same as grammarMastery/
+  // vocabularyMastery were.
+  const topicMastery = [...Array.from(quizMasteryBySkill.values()).flat(), ...vocabularyFromRepetition];
 
   return {
     learnerId,
