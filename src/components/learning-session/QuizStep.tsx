@@ -6,6 +6,7 @@ import { ArrowRight, Check, X } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { SESSION_STEP_CONTAINER, SESSION_STEP_CONTENT } from "./sessionStepLayout";
 import type { LearningSessionContent } from "@/lib/learning-session/types";
+import { recordQuizAnswer } from "@/lib/learning-session/record-quiz-answer";
 
 export function QuizStep({
   content,
@@ -30,6 +31,18 @@ export function QuizStep({
     setSelected(optionIndex);
     setAnswered(true);
     if (optionIndex === question.correct) setScore((value) => value + 1);
+
+    // Phase 5: every answered question emits exactly one quiz_answer_recorded
+    // signal — raw evidence, never a conclusion (docs/learning-signal-specification.md).
+    // Best-effort by design; recordQuizAnswer never throws.
+    void recordQuizAnswer({
+      quizId: content.contentId,
+      contentId: content.contentId,
+      contentType: content.contentType === "podcast" ? "podcast" : "article",
+      question,
+      questionIndex: index,
+      chosenOptionIndex: optionIndex,
+    });
   }
 
   function handleContinue() {

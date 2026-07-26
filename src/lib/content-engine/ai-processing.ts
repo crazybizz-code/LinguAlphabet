@@ -55,6 +55,8 @@ const RESPONSE_SCHEMA = {
           options: { type: "ARRAY", items: { type: "STRING" } },
           correct: { type: "NUMBER" },
           explanation: { type: "STRING" },
+          grammarTopic: { type: "STRING" },
+          vocabularyWord: { type: "STRING" },
         },
         required: ["type", "question", "options", "correct", "explanation"],
       },
@@ -77,7 +79,7 @@ Return a JSON object with:
 - topics: 1-3 topics that best describe this content, chosen ONLY from this exact list, verbatim: ${CONTROLLED_TOPICS.join(", ")}. Never invent a topic outside this list — if nothing fits well, return an empty array.
 - summary: a 2-3 sentence plain-English recap of what this content teaches or covers.
 - vocabulary: 5-8 key words or phrases from the content genuinely useful for an English learner, each with word, pos (part of speech), definition (simple, plain-language), example (a natural sentence using it, different from the source), translation (Uzbek translation), and phonetic (IPA, omit if uncertain).
-- quiz: 3-4 multiple-choice comprehension/vocabulary questions, each with type ("mc"), question, options (4 plausible choices), correct (the 0-based index of the right option), and explanation (why that answer is correct).
+- quiz: 3-4 multiple-choice comprehension/vocabulary questions, each with type ("mc"), question, options (4 plausible choices), correct (the 0-based index of the right option), explanation (why that answer is correct), grammarTopic (a short, specific grammar-unit label like "present-perfect" or "reported-speech" ONLY if this question specifically tests that grammar point — omit or leave empty for a plain comprehension question, most will not have one), and vocabularyWord (the exact word from the vocabulary list above this question tests, ONLY if it's a vocabulary question — omit otherwise).
 - takeaways: 2-4 short bullet-point key takeaways from the content.
 - reflection: one open-ended, low-pressure reflection prompt inviting the learner to relate the content to their own experience — never a test question.`;
 }
@@ -101,8 +103,16 @@ function isQuizQuestion(value: unknown): value is QuizQuestion {
     Array.isArray(question.options) &&
     question.options.every((option) => typeof option === "string") &&
     typeof question.correct === "number" &&
-    typeof question.explanation === "string"
+    typeof question.explanation === "string" &&
+    (question.grammarTopic === undefined || typeof question.grammarTopic === "string") &&
+    (question.vocabularyWord === undefined || typeof question.vocabularyWord === "string")
   );
+}
+
+/** Empty/whitespace-only counts as "not tagged" — Gemini sometimes returns "" instead of omitting the field. */
+function normalizeTag(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
 }
 
 /** Generates the universal enrichment attachments for any content type from its raw title + body text. */
@@ -152,12 +162,17 @@ export async function generateEnrichment(title: string, body: string): Promise<E
       definition: entry.definition,
       example: entry.example,
     })),
-    quiz: result.quiz.map((question) => ({
+    quiz: result.quiz.map((question, index) => ({
+      // Assigned deterministically, never trusted from the model — id
+      // uniqueness/stability shouldn't depend on Gemini getting it right.
+      id: `q${index + 1}`,
       type: "mc",
       question: question.question,
       options: question.options,
       correct: question.correct,
       explanation: question.explanation,
+      grammarTopic: normalizeTag(question.grammarTopic),
+      vocabularyWord: normalizeTag(question.vocabularyWord),
     })),
     takeaways: result.takeaways,
     reflection: result.reflection,

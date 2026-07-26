@@ -31,6 +31,12 @@ export interface QuizQuestion {
   options: string[];
   correct: number;
   explanation: string;
+  /** Stable per-question identifier (Phase 5 — evidence traceability). Optional: quiz content ingested before this phase doesn't have one; QuizStep falls back to a contentId+index derivation for that case. */
+  id?: string;
+  /** Which grammar unit this question specifically tests, if any — set at ingestion (src/lib/content-engine/ai-processing.ts). Null/absent for a pure comprehension question. */
+  grammarTopic?: string | null;
+  /** Which vocabulary word this question specifically tests, if any. */
+  vocabularyWord?: string | null;
 }
 
 /** The universal content_items row, narrowed to what the UI needs. */

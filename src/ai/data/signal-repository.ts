@@ -58,6 +58,38 @@ export type SignalType = (typeof SIGNAL_TYPES)[number];
 export type SignalSkill = "grammar" | "vocabulary" | "listening" | "reading" | "speaking" | "writing";
 export type SignalSource = "content_session" | "vocabulary_lookup" | "chat";
 
+/**
+ * The structured shape every quiz_answer_recorded signal's `evidence`
+ * field follows (Phase 5 — docs/learning-signal-specification.md).
+ * Documented as a type even though `evidence` itself stays a loose
+ * `Record<string, unknown>` at the LearningSignal level, so every reader
+ * (src/lib/learning-session/record-quiz-answer.ts writing it,
+ * src/ai/learning-engine/engine.ts's computeGrammarMastery reading it)
+ * can cast to something concrete instead of guessing field names.
+ *
+ * `learnerId` and `timestamp` are deliberately redundant with the row's
+ * own `user_id` column and `created_at` timestamp — not an oversight.
+ * Evidence should be self-describing on its own if it's ever inspected
+ * or exported outside the row it lives in; a mismatch between the two
+ * would itself be a signal something went wrong. `quizId` equals
+ * `contentId` under today's data model (a quiz isn't its own entity —
+ * docs/domain-model.md's "universal enrichment attachments" — it's an
+ * attachment on the article/podcast content item), kept as a separate
+ * field for fidelity to the spec and in case that ever changes.
+ */
+export interface QuizAnswerEvidence {
+  questionId: string;
+  quizId: string;
+  learnerId: string;
+  contentId: string;
+  grammarTopic: string | null;
+  vocabularyWord: string | null;
+  correct: boolean;
+  chosenAnswer: string;
+  correctAnswer: string;
+  timestamp: string;
+}
+
 export interface LearningSignal {
   type: SignalType;
   topic: string | null;

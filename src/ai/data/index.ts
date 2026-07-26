@@ -32,7 +32,7 @@ export { createContentRepository } from "./content-repository";
 export type { ConversationRepository, ConversationMemory, ConversationMemoryMessage, ConversationCurrentContent } from "./conversation-repository";
 export { createConversationRepository, MAX_REMEMBERED_MESSAGES } from "./conversation-repository";
 
-export type { SignalRepository, LearningSignal, SignalType, SignalSkill, SignalSource, ListRecentSignalsOptions } from "./signal-repository";
+export type { SignalRepository, LearningSignal, SignalType, SignalSkill, SignalSource, ListRecentSignalsOptions, QuizAnswerEvidence } from "./signal-repository";
 export { createSignalRepository, SIGNAL_TYPES } from "./signal-repository";
 
 export type { LearnerRepository } from "./learner-repository";
