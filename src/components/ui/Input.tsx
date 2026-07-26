@@ -89,7 +89,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              "h-full flex-1 bg-transparent text-body text-text-primary outline-none",
+              // text-text-primary (color) before text-body (font-size):
+              // tailwind-merge's stock config doesn't know this project's
+              // custom --text-* font-size scale (design-system.md's Body =
+              // 16-17px), so it treats text-body as conflicting with any
+              // text-{color} utility and silently drops whichever one comes
+              // first. Every input was rendering at the body element's 14px
+              // base-reset font-size instead of 16px — below Safari's
+              // auto-zoom-on-focus threshold (docs/ux-launch-audit.md P0).
+              // text-body still comes before `className` so a caller that
+              // needs a different size (e.g. /name's `text-lg`) still wins.
+              "h-full flex-1 bg-transparent text-text-primary text-body outline-none",
               "placeholder:text-text-tertiary",
               className,
             )}
