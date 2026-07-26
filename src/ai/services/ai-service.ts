@@ -102,6 +102,36 @@ async function persistConversationMemory(input: GenerateResponseInput, learningC
 }
 
 /**
+ * Records the objective "the learner asked Tuto to explain/produce
+ * something" event (Phase 3) — every generateStructuredResponse() call
+ * (vocabulary explanation, article summary/discussion/comprehension
+ * questions) mechanically *is* this, no model judgment required: the
+ * evidence is that this code path ran, not an inference about the
+ * learner's state. Never allowed to fail the actual response — a signal
+ * write is bookkeeping, not part of the contract this function promises
+ * its caller.
+ */
+async function recordExplanationRequested(input: GenerateResponseInput, learningContext: LearningContext, responseFormatName: string): Promise<void> {
+  if (!input.dependencies) return;
+
+  const topic = learningContext.selectedWord ?? learningContext.currentArticle?.title ?? null;
+  const skill = learningContext.selectedWord ? "vocabulary" : learningContext.currentArticle ? "reading" : null;
+
+  try {
+    await input.dependencies.signalRepository.record({
+      type: "explanation_requested",
+      topic,
+      skill,
+      evidence: { responseFormatName },
+      source: "chat",
+      confidence: null,
+    });
+  } catch {
+    // Signal logging is best-effort — never let it surface as a failure of the actual AI response.
+  }
+}
+
+/**
  * The single entry point for talking to an AI provider (Sprint 1, Phase 6;
  * tool-calling added in Sprint 3; Learner/Conversation Memory added in
  * Phase 2). Nothing outside src/ai — not a Client Component, not another
@@ -197,6 +227,8 @@ export async function generateStructuredResponse<T>(input: GenerateStructuredRes
   if (!result.success) {
     throw new AIProviderError(`The AI's structured response didn't match the expected shape: ${result.error.message}`, 502, true);
   }
+
+  await recordExplanationRequested(input, learningContext, input.responseFormatName);
 
   return result.data;
 }

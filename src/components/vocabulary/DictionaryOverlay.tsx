@@ -10,7 +10,7 @@ import { useTutoChat } from "@/hooks/useTutoChat";
 import { askVocabulary, type VocabularyExplanation } from "@/lib/tuto-chat/askVocabulary";
 import { summarizeVocabularyForHistory } from "@/lib/tuto-chat/summarizeVocabulary";
 import type { TutoContextInput } from "@/lib/tuto-chat/types";
-import { saveVocabularyWord } from "@/lib/vocabulary/actions";
+import { saveVocabularyWord, recordVocabularyViewed } from "@/lib/vocabulary/actions";
 import { lookupWord } from "@/lib/vocabulary/lookup";
 import type { VocabularyEntry } from "@/types/content";
 
@@ -121,6 +121,17 @@ export function DictionaryOverlay({
       cancelled = true;
     };
   }, [isLookingUp, word, context, normalizedWord]);
+
+  // Phase 3 signal: viewing intent is real the moment the overlay opens for
+  // a word, independent of whether a definition is found — fires once per
+  // distinct word, not on every re-render, and covers both the curated
+  // (no network) and live-lookup paths from one place. Best-effort by
+  // design (recordVocabularyViewed swallows its own errors) — never worth
+  // surfacing a failure to the learner over a missed signal.
+  useEffect(() => {
+    if (!open || !word) return;
+    void recordVocabularyViewed({ word, sourceContentId });
+  }, [open, word, sourceContentId]);
 
   function retryLookup() {
     setCache((prev) => {

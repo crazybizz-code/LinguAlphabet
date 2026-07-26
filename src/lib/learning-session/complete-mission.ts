@@ -1,6 +1,9 @@
 "use server";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 import { createClient } from "@/lib/supabase/server";
+import { createSignalRepository, type LearningSignal } from "@/ai/data";
 import { applyXp, computeXpEarned } from "./xp";
 import { applyStreak } from "./streak";
 
@@ -32,6 +35,51 @@ function deriveStreakStatus(params: { previousStreak: number; newStreak: number;
 }
 
 /**
+ * Objective, evidence-based signals (Phase 3): a session genuinely
+ * finishing, and — when a quiz ran — the real score, are exactly the kind
+ * of mechanical fact this phase's signal taxonomy is for. `confidence` is
+ * null on every one of these: they're facts, not estimates. Best-effort —
+ * a signal-write failure must never turn a real completion into a
+ * reported failure for the learner.
+ */
+async function recordCompletionSignals(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  params: { contentId: string; contentType: "article" | "podcast"; estimatedMinutes: number; correctAnswers: number; quizTotal: number },
+): Promise<void> {
+  const signalRepository = createSignalRepository(supabase, userId);
+  const completionEvidence = { contentId: params.contentId, estimatedMinutes: params.estimatedMinutes };
+
+  const signals: LearningSignal[] = [
+    {
+      type: params.contentType === "podcast" ? "podcast_completed" : "article_completed",
+      topic: null,
+      skill: params.contentType === "podcast" ? "listening" : "reading",
+      evidence: completionEvidence,
+      source: "content_session",
+      confidence: null,
+    },
+  ];
+
+  if (params.quizTotal > 0) {
+    signals.push({
+      type: "quiz_completed",
+      topic: null,
+      skill: null,
+      evidence: { contentId: params.contentId, correctAnswers: params.correctAnswers, quizTotal: params.quizTotal },
+      source: "content_session",
+      confidence: null,
+    });
+  }
+
+  try {
+    await Promise.all(signals.map((signal) => signalRepository.record(signal)));
+  } catch {
+    // Best-effort — see doc comment above.
+  }
+}
+
+/**
  * The one write path for "a learner finished a Learning Session" —
  * content-type agnostic (just a contentId + minutes + optional quiz
  * result), so a future Article/Story/Video session calls this exact same
@@ -45,9 +93,18 @@ function deriveStreakStatus(params: { previousStreak: number; newStreak: number;
  * (supabase/daily-activity-schema.sql) so the Learning Calendar's Daily
  * Activity panel can show real per-completion numbers instead of recomputing
  * or guessing them later.
+ *
+ * Also the one place article_completed/podcast_completed/quiz_completed
+ * signals (Phase 3 — docs/ai-coach-audit.md) get recorded: this action
+ * already has the real evidence (which content, whether a quiz ran, the
+ * actual score) the moment a session genuinely finishes, so no separate
+ * instrumentation is needed. `contentType` is required only to label
+ * which completion signal to write — everything else about the function
+ * is unchanged.
  */
 export async function completeMission(params: {
   contentId: string;
+  contentType: "article" | "podcast";
   estimatedMinutes: number;
   correctAnswers: number;
   quizTotal: number;
@@ -124,6 +181,8 @@ export async function completeMission(params: {
       })
       .eq("user_id", user.id),
   ]);
+
+  await recordCompletionSignals(supabase, user.id, params);
 
   return {
     xpEarned,

@@ -78,6 +78,7 @@ export function LearningSessionView({
     startTransition(async () => {
       const params = {
         contentId: content.contentId,
+        contentType: content.contentType === "podcast" ? ("podcast" as const) : ("article" as const),
         estimatedMinutes: content.estimatedMinutes,
         correctAnswers: quizScore,
         quizTotal: content.quiz.length,
