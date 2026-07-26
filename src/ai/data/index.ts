@@ -29,8 +29,8 @@
 export type { ContentRepository, AIArticleSummary, AIPodcastSummary, AITranscriptSegment, AIQuiz, AIQuizQuestion, AIAvailableContentSummary } from "./content-repository";
 export { createContentRepository } from "./content-repository";
 
-export type { ConversationRepository, ConversationMemory, ConversationMemoryMessage, ConversationCurrentContent } from "./conversation-repository";
-export { createConversationRepository, MAX_REMEMBERED_MESSAGES } from "./conversation-repository";
+export type { ConversationRepository, ConversationMemory, ConversationMemoryMessage, ConversationCurrentContent, OrchestratorRuntimeState } from "./conversation-repository";
+export { createConversationRepository, MAX_REMEMBERED_MESSAGES, INITIAL_ORCHESTRATOR_STATE } from "./conversation-repository";
 
 export type { SignalRepository, LearningSignal, SignalType, SignalSkill, SignalSource, ListRecentSignalsOptions, QuizAnswerEvidence } from "./signal-repository";
 export { createSignalRepository, SIGNAL_TYPES } from "./signal-repository";

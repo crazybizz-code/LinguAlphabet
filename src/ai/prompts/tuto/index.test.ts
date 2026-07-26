@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { buildTutoSystemPrompt } from "./index";
 import { planLearningSession } from "@/ai/learning-session-engine";
+import { orchestrateSession } from "@/ai/learning-orchestrator";
+import { INITIAL_ORCHESTRATOR_STATE } from "@/ai/data";
 import type { TeachingPlan } from "@/ai/coach-planner";
 import type { LearnerState } from "@/ai/learning-engine";
 import { buildLearningContext } from "@/ai/context";
@@ -49,5 +51,24 @@ describe("buildTutoSystemPrompt — Learning Session Plan wiring (Phase 6)", () 
     expect(prompt).not.toContain("# Today's session structure");
     // Guidance section is always present (static instructions), only the rendered data block is conditional.
     expect(prompt).toContain("# Session plan guidance");
+  });
+});
+
+describe("buildTutoSystemPrompt — Orchestrator decision wiring (Phase 7)", () => {
+  it("includes the live decision section when an orchestratorDecision is supplied", () => {
+    const learningContext = buildLearningContext({ userLevel: "B1" });
+    const sessionPlan = planLearningSession({ teachingPlan, learnerState, learningContext });
+    const decision = orchestrateSession({ sessionPlan, state: INITIAL_ORCHESTRATOR_STATE, conversation: [] });
+
+    const prompt = buildTutoSystemPrompt({ learningContext, teachingPlan, learnerState, sessionPlan, orchestratorDecision: decision });
+
+    expect(prompt).toContain("# Orchestrator decision guidance");
+    expect(prompt).toContain("# Right now, in this turn");
+  });
+
+  it("omits the live decision section entirely when no orchestratorDecision is supplied", () => {
+    const prompt = buildTutoSystemPrompt({ learningContext: buildLearningContext({}) });
+    expect(prompt).not.toContain("# Right now, in this turn");
+    expect(prompt).toContain("# Orchestrator decision guidance");
   });
 });

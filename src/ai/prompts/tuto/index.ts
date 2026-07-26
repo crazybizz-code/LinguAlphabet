@@ -4,6 +4,7 @@ import type { ConversationMemory } from "@/ai/data";
 import type { LearnerState } from "@/ai/learning-engine";
 import type { TeachingPlan } from "@/ai/coach-planner";
 import type { LearningSessionPlan } from "@/ai/learning-session-engine";
+import type { OrchestratorDecision } from "@/ai/learning-orchestrator";
 import {
   PERSONALITY,
   TEACHING_PHILOSOPHY,
@@ -13,6 +14,7 @@ import {
   KNOWLEDGE_BASE_USAGE,
   TEACHING_PLAN_USAGE,
   SESSION_PLAN_USAGE,
+  ORCHESTRATOR_DECISION_USAGE,
   GRAMMAR_CORRECTION_STYLE,
   ENCOURAGEMENT_STYLE,
   FOLLOW_UP_LEARNING,
@@ -27,6 +29,7 @@ import { buildConversationMemoryBlock } from "./conversation-memory-block";
 import { buildLearnerStateBlock } from "./learner-state-block";
 import { buildTeachingPlanBlock } from "./teaching-plan-block";
 import { buildSessionPlanBlock } from "./session-plan-block";
+import { buildOrchestratorDecisionBlock } from "./orchestrator-decision-block";
 
 export interface TutoPromptInput {
   learningContext?: LearningContext | null;
@@ -40,6 +43,8 @@ export interface TutoPromptInput {
   teachingPlan?: TeachingPlan | null;
   /** The Learning Session Engine's structure (src/ai/learning-session-engine) — see session-plan-block.ts and SESSION_PLAN_USAGE. The model enacts this flow/pacing, it never invents its own session structure when one is present. */
   sessionPlan?: LearningSessionPlan | null;
+  /** The Learning Orchestrator's live, turn-by-turn decision (src/ai/learning-orchestrator) — see orchestrator-decision-block.ts and ORCHESTRATOR_DECISION_USAGE. More specific and more current than sessionPlan: what to do on THIS turn, not what today's lesson looks like overall. */
+  orchestratorDecision?: OrchestratorDecision | null;
 }
 
 /**
@@ -76,6 +81,8 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
     TEACHING_PLAN_USAGE,
     "# Session plan guidance",
     SESSION_PLAN_USAGE,
+    "# Orchestrator decision guidance",
+    ORCHESTRATOR_DECISION_USAGE,
     "# Grammar correction style",
     GRAMMAR_CORRECTION_STYLE,
     "# Encouragement style",
@@ -132,6 +139,11 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
   const sessionPlanBlock = buildSessionPlanBlock(input.sessionPlan);
   if (sessionPlanBlock) {
     sections.push("# Today's session structure\nDecided before this turn started — see Session plan guidance above for how to use it.\n\n" + sessionPlanBlock);
+  }
+
+  const orchestratorDecisionBlock = buildOrchestratorDecisionBlock(input.orchestratorDecision);
+  if (orchestratorDecisionBlock) {
+    sections.push("# Right now, in this turn\nDecided fresh for this exact reply — see Orchestrator decision guidance above for how to use it.\n\n" + orchestratorDecisionBlock);
   }
 
   return sections.join("\n\n");

@@ -14,6 +14,9 @@ import type { TeachingPlan } from "@/ai/coach-planner";
 import { planTeaching } from "@/ai/coach-planner";
 import type { LearningSessionPlan } from "@/ai/learning-session-engine";
 import { planLearningSession } from "@/ai/learning-session-engine";
+import type { OrchestratorDecision, ConversationTurn } from "@/ai/learning-orchestrator";
+import { orchestrateSession } from "@/ai/learning-orchestrator";
+import { INITIAL_ORCHESTRATOR_STATE } from "@/ai/data";
 import { runToolLoop } from "./tool-loop";
 
 export interface GenerateResponseInput {
@@ -103,7 +106,39 @@ async function resolveTeachingPlan(input: GenerateResponseInput, learningContext
   return { learnerState, teachingPlan, sessionPlan };
 }
 
-function toProviderMessages(input: GenerateResponseInput, memory: ResolvedMemory, teaching: ResolvedTeaching = NO_TEACHING): AIProviderMessage[] {
+/**
+ * Resolves the Learning Orchestrator's live decision (Phase 7) — pure, no
+ * I/O of its own: it only needs what resolveMemory() and
+ * resolveTeachingPlan() already fetched (the session's persisted runtime
+ * state and the LearningSessionPlan/LearnerState this turn should use).
+ * Returns null exactly when there's no session to run one for (no
+ * dependencies, i.e. the same condition under which resolveTeachingPlan()
+ * returned NO_TEACHING) — a live lesson decision doesn't exist without a
+ * plan behind it. The Current Conversation the Orchestrator receives is
+ * this turn's incoming message history — the learner's latest message,
+ * not yet including the reply about to be generated for it.
+ */
+function resolveOrchestratorDecision(input: GenerateResponseInput, memory: ResolvedMemory, teaching: ResolvedTeaching): OrchestratorDecision | null {
+  if (!teaching.sessionPlan) return null;
+
+  const conversation: ConversationTurn[] = input.messages.filter(
+    (message): message is ConversationTurn => message.role === "user" || message.role === "assistant",
+  );
+
+  return orchestrateSession({
+    sessionPlan: teaching.sessionPlan,
+    state: memory.conversationMemory?.orchestratorState ?? INITIAL_ORCHESTRATOR_STATE,
+    conversation,
+    learnerState: teaching.learnerState,
+  });
+}
+
+function toProviderMessages(
+  input: GenerateResponseInput,
+  memory: ResolvedMemory,
+  teaching: ResolvedTeaching = NO_TEACHING,
+  orchestratorDecision: OrchestratorDecision | null = null,
+): AIProviderMessage[] {
   const systemPrompt = buildTutoSystemPrompt({
     learningContext: input.learningContext,
     conversationMemory: memory.conversationMemory,
@@ -111,6 +146,7 @@ function toProviderMessages(input: GenerateResponseInput, memory: ResolvedMemory
     learnerState: teaching.learnerState,
     teachingPlan: teaching.teachingPlan,
     sessionPlan: teaching.sessionPlan,
+    orchestratorDecision,
   });
 
   const history: AIProviderMessage[] = input.messages
@@ -140,8 +176,19 @@ function toToolResults(loopToolResults: Awaited<ReturnType<typeof runToolLoop>>[
  * Only called from generateResponse()/streamResponse() — a one-shot
  * generateStructuredResponse() call (vocabulary, article) reads memory
  * but never writes a new conversational turn into it, since it isn't one.
+ *
+ * Also persists the Orchestrator's nextState (Phase 7) alongside the
+ * existing fields, same reasoning as recentMessages/currentContent: this
+ * is the runtime progress through *this* conversation's live lesson, and
+ * it must be read back on the next turn or the Orchestrator would
+ * restart from step zero every reply.
  */
-async function persistConversationMemory(input: GenerateResponseInput, learningContext: LearningContext, replyContent: string): Promise<void> {
+async function persistConversationMemory(
+  input: GenerateResponseInput,
+  learningContext: LearningContext,
+  replyContent: string,
+  orchestratorDecision: OrchestratorDecision | null = null,
+): Promise<void> {
   if (!input.dependencies || !input.conversationId) return;
 
   const currentContent: ConversationMemory["currentContent"] = learningContext.currentArticle
@@ -154,7 +201,11 @@ async function persistConversationMemory(input: GenerateResponseInput, learningC
     (message): message is ConversationMemoryMessage => message.role === "user" || message.role === "assistant",
   );
 
-  await input.dependencies.conversationRepository.save(input.conversationId, { recentMessages, currentContent });
+  await input.dependencies.conversationRepository.save(input.conversationId, {
+    recentMessages,
+    currentContent,
+    orchestratorState: orchestratorDecision?.nextState ?? null,
+  });
 }
 
 /**
@@ -201,11 +252,12 @@ export async function generateResponse(input: GenerateResponseInput): Promise<As
   const provider = getDefaultProvider();
   const learningContext = input.learningContext ?? buildLearningContext();
   const [memory, teaching] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext)]);
-  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory, teaching), learningContext, {
+  const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching);
+  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision), learningContext, {
     dependencies: input.dependencies,
   });
 
-  await persistConversationMemory(input, learningContext, completion.content);
+  await persistConversationMemory(input, learningContext, completion.content, orchestratorDecision);
 
   return { role: "assistant", content: completion.content, toolResults: toToolResults(toolResults) };
 }
@@ -233,11 +285,12 @@ export async function* streamResponse(input: GenerateResponseInput): AsyncGenera
 
   const learningContext = input.learningContext ?? buildLearningContext();
   const [memory, teaching] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext)]);
-  const { completion } = await runToolLoop(provider, toProviderMessages(input, memory, teaching), learningContext, {
+  const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching);
+  const { completion } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision), learningContext, {
     dependencies: input.dependencies,
   });
 
-  await persistConversationMemory(input, learningContext, completion.content);
+  await persistConversationMemory(input, learningContext, completion.content, orchestratorDecision);
   if (completion.content) yield completion.content;
 }
 
