@@ -4,7 +4,7 @@ import { UserMessageSchema, AssistantMessageSchema } from "@/ai/schemas/messages
 import { LearningContextSchema, buildLearningContext } from "@/ai/context";
 import { streamResponse } from "@/ai/services";
 import { AIProviderError } from "@/ai/providers";
-import { createAIDependencies } from "@/ai/data";
+import { createAIDependencies, createConversationRepository } from "@/ai/data";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -27,6 +27,31 @@ const ChatRequestSchema = z.object({
 
 function sseEvent(payload: Record<string, unknown>): string {
   return `data: ${JSON.stringify(payload)}\n\n`;
+}
+
+/**
+ * Lets a chat surface (useTutoChat) hydrate its visible message list from
+ * the same ConversationMemory POST already reads/writes every turn — fixes
+ * the gap where server-side memory persisted across a refresh while every
+ * on-screen chat bubble silently reset to empty (docs/mvp-completion-audit.md
+ * P0.2). Same conversationId default as POST: the learner's own user id,
+ * so this reads back exactly the thread every existing chat entry point
+ * already shares.
+ */
+export async function GET(request: NextRequest) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ messages: [] });
+
+  const requestedConversationId = request.nextUrl.searchParams.get("conversationId");
+  const conversationId = requestedConversationId || user.id;
+
+  const conversationRepository = createConversationRepository(supabase, user.id);
+  const memory = await conversationRepository.get(conversationId);
+
+  return NextResponse.json({ messages: memory?.recentMessages ?? [] });
 }
 
 export async function POST(request: NextRequest) {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { streamChatCompletion } from "@/lib/tuto-chat/streamChatCompletion";
+import { getRecentConversation } from "@/lib/tuto-chat/getRecentConversation";
 import type { ChatMessage, TutoContextInput } from "@/lib/tuto-chat/types";
 
 export type TutoChatStatus = "idle" | "streaming" | "error";
@@ -20,18 +21,43 @@ export interface UseTutoChatOptions {
 }
 
 /**
- * Client-side conversation state for Tuto — the browser counterpart to
- * "preserve conversation history using the existing architecture": there's
- * no server-side memory (src/ai/memory is intentionally unimplemented), so
- * every turn resends the full message history so far, exactly like the
- * existing /api/ai/chat contract already expects (Sprint 1's
- * ConversationMessage[]).
+ * Client-side conversation state for Tuto: every turn resends the full
+ * message history so far, exactly like the existing /api/ai/chat contract
+ * already expects (Sprint 1's ConversationMessage[]). Real server-side
+ * memory does exist (src/ai/data's ConversationRepository, read/written on
+ * every turn) — but until this hook hydrates from it, a page refresh wiped
+ * every visible bubble while the server silently remembered everything,
+ * a mismatch a learner could actually notice (docs/mvp-completion-audit.md
+ * P0.2). The mount effect below closes that gap by reading back the same
+ * ConversationMemory the server already persists.
  */
 export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>(seedMessages ?? []);
   const [status, setStatus] = useState<TutoChatStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const hydratedRef = useRef(false);
+
+  /**
+   * Hydrates from server-persisted ConversationMemory once, on mount —
+   * never overwrites an explicit `seedMessages` (a caller priming this
+   * conversation with specific hidden context takes precedence over
+   * generic history) and never overwrites messages already in flight if
+   * the learner started typing before this resolved.
+   */
+  useEffect(() => {
+    if (seedMessages || hydratedRef.current) return;
+    hydratedRef.current = true;
+
+    let cancelled = false;
+    void getRecentConversation().then((recentMessages) => {
+      if (cancelled || recentMessages.length === 0) return;
+      setMessages((prev) => (prev.length > 0 ? prev : recentMessages.map((message) => ({ id: nextMessageId(), ...message }))));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [seedMessages]);
 
   const runTurn = useCallback(
     async (baseMessages: ChatMessage[], text: string) => {
