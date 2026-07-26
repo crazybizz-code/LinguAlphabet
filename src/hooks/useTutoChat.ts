@@ -40,6 +40,15 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
   const [lastOrchestratorAction, setLastOrchestratorAction] = useState<ChatOrchestratorAction | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const hydratedRef = useRef(false);
+  /**
+   * Shared with reset() below: an in-flight hydration fetch must never
+   * resolve into a conversation the learner has since deliberately reset
+   * (a new text selection, a fresh "ask about this article") — that would
+   * silently resurrect unrelated history into what's supposed to be a
+   * clean scoped conversation. Unmount-cleanup alone doesn't cover this,
+   * since reset() doesn't unmount the component.
+   */
+  const hydrationCancelledRef = useRef(false);
 
   /**
    * Hydrates from server-persisted ConversationMemory once, on mount —
@@ -52,13 +61,12 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
     if (seedMessages || hydratedRef.current) return;
     hydratedRef.current = true;
 
-    let cancelled = false;
     void getRecentConversation().then((recentMessages) => {
-      if (cancelled || recentMessages.length === 0) return;
+      if (hydrationCancelledRef.current || recentMessages.length === 0) return;
       setMessages((prev) => (prev.length > 0 ? prev : recentMessages.map((message) => ({ id: nextMessageId(), ...message }))));
     });
     return () => {
-      cancelled = true;
+      hydrationCancelledRef.current = true;
     };
   }, [seedMessages]);
 
@@ -147,6 +155,7 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
   );
 
   const reset = useCallback((seed: ChatMessage[] = []) => {
+    hydrationCancelledRef.current = true;
     abortRef.current?.abort();
     setMessages(seed);
     setStatus("idle");
