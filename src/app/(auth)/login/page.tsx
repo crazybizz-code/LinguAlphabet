@@ -85,7 +85,16 @@ export default function LoginPage() {
             onChange={(event) => setPassword(event.target.value)}
             required
             labelExtra={
-              <Link href="/forgot-password" className="text-badge font-medium text-primary hover:text-primary-dark">
+              // py-3.5/-my-3.5 (and p-3.5/-m-3.5 on the icon button below)
+              // expand the tappable area to Apple's 44pt minimum without
+              // changing the visible text/icon size or shifting surrounding
+              // layout — the negative margin cancels the padding's effect
+              // on flow, same technique used on every touch target fixed in
+              // this pass (docs/ux-launch-audit.md P0).
+              <Link
+                href="/forgot-password"
+                className="-my-3.5 inline-flex items-center py-3.5 text-badge font-medium text-primary hover:text-primary-dark"
+              >
                 Forgot password?
               </Link>
             }
@@ -93,7 +102,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="text-text-tertiary hover:text-text-secondary"
+                className="-m-3.5 inline-flex items-center justify-center p-3.5 text-text-tertiary hover:text-text-secondary"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -114,7 +123,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-small text-text-secondary">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-semibold text-primary hover:text-primary-dark">
+          <Link href="/signup" className="-my-3.5 inline-block py-3.5 font-semibold text-primary hover:text-primary-dark">
             Sign Up
           </Link>
         </p>
