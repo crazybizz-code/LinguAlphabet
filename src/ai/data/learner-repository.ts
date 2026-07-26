@@ -43,24 +43,23 @@ class SupabaseLearnerRepository implements LearnerRepository {
   }
 
   /**
-   * `cefrLevel`/`learningGoal`/`streak`/`xp` come from `profiles`
-   * (supabase-schema.sql, supabase/onboarding-fields.sql) — the app's
-   * existing onboarding/reward system, not something the Learning Engine
-   * derives. Everything else is a projection of getLearnerState():
+   * `cefrLevel`/`learningGoal`/`streak`/`xp`/`dailyGoalMinutes` come from
+   * `profiles` (supabase-schema.sql, supabase/onboarding-fields.sql) — the
+   * app's existing onboarding/reward system, not something the Learning
+   * Engine derives. Everything else is a projection of getLearnerState():
    * `recentlyStudiedTopics` maps straight across; `strongGrammarTopics`/
    * `weakGrammarTopics`/`strongVocabularyAreas`/`weakVocabularyAreas` are
-   * `grammarMastery`/`vocabularyMastery` filtered by status. Both grammar
-   * lists are honestly empty today — no quiz_answer_recorded evidence
-   * exists yet (see LearnerState.openQuestions for exactly why, and
-   * computeLearnerState()'s own doc comment). `recentMistakes` stays
-   * empty too: per LearnerProfileSchema's own doc comment it's "a rolling
-   * digest... derived from recent PerformanceRecords," which is closer to
-   * Tier 3 evidence excerpts than a topic list — nothing produces that
-   * yet either.
+   * `grammarMastery`/`vocabularyMastery` filtered by status — real once
+   * `quiz_answer_recorded` evidence exists for a topic (QuizStep records
+   * it per answer), honestly empty until then. `recentMistakes` stays
+   * empty regardless: per LearnerProfileSchema's own doc comment it's "a
+   * rolling digest... derived from recent PerformanceRecords," which is
+   * closer to Tier 3 evidence excerpts than a topic list — nothing
+   * produces that yet.
    */
   async getProfile(): Promise<LearnerProfile> {
     const [{ data: profile }, learnerState] = await Promise.all([
-      this.supabase.from("profiles").select("english_level, goal, streak, longest_streak, xp").eq("user_id", this.userId).maybeSingle(),
+      this.supabase.from("profiles").select("english_level, goal, streak, longest_streak, xp, daily_time_minutes").eq("user_id", this.userId).maybeSingle(),
       this.getLearnerState(),
     ]);
 
@@ -70,6 +69,7 @@ class SupabaseLearnerRepository implements LearnerRepository {
       learningGoal: profile?.goal ?? null,
       streak: profile?.streak ?? null,
       xp: profile?.xp ?? null,
+      dailyGoalMinutes: profile?.daily_time_minutes ?? null,
       recentlyStudiedTopics: learnerState.recentlyStudiedTopics,
       strongGrammarTopics: learnerState.grammarMastery.filter((record) => record.status === "mastered").map((record) => record.topic),
       weakGrammarTopics: learnerState.grammarMastery.filter((record) => record.status === "weak").map((record) => record.topic),

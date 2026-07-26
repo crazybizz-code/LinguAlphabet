@@ -1,11 +1,12 @@
 /**
- * Realistic static mock records for the two tools that don't yet have a
- * real repository behind them (getSelectedVocabulary, getLearningProgress
- * — see docs/ai-coach-audit.md, rated lower severity since a real
- * vocabulary/progress path already exists elsewhere in the app). The five
+ * Realistic static mock records for the one tool that doesn't yet have a
+ * real repository behind it (getSelectedVocabulary — see
+ * docs/mvp-completion-audit.md P1.5, rated lower severity since a real
+ * vocabulary lookup path already exists elsewhere in the app). The five
  * content-reading tools (getCurrentArticle, getArticleParagraphs,
  * getCurrentPodcast, getPodcastTranscript, getCurrentQuiz) were moved off
- * mock data onto src/ai/data's ContentRepository.
+ * mock data onto src/ai/data's ContentRepository; getLearningProgress was
+ * moved onto LearnerRepository/SignalRepository (docs/mvp-completion-audit.md P0.1).
  */
 
 export interface MockVocabularyEntry {
@@ -31,11 +32,4 @@ export const MOCK_VOCABULARY: Record<string, MockVocabularyEntry> = {
     exampleSentence: "I reckon it's going to rain later.",
     cefrLevel: "B2",
   },
-};
-
-export const MOCK_PROGRESS = {
-  totalLessonsCompleted: 42,
-  weeklyGoalMinutes: 150,
-  weeklyMinutesSoFar: 95,
-  longestStreak: 21,
 };

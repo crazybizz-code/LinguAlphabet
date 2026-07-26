@@ -24,6 +24,7 @@ export const EXAMPLE_LEARNER_PROFILES: Record<string, LearnerProfile> = {
     learningPace: "steady",
     streak: 4,
     xp: 120,
+    dailyGoalMinutes: 10,
     studyConsistency: { studyDaysLast30: 10, averageSessionMinutes: 8, longestStreak: 5 },
   },
 
@@ -42,6 +43,7 @@ export const EXAMPLE_LEARNER_PROFILES: Record<string, LearnerProfile> = {
     learningPace: "steady",
     streak: 21,
     xp: 980,
+    dailyGoalMinutes: 15,
     studyConsistency: { studyDaysLast30: 22, averageSessionMinutes: 15, longestStreak: 21 },
   },
 
@@ -60,6 +62,7 @@ export const EXAMPLE_LEARNER_PROFILES: Record<string, LearnerProfile> = {
     learningPace: "fast",
     streak: 60,
     xp: 5400,
+    dailyGoalMinutes: 25,
     studyConsistency: { studyDaysLast30: 29, averageSessionMinutes: 25, longestStreak: 60 },
   },
 
@@ -88,6 +91,7 @@ export const EXAMPLE_LEARNER_PROFILES: Record<string, LearnerProfile> = {
     learningPace: "steady",
     streak: 15,
     xp: 640,
+    dailyGoalMinutes: 10,
     studyConsistency: { studyDaysLast30: 15, averageSessionMinutes: 12, longestStreak: 15 },
   },
 
@@ -106,6 +110,7 @@ export const EXAMPLE_LEARNER_PROFILES: Record<string, LearnerProfile> = {
     learningPace: "fast",
     streak: 15,
     xp: 2100,
+    dailyGoalMinutes: 30,
     studyConsistency: { studyDaysLast30: 15, averageSessionMinutes: 30, longestStreak: 15 },
   },
 
@@ -132,6 +137,7 @@ export const EXAMPLE_LEARNER_PROFILES: Record<string, LearnerProfile> = {
     learningPace: "needs-more-repetition",
     streak: 90,
     xp: 900,
+    dailyGoalMinutes: 10,
     studyConsistency: { studyDaysLast30: 26, averageSessionMinutes: 10, longestStreak: 90 },
   },
 };
