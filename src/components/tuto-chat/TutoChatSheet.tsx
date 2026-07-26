@@ -5,6 +5,7 @@ import { EditSheet } from "@/components/profile/EditSheet";
 import { TutoChatPanel, type TutoChatEmptyState } from "./TutoChatPanel";
 import type { ThinkingFocus } from "./ThinkingTimeline";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
+import type { ChatOrchestratorAction } from "@/lib/tuto-chat/streamChatCompletion";
 import type { TutoChatStatus } from "@/hooks/useTutoChat";
 import type { CefrLevel } from "@/ai/context";
 
@@ -22,6 +23,7 @@ export interface TutoChatSheetProps {
   learnerLevel?: CefrLevel | null;
   emptyState?: TutoChatEmptyState;
   onRetry?: () => void;
+  orchestratorAction?: ChatOrchestratorAction | null;
 }
 
 /** Ask-Tuto-about-the-article and text-selection-action results — the same bottom-sheet chrome as every other sheet in the app, housing a TutoChatPanel. */

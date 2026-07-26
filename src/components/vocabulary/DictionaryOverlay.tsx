@@ -215,6 +215,7 @@ export function DictionaryOverlay({
               thinkingFocus="vocabulary"
               learnerLevel={tutoContext.userLevel}
               onRetry={chat.retryLast}
+              orchestratorAction={chat.lastOrchestratorAction}
             />
           )}
         </div>

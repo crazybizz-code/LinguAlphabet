@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { streamChatCompletion } from "@/lib/tuto-chat/streamChatCompletion";
 import { getRecentConversation } from "@/lib/tuto-chat/getRecentConversation";
+import type { ChatOrchestratorAction } from "@/lib/tuto-chat/streamChatCompletion";
 import type { ChatMessage, TutoContextInput } from "@/lib/tuto-chat/types";
 
 export type TutoChatStatus = "idle" | "streaming" | "error";
@@ -35,6 +36,8 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>(seedMessages ?? []);
   const [status, setStatus] = useState<TutoChatStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  /** What the Learning Orchestrator (src/ai/learning-orchestrator) decided on the most recently completed turn — null until a turn with a live session plan finishes. See docs/mvp-completion-audit.md P0.4. */
+  const [lastOrchestratorAction, setLastOrchestratorAction] = useState<ChatOrchestratorAction | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const hydratedRef = useRef(false);
 
@@ -83,6 +86,8 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
                 message.id === assistantId ? { ...message, content: message.content + event.content } : message,
               ),
             );
+          } else if (event.type === "done") {
+            setLastOrchestratorAction(event.orchestratorAction ?? null);
           } else if (event.type === "error") {
             setError(event.message);
             setStatus("error");
@@ -146,6 +151,7 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
     setMessages(seed);
     setStatus("idle");
     setError(null);
+    setLastOrchestratorAction(null);
   }, []);
 
   const stop = useCallback(() => {
@@ -158,5 +164,5 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
     setMessages((prev) => [...prev, { id: nextMessageId(), role: "assistant", content, hidden: true }]);
   }, []);
 
-  return { messages, status, error, sendMessage, sendFresh, reset, stop, addHiddenContext, retryLast };
+  return { messages, status, error, lastOrchestratorAction, sendMessage, sendFresh, reset, stop, addHiddenContext, retryLast };
 }

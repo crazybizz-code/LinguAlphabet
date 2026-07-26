@@ -87,10 +87,17 @@ export async function POST(request: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        for await (const delta of streamResponse({ messages, learningContext, dependencies, conversationId })) {
-          controller.enqueue(encoder.encode(sseEvent({ type: "delta", content: delta })));
+        // Driven manually (not `for await...of`, which discards a generator's
+        // return value) so the Orchestrator's decision — streamResponse()'s
+        // return value — reaches the client on the final "done" event
+        // instead of only ever shaping the reply's wording invisibly.
+        const generator = streamResponse({ messages, learningContext, dependencies, conversationId });
+        let next = await generator.next();
+        while (!next.done) {
+          controller.enqueue(encoder.encode(sseEvent({ type: "delta", content: next.value })));
+          next = await generator.next();
         }
-        controller.enqueue(encoder.encode(sseEvent({ type: "done" })));
+        controller.enqueue(encoder.encode(sseEvent({ type: "done", orchestratorAction: next.value?.action ?? null })));
       } catch (error) {
         // The 200 + headers are already on the wire once streaming starts,
         // so a mid-stream failure can only be surfaced as an SSE event, not
