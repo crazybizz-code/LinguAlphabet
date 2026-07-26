@@ -17,6 +17,8 @@ import { planLearningSession } from "@/ai/learning-session-engine";
 import type { OrchestratorDecision, ConversationTurn } from "@/ai/learning-orchestrator";
 import { orchestrateSession } from "@/ai/learning-orchestrator";
 import { INITIAL_ORCHESTRATOR_STATE } from "@/ai/data";
+import type { TurnSignal } from "@/ai/turn-classifier";
+import { classifyTurn } from "@/ai/turn-classifier";
 import { runToolLoop } from "./tool-loop";
 
 export interface GenerateResponseInput {
@@ -107,10 +109,36 @@ async function resolveTeachingPlan(input: GenerateResponseInput, learningContext
 }
 
 /**
+ * Runs the Turn Classifier (Phase 8, src/ai/turn-classifier) on the
+ * learner's latest message, if there is one. Independent of memory/
+ * teaching resolution — it needs nothing from either, so it runs in
+ * parallel with them (see generateResponse()/streamResponse()) rather
+ * than adding to the critical path. Returns null when there's no learner
+ * turn to classify yet (e.g. the very first assistant greeting) or when
+ * classifyTurn() itself couldn't produce a signal — both cases the
+ * Orchestrator already handles as an honest gap, never a guess.
+ */
+function resolveTurnSignal(input: GenerateResponseInput): Promise<TurnSignal | null> {
+  const lastMessage = input.messages[input.messages.length - 1];
+  if (!lastMessage || lastMessage.role !== "user") return Promise.resolve(null);
+
+  let priorAssistantMessage: string | null = null;
+  for (let i = input.messages.length - 2; i >= 0; i--) {
+    if (input.messages[i].role === "assistant") {
+      priorAssistantMessage = input.messages[i].content;
+      break;
+    }
+  }
+
+  return classifyTurn({ learnerMessage: lastMessage.content, priorAssistantMessage });
+}
+
+/**
  * Resolves the Learning Orchestrator's live decision (Phase 7) — pure, no
- * I/O of its own: it only needs what resolveMemory() and
- * resolveTeachingPlan() already fetched (the session's persisted runtime
- * state and the LearningSessionPlan/LearnerState this turn should use).
+ * I/O of its own: it only needs what resolveMemory()/resolveTeachingPlan()/
+ * resolveTurnSignal() already fetched (the session's persisted runtime
+ * state, the LearningSessionPlan/LearnerState this turn should use, and
+ * the Turn Classifier's perception of the learner's latest message).
  * Returns null exactly when there's no session to run one for (no
  * dependencies, i.e. the same condition under which resolveTeachingPlan()
  * returned NO_TEACHING) — a live lesson decision doesn't exist without a
@@ -118,7 +146,12 @@ async function resolveTeachingPlan(input: GenerateResponseInput, learningContext
  * this turn's incoming message history — the learner's latest message,
  * not yet including the reply about to be generated for it.
  */
-function resolveOrchestratorDecision(input: GenerateResponseInput, memory: ResolvedMemory, teaching: ResolvedTeaching): OrchestratorDecision | null {
+function resolveOrchestratorDecision(
+  input: GenerateResponseInput,
+  memory: ResolvedMemory,
+  teaching: ResolvedTeaching,
+  turnSignal: TurnSignal | null,
+): OrchestratorDecision | null {
   if (!teaching.sessionPlan) return null;
 
   const conversation: ConversationTurn[] = input.messages.filter(
@@ -129,6 +162,7 @@ function resolveOrchestratorDecision(input: GenerateResponseInput, memory: Resol
     sessionPlan: teaching.sessionPlan,
     state: memory.conversationMemory?.orchestratorState ?? INITIAL_ORCHESTRATOR_STATE,
     conversation,
+    lastTurnSignal: turnSignal,
     learnerState: teaching.learnerState,
   });
 }
@@ -251,8 +285,8 @@ async function recordExplanationRequested(input: GenerateResponseInput, learning
 export async function generateResponse(input: GenerateResponseInput): Promise<AssistantMessage> {
   const provider = getDefaultProvider();
   const learningContext = input.learningContext ?? buildLearningContext();
-  const [memory, teaching] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext)]);
-  const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching);
+  const [memory, teaching, turnSignal] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext), resolveTurnSignal(input)]);
+  const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching, turnSignal);
   const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision), learningContext, {
     dependencies: input.dependencies,
   });
@@ -284,8 +318,8 @@ export async function* streamResponse(input: GenerateResponseInput): AsyncGenera
   }
 
   const learningContext = input.learningContext ?? buildLearningContext();
-  const [memory, teaching] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext)]);
-  const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching);
+  const [memory, teaching, turnSignal] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext), resolveTurnSignal(input)]);
+  const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching, turnSignal);
   const { completion } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision), learningContext, {
     dependencies: input.dependencies,
   });

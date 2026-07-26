@@ -50,28 +50,37 @@ function buildAdvanceDecision(
 }
 
 /**
- * Maps a TurnSignal to a judgment-gated action, or null when the outcome
- * should fall through to structural pacing instead ("correct" needs no
- * intervention; "off-topic"/"unclear" aren't confident enough judgments
- * to act on here — the LLM handles wording, the Orchestrator only
- * escalates when the signal is actually actionable).
+ * Maps a TurnSignal (src/ai/turn-classifier) to a judgment-gated action,
+ * or null when the outcome should fall through to structural pacing
+ * instead: "understood" needs no intervention, "curiosity" is a positive
+ * signal the LLM can already follow through wording alone, and
+ * "off_topic" is handled by the prompt's own refusal policy, not a lesson
+ * control action.
  *
- * Each gated outcome has two tiers so a struggling learner isn't stuck
- * repeating the exact same intervention forever: a first "confused" gets
- * a hint, a second gets escalated; a first "incorrect" gets a repeat, a
- * second gets simplified.
+ * "confused" and "frustration" each have two tiers so a struggling
+ * learner isn't stuck repeating the exact same intervention forever: a
+ * first "confused" gets a hint, a second gets escalated to a direct
+ * explanation. "frustration" skips the hint tier and goes straight to
+ * simplifying — Educational Priorities ranks the learner's confidence and
+ * willingness to keep going above correctness, so a frustrated learner
+ * gets immediate relief rather than another nudge; a second frustrated
+ * turn escalates the same as confusion does.
  */
 function applyTurnSignal(signal: TurnSignal, state: OrchestratorRuntimeState): OrchestratorAction | null {
   switch (signal.outcome) {
-    case "help-requested":
+    case "requested_hint":
       return "give-hint";
     case "confused":
       return state.exchangesOnCurrentStep === 0 ? "give-hint" : "escalate";
-    case "incorrect":
-      return state.exchangesOnCurrentStep === 0 ? "repeat" : "simplify";
-    case "correct":
-    case "off-topic":
-    case "unclear":
+    case "frustration":
+      return state.exchangesOnCurrentStep === 0 ? "simplify" : "escalate";
+    case "needs_review":
+      return "repeat";
+    case "mastered":
+      return "celebrate";
+    case "understood":
+    case "curiosity":
+    case "off_topic":
       return null;
   }
 }
@@ -91,10 +100,11 @@ function findUnraisedReviewPoint(sessionPlan: LearningSessionPlan, state: Orches
  * turn, given the static LearningSessionPlan the Learning Session Engine
  * already produced. Pure and deterministic wherever the input allows it;
  * the one place it isn't is interpreting what the learner's last message
- * actually meant (TurnSignal), which requires reading meaning out of free
- * text — that's a future turn-classifier's job, not this module's. When
- * it's absent, judgment-gated actions (repeat/simplify/give-hint/
- * escalate) are honestly reported as open questions instead of guessed.
+ * actually meant (TurnSignal, Phase 8's src/ai/turn-classifier) — that
+ * module perceives, this one decides, never the reverse. When no
+ * TurnSignal is supplied, judgment-gated actions (repeat/simplify/
+ * give-hint/escalate/celebrate) are honestly reported as open questions
+ * instead of guessed.
  *
  * Decision precedence, all deterministic except the TurnSignal branch:
  *   1. finish — already past the plan's last step.
@@ -177,6 +187,18 @@ export function orchestrateSession(input: OrchestratorInput): OrchestratorDecisi
       const judged = applyTurnSignal(lastTurnSignal, state);
       if (judged) {
         const judgedBasedOn = [...basedOn, { field: "lastTurnSignal", detail: `outcome "${lastTurnSignal.outcome}" (confidence ${lastTurnSignal.confidence})` }];
+
+        // A spontaneously "mastered" turn celebrates and moves on, same
+        // as reaching a celebration step structurally — mastery doesn't
+        // depend on the current step's own type.
+        if (judged === "celebrate") {
+          const isLastStep = state.currentStepIndex >= steps.length - 1;
+          if (isLastStep) {
+            return finishDecision(state, "learner's last turn showed mastery and this is the plan's final step", judgedBasedOn, openQuestions, reviewPointTopic);
+          }
+          return buildAdvanceDecision("celebrate", reviewPointTopic, state, reviewPointsRaised, judgedBasedOn, openQuestions);
+        }
+
         const resetsStep = judged === "simplify" || judged === "escalate";
         return {
           action: judged,
@@ -193,10 +215,10 @@ export function orchestrateSession(input: OrchestratorInput): OrchestratorDecisi
         };
       }
     } else {
-      for (const action of ["repeat", "simplify", "give-hint", "escalate"] as const) {
+      for (const action of ["repeat", "simplify", "give-hint", "escalate", "celebrate"] as const) {
         openQuestions.push({
           action,
-          reason: "No turn-classifier output (TurnSignal) was supplied for the learner's latest message — cannot judge whether this response warrants intervention without interpreting its meaning.",
+          reason: "No TurnSignal (src/ai/turn-classifier) was supplied for the learner's latest message — cannot judge whether this response warrants intervention without interpreting its meaning.",
         });
       }
     }

@@ -147,23 +147,23 @@ describe("orchestrateSession — skipping stale review steps", () => {
 });
 
 describe("orchestrateSession — judgment-gated actions (TurnSignal supplied)", () => {
-  it("gives a hint when the learner explicitly asks for help", () => {
+  it("gives a hint when the learner explicitly requests one", () => {
     const state: OrchestratorRuntimeState = { currentStepIndex: 2, exchangesOnCurrentStep: 0, reviewPointsRaised: [0] };
-    const signal: TurnSignal = { outcome: "help-requested", confidence: 0.9 };
+    const signal: TurnSignal = { outcome: "requested_hint", confidence: 0.9 };
     const decision = orchestrateSession({ sessionPlan, state, conversation: userTurn, lastTurnSignal: signal });
     expect(decision.action).toBe("give-hint");
   });
 
-  it("repeats on a first incorrect answer, then simplifies on a second", () => {
-    const firstState: OrchestratorRuntimeState = { currentStepIndex: 2, exchangesOnCurrentStep: 0, reviewPointsRaised: [0] };
-    const signal: TurnSignal = { outcome: "incorrect", confidence: 0.8 };
-    const first = orchestrateSession({ sessionPlan, state: firstState, conversation: userTurn, lastTurnSignal: signal });
-    expect(first.action).toBe("repeat");
+  it("repeats when the learner needs review, and celebrates when they've mastered it", () => {
+    const state: OrchestratorRuntimeState = { currentStepIndex: 2, exchangesOnCurrentStep: 0, reviewPointsRaised: [0] };
 
-    const secondState: OrchestratorRuntimeState = { currentStepIndex: 2, exchangesOnCurrentStep: 1, reviewPointsRaised: [0] };
-    const second = orchestrateSession({ sessionPlan, state: secondState, conversation: userTurn, lastTurnSignal: signal });
-    expect(second.action).toBe("simplify");
-    expect(second.nextState.exchangesOnCurrentStep).toBe(0);
+    const needsReview = orchestrateSession({ sessionPlan, state, conversation: userTurn, lastTurnSignal: { outcome: "needs_review", confidence: 0.8 } });
+    expect(needsReview.action).toBe("repeat");
+    expect(needsReview.nextState.exchangesOnCurrentStep).toBe(1);
+
+    const mastered = orchestrateSession({ sessionPlan, state, conversation: userTurn, lastTurnSignal: { outcome: "mastered", confidence: 0.9 } });
+    expect(mastered.action).toBe("celebrate");
+    expect(mastered.nextState.currentStepIndex).toBe(3);
   });
 
   it("gives a hint on first confusion, then escalates on continued confusion", () => {
@@ -185,11 +185,32 @@ describe("orchestrateSession — judgment-gated actions (TurnSignal supplied)", 
     expect(second.action).toBe("escalate");
   });
 
-  it("falls through to structural pacing when the outcome is correct", () => {
-    const signal: TurnSignal = { outcome: "correct", confidence: 0.95 };
+  it("simplifies on first frustration, then escalates on continued frustration", () => {
+    const signal: TurnSignal = { outcome: "frustration", confidence: 0.75 };
+    const first = orchestrateSession({
+      sessionPlan,
+      state: { currentStepIndex: 2, exchangesOnCurrentStep: 0, reviewPointsRaised: [0] },
+      conversation: userTurn,
+      lastTurnSignal: signal,
+    });
+    expect(first.action).toBe("simplify");
+    expect(first.nextState.exchangesOnCurrentStep).toBe(0);
+
+    const second = orchestrateSession({
+      sessionPlan,
+      state: { currentStepIndex: 2, exchangesOnCurrentStep: 1, reviewPointsRaised: [0] },
+      conversation: userTurn,
+      lastTurnSignal: signal,
+    });
+    expect(second.action).toBe("escalate");
+  });
+
+  it("falls through to structural pacing on understood, curiosity, and off_topic", () => {
     const state: OrchestratorRuntimeState = { currentStepIndex: 2, exchangesOnCurrentStep: 0, reviewPointsRaised: [0] };
-    const decision = orchestrateSession({ sessionPlan, state, conversation: userTurn, lastTurnSignal: signal });
-    expect(decision.action).toBe("continue");
+    for (const outcome of ["understood", "curiosity", "off_topic"] as const) {
+      const decision = orchestrateSession({ sessionPlan, state, conversation: userTurn, lastTurnSignal: { outcome, confidence: 0.9 } });
+      expect(decision.action).toBe("continue");
+    }
   });
 });
 
@@ -199,7 +220,7 @@ describe("orchestrateSession — honest gaps when judgment can't be made", () =>
     const decision = orchestrateSession({ sessionPlan, state, conversation: userTurn });
 
     expect(decision.action).toBe("continue");
-    expect(decision.openQuestions.map((question) => question.action).sort()).toEqual(["escalate", "give-hint", "repeat", "simplify"]);
+    expect(decision.openQuestions.map((question) => question.action).sort()).toEqual(["celebrate", "escalate", "give-hint", "repeat", "simplify"]);
   });
 
   it("raises no openQuestions when there is no learner turn yet to interpret", () => {

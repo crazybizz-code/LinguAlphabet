@@ -1,25 +1,12 @@
 import type { LearningSessionPlan } from "@/ai/learning-session-engine";
 import type { LearnerState } from "@/ai/learning-engine";
 import type { OrchestratorRuntimeState } from "@/ai/data";
+import type { TurnSignal } from "@/ai/turn-classifier";
 
 export const ORCHESTRATOR_ACTIONS = ["continue", "repeat", "simplify", "give-hint", "celebrate", "skip", "escalate", "finish"] as const;
 export type OrchestratorAction = (typeof ORCHESTRATOR_ACTIONS)[number];
 
-/**
- * How the learner's latest turn actually landed — the one input this
- * module cannot derive deterministically (it requires reading meaning out
- * of free text). Optional and supplied by a future turn-classifier; see
- * orchestrator.ts's applyTurnSignal() and the openQuestions it raises
- * when this is absent.
- */
-export const TURN_OUTCOMES = ["correct", "incorrect", "confused", "help-requested", "off-topic", "unclear"] as const;
-export type TurnOutcome = (typeof TURN_OUTCOMES)[number];
-
-export interface TurnSignal {
-  outcome: TurnOutcome;
-  /** 0-1 — the classifier's own certainty, same Tier 3 shape as everywhere else a judgment enters this system. */
-  confidence: number;
-}
+export type { TurnSignal };
 
 export interface ConversationTurn {
   role: "user" | "assistant";
@@ -35,8 +22,8 @@ export interface OrchestratorEvidenceRef {
  * A decision this module could not make deterministically, and why —
  * same "stop and explicitly identify" discipline as
  * LearnerStateOpenQuestion (src/ai/learning-engine). Populated whenever a
- * judgment-gated action (repeat/simplify/give-hint/escalate) would need a
- * TurnSignal that wasn't supplied.
+ * judgment-gated action (repeat/simplify/give-hint/escalate/celebrate)
+ * would need a TurnSignal that wasn't supplied.
  */
 export interface OrchestratorDecisionOpenQuestion {
   action: OrchestratorAction;
@@ -67,7 +54,7 @@ export interface OrchestratorInput {
   sessionPlan: LearningSessionPlan;
   state: OrchestratorRuntimeState;
   conversation: ConversationTurn[];
-  /** Absent until a real turn-classifier exists — see TurnSignal's doc comment. */
+  /** The Turn Classifier's perception of the learner's latest message (Phase 8, src/ai/turn-classifier) — absent when there's no learner turn yet, or classification failed. See TurnSignal's own doc comment there. */
   lastTurnSignal?: TurnSignal | null;
   /** Optional: lets `skip` react to freshly-computed mastery instead of only the plan's static snapshot — see orchestrator.ts's structural skip check. */
   learnerState?: LearnerState | null;
