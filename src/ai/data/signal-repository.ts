@@ -2,35 +2,54 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 
 export const SIGNAL_TYPES = [
-  // Objective / mechanical — real evidence exists today, no model judgment
-  // involved. Emitted by this phase.
+  // Tier 1 — Objective. Real evidence exists today, no model judgment
+  // involved. Emitted since Phase 3.
   "article_completed",
   "podcast_completed",
   "quiz_completed",
   "vocabulary_viewed",
   "vocabulary_saved",
   "explanation_requested",
-  // Reserved in the taxonomy, not yet emitted anywhere — no real,
-  // non-fabricated evidence source exists for these today. hint_requested
-  // has no UI concept of a "hint" distinct from a lookup/explanation yet;
+  // Tier 1 — reserved, not yet emitted anywhere. No real, non-fabricated
+  // evidence source exists for these today. hint_requested has no UI
+  // concept of a "hint" distinct from a lookup/explanation yet;
   // reading_time/listening_time have no real elapsed-time measurement
   // reaching the server (completeMission only ever receives the content's
-  // static estimated duration, not time actually spent — see
-  // src/lib/learning-session/complete-mission.ts). Adding a real emitter
-  // for any of these three is additive whenever real evidence exists;
-  // faking one now from a proxy would be exactly the "store a conclusion
-  // instead of deriving it from evidence" mistake this phase exists to
-  // avoid.
+  // static estimated duration, not time actually spent). Faking one now
+  // from a proxy would be the exact "store a conclusion instead of
+  // deriving it from evidence" mistake this model exists to avoid.
   "hint_requested",
   "reading_time",
   "listening_time",
-  // Judgment-based — reserved for a later phase, never emitted yet.
-  // Whatever emits one of these in the future MUST set `confidence` to a
-  // real 0-1 estimate, never null — see LearningSignal.confidence below.
+  // Tier 1 — reserved, proposed in docs/learning-signal-specification.md.
+  // Per-question, topic-tagged quiz evidence — the foundation Tier 2's
+  // grammar_mistake/grammar_mastered derivations read from. Not emitted
+  // yet: QuizStep only reports an aggregate score today (quiz_completed),
+  // not a result per question. Wiring this requires touching QuizStep.tsx
+  // and needs its own sign-off, same as every other screen change in this
+  // project.
+  "quiz_answer_recorded",
+  // Tier 2 — Derived Facts (docs/learning-signal-specification.md,
+  // approved). Computed deterministically from Tier 1 evidence
+  // (quiz_answer_recorded / vocabulary_viewed / vocabulary_saved) by
+  // src/ai/learning-engine — never stored as a row of their own, since a
+  // Tier 2 fact is by definition always re-derivable. These four names
+  // stay in this union only so LearningSignal's shape can represent one
+  // in memory (src/ai/learning-engine/types.ts's TopicMasteryRecord),
+  // never because SignalRepository.record() should ever be called with
+  // one — see the doc comment on SignalRepository below.
   "grammar_mistake",
   "grammar_mastered",
   "vocabulary_mastered",
   "vocabulary_struggled",
+  // Tier 3 — AI Hypotheses. The only genuinely judgment-based signals in
+  // this taxonomy: there is no structured ground truth for confidence
+  // the way there is for grammar (a quiz) — detecting it requires
+  // reading a learner's own words. Reserved for a later phase, not
+  // emitted yet. Whatever emits one of these MUST set `confidence` to a
+  // real 0-1 estimate, never null, and `evidence` must carry a verbatim
+  // excerpt plus a conversationId for traceability — see
+  // docs/learning-signal-specification.md.
   "confidence_drop",
   "confidence_gain",
 ] as const;
@@ -47,14 +66,17 @@ export interface LearningSignal {
   evidence: Record<string, unknown>;
   source: SignalSource;
   /**
-   * Only meaningful for judgment-based signals. Every signal this phase
-   * emits is mechanical/objective and records `null` here deliberately —
-   * it isn't a probability estimate, it's a fact that either happened or
-   * didn't. A future judgment-based emitter (grammar_mistake, etc.) must
-   * supply a real 0-1 value here, per the user's own rule: every
-   * AI-generated signal carries confidence, evidence, and source.
+   * Only meaningful for Tier 3 (AI Hypothesis) signals. Every Tier 1
+   * signal this phase emits is mechanical/objective and records `null`
+   * here deliberately — it isn't a probability estimate, it's a fact
+   * that either happened or didn't. A future Tier 3 emitter
+   * (confidence_drop/confidence_gain) must supply a real 0-1 value here,
+   * per the project's own rule: no AI-generated signal exists without
+   * confidence, evidence, and traceability.
    */
   confidence: number | null;
+  /** When this signal was recorded — required for every recency/momentum/decay computation in src/ai/learning-engine. Set by the database default on insert; always present on anything read back via listRecent(). */
+  createdAt: string;
 }
 
 export interface ListRecentSignalsOptions {
@@ -65,20 +87,26 @@ export interface ListRecentSignalsOptions {
 
 /**
  * Repositories store signals, not conclusions. This is the append-only
- * evidence log every objective interaction writes to and everything else
- * reads from — LearnerRepository summarizes it into a LearnerProfile,
- * and a future Learning Engine reasons over the raw stream directly for
- * patterns a single summary can't capture (three separate
- * `grammar_mistake` signals on the same topic across three sessions,
- * say). No update() or delete() method exists here on purpose, and the
- * backing table (supabase/learning-signals-schema.sql) grants only
- * INSERT/SELECT — the same "Progress is mutable state, Completion is an
- * immutable event" split docs/domain-model.md §15 already established
- * for engagement, applied here to teaching signals: a correction is a
- * new signal, never an edit to an old one.
+ * Tier 1 evidence log every objective interaction writes to — the only
+ * tier ever written here (Tier 2 is computed, never stored; Tier 3
+ * doesn't exist yet, and when it does its writes still land in this same
+ * table/interface, just with confidence/evidence held to a stricter bar
+ * — see docs/learning-signal-specification.md). No update() or delete()
+ * method exists here on purpose, and the backing table
+ * (supabase/learning-signals-schema.sql) grants only INSERT/SELECT — the
+ * same "Progress is mutable state, Completion is an immutable event"
+ * split docs/domain-model.md §15 already established for engagement,
+ * applied here to teaching signals: a correction is a new signal, never
+ * an edit to an old one.
+ *
+ * LearnerRepository (src/ai/data/learner-repository.ts) and
+ * src/ai/learning-engine both read from here via listRecent() —
+ * LearnerRepository to compute a LearnerState, the Learning Engine
+ * itself being where that computation actually lives.
  */
 export interface SignalRepository {
-  record(signal: LearningSignal): Promise<void>;
+  /** `createdAt` is set by the database default (`now()`) — a caller never supplies it. */
+  record(signal: Omit<LearningSignal, "createdAt">): Promise<void>;
   listRecent(options?: ListRecentSignalsOptions): Promise<LearningSignal[]>;
 }
 
@@ -88,7 +116,7 @@ class SupabaseSignalRepository implements SignalRepository {
     private readonly userId: string,
   ) {}
 
-  async record(signal: LearningSignal): Promise<void> {
+  async record(signal: Omit<LearningSignal, "createdAt">): Promise<void> {
     await this.supabase.from("learning_signals").insert({
       user_id: this.userId,
       type: signal.type,
@@ -103,7 +131,7 @@ class SupabaseSignalRepository implements SignalRepository {
   async listRecent(options: ListRecentSignalsOptions = {}): Promise<LearningSignal[]> {
     let query = this.supabase
       .from("learning_signals")
-      .select("type, topic, skill, evidence, source, confidence")
+      .select("type, topic, skill, evidence, source, confidence, created_at")
       .eq("user_id", this.userId)
       .order("created_at", { ascending: false })
       .limit(options.limit ?? 100);
@@ -120,6 +148,7 @@ class SupabaseSignalRepository implements SignalRepository {
       evidence: (row.evidence ?? {}) as Record<string, unknown>,
       source: row.source as SignalSource,
       confidence: row.confidence,
+      createdAt: row.created_at,
     }));
   }
 }

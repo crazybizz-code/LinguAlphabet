@@ -50,7 +50,7 @@ async function recordCompletionSignals(
   const signalRepository = createSignalRepository(supabase, userId);
   const completionEvidence = { contentId: params.contentId, estimatedMinutes: params.estimatedMinutes };
 
-  const signals: LearningSignal[] = [
+  const signals: Omit<LearningSignal, "createdAt">[] = [
     {
       type: params.contentType === "podcast" ? "podcast_completed" : "article_completed",
       topic: null,

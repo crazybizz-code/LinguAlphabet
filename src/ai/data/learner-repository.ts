@@ -2,25 +2,28 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import { CEFR_LEVELS, type CefrLevel } from "@/ai/context";
 import { LearnerProfileSchema, type LearnerProfile } from "@/ai/learner";
+import { computeLearnerState, type LearnerState } from "@/ai/learning-engine";
 import { createSignalRepository } from "./signal-repository";
 
-/** How many recent signals to look at when deriving recentlyStudiedTopics — a summary, not a full history dump. */
-const RECENT_TOPIC_SIGNAL_LIMIT = 20;
-const RECENT_TOPIC_LIMIT = 5;
+/** How much signal history to compute a LearnerState from — enough for meaningful mastery/momentum patterns, not a full history dump. Tunable once there's real volume to tune against. */
+const SIGNAL_HISTORY_LIMIT = 200;
 
 /**
  * Learner Memory — persistent across every session, never scoped to one
  * conversation (that's ConversationRepository, a deliberately separate
  * system). Exists to make Tuto a better teacher over time. Per the
- * signal-based model (docs/ai-coach-audit.md's Phase 3 note): this
+ * signal-based model (docs/learning-signal-specification.md): this
  * repository never stores its own conclusions — it summarizes them, on
- * read, from SignalRepository's append-only evidence log. A learner's
- * "weak topics" isn't a column anyone writes; it's arithmetic over
- * repeated grammar_mistake signals with no later grammar_mastered for
- * the same topic.
+ * read, by delegating to src/ai/learning-engine's computeLearnerState()
+ * over SignalRepository's append-only evidence log. A learner's "weak
+ * topics" isn't a column anyone writes; it's the Learning Engine's
+ * arithmetic over the raw signal history, fresh every call.
  */
 export interface LearnerRepository {
+  /** The thin, prompt-facing projection (Sprint 10's LearnerProfile shape) — what the LLM actually sees. */
   getProfile(): Promise<LearnerProfile>;
+  /** The full Learning Engine output — every consumer that needs more than the prompt does (a future Coach Planner, a debug view) should read this directly rather than re-deriving it. */
+  getLearnerState(): Promise<LearnerState>;
 }
 
 function toCefrLevel(value: string | null | undefined): CefrLevel | null {
@@ -33,33 +36,33 @@ class SupabaseLearnerRepository implements LearnerRepository {
     private readonly userId: string,
   ) {}
 
+  async getLearnerState(): Promise<LearnerState> {
+    const signalRepository = createSignalRepository(this.supabase, this.userId);
+    const signals = await signalRepository.listRecent({ limit: SIGNAL_HISTORY_LIMIT });
+    return computeLearnerState(this.userId, signals);
+  }
+
   /**
    * `cefrLevel`/`learningGoal`/`streak`/`xp` come from `profiles`
    * (supabase-schema.sql, supabase/onboarding-fields.sql) — the app's
-   * existing onboarding/reward system, not something this repository
-   * derives itself. `recentlyStudiedTopics` is the first real derivation:
-   * distinct topics from this phase's objective signals
-   * (explanation_requested, vocabulary_viewed), most recent first — real
-   * evidence exists for it today. `strongGrammarTopics`/
-   * `weakGrammarTopics`/`strongVocabularyAreas`/`weakVocabularyAreas`/
-   * `recentMistakes` stay empty: deriving them needs judgment-based
-   * signals (grammar_mistake, grammar_mastered, etc.) that nothing emits
-   * yet (see src/ai/data/signal-repository.ts's SIGNAL_TYPES) — an empty
-   * array here is the honest result of an aggregation with no matching
-   * evidence, not a placeholder standing in for unbuilt logic.
+   * existing onboarding/reward system, not something the Learning Engine
+   * derives. Everything else is a projection of getLearnerState():
+   * `recentlyStudiedTopics` maps straight across; `strongGrammarTopics`/
+   * `weakGrammarTopics`/`strongVocabularyAreas`/`weakVocabularyAreas` are
+   * `grammarMastery`/`vocabularyMastery` filtered by status. Both grammar
+   * lists are honestly empty today — no quiz_answer_recorded evidence
+   * exists yet (see LearnerState.openQuestions for exactly why, and
+   * computeLearnerState()'s own doc comment). `recentMistakes` stays
+   * empty too: per LearnerProfileSchema's own doc comment it's "a rolling
+   * digest... derived from recent PerformanceRecords," which is closer to
+   * Tier 3 evidence excerpts than a topic list — nothing produces that
+   * yet either.
    */
   async getProfile(): Promise<LearnerProfile> {
-    const signalRepository = createSignalRepository(this.supabase, this.userId);
-
-    const [{ data: profile }, recentTopicSignals] = await Promise.all([
+    const [{ data: profile }, learnerState] = await Promise.all([
       this.supabase.from("profiles").select("english_level, goal, streak, longest_streak, xp").eq("user_id", this.userId).maybeSingle(),
-      signalRepository.listRecent({ types: ["explanation_requested", "vocabulary_viewed"], limit: RECENT_TOPIC_SIGNAL_LIMIT }),
+      this.getLearnerState(),
     ]);
-
-    const recentlyStudiedTopics = Array.from(new Set(recentTopicSignals.map((signal) => signal.topic).filter((topic): topic is string => Boolean(topic)))).slice(
-      0,
-      RECENT_TOPIC_LIMIT,
-    );
 
     return LearnerProfileSchema.parse({
       id: this.userId,
@@ -67,7 +70,11 @@ class SupabaseLearnerRepository implements LearnerRepository {
       learningGoal: profile?.goal ?? null,
       streak: profile?.streak ?? null,
       xp: profile?.xp ?? null,
-      recentlyStudiedTopics,
+      recentlyStudiedTopics: learnerState.recentlyStudiedTopics,
+      strongGrammarTopics: learnerState.grammarMastery.filter((record) => record.status === "mastered").map((record) => record.topic),
+      weakGrammarTopics: learnerState.grammarMastery.filter((record) => record.status === "weak").map((record) => record.topic),
+      strongVocabularyAreas: learnerState.vocabularyMastery.filter((record) => record.status === "mastered").map((record) => record.topic),
+      weakVocabularyAreas: learnerState.vocabularyMastery.filter((record) => record.status === "weak").map((record) => record.topic),
       studyConsistency: profile ? { longestStreak: profile.longest_streak ?? null } : null,
     });
   }
