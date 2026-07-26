@@ -7,6 +7,7 @@ import type {
 } from "@/ai/providers";
 import { listTools, executeToolCall, bootstrapTools, type ToolExecutionContext, type ToolExecutionResult } from "@/ai/tools";
 import type { LearningContext } from "@/ai/context";
+import type { ContentRepository } from "@/ai/data";
 
 const MAX_TOOL_ITERATIONS = 4;
 
@@ -24,6 +25,8 @@ export interface ToolLoopResult {
 export interface RunToolLoopOptions {
   /** Constrains the eventual final answer to JSON matching a schema (Sprint 4) — a tool-call turn is unaffected. */
   responseFormat?: AIProviderResponseFormat;
+  /** Real content access (src/ai/data) handed to every tool call via ToolExecutionContext — undefined only for a caller that hasn't wired one up, in which case content-reading tools degrade gracefully. */
+  contentRepository?: ContentRepository;
 }
 
 /**
@@ -52,14 +55,14 @@ export async function runToolLoop(
   learningContext: LearningContext,
   options: RunToolLoopOptions = {},
 ): Promise<ToolLoopResult> {
-  const { responseFormat } = options;
+  const { responseFormat, contentRepository } = options;
   const tools = toProviderToolSpecs();
 
   if (tools.length === 0) {
     return { completion: await provider.complete({ messages: initialMessages, responseFormat }), toolResults: [] };
   }
 
-  const context: ToolExecutionContext = { learningContext };
+  const context: ToolExecutionContext = { learningContext, contentRepository };
   const toolResults: ToolExecutionResult[] = [];
   let messages = initialMessages;
 

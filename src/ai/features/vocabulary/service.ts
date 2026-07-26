@@ -1,6 +1,7 @@
 import { generateStructuredResponse } from "@/ai/services";
 import { buildLearningContext } from "@/ai/context";
 import type { LearningContext } from "@/ai/context";
+import type { ContentRepository } from "@/ai/data";
 import { VocabularyExplanationSchema, type VocabularyExplanation } from "./schema";
 import { buildVocabularyRequestMessage } from "./prompt";
 
@@ -22,12 +23,17 @@ const RESPONSE_FORMAT_NAME = "vocabulary_explanation";
  * in LinguABC's own mock dictionary before elaborating with the rest of
  * the explanation from its own knowledge.
  */
-export async function explainVocabulary(word: string, contextInput: Partial<LearningContext> = {}): Promise<VocabularyExplanation> {
+export async function explainVocabulary(
+  word: string,
+  contextInput: Partial<LearningContext> = {},
+  contentRepository?: ContentRepository,
+): Promise<VocabularyExplanation> {
   const learningContext = buildLearningContext({ ...contextInput, selectedWord: word });
 
   return generateStructuredResponse({
     messages: [buildVocabularyRequestMessage(word)],
     learningContext,
+    contentRepository,
     responseFormatName: RESPONSE_FORMAT_NAME,
     resultSchema: VocabularyExplanationSchema,
   });

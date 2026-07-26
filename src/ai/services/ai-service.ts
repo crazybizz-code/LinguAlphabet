@@ -7,12 +7,15 @@ import { buildLearningContext } from "@/ai/context";
 import type { LearningContext } from "@/ai/context";
 import type { AssistantMessage, ConversationMessage, ToolResult } from "@/ai/schemas";
 import { listTools, bootstrapTools } from "@/ai/tools";
+import type { ContentRepository } from "@/ai/data";
 import { runToolLoop } from "./tool-loop";
 
 export interface GenerateResponseInput {
   /** User/assistant turns only — a client-supplied "system" message is rejected before this point (src/app/api/ai/chat). */
   messages: ConversationMessage[];
   learningContext?: LearningContext | null;
+  /** Real content access (src/ai/data) offered to every tool call this request makes — omit only when no repository is available yet. */
+  contentRepository?: ContentRepository;
 }
 
 function toProviderMessages(input: GenerateResponseInput): AIProviderMessage[] {
@@ -47,7 +50,9 @@ function toToolResults(loopToolResults: Awaited<ReturnType<typeof runToolLoop>>[
 export async function generateResponse(input: GenerateResponseInput): Promise<AssistantMessage> {
   const provider = getDefaultProvider();
   const learningContext = input.learningContext ?? buildLearningContext();
-  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input), learningContext);
+  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input), learningContext, {
+    contentRepository: input.contentRepository,
+  });
 
   return { role: "assistant", content: completion.content, toolResults: toToolResults(toolResults) };
 }
@@ -73,7 +78,9 @@ export async function* streamResponse(input: GenerateResponseInput): AsyncGenera
   }
 
   const learningContext = input.learningContext ?? buildLearningContext();
-  const { completion } = await runToolLoop(provider, toProviderMessages(input), learningContext);
+  const { completion } = await runToolLoop(provider, toProviderMessages(input), learningContext, {
+    contentRepository: input.contentRepository,
+  });
   if (completion.content) yield completion.content;
 }
 
@@ -99,7 +106,10 @@ export async function generateStructuredResponse<T>(input: GenerateStructuredRes
   const learningContext = input.learningContext ?? buildLearningContext();
   const responseFormat = { name: input.responseFormatName, schema: z.toJSONSchema(input.resultSchema) };
 
-  const { completion } = await runToolLoop(provider, toProviderMessages(input), learningContext, { responseFormat });
+  const { completion } = await runToolLoop(provider, toProviderMessages(input), learningContext, {
+    responseFormat,
+    contentRepository: input.contentRepository,
+  });
 
   let parsed: unknown;
   try {

@@ -3,6 +3,8 @@ import { z } from "zod";
 import { LearningContextSchema } from "@/ai/context";
 import { summarizeArticle, generateDiscussionQuestions, generateComprehensionQuestions } from "@/ai/features/article";
 import { AIProviderError } from "@/ai/providers";
+import { createContentRepository } from "@/ai/data";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -52,13 +54,16 @@ export async function POST(request: NextRequest) {
   const { action, article, context } = parsed.data;
 
   try {
+    const supabase = await createClient();
+    const contentRepository = createContentRepository(supabase);
+
     if (action === "summary") {
-      return NextResponse.json(await summarizeArticle(article, context ?? {}));
+      return NextResponse.json(await summarizeArticle(article, context ?? {}, contentRepository));
     }
     if (action === "discussion-questions") {
-      return NextResponse.json(await generateDiscussionQuestions(article, context ?? {}));
+      return NextResponse.json(await generateDiscussionQuestions(article, context ?? {}, contentRepository));
     }
-    return NextResponse.json(await generateComprehensionQuestions(article, context ?? {}));
+    return NextResponse.json(await generateComprehensionQuestions(article, context ?? {}, contentRepository));
   } catch (error) {
     if (error instanceof AIProviderError) {
       return NextResponse.json({ error: error.message }, { status: error.status ?? 502 });

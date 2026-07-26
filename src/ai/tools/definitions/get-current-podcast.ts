@@ -1,6 +1,5 @@
 import { z } from "zod";
 import type { ToolDefinition } from "../types";
-import { MOCK_PODCASTS } from "../mock-data";
 
 const PodcastSchema = z.object({
   id: z.string(),
@@ -19,9 +18,8 @@ type Result = z.infer<typeof ResultSchema>;
 
 /**
  * Reads which podcast is current from the request's LearningContext
- * (src/ai/context) — the model never supplies or guesses an id. Mock
- * data only (src/ai/tools/mock-data.ts); a real implementation swaps the
- * MOCK_PODCASTS lookup for a Supabase query (docs/ai-architecture.md).
+ * (src/ai/context) — the model never supplies or guesses an id. Reads
+ * through the request's ContentRepository (src/ai/data).
  */
 export const getCurrentPodcastTool: ToolDefinition<Record<string, never>, Result> = {
   name: "getCurrentPodcast",
@@ -31,8 +29,9 @@ export const getCurrentPodcastTool: ToolDefinition<Record<string, never>, Result
   async execute(_args, context) {
     const ref = context.learningContext.currentPodcast;
     if (!ref) return { found: false, reason: "The learner is not currently viewing a podcast." };
+    if (!context.contentRepository) return { found: false, reason: "Content access is not available right now." };
 
-    const podcast = MOCK_PODCASTS[ref.id];
+    const podcast = await context.contentRepository.getPodcast(ref.id);
     if (!podcast) return { found: false, reason: `No podcast data found for id "${ref.id}".` };
 
     return { found: true, podcast };

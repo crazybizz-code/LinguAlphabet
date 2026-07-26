@@ -25,7 +25,7 @@ const HTML_ENTITIES: Record<string, string> = {
  * paragraph breaks before handing the reader a plain string array — the
  * article-shaped equivalent of a podcast's `TranscriptSegment[]`.
  */
-function extractParagraphs(body: string): string[] {
+export function extractParagraphs(body: string): string[] {
   const withBreaks = body.replace(/<\/(p|div|h[1-6])>/gi, "\n\n").replace(/<br\s*\/?>/gi, "\n");
   const stripped = withBreaks.replace(/<[^>]+>/g, "");
   const decoded = stripped.replace(/&[a-zA-Z#0-9]+;/g, (entity) => HTML_ENTITIES[entity] ?? entity);

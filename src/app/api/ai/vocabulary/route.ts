@@ -3,6 +3,8 @@ import { z } from "zod";
 import { LearningContextSchema } from "@/ai/context";
 import { explainVocabulary } from "@/ai/features/vocabulary";
 import { AIProviderError } from "@/ai/providers";
+import { createContentRepository } from "@/ai/data";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -41,7 +43,9 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const explanation = await explainVocabulary(parsed.data.word, parsed.data.context ?? {});
+    const supabase = await createClient();
+    const contentRepository = createContentRepository(supabase);
+    const explanation = await explainVocabulary(parsed.data.word, parsed.data.context ?? {}, contentRepository);
     return NextResponse.json(explanation);
   } catch (error) {
     if (error instanceof AIProviderError) {

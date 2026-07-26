@@ -4,6 +4,8 @@ import { UserMessageSchema, AssistantMessageSchema } from "@/ai/schemas/messages
 import { LearningContextSchema, buildLearningContext } from "@/ai/context";
 import { streamResponse } from "@/ai/services";
 import { AIProviderError } from "@/ai/providers";
+import { createContentRepository } from "@/ai/data";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -37,12 +39,14 @@ export async function POST(request: NextRequest) {
 
   const { messages, context } = parsed.data;
   const learningContext = buildLearningContext(context ?? {});
+  const supabase = await createClient();
+  const contentRepository = createContentRepository(supabase);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        for await (const delta of streamResponse({ messages, learningContext })) {
+        for await (const delta of streamResponse({ messages, learningContext, contentRepository })) {
           controller.enqueue(encoder.encode(sseEvent({ type: "delta", content: delta })));
         }
         controller.enqueue(encoder.encode(sseEvent({ type: "done" })));
