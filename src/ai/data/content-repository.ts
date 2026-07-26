@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import { getArticleById, getPodcastById } from "@/lib/content/queries";
+import { getArticleById, getPodcastById, getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
 import { extractParagraphs } from "@/lib/learning-session/adapters/article";
 
 export interface AIArticleSummary {
@@ -43,6 +43,23 @@ export interface AIQuiz {
 }
 
 /**
+ * "Available Content Metadata" for the Coach Planner (src/ai/coach-planner)
+ * — thin, catalog-level facts only, never a body/transcript: what exists,
+ * what level it suits, what it teaches. The Coach Planner uses this to
+ * ground a teaching suggestion in something real ("practice reported
+ * speech via X") rather than naming a topic with nothing to point to.
+ */
+export interface AIAvailableContentSummary {
+  id: string;
+  title: string;
+  contentType: "article" | "podcast";
+  cefrLevelMin: string;
+  cefrLevelMax: string;
+  topics: string[];
+  skills: string[];
+}
+
+/**
  * The AI system's one window onto real learning content. Every tool that
  * needs to read "the article/podcast/quiz the learner is currently on"
  * (src/ai/tools/definitions/get-current-article.ts and its siblings)
@@ -77,6 +94,8 @@ export interface ContentRepository {
    * standalone table with its own id.
    */
   getQuiz(contentType: "article" | "podcast", id: string): Promise<AIQuiz | null>;
+  /** Every published article + podcast, thin metadata only — see AIAvailableContentSummary. */
+  listAvailableContent(): Promise<AIAvailableContentSummary[]>;
 }
 
 class SupabaseContentRepository implements ContentRepository {
@@ -142,6 +161,31 @@ class SupabaseContentRepository implements ContentRepository {
         explanation: question.explanation,
       })),
     };
+  }
+
+  async listAvailableContent(): Promise<AIAvailableContentSummary[]> {
+    const [articles, podcasts] = await Promise.all([getPublishedArticles(this.supabase), getPublishedPodcasts(this.supabase)]);
+
+    const articleSummaries: AIAvailableContentSummary[] = articles.map((article) => ({
+      id: article.id,
+      title: article.title,
+      contentType: "article",
+      cefrLevelMin: article.cefrLevelMin,
+      cefrLevelMax: article.cefrLevelMax,
+      topics: article.topics,
+      skills: article.skills,
+    }));
+    const podcastSummaries: AIAvailableContentSummary[] = podcasts.map((podcast) => ({
+      id: podcast.id,
+      title: podcast.title,
+      contentType: "podcast",
+      cefrLevelMin: podcast.cefrLevelMin,
+      cefrLevelMax: podcast.cefrLevelMax,
+      topics: podcast.topics,
+      skills: podcast.skills,
+    }));
+
+    return [...articleSummaries, ...podcastSummaries];
   }
 }
 

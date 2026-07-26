@@ -9,6 +9,9 @@ import type { AssistantMessage, ConversationMessage, ToolResult } from "@/ai/sch
 import { listTools, bootstrapTools } from "@/ai/tools";
 import type { AIDependencies, ConversationMemory, ConversationMemoryMessage } from "@/ai/data";
 import type { LearnerProfile } from "@/ai/learner";
+import type { LearnerState } from "@/ai/learning-engine";
+import type { TeachingPlan } from "@/ai/coach-planner";
+import { planTeaching } from "@/ai/coach-planner";
 import { runToolLoop } from "./tool-loop";
 
 export interface GenerateResponseInput {
@@ -50,11 +53,52 @@ async function resolveMemory(input: GenerateResponseInput): Promise<ResolvedMemo
   return { conversationMemory, learnerProfile };
 }
 
-function toProviderMessages(input: GenerateResponseInput, memory: ResolvedMemory): AIProviderMessage[] {
+interface ResolvedTeaching {
+  learnerState: LearnerState | null;
+  teachingPlan: TeachingPlan | null;
+}
+
+const NO_TEACHING: ResolvedTeaching = { learnerState: null, teachingPlan: null };
+
+/**
+ * Resolves the Learning Engine's LearnerState and the Coach Planner's
+ * TeachingPlan (Phase 4B) — only called from generateResponse()/
+ * streamResponse(), the actual open-ended chat path. Deliberately not
+ * called from generateStructuredResponse(): "deciding what to teach
+ * next" doesn't apply to a one-shot vocabulary explanation or article
+ * summary, which already have a fixed, narrow task — see
+ * src/ai/coach-planner's own doc comment on why a lesson plan doesn't
+ * belong there.
+ *
+ * planTeaching() itself is pure/deterministic (src/ai/coach-planner/planner.ts)
+ * — everything async here is fetching its inputs, never the decision
+ * itself.
+ */
+async function resolveTeachingPlan(input: GenerateResponseInput, learningContext: LearningContext): Promise<ResolvedTeaching> {
+  if (!input.dependencies) return NO_TEACHING;
+
+  const [learnerState, availableContent] = await Promise.all([
+    input.dependencies.learnerRepository.getLearnerState(),
+    input.dependencies.contentRepository.listAvailableContent(),
+  ]);
+
+  const teachingPlan = planTeaching({
+    learnerState,
+    learningContext,
+    currentScreen: learningContext.currentScreen,
+    availableContent,
+  });
+
+  return { learnerState, teachingPlan };
+}
+
+function toProviderMessages(input: GenerateResponseInput, memory: ResolvedMemory, teaching: ResolvedTeaching = NO_TEACHING): AIProviderMessage[] {
   const systemPrompt = buildTutoSystemPrompt({
     learningContext: input.learningContext,
     conversationMemory: memory.conversationMemory,
     learnerProfile: memory.learnerProfile,
+    learnerState: teaching.learnerState,
+    teachingPlan: teaching.teachingPlan,
   });
 
   const history: AIProviderMessage[] = input.messages
@@ -144,8 +188,8 @@ async function recordExplanationRequested(input: GenerateResponseInput, learning
 export async function generateResponse(input: GenerateResponseInput): Promise<AssistantMessage> {
   const provider = getDefaultProvider();
   const learningContext = input.learningContext ?? buildLearningContext();
-  const memory = await resolveMemory(input);
-  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory), learningContext, {
+  const [memory, teaching] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext)]);
+  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory, teaching), learningContext, {
     dependencies: input.dependencies,
   });
 
@@ -176,8 +220,8 @@ export async function* streamResponse(input: GenerateResponseInput): AsyncGenera
   }
 
   const learningContext = input.learningContext ?? buildLearningContext();
-  const memory = await resolveMemory(input);
-  const { completion } = await runToolLoop(provider, toProviderMessages(input, memory), learningContext, {
+  const [memory, teaching] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext)]);
+  const { completion } = await runToolLoop(provider, toProviderMessages(input, memory, teaching), learningContext, {
     dependencies: input.dependencies,
   });
 

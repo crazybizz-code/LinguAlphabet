@@ -1,6 +1,8 @@
 import type { LearningContext } from "@/ai/context";
 import type { LearnerProfile } from "@/ai/learner";
 import type { ConversationMemory } from "@/ai/data";
+import type { LearnerState } from "@/ai/learning-engine";
+import type { TeachingPlan } from "@/ai/coach-planner";
 import {
   PERSONALITY,
   TEACHING_PHILOSOPHY,
@@ -8,6 +10,7 @@ import {
   CEFR_AWARENESS,
   TEACHING_MODES,
   KNOWLEDGE_BASE_USAGE,
+  TEACHING_PLAN_USAGE,
   GRAMMAR_CORRECTION_STYLE,
   ENCOURAGEMENT_STYLE,
   FOLLOW_UP_LEARNING,
@@ -19,13 +22,19 @@ import {
 import { buildContextBlock } from "./context-block";
 import { buildLearnerMemoryBlock } from "./learner-memory-block";
 import { buildConversationMemoryBlock } from "./conversation-memory-block";
+import { buildLearnerStateBlock } from "./learner-state-block";
+import { buildTeachingPlanBlock } from "./teaching-plan-block";
 
 export interface TutoPromptInput {
   learningContext?: LearningContext | null;
-  /** Persistent, cross-session facts about the learner (src/ai/data's LearnerRepository) — see learner-memory-block.ts. */
+  /** Persistent, cross-session identity/reward facts (src/ai/data's LearnerRepository) — see learner-memory-block.ts. */
   learnerProfile?: LearnerProfile | null;
-  /** This-conversation-only recap (src/ai/data's ConversationRepository) — see conversation-memory-block.ts. Never mixed with learnerProfile — two different lifetimes, two different renderers. */
+  /** This-conversation-only recap (src/ai/data's ConversationRepository) — see conversation-memory-block.ts. Never mixed with learnerProfile/learnerState — three different systems, three different renderers. */
   conversationMemory?: ConversationMemory | null;
+  /** The Learning Engine's report card (src/ai/learning-engine) — see learner-state-block.ts. Never mixed with the Teaching Plan below: this is what's true, not what to do about it. */
+  learnerState?: LearnerState | null;
+  /** The Coach Planner's decision (src/ai/coach-planner) — see teaching-plan-block.ts and TEACHING_PLAN_USAGE. The model follows this, it never derives its own strategy when one is present. */
+  teachingPlan?: TeachingPlan | null;
 }
 
 /**
@@ -34,12 +43,15 @@ export interface TutoPromptInput {
  * framework — active learning, adaptive explanations, teaching modes,
  * follow-up learning — added in Sprint 7; knowledge-base usage guidance
  * added in Sprint 9; Learner Memory + Conversation Memory added in
- * Phase 2). Composed from independently maintainable sections
- * (./sections.ts) plus — when the caller has them — rendered blocks for
- * the learner's current-moment context (./context-block.ts), durable
- * cross-session facts (./learner-memory-block.ts), and this
- * conversation's own recap (./conversation-memory-block.ts). The AI
- * Service (src/ai/services) is the only caller today.
+ * Phase 2; LearnerState + Teaching Plan added in Phase 4B). Composed from
+ * independently maintainable sections (./sections.ts) plus — when the
+ * caller has them — rendered blocks for the learner's current-moment
+ * context, durable identity, session recap, mastery report card, and
+ * today's teaching decision. The AI Service (src/ai/services) is the
+ * only caller today, and only generateResponse()/streamResponse()
+ * (the actual chat path) ever supply learnerState/teachingPlan — a
+ * one-shot structured call (vocabulary, article) doesn't get a lesson
+ * plan, because it isn't a lesson, it's a single answer.
  */
 export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
   const sections = [
@@ -55,6 +67,8 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
     TEACHING_MODES,
     "# Knowledge base",
     KNOWLEDGE_BASE_USAGE,
+    "# Teaching plan guidance",
+    TEACHING_PLAN_USAGE,
     "# Grammar correction style",
     GRAMMAR_CORRECTION_STYLE,
     "# Encouragement style",
@@ -79,6 +93,14 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
     );
   }
 
+  const learnerStateBlock = buildLearnerStateBlock(input.learnerState);
+  if (learnerStateBlock) {
+    sections.push(
+      "# This learner's report card\nWhat the Learning Engine has concluded from real evidence — use it to teach better, never read it back to the learner like a report.\n\n" +
+        learnerStateBlock,
+    );
+  }
+
   const conversationMemoryBlock = buildConversationMemoryBlock(input.conversationMemory);
   if (conversationMemoryBlock) {
     sections.push(
@@ -93,6 +115,11 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
       "# Learner context\nHere is what the learner is currently doing in LinguABC. Use it naturally in your response — don't just repeat it back.\n\n" +
         contextBlock,
     );
+  }
+
+  const teachingPlanBlock = buildTeachingPlanBlock(input.teachingPlan);
+  if (teachingPlanBlock) {
+    sections.push("# Today's teaching plan\nDecided before this turn started — see Teaching plan guidance above for how to use it.\n\n" + teachingPlanBlock);
   }
 
   return sections.join("\n\n");

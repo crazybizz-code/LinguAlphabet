@@ -26,7 +26,7 @@
  * this codebase deliberately doesn't pre-build repositories ahead of a
  * real caller needing them.
  */
-export type { ContentRepository, AIArticleSummary, AIPodcastSummary, AITranscriptSegment, AIQuiz, AIQuizQuestion } from "./content-repository";
+export type { ContentRepository, AIArticleSummary, AIPodcastSummary, AITranscriptSegment, AIQuiz, AIQuizQuestion, AIAvailableContentSummary } from "./content-repository";
 export { createContentRepository } from "./content-repository";
 
 export type { ConversationRepository, ConversationMemory, ConversationMemoryMessage, ConversationCurrentContent } from "./conversation-repository";
