@@ -1,6 +1,11 @@
 # UX Launch Audit — First-Time User, Pre-Submission Review
 
-Status: **audit only — no code changed.** Architecture and AI are explicitly
+Status: **all three P0 items fixed and verified** (mobile/tablet/desktop,
+Playwright, before/after screenshots) — see commits `41500e8`, `371f4d5`,
+`bacdd79`. P1/P2 remain open by instruction (P0-only sprint). Details
+below are the original findings, left intact for the record.
+
+Original audit status note: **audit only — no code changed.** Architecture and AI are explicitly
 out of scope per instruction; this is a visual/interaction review only,
 written from the perspective of an Apple product designer doing a final
 pass before App Store submission.
