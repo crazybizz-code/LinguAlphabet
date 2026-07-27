@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import Parser from "rss-parser";
-import { theConversationProvider } from "../the-conversation-provider";
+import { theConversationProvider, refetchThumbnailUrl } from "../the-conversation-provider";
 
 /**
  * Reproduces the production bug (Explore page rendering a wrong image for
@@ -138,6 +138,56 @@ describe.each(CASES)("verification case: $name", ({ body, sharePageExtra, feedIt
 
     expect(item.thumbnailUrl).toBe(expected);
     vi.restoreAllMocks();
+  });
+});
+
+/**
+ * refetchThumbnailUrl (scripts/backfill-conversation-thumbnails.mjs's only
+ * entry point into this file) must distinguish "confirmed no photo" from
+ * "couldn't determine at all" -- the backfill script relies on the second
+ * case throwing so it skips the row instead of writing an empty
+ * thumbnail_url over one it never actually got to inspect.
+ */
+describe("refetchThumbnailUrl", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("returns the real photo URL when one is found", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      text: async () => `<html><body><textarea name="non-attributed-body">${PHOTO_A}</textarea></body></html>`,
+    } as Response);
+
+    await expect(refetchThumbnailUrl("https://theconversation.com/some-article-123456")).resolves.toBe(
+      "https://images.theconversation.com/files/100001/original/a.jpg",
+    );
+  });
+
+  it("returns undefined (confirmed empty) when the body was inspected and genuinely has no CDN photo", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      text: async () => `<html><body><textarea name="non-attributed-body"><p>Opinion piece.</p>${LOGO_IMG}</textarea></body></html>`,
+    } as Response);
+
+    await expect(refetchThumbnailUrl("https://theconversation.com/some-article-123456")).resolves.toBeUndefined();
+  });
+
+  it("throws (does not return undefined) when the stored URL has no parseable article id", async () => {
+    await expect(refetchThumbnailUrl("https://theconversation.com/no-numeric-id-here")).rejects.toThrow();
+  });
+
+  it("throws (does not return undefined) when the share page no longer has the republish textarea", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      text: async () => `<html><body><p>This article has been removed.</p></body></html>`,
+    } as Response);
+
+    await expect(refetchThumbnailUrl("https://theconversation.com/some-article-123456")).rejects.toThrow();
+  });
+
+  it("throws (does not return undefined) when the share endpoint itself fails", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({ ok: false, status: 404 } as Response);
+
+    await expect(refetchThumbnailUrl("https://theconversation.com/some-article-123456")).rejects.toThrow();
   });
 });
 

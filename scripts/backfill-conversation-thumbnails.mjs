@@ -54,6 +54,18 @@ async function main() {
   const { createClient } = await import("@supabase/supabase-js");
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
+  const { count: totalPublished, error: countError } = await supabase
+    .from("content_items")
+    .select("id", { count: "exact", head: true })
+    .eq("content_type", "article")
+    .eq("status", "published");
+
+  if (countError) {
+    console.log(`Failed to count content_items: ${countError.message}`);
+    process.exitCode = 1;
+    return;
+  }
+
   const { data: items, error } = await supabase
     .from("content_items")
     .select("id, title, thumbnail_url, article_details(source_url)")
@@ -68,16 +80,22 @@ async function main() {
     return;
   }
 
-  const affected = (items ?? []).filter((item) => !isFromContentImageHost(item.thumbnail_url));
+  const scanned = items ?? [];
+  const alreadyCorrect = scanned.filter((item) => isFromContentImageHost(item.thumbnail_url));
+  const affected = scanned.filter((item) => !isFromContentImageHost(item.thumbnail_url));
 
-  console.log(`${items?.length ?? 0} published articles have a non-empty thumbnail_url.`);
-  console.log(`${affected.length} of those are NOT from ${CONTENT_IMAGE_HOST} -- these are the ones this script will re-check.`);
+  console.log(`=== Scope ===`);
+  console.log(`Total published articles:                    ${totalPublished ?? 0}`);
+  console.log(`  - with an empty/null thumbnail_url (out of scope, never touched): ${(totalPublished ?? 0) - scanned.length}`);
+  console.log(`  - with a non-empty thumbnail_url (scanned):  ${scanned.length}`);
+  console.log(`      - already from ${CONTENT_IMAGE_HOST} (skipped, already correct): ${alreadyCorrect.length}`);
+  console.log(`      - NOT from ${CONTENT_IMAGE_HOST} (re-checked below):  ${affected.length}`);
   console.log(shouldWrite ? "\nMode: WRITE (updating content_items.thumbnail_url for real)\n" : "\nMode: DRY RUN (no writes -- pass --write to apply)\n");
 
   let fixed = 0;
-  let unchanged = 0;
   let stillNoPhoto = 0;
   let skippedNoSourceUrl = 0;
+  let skippedCouldNotDetermine = 0;
 
   for (const item of affected) {
     // PostgREST can return an embedded 1:1 relation as either a single
@@ -91,27 +109,36 @@ async function main() {
       continue;
     }
 
+    // refetchThumbnailUrl throws (never returns undefined) when the
+    // article couldn't be re-checked at all -- no parseable article id, or
+    // the share page's textarea is missing this time around. That's
+    // deliberately NOT the same as "confirmed no photo": caught here and
+    // skipped without writing anything, exactly like the no-source_url
+    // case above. undefined is reserved for the one case that really did
+    // get inspected and really does have no content-CDN image in it.
     let newThumbnailUrl;
     try {
       newThumbnailUrl = await refetchThumbnailUrl(sourceUrl);
     } catch (fetchError) {
-      console.log(`ERROR "${item.title}" -- refetch failed: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
+      console.log(`SKIP  "${item.title}" -- could not confirm either way: ${fetchError instanceof Error ? fetchError.message : String(fetchError)}`);
+      skippedCouldNotDetermine += 1;
+      await sleep(DELAY_MS_BETWEEN_REQUESTS);
       continue;
     }
 
-    const newValue = newThumbnailUrl ?? "";
-    if (newValue === item.thumbnail_url) {
-      console.log(`SAME  "${item.title}" -- re-extraction returned the same value`);
-      unchanged += 1;
-    } else if (newValue) {
-      console.log(`FIX   "${item.title}"\n        before: ${item.thumbnail_url}\n        after:  ${newValue}`);
+    if (newThumbnailUrl) {
+      // Guaranteed to differ from item.thumbnail_url: this loop only ever
+      // runs over items whose stored thumbnail_url is NOT from
+      // CONTENT_IMAGE_HOST, and firstContentImage() only ever returns a
+      // URL that IS from that host -- the two values can never collide.
+      console.log(`FIX   "${item.title}"\n        before: ${item.thumbnail_url}\n        after:  ${newThumbnailUrl}`);
       fixed += 1;
       if (shouldWrite) {
-        const { error: updateError } = await supabase.from("content_items").update({ thumbnail_url: newValue }).eq("id", item.id);
+        const { error: updateError } = await supabase.from("content_items").update({ thumbnail_url: newThumbnailUrl }).eq("id", item.id);
         if (updateError) console.log(`        UPDATE FAILED: ${updateError.message}`);
       }
     } else {
-      console.log(`CLEAR "${item.title}" -- no real content photo found; clearing so the local themed fallback renders instead of\n        ${item.thumbnail_url}`);
+      console.log(`CLEAR "${item.title}" -- article body confirmed to have no real content photo; clearing so the local themed fallback renders instead of\n        ${item.thumbnail_url}`);
       stillNoPhoto += 1;
       if (shouldWrite) {
         const { error: updateError } = await supabase.from("content_items").update({ thumbnail_url: "" }).eq("id", item.id);
@@ -123,11 +150,14 @@ async function main() {
   }
 
   console.log(`\n=== Summary ===`);
-  console.log(`Fixed to a real photo:        ${fixed}`);
-  console.log(`Cleared (no real photo found): ${stillNoPhoto}`);
-  console.log(`Unchanged:                     ${unchanged}`);
-  console.log(`Skipped (no source_url):       ${skippedNoSourceUrl}`);
-  if (!shouldWrite) console.log(`\nThis was a dry run -- re-run with --write to apply.`);
+  console.log(`Articles to update (fixed to a real photo):        ${fixed}`);
+  console.log(`Articles to update (cleared, confirmed no photo):  ${stillNoPhoto}`);
+  console.log(`Total articles to update:                          ${fixed + stillNoPhoto}`);
+  console.log(`Skipped -- already correct:                        ${alreadyCorrect.length}`);
+  console.log(`Skipped -- no source_url on record:                ${skippedNoSourceUrl}`);
+  console.log(`Skipped -- could not confirm either way this time:  ${skippedCouldNotDetermine}`);
+  console.log(`Total skipped (never written):                     ${alreadyCorrect.length + skippedNoSourceUrl + skippedCouldNotDetermine}`);
+  if (!shouldWrite) console.log(`\nThis was a dry run -- no rows were written. Re-run with --write to apply.`);
 }
 
 main().catch((error) => {
