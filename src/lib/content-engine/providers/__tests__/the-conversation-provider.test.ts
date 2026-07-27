@@ -61,9 +61,9 @@ describe("theConversationProvider thumbnail extraction", () => {
     // Before the fix, this returned the logo URL (a real, loadable, but
     // wrong image) -- which the UI then rendered as the thumbnail with no
     // error anywhere in the pipeline. It must come back undefined instead,
-    // so the existing local themed-fallback tier (thumbnailFallback.ts)
-    // handles it, exactly as it already does for every other article with
-    // no extractable image.
+    // so ArticleCard's branded-cover fallback tier (BrandedCoverFallback)
+    // renders instead, exactly as it already does for every other article
+    // with no extractable image.
     expect(item.thumbnailUrl).toBeUndefined();
   });
 });
