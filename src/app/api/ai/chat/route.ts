@@ -6,8 +6,20 @@ import { streamResponse } from "@/ai/services";
 import { AIProviderError } from "@/ai/providers";
 import { createAIDependencies, createConversationRepository } from "@/ai/data";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
+
+/** Chat is the most expensive AI route (streaming, up to 4 tool-loop round-trips) — see docs/final-production-readiness-review.md's P0 on unauthenticated/unlimited AI endpoints. */
+const CHAT_RATE_LIMIT = 20;
+const CHAT_RATE_WINDOW_MS = 60_000;
+
+function tooManyRequestsResponse(retryAfterSeconds: number): NextResponse {
+  return NextResponse.json(
+    { error: "Too many requests. Please wait a moment and try again." },
+    { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } },
+  );
+}
 
 /**
  * Only user/assistant turns are accepted from the client — Tuto's system
@@ -43,7 +55,7 @@ export async function GET(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ messages: [] });
+  if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
 
   const requestedConversationId = request.nextUrl.searchParams.get("conversationId");
   const conversationId = requestedConversationId || user.id;
@@ -67,13 +79,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request", details: z.treeifyError(parsed.error) }, { status: 400 });
   }
 
-  const { messages, context, conversationId: requestedConversationId } = parsed.data;
-  const learningContext = buildLearningContext(context ?? {});
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const dependencies = user ? createAIDependencies(supabase, user.id) : undefined;
+  if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+
+  const rateLimit = checkRateLimit(`chat:${user.id}`, CHAT_RATE_LIMIT, CHAT_RATE_WINDOW_MS);
+  if (!rateLimit.allowed) return tooManyRequestsResponse(rateLimit.retryAfterSeconds);
+
+  const { messages, context, conversationId: requestedConversationId } = parsed.data;
+  const learningContext = buildLearningContext(context ?? {});
+  const dependencies = createAIDependencies(supabase, user.id);
   /**
    * Defaulting to the learner's own user id (rather than requiring the
    * client to invent one) means every existing chat entry point
@@ -81,7 +98,7 @@ export async function POST(request: NextRequest) {
    * continuous Conversation Memory thread with zero UI change — see
    * docs/ai-request-lifecycle.md's finding #1.
    */
-  const conversationId = requestedConversationId ?? user?.id ?? null;
+  const conversationId = requestedConversationId ?? user.id;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

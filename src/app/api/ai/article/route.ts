@@ -5,8 +5,13 @@ import { summarizeArticle, generateDiscussionQuestions, generateComprehensionQue
 import { AIProviderError } from "@/ai/providers";
 import { createAIDependencies } from "@/ai/data";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
+
+/** See docs/final-production-readiness-review.md's P0 on unauthenticated/unlimited AI endpoints. */
+const ARTICLE_RATE_LIMIT = 20;
+const ARTICLE_RATE_WINDOW_MS = 60_000;
 
 const ArticleReferenceSchema = z.object({
   id: z.string().min(1),
@@ -59,8 +64,18 @@ export async function POST(request: NextRequest) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const dependencies = user ? createAIDependencies(supabase, user.id) : undefined;
-    const conversationId = requestedConversationId ?? user?.id ?? null;
+    if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+
+    const rateLimit = checkRateLimit(`article:${user.id}`, ARTICLE_RATE_LIMIT, ARTICLE_RATE_WINDOW_MS);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+      );
+    }
+
+    const dependencies = createAIDependencies(supabase, user.id);
+    const conversationId = requestedConversationId ?? user.id;
 
     if (action === "summary") {
       return NextResponse.json(await summarizeArticle(article, context ?? {}, dependencies, conversationId));
