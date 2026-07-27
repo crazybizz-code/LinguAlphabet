@@ -1,7 +1,8 @@
 import type { ZodType } from "zod";
 import { z } from "zod";
 import { getDefaultProvider, AIProviderError } from "@/ai/providers";
-import type { AIProviderMessage } from "@/ai/providers";
+import type { AIProvider, AIProviderMessage } from "@/ai/providers";
+import { splitConversationWindow, summarizeOverflow } from "./conversation-window";
 import { buildTutoSystemPrompt } from "@/ai/prompts";
 import { buildLearningContext } from "@/ai/context";
 import type { LearningContext } from "@/ai/context";
@@ -167,11 +168,33 @@ function resolveOrchestratorDecision(
   });
 }
 
+interface ResolvedWindow {
+  recentMessages: ConversationMessage[];
+  earlierSummary: string | null;
+}
+
+/**
+ * Resolves the sliding context window (src/ai/services/conversation-window)
+ * for the chat path only — generateStructuredResponse() always sends a
+ * single one-shot request message (vocabulary, article), never the
+ * client's growing chat history, so it never needs windowing. Summarizing
+ * `overflow` is a best-effort secondary AI call, same convention as
+ * resolveTurnSignal(): a failure here degrades context, it never fails the
+ * turn.
+ */
+async function resolveConversationWindow(input: GenerateResponseInput, provider: AIProvider): Promise<ResolvedWindow> {
+  const conversationTurns = input.messages.filter((message) => message.role === "user" || message.role === "assistant");
+  const { overflow, recent } = splitConversationWindow(conversationTurns);
+  const earlierSummary = await summarizeOverflow(overflow, provider);
+  return { recentMessages: recent, earlierSummary };
+}
+
 function toProviderMessages(
   input: GenerateResponseInput,
   memory: ResolvedMemory,
   teaching: ResolvedTeaching = NO_TEACHING,
   orchestratorDecision: OrchestratorDecision | null = null,
+  window: ResolvedWindow | null = null,
 ): AIProviderMessage[] {
   const systemPrompt = buildTutoSystemPrompt({
     learningContext: input.learningContext,
@@ -183,11 +206,16 @@ function toProviderMessages(
     orchestratorDecision,
   });
 
-  const history: AIProviderMessage[] = input.messages
+  const messages = window ? window.recentMessages : input.messages;
+  const history: AIProviderMessage[] = messages
     .filter((message) => message.role === "user" || message.role === "assistant")
     .map((message) => ({ role: message.role, content: message.content }));
 
-  return [{ role: "system", content: systemPrompt }, ...history];
+  const summaryMessage: AIProviderMessage[] = window?.earlierSummary
+    ? [{ role: "system" as const, content: `Summary of earlier turns in this conversation (older messages were condensed to stay within the model's context window):\n${window.earlierSummary}` }]
+    : [];
+
+  return [{ role: "system", content: systemPrompt }, ...summaryMessage, ...history];
 }
 
 function toToolResults(loopToolResults: Awaited<ReturnType<typeof runToolLoop>>["toolResults"]): ToolResult[] | undefined {
@@ -285,9 +313,14 @@ async function recordExplanationRequested(input: GenerateResponseInput, learning
 export async function generateResponse(input: GenerateResponseInput): Promise<AssistantMessage> {
   const provider = getDefaultProvider();
   const learningContext = input.learningContext ?? buildLearningContext();
-  const [memory, teaching, turnSignal] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext), resolveTurnSignal(input)]);
+  const [memory, teaching, turnSignal, window] = await Promise.all([
+    resolveMemory(input),
+    resolveTeachingPlan(input, learningContext),
+    resolveTurnSignal(input),
+    resolveConversationWindow(input, provider),
+  ]);
   const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching, turnSignal);
-  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision), learningContext, {
+  const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision, window), learningContext, {
     dependencies: input.dependencies,
   });
 
@@ -320,17 +353,22 @@ export async function* streamResponse(input: GenerateResponseInput): AsyncGenera
   bootstrapTools();
 
   if (listTools().length === 0) {
-    const memory = await resolveMemory(input);
-    for await (const chunk of provider.stream({ messages: toProviderMessages(input, memory) })) {
+    const [memory, window] = await Promise.all([resolveMemory(input), resolveConversationWindow(input, provider)]);
+    for await (const chunk of provider.stream({ messages: toProviderMessages(input, memory, NO_TEACHING, null, window) })) {
       if (chunk.delta) yield chunk.delta;
     }
     return null;
   }
 
   const learningContext = input.learningContext ?? buildLearningContext();
-  const [memory, teaching, turnSignal] = await Promise.all([resolveMemory(input), resolveTeachingPlan(input, learningContext), resolveTurnSignal(input)]);
+  const [memory, teaching, turnSignal, window] = await Promise.all([
+    resolveMemory(input),
+    resolveTeachingPlan(input, learningContext),
+    resolveTurnSignal(input),
+    resolveConversationWindow(input, provider),
+  ]);
   const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching, turnSignal);
-  const { completion } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision), learningContext, {
+  const { completion } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision, window), learningContext, {
     dependencies: input.dependencies,
   });
 

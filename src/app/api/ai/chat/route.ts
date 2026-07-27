@@ -30,9 +30,16 @@ function tooManyRequestsResponse(retryAfterSeconds: number): NextResponse {
  * `conversationId` is optional — no current UI entry point sends one yet
  * (see below for the default), but a future one can pass an explicit id
  * for a scoped thread without any schema change here.
+ *
+ * The array cap is a sanity limit against an abusive payload, not a
+ * conversation-length limit — the AI Service (src/ai/services/
+ * conversation-window.ts) now slides the context window and summarizes
+ * anything older down to a fixed size before it ever reaches the model,
+ * so a real, long-running conversation no longer needs to be hard-rejected
+ * here to stay within context.
  */
 const ChatRequestSchema = z.object({
-  messages: z.array(z.union([UserMessageSchema, AssistantMessageSchema])).min(1).max(50),
+  messages: z.array(z.union([UserMessageSchema, AssistantMessageSchema])).min(1).max(500),
   context: LearningContextSchema.partial().optional(),
   conversationId: z.string().min(1).max(200).optional(),
 });
