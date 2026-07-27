@@ -183,6 +183,7 @@ export function FloatingTuto() {
         placeholder="Ask Tuto anything…"
         emptyState={emptyStateFor(screen)}
         onRetry={chat.retryLast}
+        orchestratorAction={chat.lastOrchestratorAction}
       />
     </>
   );

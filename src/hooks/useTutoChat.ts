@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { streamChatCompletion } from "@/lib/tuto-chat/streamChatCompletion";
+import { getRecentConversation } from "@/lib/tuto-chat/getRecentConversation";
+import type { ChatOrchestratorAction } from "@/lib/tuto-chat/streamChatCompletion";
 import type { ChatMessage, TutoContextInput } from "@/lib/tuto-chat/types";
 
 export type TutoChatStatus = "idle" | "streaming" | "error";
@@ -20,18 +22,53 @@ export interface UseTutoChatOptions {
 }
 
 /**
- * Client-side conversation state for Tuto — the browser counterpart to
- * "preserve conversation history using the existing architecture": there's
- * no server-side memory (src/ai/memory is intentionally unimplemented), so
- * every turn resends the full message history so far, exactly like the
- * existing /api/ai/chat contract already expects (Sprint 1's
- * ConversationMessage[]).
+ * Client-side conversation state for Tuto: every turn resends the full
+ * message history so far, exactly like the existing /api/ai/chat contract
+ * already expects (Sprint 1's ConversationMessage[]). Real server-side
+ * memory does exist (src/ai/data's ConversationRepository, read/written on
+ * every turn) — but until this hook hydrates from it, a page refresh wiped
+ * every visible bubble while the server silently remembered everything,
+ * a mismatch a learner could actually notice (docs/mvp-completion-audit.md
+ * P0.2). The mount effect below closes that gap by reading back the same
+ * ConversationMemory the server already persists.
  */
 export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>(seedMessages ?? []);
   const [status, setStatus] = useState<TutoChatStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  /** What the Learning Orchestrator (src/ai/learning-orchestrator) decided on the most recently completed turn — null until a turn with a live session plan finishes. See docs/mvp-completion-audit.md P0.4. */
+  const [lastOrchestratorAction, setLastOrchestratorAction] = useState<ChatOrchestratorAction | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const hydratedRef = useRef(false);
+  /**
+   * Shared with reset() below: an in-flight hydration fetch must never
+   * resolve into a conversation the learner has since deliberately reset
+   * (a new text selection, a fresh "ask about this article") — that would
+   * silently resurrect unrelated history into what's supposed to be a
+   * clean scoped conversation. Unmount-cleanup alone doesn't cover this,
+   * since reset() doesn't unmount the component.
+   */
+  const hydrationCancelledRef = useRef(false);
+
+  /**
+   * Hydrates from server-persisted ConversationMemory once, on mount —
+   * never overwrites an explicit `seedMessages` (a caller priming this
+   * conversation with specific hidden context takes precedence over
+   * generic history) and never overwrites messages already in flight if
+   * the learner started typing before this resolved.
+   */
+  useEffect(() => {
+    if (seedMessages || hydratedRef.current) return;
+    hydratedRef.current = true;
+
+    void getRecentConversation().then((recentMessages) => {
+      if (hydrationCancelledRef.current || recentMessages.length === 0) return;
+      setMessages((prev) => (prev.length > 0 ? prev : recentMessages.map((message) => ({ id: nextMessageId(), ...message }))));
+    });
+    return () => {
+      hydrationCancelledRef.current = true;
+    };
+  }, [seedMessages]);
 
   const runTurn = useCallback(
     async (baseMessages: ChatMessage[], text: string) => {
@@ -57,6 +94,8 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
                 message.id === assistantId ? { ...message, content: message.content + event.content } : message,
               ),
             );
+          } else if (event.type === "done") {
+            setLastOrchestratorAction(event.orchestratorAction ?? null);
           } else if (event.type === "error") {
             setError(event.message);
             setStatus("error");
@@ -116,10 +155,12 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
   );
 
   const reset = useCallback((seed: ChatMessage[] = []) => {
+    hydrationCancelledRef.current = true;
     abortRef.current?.abort();
     setMessages(seed);
     setStatus("idle");
     setError(null);
+    setLastOrchestratorAction(null);
   }, []);
 
   const stop = useCallback(() => {
@@ -132,5 +173,5 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
     setMessages((prev) => [...prev, { id: nextMessageId(), role: "assistant", content, hidden: true }]);
   }, []);
 
-  return { messages, status, error, sendMessage, sendFresh, reset, stop, addHiddenContext, retryLast };
+  return { messages, status, error, lastOrchestratorAction, sendMessage, sendFresh, reset, stop, addHiddenContext, retryLast };
 }

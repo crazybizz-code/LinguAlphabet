@@ -88,7 +88,10 @@ export default function ForgotPasswordPage() {
         </form>
 
         <p className="mt-6 text-center text-small text-text-secondary">
-          <Link href="/login" className="inline-flex items-center gap-1 font-medium text-primary hover:text-primary-dark">
+          <Link
+            href="/login"
+            className="-my-3.5 inline-flex items-center gap-1 py-3.5 font-medium text-primary hover:text-primary-dark"
+          >
             <ArrowLeft className="h-3 w-3" />
             Back to Sign In
           </Link>

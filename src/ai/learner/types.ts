@@ -81,6 +81,8 @@ export const LearnerProfileSchema = z.object({
 
   streak: z.number().int().nonnegative().nullable().default(null),
   xp: z.number().int().nonnegative().nullable().default(null),
+  /** The learner's own onboarding-set daily study goal, in minutes — same `profiles` column as streak/xp, not a Learning Engine derivation. Lets a consumer (e.g. getLearningProgress) answer "weekly goal" without re-deriving it elsewhere. */
+  dailyGoalMinutes: z.number().int().positive().nullable().default(null),
   studyConsistency: StudyConsistencySchema.nullable().default(null),
 });
 export type LearnerProfile = z.infer<typeof LearnerProfileSchema>;

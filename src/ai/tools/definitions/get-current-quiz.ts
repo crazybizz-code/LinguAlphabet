@@ -1,11 +1,12 @@
 import { z } from "zod";
 import type { ToolDefinition } from "../types";
-import { MOCK_QUIZZES } from "../mock-data";
 
 const QuestionSchema = z.object({
+  type: z.enum(["mc", "tf", "fill"]),
   prompt: z.string(),
   choices: z.array(z.string()),
   correctChoiceIndex: z.number().int(),
+  explanation: z.string(),
 });
 
 const QuizSchema = z.object({
@@ -22,22 +23,37 @@ const ResultSchema = z.union([
 type Result = z.infer<typeof ResultSchema>;
 
 /**
- * Includes `correctChoiceIndex` deliberately — Tuto needs the answer key
- * to explain *why* a choice is right, not just what the choices are.
- * Mock data only.
+ * A quiz isn't its own entity in the real data model — it's an enrichment
+ * attachment on whichever article or podcast is current
+ * (docs/domain-model.md's "universal enrichment attachments"), so this
+ * resolves from currentArticle/currentPodcast rather than a standalone
+ * currentQuiz id (no real caller sets LearningContext.currentQuiz today).
+ * Includes `correctChoiceIndex`/`explanation` deliberately — Tuto needs
+ * the answer key to explain *why* a choice is right, not just what the
+ * choices are. Reads through the request's ContentRepository (src/ai/data).
  */
 export const getCurrentQuizTool: ToolDefinition<Record<string, never>, Result> = {
   name: "getCurrentQuiz",
-  description: "Get the quiz the learner is currently taking, including its questions and correct answers.",
+  description: "Get the quiz attached to the article or podcast the learner is currently studying, including its questions and correct answers.",
   parameters: { type: "object", properties: {}, required: [] },
   resultSchema: ResultSchema,
   async execute(_args, context) {
-    const ref = context.learningContext.currentQuiz;
-    if (!ref) return { found: false, reason: "The learner is not currently taking a quiz." };
+    const { currentArticle, currentPodcast } = context.learningContext;
+    const target = currentArticle
+      ? ({ contentType: "article", id: currentArticle.id } as const)
+      : currentPodcast
+        ? ({ contentType: "podcast", id: currentPodcast.id } as const)
+        : null;
 
-    const quiz = MOCK_QUIZZES[ref.id];
-    if (!quiz) return { found: false, reason: `No quiz data found for id "${ref.id}".` };
+    if (!target) return { found: false, reason: "The learner is not currently studying any content with a quiz." };
+    if (!context.dependencies?.contentRepository) return { found: false, reason: "Content access is not available right now." };
 
-    return { found: true, quiz };
+    const quiz = await context.dependencies.contentRepository.getQuiz(target.contentType, target.id);
+    if (!quiz) return { found: false, reason: `No quiz found for id "${target.id}".` };
+
+    return {
+      found: true,
+      quiz: { id: quiz.contentId, title: quiz.title, cefrLevel: quiz.cefrLevel, questions: quiz.questions },
+    };
   },
 };

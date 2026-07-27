@@ -1,6 +1,5 @@
 import { z } from "zod";
 import type { ToolDefinition } from "../types";
-import { MOCK_TRANSCRIPTS } from "../mock-data";
 
 const SegmentSchema = z.object({
   speaker: z.string(),
@@ -19,7 +18,7 @@ const ArgsSchema = z.object({
 });
 type Args = z.infer<typeof ArgsSchema>;
 
-/** Transcript for whichever podcast is current (src/ai/context's currentPodcast) — mock data only. */
+/** Transcript for whichever podcast is current (src/ai/context's currentPodcast) — reads through the request's ContentRepository (src/ai/data). */
 export const getPodcastTranscriptTool: ToolDefinition<Args, Result> = {
   name: "getPodcastTranscript",
   description: "Get the transcript of the podcast the learner is currently studying, optionally limited to the first N segments.",
@@ -34,13 +33,12 @@ export const getPodcastTranscriptTool: ToolDefinition<Args, Result> = {
   async execute(args, context) {
     const ref = context.learningContext.currentPodcast;
     if (!ref) return { found: false, reason: "The learner is not currently viewing a podcast." };
-
-    const segments = MOCK_TRANSCRIPTS[ref.id];
-    if (!segments) return { found: false, reason: `No transcript found for podcast id "${ref.id}".` };
+    if (!context.dependencies?.contentRepository) return { found: false, reason: "Content access is not available right now." };
 
     const parsedArgs = ArgsSchema.parse(args ?? {});
-    const limited = parsedArgs.maxSegments ? segments.slice(0, parsedArgs.maxSegments) : segments;
+    const segments = await context.dependencies.contentRepository.getPodcastTranscript(ref.id, parsedArgs.maxSegments);
+    if (!segments) return { found: false, reason: `No transcript found for podcast id "${ref.id}".` };
 
-    return { found: true, podcastId: ref.id, segments: limited };
+    return { found: true, podcastId: ref.id, segments };
   },
 };

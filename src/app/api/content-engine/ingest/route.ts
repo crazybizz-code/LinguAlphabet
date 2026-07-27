@@ -63,14 +63,6 @@ export async function GET(request: Request) {
       autoPublish: true,
       normalize: (raw) => {
         const thumbnailUrl = raw.thumbnailUrl ?? "";
-        // TEMPORARY diagnostic instrumentation for the thumbnail_url=NULL
-        // production blocker -- traces the same one article this file's
-        // provider-level trace targets. Remove once the root cause is fixed.
-        if (raw.title?.includes("SAVE America Act")) {
-          console.log(
-            `[thumbnail-trace] STAGE 6 draft.thumbnailUrl: ${thumbnailUrl ? thumbnailUrl : "(empty string)"} (raw.thumbnailUrl was: ${raw.thumbnailUrl ?? "(undefined)"})`,
-          );
-        }
         return {
           id: `article-${createHash("sha256").update(raw.externalId).digest("hex").slice(0, 16)}`,
           contentType: "article",

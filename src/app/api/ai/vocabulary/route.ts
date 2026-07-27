@@ -3,8 +3,15 @@ import { z } from "zod";
 import { LearningContextSchema } from "@/ai/context";
 import { explainVocabulary } from "@/ai/features/vocabulary";
 import { AIProviderError } from "@/ai/providers";
+import { createAIDependencies } from "@/ai/data";
+import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
+
+/** See docs/final-production-readiness-review.md's P0 on unauthenticated/unlimited AI endpoints. */
+const VOCABULARY_RATE_LIMIT = 20;
+const VOCABULARY_RATE_WINDOW_MS = 60_000;
 
 /**
  * `selectedWord` is deliberately omitted from the accepted `context` shape
@@ -17,6 +24,7 @@ export const runtime = "nodejs";
 const VocabularyRequestSchema = z.object({
   word: z.string().min(1, "word is required").max(100, "word is too long"),
   context: LearningContextSchema.omit({ selectedWord: true }).partial().optional(),
+  conversationId: z.string().min(1).max(200).optional(),
 });
 
 /**
@@ -41,7 +49,23 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const explanation = await explainVocabulary(parsed.data.word, parsed.data.context ?? {});
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+
+    const rateLimit = checkRateLimit(`vocabulary:${user.id}`, VOCABULARY_RATE_LIMIT, VOCABULARY_RATE_WINDOW_MS);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+      );
+    }
+
+    const dependencies = createAIDependencies(supabase, user.id);
+    const conversationId = parsed.data.conversationId ?? user.id;
+    const explanation = await explainVocabulary(parsed.data.word, parsed.data.context ?? {}, dependencies, conversationId);
     return NextResponse.json(explanation);
   } catch (error) {
     if (error instanceof AIProviderError) {

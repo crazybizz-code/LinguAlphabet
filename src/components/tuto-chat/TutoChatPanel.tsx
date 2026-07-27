@@ -11,6 +11,7 @@ import { QuickReplyChips } from "./QuickReplyChips";
 import { useTutoMascotState } from "@/hooks/useTutoMascotState";
 import { fadeSlideUp, fadeScaleIn } from "@/lib/motion/variants";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
+import type { ChatOrchestratorAction } from "@/lib/tuto-chat/streamChatCompletion";
 import type { TutoChatStatus } from "@/hooks/useTutoChat";
 import type { CefrLevel } from "@/ai/context";
 
@@ -33,6 +34,8 @@ export interface TutoChatPanelProps {
   thinkingFocus?: ThinkingFocus;
   /** Sprint UX-3: the same CEFR level already threaded through TutoContextInput at the call site — drives the adaptive level badge and the continue-learning card's copy. Omit when not known. */
   learnerLevel?: CefrLevel | null;
+  /** The Learning Orchestrator's decision on the most recently completed turn (useTutoChat's lastOrchestratorAction) — refines the mascot's transient "success" moment. Omit for the original generic copy. */
+  orchestratorAction?: ChatOrchestratorAction | null;
   /**
    * Sprint UX-3.1 (Polish): contextual copy shown in place of a blank box
    * before the first message — only rendered when there's no header (a
@@ -69,6 +72,7 @@ export function TutoChatPanel({
   learnerLevel = null,
   emptyState,
   onRetry,
+  orchestratorAction = null,
 }: TutoChatPanelProps) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -94,7 +98,7 @@ export function TutoChatPanel({
 
   return (
     <div className="flex flex-col gap-3">
-      <TutoMascotStatus state={mascotState} level={learnerLevel} />
+      <TutoMascotStatus state={mascotState} level={learnerLevel} orchestratorAction={orchestratorAction} />
       {header}
       {showEmptyState && (
         <motion.div

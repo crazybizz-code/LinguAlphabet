@@ -119,7 +119,11 @@ export default function AiPlanPage() {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-bg px-5 py-12 text-center">
         <div className="w-full max-w-xl">
-          <Tuto pose="typing-laptop" size="md" animation="floatSm" priority className="mx-auto mb-8" />
+          {/* "thinking", not "typing-laptop" — that pose's file (pointing.png)
+              renders with a broken transparency/checkerboard artifact against
+              the mix-blend-mode frame every other pose uses cleanly
+              (docs/ux-launch-audit.md P0). */}
+          <Tuto pose="thinking" size="md" animation="floatSm" priority className="mx-auto mb-8" />
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

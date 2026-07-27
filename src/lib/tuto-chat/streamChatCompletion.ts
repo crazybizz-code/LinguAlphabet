@@ -1,6 +1,19 @@
 import type { ChatMessage, TutoContextInput } from "./types";
 
-export type ChatStreamEvent = { type: "delta"; content: string } | { type: "done" } | { type: "error"; message: string };
+/**
+ * Mirrors src/ai/learning-orchestrator's OrchestratorAction as a plain
+ * string union rather than importing the type — this module ships to the
+ * browser and src/ai/learning-orchestrator is server-only AI architecture;
+ * duplicating just the string literals here (not the logic) keeps that
+ * boundary intact the same way TutoContextInput already does for
+ * LearningContext.
+ */
+export type ChatOrchestratorAction = "continue" | "repeat" | "simplify" | "give-hint" | "celebrate" | "skip" | "escalate" | "finish";
+
+export type ChatStreamEvent =
+  | { type: "delta"; content: string }
+  | { type: "done"; orchestratorAction?: ChatOrchestratorAction | null }
+  | { type: "error"; message: string };
 
 /**
  * Client-side counterpart to src/app/api/ai/chat/route.ts's SSE output —

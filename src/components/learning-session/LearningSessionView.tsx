@@ -78,6 +78,7 @@ export function LearningSessionView({
     startTransition(async () => {
       const params = {
         contentId: content.contentId,
+        contentType: content.contentType === "podcast" ? ("podcast" as const) : ("article" as const),
         estimatedMinutes: content.estimatedMinutes,
         correctAnswers: quizScore,
         quizTotal: content.quiz.length,
@@ -166,7 +167,7 @@ export function LearningSessionView({
 
       {isPending && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-bg/80 backdrop-blur-sm">
-          <Tuto pose="typing-laptop" size="sm" animation="floatSm" />
+          <Tuto pose="thinking" size="sm" animation="floatSm" />
           <p className="text-sm font-medium text-text-tertiary">Tuto is saving your progress&hellip;</p>
         </div>
       )}

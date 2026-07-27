@@ -244,6 +244,7 @@ export function ReadingStep({ content, onNext }: { content: LearningSessionConte
           starters: ["Summarize this article", "Explain the hardest part", "Quiz me on this"],
         }}
         onRetry={chat.retryLast}
+        orchestratorAction={chat.lastOrchestratorAction}
       />
     </motion.div>
   );

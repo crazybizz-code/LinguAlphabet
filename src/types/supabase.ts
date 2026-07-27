@@ -1,7 +1,8 @@
 /**
  * Hand-written from supabase-schema.sql + supabase/onboarding-fields.sql +
- * supabase/content-schema.sql. Regenerate this for real once the Supabase
- * project is linked via the CLI:
+ * supabase/content-schema.sql + supabase/ai-conversation-memory-schema.sql +
+ * supabase/learning-signals-schema.sql + supabase/orchestrator-state-schema.sql.
+ * Regenerate this for real once the Supabase project is linked via the CLI:
  *
  *   npx supabase gen types typescript --project-id <ref> > src/types/supabase.ts
  *
@@ -59,6 +60,54 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+        Relationships: [];
+      };
+      /** src/ai/data's ConversationRepository — Conversation Memory, see supabase/ai-conversation-memory-schema.sql. orchestrator_state added by supabase/orchestrator-state-schema.sql (Phase 7). */
+      ai_conversation_memory: {
+        Row: {
+          user_id: string;
+          conversation_id: string;
+          recent_messages: Json;
+          current_content: Json | null;
+          orchestrator_state: Json | null;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          conversation_id: string;
+          recent_messages?: Json;
+          current_content?: Json | null;
+          orchestrator_state?: Json | null;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["ai_conversation_memory"]["Insert"]>;
+        Relationships: [];
+      };
+      /** src/ai/data's SignalRepository — append-only evidence log, see supabase/learning-signals-schema.sql. No Update type: signals are never mutated once written. */
+      learning_signals: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: string;
+          topic: string | null;
+          skill: string | null;
+          evidence: Json;
+          source: string;
+          confidence: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type: string;
+          topic?: string | null;
+          skill?: string | null;
+          evidence?: Json;
+          source: string;
+          confidence?: number | null;
+          created_at?: string;
+        };
+        Update: never;
         Relationships: [];
       };
       content_items: {

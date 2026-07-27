@@ -5,6 +5,7 @@ import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/querie
 import { buildWeeklyMinutes, buildTodayMinutes } from "@/lib/content/home";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
+import { createLearnerRepository } from "@/ai/data";
 import { buildTutoNote } from "@/lib/tuto/messages";
 import { HomeView } from "@/components/dashboard/HomeView";
 import { buildMetadata } from "@/lib/seo/metadata";
@@ -26,12 +27,13 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, podcasts, articles, { data: progressRows }, { data: previousMission }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("username, level, streak, last_study_date, english_level, goal, daily_time_minutes, interests, onboarding_completed")
-      .eq("user_id", user.id)
-      .single(),
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: previousMission }] = await Promise.all([
+    supabase.from("profiles").select("username, level, last_study_date, daily_time_minutes, interests, onboarding_completed").eq("user_id", user.id).single(),
+    // Level/goal/streak come from LearnerRepository (src/ai/data, frozen) —
+    // the same repository Tuto's own system prompt reads (ai-service.ts's
+    // resolveMemory()) — so Dashboard and Tuto can never independently
+    // drift on what "the learner's current level" means.
+    createLearnerRepository(supabase, user.id).getProfile(),
     getPublishedPodcasts(supabase),
     getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
@@ -64,12 +66,11 @@ export default async function DashboardPage() {
     })
     .filter((completion): completion is RecentCompletion => completion !== null);
 
-  const baseLevel = (profile?.english_level as LearnerContext["englishLevel"]) ?? null;
-  const effectiveLevel = learningBrain.getEffectiveLevel(baseLevel, recentCompletions);
+  const effectiveLevel = learningBrain.getEffectiveLevel(learnerProfile.cefrLevel, recentCompletions);
 
   const context: LearnerContext = {
     englishLevel: effectiveLevel,
-    goal: profile?.goal ?? null,
+    goal: learnerProfile.learningGoal,
     interests: profile?.interests ?? [],
     completedContentIds: new Set(completedRows.map((row) => row.content_item_id)),
     previousMissionContentType: previousMissionContent?.contentType ?? null,
@@ -99,7 +100,7 @@ export default async function DashboardPage() {
   const todayMinutes = buildTodayMinutes(catalog, rows);
 
   const tutoNote = buildTutoNote({
-    streak: profile?.streak ?? 0,
+    streak: learnerProfile.streak ?? 0,
     weeklyMinutes,
     weeklyGoalMinutes,
     // Today's Mission's own checklist/celebration already congratulates the
@@ -112,7 +113,7 @@ export default async function DashboardPage() {
   return (
     <HomeView
       displayName={profile?.username || "there"}
-      streak={profile?.streak ?? 0}
+      streak={learnerProfile.streak ?? 0}
       level={profile?.level ?? 1}
       weeklyMinutes={weeklyMinutes}
       weeklyGoalMinutes={weeklyGoalMinutes}

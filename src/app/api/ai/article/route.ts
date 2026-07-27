@@ -3,8 +3,15 @@ import { z } from "zod";
 import { LearningContextSchema } from "@/ai/context";
 import { summarizeArticle, generateDiscussionQuestions, generateComprehensionQuestions } from "@/ai/features/article";
 import { AIProviderError } from "@/ai/providers";
+import { createAIDependencies } from "@/ai/data";
+import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
+
+/** See docs/final-production-readiness-review.md's P0 on unauthenticated/unlimited AI endpoints. */
+const ARTICLE_RATE_LIMIT = 20;
+const ARTICLE_RATE_WINDOW_MS = 60_000;
 
 const ArticleReferenceSchema = z.object({
   id: z.string().min(1),
@@ -22,6 +29,7 @@ const ArticleRequestSchema = z.object({
   action: z.enum(["summary", "discussion-questions", "comprehension-questions"]),
   article: ArticleReferenceSchema,
   context: LearningContextSchema.omit({ currentArticle: true }).partial().optional(),
+  conversationId: z.string().min(1).max(200).optional(),
 });
 
 /**
@@ -49,16 +57,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request", details: z.treeifyError(parsed.error) }, { status: 400 });
   }
 
-  const { action, article, context } = parsed.data;
+  const { action, article, context, conversationId: requestedConversationId } = parsed.data;
 
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+
+    const rateLimit = checkRateLimit(`article:${user.id}`, ARTICLE_RATE_LIMIT, ARTICLE_RATE_WINDOW_MS);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+      );
+    }
+
+    const dependencies = createAIDependencies(supabase, user.id);
+    const conversationId = requestedConversationId ?? user.id;
+
     if (action === "summary") {
-      return NextResponse.json(await summarizeArticle(article, context ?? {}));
+      return NextResponse.json(await summarizeArticle(article, context ?? {}, dependencies, conversationId));
     }
     if (action === "discussion-questions") {
-      return NextResponse.json(await generateDiscussionQuestions(article, context ?? {}));
+      return NextResponse.json(await generateDiscussionQuestions(article, context ?? {}, dependencies, conversationId));
     }
-    return NextResponse.json(await generateComprehensionQuestions(article, context ?? {}));
+    return NextResponse.json(await generateComprehensionQuestions(article, context ?? {}, dependencies, conversationId));
   } catch (error) {
     if (error instanceof AIProviderError) {
       return NextResponse.json({ error: error.message }, { status: error.status ?? 502 });
