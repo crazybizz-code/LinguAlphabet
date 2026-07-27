@@ -56,10 +56,30 @@ export interface TutoChatPanelProps {
  * thinking timeline on top of the same underlying useTutoChat contract —
  * no change to that hook or anything upstream of it.
  *
- * Deliberately not its own scroll container: this renders inside
- * EditSheet's existing scrollable content pane (src/components/profile/EditSheet.tsx),
- * so the input row is `sticky bottom-0` rather than living in a separate
- * flex region — no change to EditSheet's layout needed for a pinned input.
+ * Mobile scroll/pin fix: this used to render as one flat flex column
+ * inside EditSheet's own scrollable content pane, with the input row
+ * `sticky bottom-0` inside that same scroll flow. Measured (real DOM
+ * geometry, not guessed) two failure modes on mobile's fixed-height sheet
+ * (`h-[78vh]`, EditSheet.tsx): (1) a short conversation never overflows
+ * that tall pane at all, so `sticky` never activates — the composer just
+ * sits at its natural position right after the last message, leaving the
+ * rest of the sheet as dead space below it, instead of pinned to the true
+ * bottom; (2) once a conversation *does* overflow, the now-"stuck"
+ * composer visually overlaps the tail of the scrolled content — and the
+ * auto-scroll sentinel (`endRef`, placed just before the composer in
+ * flow) ends up geometrically underneath that same stuck overlay, so
+ * `scrollIntoView` (which only checks bounding-rect containment, not
+ * real occlusion) concludes nothing more needs to scroll and leaves the
+ * newest message/thinking indicator hidden behind the input bar.
+ *
+ * Fixed the standard way every mobile chat UI does it: the composer is
+ * its own fixed (non-scrolling, non-sticky) row, and only the message
+ * list scrolls in a sibling region above it — the composer can no longer
+ * ever overlap content, and the scroll anchor's geometry is honest since
+ * nothing else can render on top of it. Purely a layout mechanism change
+ * — same EditSheet chrome, same colors/spacing/borders, desktop
+ * unaffected (EditSheet already sizes the sheet to its content there via
+ * `sm:h-auto`, so this fixed-height failure mode never applied there).
  */
 export function TutoChatPanel({
   messages,
@@ -76,6 +96,7 @@ export function TutoChatPanel({
 }: TutoChatPanelProps) {
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  const contentSizeRef = useRef<HTMLDivElement>(null);
   const visibleMessages = messages.filter((message) => !message.hidden);
   const lastMessage = visibleMessages[visibleMessages.length - 1];
   const mascotState = useTutoMascotState(status, messages);
@@ -89,6 +110,26 @@ export function TutoChatPanel({
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [visibleMessages.length, lastMessage?.content, isThinking]);
 
+  // ThinkingTimeline cycles its own label every 700ms independent of any
+  // prop this component passes it (ThinkingTimeline.tsx's own internal
+  // interval) -- different label lengths (one line vs. two on a narrow
+  // phone) change content height without changing visibleMessages.length,
+  // lastMessage.content, or isThinking, so the effect above alone can't
+  // catch it. A streamed reply's growing token-by-token content is
+  // already covered by lastMessage.content above; this ResizeObserver is
+  // specifically for the thinking-phase case that isn't. Scoped to
+  // status === "streaming" only, so it's inert once a turn settles.
+  useEffect(() => {
+    if (status !== "streaming") return;
+    const el = contentSizeRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      endRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [status]);
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!draft.trim() || status === "streaming") return;
@@ -97,68 +138,76 @@ export function TutoChatPanel({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <TutoMascotStatus state={mascotState} level={learnerLevel} orchestratorAction={orchestratorAction} />
-      {header}
-      {showEmptyState && (
-        <motion.div
-          variants={fadeScaleIn}
-          initial="hidden"
-          animate="visible"
-          className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-bg-muted px-5 py-8 text-center"
-        >
-          <p className="text-sm font-bold text-text-primary">{emptyState.title}</p>
-          <p className="text-sm leading-relaxed text-text-secondary">{emptyState.description}</p>
-          {emptyState.starters && emptyState.starters.length > 0 && (
-            <QuickReplyChips replies={emptyState.starters} onSelect={onSend} />
-          )}
-        </motion.div>
-      )}
-      {visibleMessages.map((message, index) => {
-        const isLastAssistant = index === visibleMessages.length - 1 && message.role === "assistant";
-        // The thinking timeline covers this moment instead of an empty bubble —
-        // and an error leaves this same empty placeholder behind too (Sprint
-        // UX-3.1: the retry button sits right below it, so a stray blank
-        // bubble must never linger between the user's question and the error).
-        if (isLastAssistant && (status === "streaming" || status === "error") && message.content.length === 0) return null;
-        return <ChatBubble key={message.id} message={message} streaming={status === "streaming" && isLastAssistant} />;
-      })}
-      <AnimatePresence>
-        {isThinking && (
-          <motion.div variants={fadeSlideUp} initial="hidden" animate="visible" exit={{ opacity: 0 }}>
-            <ThinkingTimeline focus={thinkingFocus} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {showResponseActions && (
-        <ResponseActions
-          key={lastMessage.id}
-          content={lastMessage.content}
-          thinkingFocus={thinkingFocus}
-          onSend={onSend}
-          turnIndex={assistantTurnCount}
-          learnerLevel={learnerLevel}
-        />
-      )}
-      {error && (
-        <div className="flex flex-col items-start gap-2 rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
-          <span>{error}</span>
-          {onRetry && (
-            <button
-              type="button"
-              onClick={onRetry}
-              className="text-xs font-bold text-danger underline underline-offset-2 hover:opacity-80"
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Independently scrollable — the composer below is a separate,
+          non-scrolling sibling, never part of this flow, so it can never
+          overlap or hide the newest message the way a sticky element
+          sharing this same scroll region used to. */}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        <div ref={contentSizeRef} className="flex flex-col gap-3 pb-3">
+          <TutoMascotStatus state={mascotState} level={learnerLevel} orchestratorAction={orchestratorAction} />
+          {header}
+          {showEmptyState && (
+            <motion.div
+              variants={fadeScaleIn}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-bg-muted px-5 py-8 text-center"
             >
-              Try again
-            </button>
+              <p className="text-sm font-bold text-text-primary">{emptyState.title}</p>
+              <p className="text-sm leading-relaxed text-text-secondary">{emptyState.description}</p>
+              {emptyState.starters && emptyState.starters.length > 0 && (
+                <QuickReplyChips replies={emptyState.starters} onSelect={onSend} />
+              )}
+            </motion.div>
           )}
+          {visibleMessages.map((message, index) => {
+            const isLastAssistant = index === visibleMessages.length - 1 && message.role === "assistant";
+            // The thinking timeline covers this moment instead of an empty bubble —
+            // and an error leaves this same empty placeholder behind too (Sprint
+            // UX-3.1: the retry button sits right below it, so a stray blank
+            // bubble must never linger between the user's question and the error).
+            if (isLastAssistant && (status === "streaming" || status === "error") && message.content.length === 0) return null;
+            return <ChatBubble key={message.id} message={message} streaming={status === "streaming" && isLastAssistant} />;
+          })}
+          <AnimatePresence>
+            {isThinking && (
+              <motion.div variants={fadeSlideUp} initial="hidden" animate="visible" exit={{ opacity: 0 }}>
+                <ThinkingTimeline focus={thinkingFocus} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {showResponseActions && (
+            <ResponseActions
+              key={lastMessage.id}
+              content={lastMessage.content}
+              thinkingFocus={thinkingFocus}
+              onSend={onSend}
+              turnIndex={assistantTurnCount}
+              learnerLevel={learnerLevel}
+            />
+          )}
+          {error && (
+            <div className="flex flex-col items-start gap-2 rounded-2xl border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
+              <span>{error}</span>
+              {onRetry && (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="text-xs font-bold text-danger underline underline-offset-2 hover:opacity-80"
+                >
+                  Try again
+                </button>
+              )}
+            </div>
+          )}
+          <div ref={endRef} aria-hidden="true" />
         </div>
-      )}
-      <div ref={endRef} aria-hidden="true" />
+      </div>
 
       <form
         onSubmit={handleSubmit}
-        className="sticky bottom-0 -mx-6 flex items-center gap-2 border-t border-border bg-bg-card/95 px-6 py-3 backdrop-blur-sm"
+        className="-mx-6 flex shrink-0 items-center gap-2 border-t border-border bg-bg-card/95 px-6 py-3 backdrop-blur-sm"
       >
         <input
           type="text"
