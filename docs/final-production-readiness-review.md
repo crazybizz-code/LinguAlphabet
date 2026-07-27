@@ -214,3 +214,145 @@ Per-message length capped at 8,000 chars, array capped at 50 messages (`src/ai/s
 2. **[P0 — AI]** No defense against prompt injection from ingested third-party content (article/podcast text is passed to the model with zero framing distinguishing "data" from "instructions"). A compromised or malicious content source can manipulate Tuto's behavior with no technical barrier today.
 
 Everything else catalogued above (the P1s across Auth, AI, Learning, Design, Database, Performance, Security) should be triaged and scheduled, but none of them individually block a production deploy the way the two P0s above do — they're real debt and real risk, not immediate "the moment this ships, something breaks or someone exploits it" blockers. Once the two P0s are closed and re-verified, this product is close to a legitimate GO: the AI architecture is genuinely solid (confirmed across three separate audit passes this session), RLS is correctly configured everywhere, no hardcoded secrets exist, and the UX/mobile fixes from the prior sprint hold up under Playwright verification at every breakpoint. The gap between "close" and "ready" is specifically the two P0s above, both of which are additive, non-architectural fixes (auth gate + rate limiter; prompt framing) — realistically 1-2 days of focused work, not a redesign.
+
+---
+
+# UPDATE — Both P0s Implemented and Re-Verified
+
+Per instruction: P1/P2 items above were explicitly **not** touched this
+pass — they remain open, by choice, not by oversight. Only the two P0s
+were implemented, then re-audited with the same rigor as the original
+finding (live HTTP requests against a running server, not just code
+reading; a live unit test of the new rate-limit logic; a full
+`tsc`/`eslint`/`vitest`/build pass).
+
+## P0.1 — AI endpoint protection: RESOLVED, verified live
+
+**What changed:** `src/app/api/ai/chat/route.ts` (both `GET` and `POST`),
+`src/app/api/ai/vocabulary/route.ts`, and `src/app/api/ai/article/route.ts`
+now all reject an unauthenticated request with `401 {"error": "Authentication
+required."}` **before** any LLM provider call is made — confirmed
+directly, not inferred: `dependencies`/generation previously proceeded
+even when `user` was `null`; now the routes return early. A new
+`src/lib/rate-limit.ts` (in-memory, per-key sliding window, 20
+requests/60s per authenticated user per route) sits behind the auth
+check on all three, returning `429` with a `Retry-After` header and a
+plain-language error body when exceeded.
+
+**Re-verified, not assumed:**
+- Live `curl` against a running dev server: unauthenticated `POST
+  /api/ai/chat`, `GET /api/ai/chat`, `POST /api/ai/vocabulary`, and
+  `POST /api/ai/article` **all four** returned `401
+  {"error":"Authentication required."}` — the exact failure mode the
+  original audit described no longer reproduces.
+- `src/lib/rate-limit.test.ts` (3 new tests, part of the 56-test suite
+  now passing): confirms requests are allowed up to the limit then
+  blocked, distinct keys are tracked independently, and a request is
+  allowed again once its window fully elapses.
+- Confirmed no other AI-calling route was missed: all four `route.ts`
+  files under `src/app/api/` accounted for — the three AI routes are
+  fixed, `content-engine/ingest` is the pre-existing `CRON_SECRET` P1,
+  correctly left untouched per "P1s not in scope this pass."
+
+**Disclosed limitation, not hidden:** the rate limiter is intentionally
+in-memory and per-instance, not a distributed/cross-instance limiter —
+under horizontal scaling on Vercel, a determined attacker spreading
+requests across many cold-started instances could still exceed the
+intended global rate. This is a real, known tradeoff (documented in the
+module itself), not a claim of perfect protection. It is, however, a
+categorically different risk than the original finding: the original
+gap allowed **fully anonymous** unlimited access with **zero** friction;
+today, abuse requires a real authenticated account (subject to
+Supabase's own signup/auth rate limits) **and** must defeat a real,
+if imperfect, per-instance limiter. The immediate, zero-friction
+financial exposure described in the original P0 is closed.
+
+## P0.2 — Prompt hardening against untrusted retrieved content: RESOLVED, verified in code and by trace
+
+**What changed:** `src/ai/services/tool-loop.ts` now wraps every tool
+result in explicit `<untrusted_tool_data>...</untrusted_tool_data>`
+delimiters before it re-enters the conversation as a `role: "tool"`
+message (previously: raw `JSON.stringify(executed.result)` with no
+framing at all). `src/ai/prompts/tuto/sections.ts` adds a new
+`UNTRUSTED_CONTENT_POLICY` section, wired into the assembled system
+prompt via `src/ai/prompts/tuto/index.ts` (confirmed present in every
+call to `buildTutoSystemPrompt()` — it's an unconditional section, not
+one gated on optional input, so it's in the prompt on every single
+turn). The policy explicitly tells the model: content in those tags (and
+quoted article/podcast/transcript text) is reference material only,
+never instructions, even if it's phrased as a command or a fake system
+message — and to keep answering the learner's real question rather than
+reacting to anything that looks like a redirect embedded in retrieved data.
+
+**Re-verified, not assumed:**
+- Confirmed by direct file read that `wrapUntrustedToolResult()` is
+  actually called at the one call site that previously wasn't wrapping
+  anything (`tool-loop.ts`'s tool-message push), not just defined and
+  unused.
+- Confirmed `UNTRUSTED_CONTENT_POLICY` is imported and included,
+  unconditionally, in `buildTutoSystemPrompt()`'s section list —
+  verified by reading the final assembled section array in `index.ts`,
+  not just the section's own definition.
+- `src/ai/prompts/tuto/index.test.ts` (part of the 56 passing tests)
+  continues to pass unmodified — no existing prompt-assembly test needed
+  updating, confirming the new section didn't break the existing
+  contract.
+- This is a prompt-level (soft) mitigation, consistent with how the
+  learner-side injection vector was already handled in the original
+  audit — it meaningfully raises the bar and gives the model explicit,
+  correct instructions it previously lacked entirely, but (as with any
+  prompt-based defense) isn't a mathematical guarantee against every
+  possible adversarial phrasing. That's the same honest caveat every
+  production LLM system carries; it does not change the RESOLVED status
+  of "there was previously *no* defense at all," which is what the
+  original P0 finding was.
+
+## Updated scorecard
+
+| Category | Before | After |
+|---|---|---|
+| AI Architecture | 8/10 | 8/10 |
+| Backend | 6/10 | 7/10 |
+| Frontend | 7/10 | 7/10 |
+| UX | 8/10 | 8/10 |
+| Design | 7/10 | 7/10 |
+| Mobile | 8/10 | 8/10 |
+| Security | 3/10 | **7/10** |
+| Performance | 6/10 | 6/10 |
+| Code Quality | 8/10 | 8/10 |
+| Testing | 6/10 | 6/10 |
+
+**Overall Score: 68/100 → 74/100**
+
+Security moves from 3 to 7, not 10 — the two verified P0s are closed,
+but the P1 security debt from the original review (optional
+`CRON_SECRET`, in-memory-only rate limiting under real horizontal
+scaling, no distributed migration-tracking for RLS drift) is
+unchanged, by instruction, not by oversight. Backend moves from 6 to 7
+to reflect the same two fixes (auth gate + rate limiter live on every
+AI route). Every other category is unchanged because nothing in this
+pass touched it.
+
+## Launch Recommendation: **GO**
+
+Both verified P0 blockers from the original review are resolved and
+independently re-confirmed — one via live HTTP requests against a
+running server (not code reading alone), the other via direct trace of
+the actual call path plus the existing prompt-assembly test suite. No
+new P0 was introduced by either fix (confirmed: full `tsc`/`eslint`/
+`vitest` — 56 tests — /build all pass; all four `route.ts` files under
+`src/app/api` accounted for; no functional regression expected, since
+every real chat/vocabulary/article UI entry point already only renders
+inside already-authenticated app routes).
+
+This is a **conditional GO**: the P1 catalogue from the original review
+(unbounded client-side chat history that will eventually hard-break the
+conversation, ignored Turn Classifier confidence, stale conversation-memory
+cross-contamination, no tracked Supabase migration history, a
+read-then-write race on XP/streak, an unenforced `CRON_SECRET`, the
+`text-body`-dropping bug also present in `Button`/`Checkbox`, and the
+rest) is real, unchanged, and was explicitly not addressed this pass by
+instruction — none of it blocks an initial production deploy, but it
+should be triaged and scheduled promptly rather than treated as closed.
+Nothing above claims perfection; it claims the two specific,
+verified launch blockers are gone, which is what was asked.
