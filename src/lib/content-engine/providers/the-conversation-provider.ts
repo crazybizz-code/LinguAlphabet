@@ -115,12 +115,28 @@ function extractThumbnailUrl(republishBody: string, sharePageHtml: string, feedI
  * original Atom entry isn't refetched, only layers 1-2 (republish body,
  * rest of the share page) -- the same two layers that resolve the large
  * majority of real articles.
+ *
+ * Deliberately throws rather than returning undefined when the article
+ * couldn't be re-checked at all (no parseable article id in the stored
+ * URL, or the share page's republish textarea is missing this time around
+ * -- e.g. the article was pulled or the page structure changed since
+ * original ingestion). Both are "couldn't determine," not "confirmed no
+ * photo" -- undefined is reserved for the one real confirmed-empty case:
+ * the article body WAS fetched and parsed and genuinely contains no
+ * content-CDN image. Collapsing "couldn't check" into the same undefined
+ * as "confirmed empty" would make the backfill script blank out a
+ * thumbnail it never actually got to inspect -- the caller's job is to
+ * treat a thrown error as "skip, don't touch this row," exactly like any
+ * other extraction failure.
  */
 export async function refetchThumbnailUrl(sourceUrl: string): Promise<string | undefined> {
   const articleId = extractArticleId(sourceUrl);
-  if (!articleId) return undefined;
+  if (!articleId) throw new Error(`Could not parse an article id out of stored source_url: ${sourceUrl}`);
   const republish = await fetchRepublishHtml(articleId, "");
-  return republish?.thumbnailUrl;
+  if (!republish) {
+    throw new Error(`Share page for article ${articleId} no longer has a non-attributed-body textarea -- can't confirm whether a photo exists`);
+  }
+  return republish.thumbnailUrl;
 }
 
 async function fetchRepublishHtml(articleId: string, feedItemHtml: string): Promise<{ body: string; thumbnailUrl?: string } | null> {
