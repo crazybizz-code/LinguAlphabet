@@ -85,6 +85,17 @@ function applyTurnSignal(signal: TurnSignal, state: OrchestratorRuntimeState): O
   }
 }
 
+/**
+ * Below this, a TurnSignal is treated the same as no signal at all — the
+ * classifier's own self-reported uncertainty (src/ai/turn-classifier) is
+ * too weak to justify a strong pedagogical action (repeat/simplify/hint/
+ * escalate/celebrate). This is not a tuned ML threshold, just the line
+ * between "more likely than not" and "a guess" — a signal the classifier
+ * itself isn't confident in must never be treated as a fact about the
+ * learner.
+ */
+const MIN_TURN_SIGNAL_CONFIDENCE = 0.5;
+
 function findUnraisedReviewPoint(sessionPlan: LearningSessionPlan, state: OrchestratorRuntimeState): { topic: string; index: number } | null {
   for (let index = 0; index < sessionPlan.reviewPoints.length; index++) {
     const point = sessionPlan.reviewPoints[index];
@@ -102,16 +113,18 @@ function findUnraisedReviewPoint(sessionPlan: LearningSessionPlan, state: Orches
  * the one place it isn't is interpreting what the learner's last message
  * actually meant (TurnSignal, Phase 8's src/ai/turn-classifier) — that
  * module perceives, this one decides, never the reverse. When no
- * TurnSignal is supplied, judgment-gated actions (repeat/simplify/
+ * TurnSignal is supplied, or its self-reported confidence is below
+ * MIN_TURN_SIGNAL_CONFIDENCE, judgment-gated actions (repeat/simplify/
  * give-hint/escalate/celebrate) are honestly reported as open questions
- * instead of guessed.
+ * instead of guessed — a low-confidence classification is never treated
+ * as fact about the learner.
  *
  * Decision precedence, all deterministic except the TurnSignal branch:
  *   1. finish — already past the plan's last step.
  *   2. skip — current step is a stale review whose topic no longer
  *      appears in a freshly-computed LearnerState.
  *   3. celebrate / finish — current step is a celebration step.
- *   4. judgment-gated action, only if a TurnSignal was supplied for the
+ *   4. judgment-gated action, only if a sufficiently confident TurnSignal was supplied for the
  *      learner's latest turn (see applyTurnSignal()).
  *   5. continue — structural pacing against the step's exchange budget,
  *      advancing to the next step (or finishing) once it's used up.
@@ -183,10 +196,12 @@ export function orchestrateSession(input: OrchestratorInput): OrchestratorDecisi
   const hasLearnerTurn = lastTurn?.role === "user";
 
   if (hasLearnerTurn) {
-    if (lastTurnSignal) {
-      const judged = applyTurnSignal(lastTurnSignal, state);
+    const confidentSignal = lastTurnSignal && lastTurnSignal.confidence >= MIN_TURN_SIGNAL_CONFIDENCE ? lastTurnSignal : null;
+
+    if (confidentSignal) {
+      const judged = applyTurnSignal(confidentSignal, state);
       if (judged) {
-        const judgedBasedOn = [...basedOn, { field: "lastTurnSignal", detail: `outcome "${lastTurnSignal.outcome}" (confidence ${lastTurnSignal.confidence})` }];
+        const judgedBasedOn = [...basedOn, { field: "lastTurnSignal", detail: `outcome "${confidentSignal.outcome}" (confidence ${confidentSignal.confidence})` }];
 
         // A spontaneously "mastered" turn celebrates and moves on, same
         // as reaching a celebration step structurally — mastery doesn't
@@ -204,7 +219,7 @@ export function orchestrateSession(input: OrchestratorInput): OrchestratorDecisi
           action: judged,
           reviewPointTopic,
           stepIndex: state.currentStepIndex,
-          reason: `Learner's last turn was judged "${lastTurnSignal.outcome}" — ${judged === "give-hint" ? "offering a hint" : judged === "repeat" ? "repeating the current step" : judged === "simplify" ? "simplifying the step" : "escalating for support"}.`,
+          reason: `Learner's last turn was judged "${confidentSignal.outcome}" — ${judged === "give-hint" ? "offering a hint" : judged === "repeat" ? "repeating the current step" : judged === "simplify" ? "simplifying the step" : "escalating for support"}.`,
           nextState: {
             currentStepIndex: state.currentStepIndex,
             exchangesOnCurrentStep: resetsStep ? 0 : state.exchangesOnCurrentStep + 1,
@@ -215,11 +230,11 @@ export function orchestrateSession(input: OrchestratorInput): OrchestratorDecisi
         };
       }
     } else {
+      const reason = lastTurnSignal
+        ? `TurnSignal (src/ai/turn-classifier) for the learner's latest message was "${lastTurnSignal.outcome}" but at confidence ${lastTurnSignal.confidence}, below the ${MIN_TURN_SIGNAL_CONFIDENCE} threshold required to act on it as fact — cannot judge whether this response warrants intervention without interpreting its meaning.`
+        : "No TurnSignal (src/ai/turn-classifier) was supplied for the learner's latest message — cannot judge whether this response warrants intervention without interpreting its meaning.";
       for (const action of ["repeat", "simplify", "give-hint", "escalate", "celebrate"] as const) {
-        openQuestions.push({
-          action,
-          reason: "No TurnSignal (src/ai/turn-classifier) was supplied for the learner's latest message — cannot judge whether this response warrants intervention without interpreting its meaning.",
-        });
+        openQuestions.push({ action, reason });
       }
     }
   }

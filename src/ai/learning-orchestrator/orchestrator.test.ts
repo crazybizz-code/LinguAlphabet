@@ -228,6 +228,16 @@ describe("orchestrateSession — honest gaps when judgment can't be made", () =>
     const decision = orchestrateSession({ sessionPlan, state, conversation: [{ role: "assistant", content: "Hi! Ready to practice?" }] });
     expect(decision.openQuestions).toEqual([]);
   });
+
+  it("treats a low-confidence TurnSignal the same as no signal at all, never acting on it as fact", () => {
+    const state: OrchestratorRuntimeState = { currentStepIndex: 2, exchangesOnCurrentStep: 0, reviewPointsRaised: [0] };
+    const lowConfidenceSignal: TurnSignal = { outcome: "mastered", confidence: 0.3 };
+    const decision = orchestrateSession({ sessionPlan, state, conversation: userTurn, lastTurnSignal: lowConfidenceSignal });
+
+    expect(decision.action).toBe("continue");
+    expect(decision.openQuestions.map((question) => question.action).sort()).toEqual(["celebrate", "escalate", "give-hint", "repeat", "simplify"]);
+    expect(decision.openQuestions[0].reason).toContain("confidence 0.3");
+  });
 });
 
 describe("orchestrateSession — evidence traceability", () => {
