@@ -51,9 +51,28 @@ function extractArticleId(articleUrl: string): string | null {
   return match ? match[1] : null;
 }
 
-/** First real content image in an HTML fragment -- skips The
- * Conversation's 1x1 tracking counter (also an <img>), tiny icons, and
- * anything without an absolute https URL. Checks src, then srcset/
+/**
+ * The Conversation serves every real article/editorial photo through its
+ * own dedicated Imgix-backed image CDN, images.theconversation.com --
+ * confirmed independently of this project's own guesswork (Imgix's own
+ * listing of them as a customer at images.theconversation.com, separate
+ * from theconversation.com itself). Nothing else legitimately comes from
+ * that host: not the 1x1 tracking counter (counter.theconversation.com --
+ * a different host), not the site logo/CC-license credit block the
+ * Republishing Guidelines require ("credit... with... inclusion of their
+ * logo"), not an author headshot. Filtering by this host, not by trying
+ * to blocklist every kind of non-article image individually, is what
+ * makes this correct: any image this provider now returns is provably a
+ * real content photo, not just "the first <img> tag that happened not to
+ * match a known bad pattern."
+ */
+const CONTENT_IMAGE_HOST = "images.theconversation.com";
+
+/** First real content image in an HTML fragment -- requires the confirmed
+ * content-image CDN host (see CONTENT_IMAGE_HOST above), so a logo, CC
+ * badge, author avatar, or tracking pixel served from theconversation.com
+ * itself (or any other host) is never mistaken for an article photo, no
+ * matter where it falls in the document. Checks src, then srcset/
  * data-src (lazy-loading variants). */
 function firstContentImage(html: string): string | undefined {
   if (!html) return undefined;
@@ -62,9 +81,14 @@ function firstContentImage(html: string): string | undefined {
     const el = $(img);
     const src = el.attr("src")?.trim() || el.attr("data-src")?.trim() || el.attr("srcset")?.trim().split(/[\s,]/)[0] || "";
     if (!src.startsWith("https://")) continue;
+    let hostname: string;
+    try {
+      hostname = new URL(src).hostname;
+    } catch {
+      continue;
+    }
+    if (hostname !== CONTENT_IMAGE_HOST) continue;
     if (el.attr("width") === "1" || el.attr("height") === "1") continue;
-    if (src.includes("counter.theconversation.com")) continue;
-    if (src.endsWith(".svg")) continue;
     return src;
   }
   return undefined;
