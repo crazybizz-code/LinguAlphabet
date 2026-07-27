@@ -105,6 +105,24 @@ function extractThumbnailUrl(republishBody: string, sharePageHtml: string, feedI
   return firstContentImage(republishBody) ?? firstContentImage(sharePageHtml) ?? firstContentImage(feedItemHtml);
 }
 
+/**
+ * Backfill entry point (scripts/backfill-conversation-thumbnails.mjs):
+ * re-derives just the corrected thumbnailUrl for one already-published
+ * article, given its stored source URL, by calling the exact same
+ * fetchRepublishHtml/extractThumbnailUrl/firstContentImage code path
+ * fetchRawItems uses for new articles -- never a reimplementation. Feed-
+ * entry markup (extraction layer 3) isn't available here since the
+ * original Atom entry isn't refetched, only layers 1-2 (republish body,
+ * rest of the share page) -- the same two layers that resolve the large
+ * majority of real articles.
+ */
+export async function refetchThumbnailUrl(sourceUrl: string): Promise<string | undefined> {
+  const articleId = extractArticleId(sourceUrl);
+  if (!articleId) return undefined;
+  const republish = await fetchRepublishHtml(articleId, "");
+  return republish?.thumbnailUrl;
+}
+
 async function fetchRepublishHtml(articleId: string, feedItemHtml: string): Promise<{ body: string; thumbnailUrl?: string } | null> {
   const shareUrl = `${SHARE_ENDPOINT_BASE}${articleId}`;
 
