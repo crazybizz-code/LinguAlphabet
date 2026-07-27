@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Clock, FileText, Sparkles } from "lucide-react";
+import { Clock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { resolveThumbnailFallback } from "@/lib/content/thumbnailFallback";
+import { BrandedCoverFallback } from "@/components/content/BrandedCoverFallback";
 import { isAllowedImageHost } from "@/lib/content/allowedImageHosts";
 import type { ArticleContent } from "@/types/content";
 
@@ -21,48 +21,27 @@ function formatMinutes(minutes: number) {
 }
 
 /**
- * Production bug fix: the previous version of this hook always started at
- * tier "primary" and relied entirely on <Image>'s onError to catch a bad
- * thumbnailUrl. That covered a URL that loads the image tag but fails at
- * runtime (a dead link) — it did NOT cover a URL whose hostname isn't in
- * next.config.ts's images.remotePatterns, which next/image rejects by
- * THROWING a render exception ("Invalid src prop... hostname is not
- * configured") before any <img> element — and therefore any onError event —
- * ever exists. That's exactly what happened in production when the active
- * content source changed to one whose domain was never allowlisted: every
- * real thumbnailUrl crashed the whole page, and onError never fired because
- * there was nothing to fire it. isAllowedImageHost is checked up front now,
- * so a disallowed host starts directly at the "fallback" tier and <Image>
- * never sees it at all.
- *
- * Tiers: the real thumbnail (only if its host is allowlisted) -> the same
- * local, category-matched editorial photo the query layer already uses for
- * a missing thumbnail (never a generic gray box) -> a pure CSS/icon
- * placeholder that can never itself fail to render. Same aspect-square
- * container at every tier, so layout never shifts.
+ * Two tiers only: the real thumbnail, shown only if its host is
+ * allowlisted (next/image THROWS a render exception for an unlisted host
+ * before any <img> element — and therefore any onError — exists, so this
+ * has to be checked up front, not caught after the fact) and hasn't
+ * failed to load at runtime; otherwise the branded cover
+ * (BrandedCoverFallback), which uses a real bundled local Tuto asset and
+ * so cannot itself fail the way a remote category-guessed photo could —
+ * no further "failed" tier is needed under it. Same aspect-square
+ * container either way, so layout never shifts.
  */
-function useThumbnailState(thumbnailUrl: string, topics: readonly string[], tags: readonly string[], label: string) {
-  const [tier, setTier] = useState<"primary" | "fallback" | "failed">(() =>
-    isAllowedImageHost(thumbnailUrl) ? "primary" : "fallback",
-  );
-  const fallbackSrc = resolveThumbnailFallback({ topics, tags });
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "production" && tier === "fallback" && !isAllowedImageHost(thumbnailUrl)) {
-      console.warn(`[thumbnail] "${label}" thumbnailUrl host isn't in images.remotePatterns, skipping <Image>:`, thumbnailUrl);
-    }
-    // Only meant to log once for the initial disallowed-host case, not on every tier change (e.g. a later real load failure).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+function useThumbnailState(thumbnailUrl: string) {
+  const [tier, setTier] = useState<"primary" | "fallback">(() => (isAllowedImageHost(thumbnailUrl) ? "primary" : "fallback"));
 
   function handleError() {
     if (process.env.NODE_ENV !== "production") {
-      console.warn(`[thumbnail] failed to load for "${label}":`, tier === "primary" ? thumbnailUrl : fallbackSrc);
+      console.warn(`[thumbnail] failed to load, using branded cover instead:`, thumbnailUrl);
     }
-    setTier((current) => (current === "primary" ? "fallback" : "failed"));
+    setTier("fallback");
   }
 
-  return { src: tier === "primary" ? thumbnailUrl : fallbackSrc, failed: tier === "failed", handleError };
+  return { tier, handleError };
 }
 
 /**
@@ -72,7 +51,7 @@ function useThumbnailState(thumbnailUrl: string, topics: readonly string[], tags
  * Vocabulary/Flashcards/Quiz/Reflection/Complete all happen in-app now.
  */
 export function ArticleCard({ article, tutosPick = false, index = 0 }: ArticleCardProps) {
-  const thumbnail = useThumbnailState(article.thumbnailUrl, article.topics, article.tags, article.title);
+  const thumbnail = useThumbnailState(article.thumbnailUrl);
 
   return (
     <Link href={`/article/${article.id}/learn`} className="group block">
@@ -83,14 +62,11 @@ export function ArticleCard({ article, tutosPick = false, index = 0 }: ArticleCa
         className="overflow-hidden rounded-2xl border border-border bg-bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
       >
         <div className="relative aspect-square overflow-hidden">
-          {thumbnail.failed ? (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-bg-muted to-border/40">
-              <FileText className="h-8 w-8 text-text-tertiary" aria-hidden="true" />
-            </div>
+          {thumbnail.tier === "fallback" ? (
+            <BrandedCoverFallback contentType="article" />
           ) : (
             <Image
-              key={thumbnail.src}
-              src={thumbnail.src}
+              src={article.thumbnailUrl}
               alt=""
               fill
               sizes="(min-width: 1024px) 25vw, 50vw"
