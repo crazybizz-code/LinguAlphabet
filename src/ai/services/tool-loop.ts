@@ -16,6 +16,21 @@ function toProviderToolSpecs(): AIProviderToolSpec[] {
   return listTools().map((tool) => ({ name: tool.name, description: tool.description, parameters: tool.parameters }));
 }
 
+/**
+ * Explicitly delimits a tool's raw result as untrusted reference data
+ * before it re-enters the conversation — some tool results carry real
+ * third-party content (an article's body, a podcast transcript) this
+ * service has no control over, and nothing previously marked that
+ * content as "data to reference," never "instructions to follow"
+ * (docs/final-production-readiness-review.md's prompt-injection P0).
+ * Paired with UNTRUSTED_CONTENT_POLICY in the system prompt
+ * (src/ai/prompts/tuto/sections.ts), which tells the model explicitly
+ * what these tags mean.
+ */
+function wrapUntrustedToolResult(result: unknown): string {
+  return `<untrusted_tool_data>\n${JSON.stringify(result)}\n</untrusted_tool_data>`;
+}
+
 export interface ToolLoopResult {
   completion: AIProviderCompletionResult;
   /** Every tool call executed across every iteration, in order — empty if the model never called one. */
@@ -79,7 +94,7 @@ export async function runToolLoop(
     for (const call of result.toolCalls) {
       const executed = await executeToolCall(call, context);
       toolResults.push(executed);
-      toolMessages.push({ role: "tool", content: JSON.stringify(executed.result), toolCallId: executed.toolCallId });
+      toolMessages.push({ role: "tool", content: wrapUntrustedToolResult(executed.result), toolCallId: executed.toolCallId });
     }
 
     messages = [...messages, assistantTurn, ...toolMessages];
