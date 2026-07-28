@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { CefrLevel } from "@/ai/context";
-import { createLearnerRepository } from "@/ai/data";
+import { getCachedLearnerProfile } from "@/ai/data";
 import { getPublishedPodcasts, getPublishedArticles } from "@/lib/content/queries";
 import { buildTodayMinutes } from "@/lib/content/home";
 
@@ -24,17 +24,24 @@ export interface LearnerSidebarStats {
  * Dashboard's own Daily Goal metric, rather than a second, divergent
  * computation. Called once from (app)/layout.tsx — every page under it
  * shares one fetch instead of each page re-deriving the sidebar's numbers.
+ * `getCachedLearnerProfile`, not `createLearnerRepository(...).getProfile()`
+ * directly, so a page under this layout that needs the same learner's
+ * profile for its own content (e.g. /tuto) shares this exact fetch too
+ * instead of re-running the same `profiles` + signal-history query again
+ * — see that function's own doc comment.
  */
 export async function getLearnerSidebarStats(supabase: SupabaseClient<Database>, userId: string): Promise<LearnerSidebarStats> {
-  const [learnerProfile, { data: profile }, podcasts, articles, { data: progressRows }] = await Promise.all([
-    createLearnerRepository(supabase, userId).getProfile(),
-    supabase.from("profiles").select("daily_time_minutes").eq("user_id", userId).single(),
+  const [learnerProfile, podcasts, articles, { data: progressRows }] = await Promise.all([
+    getCachedLearnerProfile(supabase, userId),
     getPublishedPodcasts(supabase),
     getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", userId),
   ]);
 
-  const dailyGoalMinutes = profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES;
+  // Already the same `profiles.daily_time_minutes` column
+  // getCachedLearnerProfile just read — a second, separate query for it
+  // would be pure duplication.
+  const dailyGoalMinutes = learnerProfile.dailyGoalMinutes ?? DEFAULT_DAILY_MINUTES;
   const todayMinutes = buildTodayMinutes([...podcasts, ...articles], progressRows ?? []);
   const dailyGoalPercent = dailyGoalMinutes > 0 ? Math.min(100, Math.round((todayMinutes / dailyGoalMinutes) * 100)) : 0;
 

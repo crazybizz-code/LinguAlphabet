@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { createLearnerRepository } from "@/ai/data";
+import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
+import { getCachedLearnerProfile } from "@/ai/data";
 import { TutoWorkspace } from "@/components/tuto-workspace/TutoWorkspace";
 import { buildMetadata } from "@/lib/seo/metadata";
 import type { TutoContextInput } from "@/lib/tuto-chat/types";
@@ -23,19 +23,14 @@ export const metadata: Metadata = buildMetadata({
  */
 export default async function TutoPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_completed, username")
-    .eq("user_id", user.id)
-    .single();
+  const [{ data: profile }, learnerProfile] = await Promise.all([
+    supabase.from("profiles").select("onboarding_completed, username").eq("user_id", user.id).single(),
+    getCachedLearnerProfile(supabase, user.id),
+  ]);
   if (!profile?.onboarding_completed) redirect("/welcome");
-
-  const learnerProfile = await createLearnerRepository(supabase, user.id).getProfile();
 
   const context: TutoContextInput = {
     currentScreen: "tuto",

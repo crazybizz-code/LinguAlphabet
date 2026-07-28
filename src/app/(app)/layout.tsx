@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { getLearnerSidebarStats } from "@/lib/content/sidebar-stats";
 import { DashboardShell } from "@/components/layout/DashboardShell";
 
@@ -16,9 +16,7 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
 
   const learnerStats = user ? await getLearnerSidebarStats(supabase, user.id) : null;
 

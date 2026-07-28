@@ -9,9 +9,15 @@ import { AIStatusIndicator } from "./AIStatusIndicator";
 import { TutoOnlineAvatar } from "@/components/mascot/TutoOnlineAvatar";
 import { useTutoChat } from "@/hooks/useTutoChat";
 import { useThinkingPhase } from "@/hooks/useThinkingPhase";
-import { estimateRevealDurationMs, prefersReducedMotion } from "@/hooks/useProgressiveReveal";
+import { prefersReducedMotion } from "@/hooks/useProgressiveReveal";
+import { estimateChunkedRevealDurationMs } from "@/hooks/useChunkedReveal";
+import { useVisualViewport } from "@/hooks/useVisualViewport";
 import { fadeSlideUp } from "@/lib/motion/variants";
+import { cn } from "@/lib/utils";
 import type { TutoContextInput } from "@/lib/tuto-chat/types";
+
+/** A shrink of more than this many px from the window's own height is treated as "the on-screen keyboard is open," not routine mobile browser chrome (address bar collapse, etc.) — a deliberately generous threshold so a slightly-resized layout viewport never falsely triggers keyboard-only behavior. */
+const KEYBOARD_HEIGHT_THRESHOLD_PX = 150;
 
 /** Always-available conversation starters shown alongside the greeting — sent exactly like any AI-suggested action (ActionChips), not a special case. */
 const DEFAULT_ACTIONS = ["Explain simpler", "Give examples", "Practice this"];
@@ -134,6 +140,22 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
   const endRef = useRef<HTMLDivElement>(null);
   const contentSizeRef = useRef<HTMLDivElement>(null);
 
+  /**
+   * `fixed inset-0` alone sizes to the layout viewport, which neither
+   * Android Chrome nor iOS Safari shrinks when the on-screen keyboard
+   * opens — the keyboard simply overlays on top, so a plain `h-dvh`
+   * container (and its composer) end up partly hidden behind it instead
+   * of resizing above it. `visualViewport.height`/`offsetTop` is the
+   * browser's own account of what's actually visible; `viewport` is
+   * `null` on the server, on first client render, and in any browser
+   * without the API, in which case the `h-dvh`/`top-0` CSS fallback below
+   * takes over instead (same cascade pattern as this codebase's other
+   * dvh/svh fallbacks).
+   */
+  const viewport = useVisualViewport();
+  const isKeyboardOpen =
+    viewport !== null && typeof window !== "undefined" && window.innerHeight - viewport.height > KEYBOARD_HEIGHT_THRESHOLD_PX;
+
   const visibleMessages = chat.messages.filter((message) => !message.hidden);
   const lastMessage = visibleMessages[visibleMessages.length - 1];
   const isThinking = chat.status === "streaming" && (!lastMessage || lastMessage.role !== "assistant" || lastMessage.content.length === 0);
@@ -149,9 +171,10 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
    * "writing" — chat.status flips to idle the instant the network turn
    * completes, which can land slightly before ChatBubble's own client-side
    * reveal animation has finished typing the text out. Holding the chips
-   * back for the same duration the reveal itself will take (estimateRevealDurationMs,
-   * the exact formula useProgressiveReveal animates on) keeps the two in sync
-   * without either component needing to know about the other's internals.
+   * back for the same duration the reveal itself will take
+   * (estimateChunkedRevealDurationMs, the exact formula useChunkedReveal
+   * animates on) keeps the two in sync without either component needing
+   * to know about the other's internals.
    */
   const [quickActionsReady, setQuickActionsReady] = useState(false);
   const [trackedQuickActions, setTrackedQuickActions] = useState(chat.lastQuickActions);
@@ -166,8 +189,8 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
 
   useEffect(() => {
     if (chat.status !== "idle" || chat.lastQuickActions.length === 0) return;
-    const charCount = lastMessage?.role === "assistant" ? lastMessage.content.length : 0;
-    const delay = prefersReducedMotion() ? 0 : estimateRevealDurationMs(charCount);
+    const content = lastMessage?.role === "assistant" ? lastMessage.content : "";
+    const delay = prefersReducedMotion() ? 0 : estimateChunkedRevealDurationMs(content);
     const timeout = setTimeout(() => setQuickActionsReady(true), delay);
     return () => clearTimeout(timeout);
     // lastMessage?.content intentionally omitted: it never changes once
@@ -179,6 +202,18 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [visibleMessages.length, lastMessage?.content, isThinking]);
+
+  // The keyboard opening/closing resizes the container itself (see
+  // `viewport` above), which usually re-anchors bottom-pinned content on
+  // its own via the flex layout — but re-asserting the scroll position
+  // (instantly, not smoothly, to match the keyboard's own immediacy)
+  // covers any edge case where it doesn't quite land, e.g. a very short
+  // conversation that wasn't scrollable before the container shrank.
+  const viewportHeight = viewport?.height;
+  useEffect(() => {
+    if (viewportHeight === undefined) return;
+    endRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+  }, [viewportHeight]);
 
   // Same ResizeObserver fix as TutoChatPanel: keeps the view pinned to the
   // newest content if it grows after the effect above already ran for
@@ -203,7 +238,11 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
   }
 
   return (
-    <div className="fixed inset-0 z-0 flex flex-col bg-bg pl-[260px] max-lg:pl-0" data-tuto-workspace-mode={mode}>
+    <div
+      className="fixed inset-x-0 top-0 z-0 flex h-dvh flex-col bg-bg pl-[260px] max-lg:pl-0"
+      style={viewport ? { height: `${viewport.height}px`, top: `${viewport.offsetTop}px` } : undefined}
+      data-tuto-workspace-mode={mode}
+    >
       {contextBanner ? <WorkspaceContextBanner banner={contextBanner} /> : <WorkspaceHeader streak={streak} />}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
@@ -318,7 +357,17 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
             </button>
           )}
         </form>
-        <p className="mx-auto w-full max-w-2xl px-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-1.5 text-center text-[11px] text-text-tertiary sm:px-8 lg:pb-3">
+        <p
+          className={cn(
+            "mx-auto w-full max-w-2xl px-5 pt-1.5 text-center text-[11px] text-text-tertiary sm:px-8",
+            // The floating bottom nav (DashboardBottomNav) this padding
+            // normally clears is itself hidden behind the keyboard once
+            // it's open, so reserving space for it here would just push
+            // the composer up and waste the little room the keyboard left —
+            // fall back to a plain safe-area inset until the keyboard closes.
+            isKeyboardOpen ? "pb-[calc(0.75rem+env(safe-area-inset-bottom))]" : "pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-3",
+          )}
+        >
           Tuto can make mistakes. Always verify important information.
         </p>
       </div>

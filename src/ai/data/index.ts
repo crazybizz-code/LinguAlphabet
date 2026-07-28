@@ -36,7 +36,7 @@ export type { SignalRepository, LearningSignal, SignalType, SignalSkill, SignalS
 export { createSignalRepository, SIGNAL_TYPES } from "./signal-repository";
 
 export type { LearnerRepository } from "./learner-repository";
-export { createLearnerRepository } from "./learner-repository";
+export { createLearnerRepository, getCachedLearnerProfile } from "./learner-repository";
 
 export type { AIDependencies } from "./dependencies";
 export { createAIDependencies } from "./dependencies";
