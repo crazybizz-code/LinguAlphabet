@@ -1,4 +1,4 @@
-import { Compass, Home, TrendingUp, User } from "lucide-react";
+import { Compass, Home, MessageCircle, TrendingUp, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface DashboardNavItem {
@@ -10,9 +10,11 @@ export interface DashboardNavItem {
 }
 
 /**
- * The 4 flat top-level destinations (docs/dashboard-architecture.md §2/§3) —
- * exactly 4, no 5th tab, no overflow menu. Shared by the desktop sidebar and
- * the mobile bottom nav so the two chrome treatments never drift apart.
+ * The 5 flat top-level destinations (docs/dashboard-architecture.md §2/§3
+ * — Tuto Workspace update: Tuto moved from a global floating popup to its
+ * own primary nav destination, exactly one of exactly 5 tabs, still no
+ * overflow menu). Shared by the desktop sidebar and the mobile bottom nav
+ * so the two chrome treatments never drift apart.
  */
 export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   {
@@ -26,6 +28,12 @@ export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
     href: "/explore",
     icon: Compass,
     activeMatch: (pathname) => pathname === "/explore" || pathname.startsWith("/podcast"),
+  },
+  {
+    label: "Tuto",
+    href: "/tuto",
+    icon: MessageCircle,
+    activeMatch: (pathname) => pathname === "/tuto",
   },
   {
     label: "Progress",

@@ -5,9 +5,25 @@ import { renderTutoMarkdown } from "@/lib/tuto-chat/markdown";
 import { useProgressiveReveal } from "@/hooks/useProgressiveReveal";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
 
+/** A blinking text-cursor, shown only while this exact bubble is the one actively revealing — never on a completed message, never on a user bubble. */
+function BlinkingCursor() {
+  return (
+    <span
+      aria-hidden="true"
+      className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.15em] animate-pulse bg-text-tertiary align-middle"
+    />
+  );
+}
+
 export function ChatBubble({ message, streaming }: { message: ChatMessage; streaming?: boolean }) {
   const isUser = message.role === "user";
-  const revealed = useProgressiveReveal(message.content, Boolean(streaming) && !isUser);
+  const isRevealing = Boolean(streaming) && !isUser;
+  const revealed = useProgressiveReveal(message.content, isRevealing);
+  // Only once revealed has actually caught up to the full target — a
+  // streamed reply's content can still be growing while an earlier reveal
+  // pass is mid-animation, and the cursor should track the true tail, not
+  // blink prematurely at a mid-string position.
+  const showCursor = isRevealing && revealed.length >= message.content.length;
 
   return (
     <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
@@ -18,6 +34,7 @@ export function ChatBubble({ message, streaming }: { message: ChatMessage; strea
         )}
       >
         {isUser ? message.content : renderTutoMarkdown(revealed)}
+        {showCursor && <BlinkingCursor />}
       </div>
     </div>
   );

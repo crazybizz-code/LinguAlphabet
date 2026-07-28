@@ -12,7 +12,7 @@ export type ChatOrchestratorAction = "continue" | "repeat" | "simplify" | "give-
 
 export type ChatStreamEvent =
   | { type: "delta"; content: string }
-  | { type: "done"; orchestratorAction?: ChatOrchestratorAction | null }
+  | { type: "done"; orchestratorAction?: ChatOrchestratorAction | null; quickActions?: string[] }
   | { type: "error"; message: string };
 
 /**

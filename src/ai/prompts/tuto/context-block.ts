@@ -3,6 +3,7 @@ import type { LearningContext, Screen } from "@/ai/context";
 /** Only the screens that don't already have their own content field (podcast/article/quiz) below. */
 const SCREEN_LABELS: Record<Screen, string> = {
   home: "Home dashboard",
+  tuto: "Tuto Workspace (general coaching, no specific lesson content in view)",
   podcast: "Podcast",
   article: "Article",
   quiz: "Quiz",

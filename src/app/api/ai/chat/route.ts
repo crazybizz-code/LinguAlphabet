@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
   /**
    * Defaulting to the learner's own user id (rather than requiring the
    * client to invent one) means every existing chat entry point
-   * (FloatingTuto, ReadingStep, DictionaryOverlay) already shares one
+   * (Tuto Workspace, ReadingStep, DictionaryOverlay) already shares one
    * continuous Conversation Memory thread with zero UI change — see
    * docs/ai-request-lifecycle.md's finding #1.
    */
@@ -121,7 +121,15 @@ export async function POST(request: NextRequest) {
           controller.enqueue(encoder.encode(sseEvent({ type: "delta", content: next.value })));
           next = await generator.next();
         }
-        controller.enqueue(encoder.encode(sseEvent({ type: "done", orchestratorAction: next.value?.action ?? null })));
+        controller.enqueue(
+          encoder.encode(
+            sseEvent({
+              type: "done",
+              orchestratorAction: next.value?.orchestratorDecision?.action ?? null,
+              quickActions: next.value?.quickActions ?? [],
+            }),
+          ),
+        );
       } catch (error) {
         // The 200 + headers are already on the wire once streaming starts,
         // so a mid-stream failure can only be surfaced as an SSE event, not

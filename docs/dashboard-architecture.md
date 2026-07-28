@@ -35,17 +35,25 @@ like an exam") — it now extends to the entire post-onboarding product.
 
 ## 2. Information Architecture
 
-Four top-level destinations, flat, no nesting beyond one level deep from any
-of them (max 2 taps to reach any piece of content from app open):
+**Tuto Workspace update:** Tuto moved from a global floating popup (§3's
+original "not a nav item" design) to its own primary nav destination. The
+popup architecture is retired — see `docs/tuto-workspace-architecture.md`
+for the reusable AI workspace this replaced it with (General Coach today;
+Article Coach/Podcast Coach/Checkpoint Coach/IELTS Coach are the same
+component with different context, added incrementally). Five top-level
+destinations, flat, no nesting beyond one level deep from any of them (max
+2 taps to reach any piece of content from app open):
 
 ```
 Home        — "what should I do today" (default landing)
 Explore     — front door into the Knowledge Hub, for learners who want to browse
+Tuto        — the AI Workspace: General Coach with no lesson in view, or an
+              Article/Podcast Coach when opened with "Discuss with Tuto"
 Progress    — streak / momentum / achievements (narrative, not a stats wall)
 Profile     — account, settings, plan summary from onboarding
 ```
 
-**Knowledge Hub is not a fifth destination.** It is the content system
+**Knowledge Hub is not a separate destination.** It is the content system
 Explore is built on top of (see §6/§7) — there is no separate "Knowledge Hub"
 nav item a learner taps; Explore *is* the Knowledge Hub's front door. This
 keeps the nav flat and avoids two destinations that would otherwise compete
@@ -54,25 +62,26 @@ for the same "browse content" job.
 Search lives inside Explore, not as its own top-level destination (§9).
 
 No hamburger menu, no drawer, no settings buried three levels deep. Every
-screen a learner can reach is one of these four, or one level under one of
-these four (e.g. a single podcast's detail screen, one level under Explore).
+screen a learner can reach is one of these five, or one level under one of
+these five (e.g. a single podcast's detail screen, one level under Explore).
 
 ---
 
 ## 3. Navigation Structure
 
-- **Mobile**: fixed bottom tab bar, exactly 4 tabs (Home / Explore / Progress
-  / Profile). No 5th tab, no "more" overflow menu — if a 5th destination is
-  ever needed, it must replace one of the four or become a screen reached
-  *from* one of them, not a 5th tab.
-- **Desktop/tablet**: same 4 destinations, presented as a left rail or top
-  nav (exact treatment is a design decision for Base44, not this document) —
-  the IA does not change shape across breakpoints, only its chrome.
-- Tuto is not a nav item, but his presence persists globally in a small,
-  consistent way (exact mechanism — floating badge, corner avatar, etc. — is
-  a design decision; the requirement is that Tuto's presence is felt on
-  every screen, not just Home).
-- No screen is ever navigated to that isn't reachable from one of the 4 tabs
+- **Mobile**: fixed bottom tab bar, exactly 5 tabs (Home / Explore / Tuto /
+  Progress / Profile). No "more" overflow menu — if a 6th destination is
+  ever needed, it must replace one of the five or become a screen reached
+  *from* one of them, not a 6th tab.
+- **Desktop/tablet**: same 5 destinations, presented as a left rail
+  (`DashboardSidebar.tsx`) — the IA does not change shape across
+  breakpoints, only its chrome.
+- Tuto is a real nav item (`/tuto`) — the original "not a nav item, a
+  persistent floating presence" design is retired (see §2's Tuto Workspace
+  update). His presence still shows up elsewhere in small ways (the mascot
+  hero on Home, the Tuto's Pick badges in Explore), just no longer as a
+  global floating chat trigger duplicating what the Tuto tab now does.
+- No screen is ever navigated to that isn't reachable from one of the 5 tabs
   within 2 taps. This is a hard constraint, not a guideline.
 
 ---

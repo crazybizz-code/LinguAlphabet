@@ -23,6 +23,7 @@ import {
   REFUSAL_POLICY,
   FORMATTING_RULES,
   READING_ASSISTANCE,
+  QUICK_ACTIONS_FORMAT,
 } from "./sections";
 import { buildContextBlock } from "./context-block";
 import { buildLearnerMemoryBlock } from "./learner-memory-block";
@@ -100,6 +101,8 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
     FORMATTING_RULES,
     "# Reading assistance",
     READING_ASSISTANCE,
+    "# Quick action suggestions",
+    QUICK_ACTIONS_FORMAT,
   ];
 
   const learnerMemoryBlock = buildLearnerMemoryBlock(input.learnerProfile);

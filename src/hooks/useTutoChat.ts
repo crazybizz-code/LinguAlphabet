@@ -38,6 +38,8 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
   const [error, setError] = useState<string | null>(null);
   /** What the Learning Orchestrator (src/ai/learning-orchestrator) decided on the most recently completed turn — null until a turn with a live session plan finishes. See docs/mvp-completion-audit.md P0.4. */
   const [lastOrchestratorAction, setLastOrchestratorAction] = useState<ChatOrchestratorAction | null>(null);
+  /** Tuto Workspace's contextual quick-action chips for the most recently completed turn (src/ai/services/quick-actions.ts) — empty until a turn completes, and cleared the instant a new turn starts (see runTurn below) so a stale action never lingers under a new, unrelated reply. */
+  const [lastQuickActions, setLastQuickActions] = useState<string[]>([]);
   const abortRef = useRef<AbortController | null>(null);
   const hydratedRef = useRef(false);
   /**
@@ -81,6 +83,7 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
 
       setError(null);
       setStatus("streaming");
+      setLastQuickActions([]);
       setMessages([...baseMessages, userMessage, { id: assistantId, role: "assistant", content: "" }]);
 
       const controller = new AbortController();
@@ -96,6 +99,7 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
             );
           } else if (event.type === "done") {
             setLastOrchestratorAction(event.orchestratorAction ?? null);
+            setLastQuickActions(event.quickActions ?? []);
           } else if (event.type === "error") {
             setError(event.message);
             setStatus("error");
@@ -161,6 +165,7 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
     setStatus("idle");
     setError(null);
     setLastOrchestratorAction(null);
+    setLastQuickActions([]);
   }, []);
 
   const stop = useCallback(() => {
@@ -173,5 +178,5 @@ export function useTutoChat({ context, seedMessages }: UseTutoChatOptions) {
     setMessages((prev) => [...prev, { id: nextMessageId(), role: "assistant", content, hidden: true }]);
   }, []);
 
-  return { messages, status, error, lastOrchestratorAction, sendMessage, sendFresh, reset, stop, addHiddenContext, retryLast };
+  return { messages, status, error, lastOrchestratorAction, lastQuickActions, sendMessage, sendFresh, reset, stop, addHiddenContext, retryLast };
 }

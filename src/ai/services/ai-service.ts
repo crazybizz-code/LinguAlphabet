@@ -21,6 +21,7 @@ import { INITIAL_ORCHESTRATOR_STATE } from "@/ai/data";
 import type { TurnSignal } from "@/ai/turn-classifier";
 import { classifyTurn } from "@/ai/turn-classifier";
 import { runToolLoop } from "./tool-loop";
+import { extractQuickActions } from "./quick-actions";
 
 export interface GenerateResponseInput {
   /** User/assistant turns only — a client-supplied "system" message is rejected before this point (src/app/api/ai/chat). */
@@ -338,17 +339,22 @@ export async function generateResponse(input: GenerateResponseInput): Promise<As
  * executed — and yields its final answer as a single chunk. See
  * docs/ai-architecture.md's "Streaming + tools" note for this tradeoff.
  *
- * Returns the turn's OrchestratorDecision (Phase 7) as the generator's
- * final value — `null` when no session plan exists to run one against
- * (the no-tools branch below, or no dependencies). Nothing about the
- * decision itself is new here; it was already computed every turn and
- * fed into the system prompt — this just lets a caller that drives the
- * iterator manually (src/app/api/ai/chat/route.ts) also see what the
- * Orchestrator decided, so a learner can actually perceive the structured
- * coaching happening instead of it only ever shaping wording invisibly
+ * Returns the turn's OrchestratorDecision (Phase 7) and the Tuto
+ * Workspace's contextual quick actions (src/ai/services/quick-actions.ts)
+ * as the generator's final value — `orchestratorDecision` is `null` when
+ * no session plan exists to run one against (the no-tools branch below,
+ * or no dependencies); `quickActions` is `[]` whenever the model omitted
+ * or malformed its trailing actions line. Nothing about the decision
+ * itself is new here; it was already computed every turn and fed into the
+ * system prompt — this just lets a caller that drives the iterator
+ * manually (src/app/api/ai/chat/route.ts) also see what the Orchestrator
+ * decided, so a learner can actually perceive the structured coaching
+ * happening instead of it only ever shaping wording invisibly
  * (docs/mvp-completion-audit.md P0.4).
  */
-export async function* streamResponse(input: GenerateResponseInput): AsyncGenerator<string, OrchestratorDecision | null> {
+export async function* streamResponse(
+  input: GenerateResponseInput,
+): AsyncGenerator<string, { orchestratorDecision: OrchestratorDecision | null; quickActions: string[] }> {
   const provider = getDefaultProvider();
   bootstrapTools();
 
@@ -357,7 +363,7 @@ export async function* streamResponse(input: GenerateResponseInput): AsyncGenera
     for await (const chunk of provider.stream({ messages: toProviderMessages(input, memory, NO_TEACHING, null, window) })) {
       if (chunk.delta) yield chunk.delta;
     }
-    return null;
+    return { orchestratorDecision: null, quickActions: [] };
   }
 
   const learningContext = input.learningContext ?? buildLearningContext();
@@ -372,9 +378,11 @@ export async function* streamResponse(input: GenerateResponseInput): AsyncGenera
     dependencies: input.dependencies,
   });
 
-  await persistConversationMemory(input, learningContext, completion.content, orchestratorDecision);
-  if (completion.content) yield completion.content;
-  return orchestratorDecision;
+  const { content, quickActions } = extractQuickActions(completion.content);
+
+  await persistConversationMemory(input, learningContext, content, orchestratorDecision);
+  if (content) yield content;
+  return { orchestratorDecision, quickActions };
 }
 
 export interface GenerateStructuredResponseInput<T> extends GenerateResponseInput {
