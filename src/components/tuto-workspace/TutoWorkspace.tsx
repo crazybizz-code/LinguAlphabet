@@ -2,16 +2,17 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, Square, RotateCcw, ChevronRight } from "lucide-react";
+import { Send, Square, RotateCcw, ChevronRight, Flame } from "lucide-react";
 import { ChatBubble } from "@/components/tuto-chat/ChatBubble";
 import { TypingIndicator } from "@/components/tuto-chat/TypingIndicator";
-import { QuickReplyChips } from "@/components/tuto-chat/QuickReplyChips";
-import { AdaptiveLevelBadge } from "@/components/tuto-chat/AdaptiveLevelBadge";
-import { Tuto } from "@/components/mascot/Tuto";
+import { ActionChips } from "./ActionChips";
+import { TutoOnlineAvatar } from "@/components/mascot/TutoOnlineAvatar";
 import { useTutoChat } from "@/hooks/useTutoChat";
-import { fadeSlideUp, fadeScaleIn } from "@/lib/motion/variants";
+import { fadeSlideUp } from "@/lib/motion/variants";
 import type { TutoContextInput } from "@/lib/tuto-chat/types";
-import type { CefrLevel } from "@/ai/context";
+
+/** Always-available conversation starters shown alongside the greeting — sent exactly like any AI-suggested action (ActionChips), not a special case. */
+const DEFAULT_ACTIONS = ["Explain simpler", "Give examples", "Practice this"];
 
 export type TutoWorkspaceMode = "general" | "article" | "podcast" | "checkpoint" | "ielts";
 
@@ -40,7 +41,8 @@ export interface TutoWorkspaceEmptyState {
 export interface TutoWorkspaceProps {
   mode: TutoWorkspaceMode;
   context: TutoContextInput;
-  learnerLevel?: CefrLevel | null;
+  /** Drives the header's streak badge (Base44 reference) in general mode — omit to hide the badge entirely rather than show a fabricated 0. */
+  streak?: number | null;
   contextBanner?: TutoWorkspaceContextBanner;
   emptyState?: TutoWorkspaceEmptyState;
   placeholder?: string;
@@ -72,19 +74,33 @@ function WorkspaceContextBanner({ banner }: { banner: TutoWorkspaceContextBanner
   );
 }
 
-/** Shown instead of a context banner when there's nothing specific in view (General Coach) — mirrors Explore/Progress's own page-header pattern (title + one-line subtitle) so Tuto reads as a normal primary destination, not a bare chat box. */
-function WorkspaceHeader({ learnerLevel }: { learnerLevel: CefrLevel | null }) {
+/**
+ * Shown instead of a context banner when there's nothing specific in view
+ * (General Coach) — Base44 reference: "English Coaching Session" title,
+ * "Ready to help" status (mirrors the sidebar's own Tuto card exactly, via
+ * the same TutoOnlineAvatar), and the learner's streak instead of a level
+ * pill (level now lives in the sidebar's Learning Status panel).
+ */
+function WorkspaceHeader({ streak }: { streak: number | null | undefined }) {
   return (
     <div className="shrink-0 border-b border-border bg-bg-card/95 px-5 py-4 backdrop-blur-sm sm:px-8">
       <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Tuto pose="neutral" size="xs" animation="floatSm" />
-          <div>
-            <h1 className="text-lg font-bold text-text-primary">Tuto</h1>
-            <p className="text-xs text-text-tertiary">Your AI English coach</p>
+        <div className="flex min-w-0 items-center gap-3">
+          <TutoOnlineAvatar />
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold leading-snug text-text-primary sm:text-lg">English Coaching Session</h1>
+            <p className="flex items-center gap-1.5 text-xs text-text-tertiary">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+              Ready to help
+            </p>
           </div>
         </div>
-        <AdaptiveLevelBadge level={learnerLevel} />
+        {typeof streak === "number" && streak > 0 && (
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-primary-lighter px-3 py-1.5 text-xs font-bold text-primary">
+            <Flame className="h-3.5 w-3.5" aria-hidden="true" />
+            {streak} days
+          </span>
+        )}
       </div>
     </div>
   );
@@ -110,7 +126,7 @@ function WorkspaceHeader({ learnerLevel }: { learnerLevel: CefrLevel | null }) {
  * the same way DashboardSidebar/DashboardBottomNav already opt into fixed
  * positioning for their own chrome.
  */
-export function TutoWorkspace({ mode, context, learnerLevel = null, contextBanner, emptyState, placeholder = "Ask Tuto anything…" }: TutoWorkspaceProps) {
+export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState, placeholder = "Ask Tuto anything…" }: TutoWorkspaceProps) {
   const chat = useTutoChat({ context });
   const [draft, setDraft] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -150,7 +166,7 @@ export function TutoWorkspace({ mode, context, learnerLevel = null, contextBanne
 
   return (
     <div className="fixed inset-0 z-0 flex flex-col bg-bg pl-[260px] max-lg:pl-0" data-tuto-workspace-mode={mode}>
-      {contextBanner ? <WorkspaceContextBanner banner={contextBanner} /> : <WorkspaceHeader learnerLevel={learnerLevel} />}
+      {contextBanner ? <WorkspaceContextBanner banner={contextBanner} /> : <WorkspaceHeader streak={streak} />}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
         {/* mt-auto anchors a short conversation to the bottom (Claude/ChatGPT
@@ -158,16 +174,14 @@ export function TutoWorkspace({ mode, context, learnerLevel = null, contextBanne
             TutoChatPanel.tsx's identical comment for the measured proof. */}
         <div ref={contentSizeRef} className="mx-auto mt-auto flex w-full max-w-2xl flex-col gap-3 px-5 pb-3 pt-6 sm:px-8">
           {showEmptyState && (
-            <motion.div
-              variants={fadeScaleIn}
-              initial="hidden"
-              animate="visible"
-              className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-bg-muted px-5 py-8 text-center"
-            >
-              <p className="text-sm font-bold text-text-primary">{emptyState.title}</p>
-              <p className="text-sm leading-relaxed text-text-secondary">{emptyState.description}</p>
+            <motion.div variants={fadeSlideUp} initial="hidden" animate="visible" className="flex flex-col gap-3">
+              <ChatBubble
+                message={{ id: "__greeting", role: "assistant", content: `${emptyState.title} ${emptyState.description}` }}
+                showSender
+              />
+              <ActionChips actions={DEFAULT_ACTIONS} onSelect={chat.sendMessage} />
               {emptyState.starters && emptyState.starters.length > 0 && (
-                <QuickReplyChips replies={emptyState.starters} onSelect={chat.sendMessage} />
+                <ActionChips actions={emptyState.starters} onSelect={chat.sendMessage} />
               )}
             </motion.div>
           )}
@@ -175,7 +189,14 @@ export function TutoWorkspace({ mode, context, learnerLevel = null, contextBanne
           {visibleMessages.map((message, index) => {
             const isLastAssistant = index === visibleMessages.length - 1 && message.role === "assistant";
             if (isLastAssistant && (chat.status === "streaming" || chat.status === "error") && message.content.length === 0) return null;
-            return <ChatBubble key={message.id} message={message} streaming={chat.status === "streaming" && isLastAssistant} />;
+            return (
+              <ChatBubble
+                key={message.id}
+                message={message}
+                streaming={chat.status === "streaming" && isLastAssistant}
+                showSender={message.role === "assistant"}
+              />
+            );
           })}
 
           <AnimatePresence>
@@ -200,7 +221,7 @@ export function TutoWorkspace({ mode, context, learnerLevel = null, contextBanne
           )}
 
           {chat.status === "idle" && chat.lastQuickActions.length > 0 && (
-            <QuickReplyChips replies={chat.lastQuickActions} onSelect={chat.sendMessage} />
+            <ActionChips actions={chat.lastQuickActions} onSelect={chat.sendMessage} />
           )}
 
           {canRegenerate && (
@@ -221,7 +242,7 @@ export function TutoWorkspace({ mode, context, learnerLevel = null, contextBanne
       <div className="shrink-0 border-t border-border bg-bg-card/95 backdrop-blur-sm">
         <form
           onSubmit={handleSubmit}
-          className="mx-auto flex w-full max-w-2xl items-center gap-2 px-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-3 sm:px-8 lg:pb-4"
+          className="mx-auto flex w-full max-w-2xl items-center gap-2 px-5 pt-3 sm:px-8"
         >
           <input
             type="text"
@@ -247,10 +268,13 @@ export function TutoWorkspace({ mode, context, learnerLevel = null, contextBanne
               aria-label="Send"
               className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-text-on-primary transition-all hover:opacity-90 active:scale-[0.95] disabled:opacity-40"
             >
-              <ArrowUp className="h-5 w-5" aria-hidden="true" />
+              <Send className="h-5 w-5" aria-hidden="true" />
             </button>
           )}
         </form>
+        <p className="mx-auto w-full max-w-2xl px-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-1.5 text-center text-[11px] text-text-tertiary sm:px-8 lg:pb-3">
+          Tuto can make mistakes. Always verify important information.
+        </p>
       </div>
     </div>
   );

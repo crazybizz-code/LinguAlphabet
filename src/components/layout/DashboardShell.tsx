@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 import { DashboardBottomNav } from "@/components/layout/DashboardBottomNav";
+import type { LearnerSidebarStats } from "@/lib/content/sidebar-stats";
 
 /**
  * Shared shell for every post-onboarding screen except the full-bleed
@@ -13,13 +14,15 @@ import { DashboardBottomNav } from "@/components/layout/DashboardBottomNav";
  * The global "Ask Tuto" floating entry point (FloatingTuto.tsx) is gone —
  * Tuto is now its own primary nav destination (/tuto, see
  * dashboard-nav-items.ts), not a popup layered on top of every screen.
- * FloatingTuto.tsx itself is kept, unused, only as long as it takes to
- * confirm nothing else still imports it.
+ *
+ * `learnerStats` is fetched once by (app)/layout.tsx and threaded straight
+ * through to DashboardSidebar's "Learning Status" panel — `null` while
+ * signed out/mid-onboarding, same as the layout's own fetch.
  */
-export function DashboardShell({ children }: { children: ReactNode }) {
+export function DashboardShell({ children, learnerStats = null }: { children: ReactNode; learnerStats?: LearnerSidebarStats | null }) {
   return (
     <div className="min-h-dvh bg-bg">
-      <DashboardSidebar />
+      <DashboardSidebar learnerStats={learnerStats} />
       <main className="pl-[260px] max-lg:pl-0">
         {children}
         {/* Clears the floating bottom nav on tablet/mobile so every page's

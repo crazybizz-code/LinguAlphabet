@@ -28,7 +28,11 @@ export default async function TutoPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("onboarding_completed").eq("user_id", user.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("onboarding_completed, username")
+    .eq("user_id", user.id)
+    .single();
   if (!profile?.onboarding_completed) redirect("/welcome");
 
   const learnerProfile = await createLearnerRepository(supabase, user.id).getProfile();
@@ -39,16 +43,18 @@ export default async function TutoPage() {
     learningGoal: learnerProfile.learningGoal,
   };
 
+  const learnerName = profile.username || "there";
+
   return (
     <TutoWorkspace
       mode="general"
       context={context}
-      learnerLevel={learnerProfile.cefrLevel}
+      streak={learnerProfile.streak}
       placeholder="Ask Tuto anything…"
       emptyState={{
-        title: "Hey, I'm Tuto — your English coach",
-        description: "Ask me about grammar, vocabulary, writing, exams, or anything you're curious about.",
-        starters: ["What should I practice today?", "Explain a grammar rule", "Teach me a new word"],
+        title: `Hi ${learnerName}! I'm Tuto — your AI English coach.`,
+        description: "Ask me about grammar, vocabulary, pronunciation, or anything else. What would you like to work on?",
+        starters: ["When do I use 'present perfect'?", "Difference between 'affect' and 'effect'?", "How do phrasal verbs work?"],
       }}
     />
   );

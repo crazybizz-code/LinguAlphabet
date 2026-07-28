@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { renderTutoMarkdown } from "@/lib/tuto-chat/markdown";
 import { useProgressiveReveal } from "@/hooks/useProgressiveReveal";
+import { Tuto } from "@/components/mascot/Tuto";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
 
 /** A blinking text-cursor, shown only while this exact bubble is the one actively revealing — never on a completed message, never on a user bubble. */
@@ -15,7 +16,14 @@ function BlinkingCursor() {
   );
 }
 
-export function ChatBubble({ message, streaming }: { message: ChatMessage; streaming?: boolean }) {
+export interface ChatBubbleProps {
+  message: ChatMessage;
+  streaming?: boolean;
+  /** Tuto Workspace only (Base44 reference) — a small avatar + "Tuto" label above the bubble. Defaults to off so the legacy sheet (TutoChatPanel) renders exactly as it always has. */
+  showSender?: boolean;
+}
+
+export function ChatBubble({ message, streaming, showSender = false }: ChatBubbleProps) {
   const isUser = message.role === "user";
   const isRevealing = Boolean(streaming) && !isUser;
   const revealed = useProgressiveReveal(message.content, isRevealing);
@@ -26,7 +34,13 @@ export function ChatBubble({ message, streaming }: { message: ChatMessage; strea
   const showCursor = isRevealing && revealed.length >= message.content.length;
 
   return (
-    <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
+    <div className={cn("flex flex-col", isUser ? "items-end" : "items-start")}>
+      {showSender && !isUser && (
+        <div className="mb-1.5 flex items-center gap-1.5 pl-1">
+          <Tuto pose="neutral" size="xs" animation="none" className="h-5 w-5" />
+          <span className="text-xs font-semibold text-text-tertiary">Tuto</span>
+        </div>
+      )}
       <div
         className={cn(
           "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
