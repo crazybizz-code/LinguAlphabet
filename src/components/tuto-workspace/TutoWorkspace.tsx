@@ -4,10 +4,12 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Send, Square, RotateCcw, ChevronRight, Flame } from "lucide-react";
 import { ChatBubble } from "@/components/tuto-chat/ChatBubble";
-import { TypingIndicator } from "@/components/tuto-chat/TypingIndicator";
 import { ActionChips } from "./ActionChips";
+import { AIStatusIndicator } from "./AIStatusIndicator";
 import { TutoOnlineAvatar } from "@/components/mascot/TutoOnlineAvatar";
 import { useTutoChat } from "@/hooks/useTutoChat";
+import { useThinkingPhase } from "@/hooks/useThinkingPhase";
+import { estimateRevealDurationMs, prefersReducedMotion } from "@/hooks/useProgressiveReveal";
 import { fadeSlideUp } from "@/lib/motion/variants";
 import type { TutoContextInput } from "@/lib/tuto-chat/types";
 
@@ -138,6 +140,42 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
   const showEmptyState = emptyState && visibleMessages.length === 0 && chat.status === "idle";
   const canRegenerate = chat.status === "idle" && lastMessage?.role === "assistant" && lastMessage.content.length > 0;
 
+  /** Reading → Thinking status copy shown before real content exists (AIStatusIndicator). */
+  const thinkingPhase = useThinkingPhase(isThinking);
+
+  /**
+   * Contextual quick actions (Base44 reference) are meant to feel like they
+   * follow Tuto finishing a reply, not pop in while it's still visually
+   * "writing" — chat.status flips to idle the instant the network turn
+   * completes, which can land slightly before ChatBubble's own client-side
+   * reveal animation has finished typing the text out. Holding the chips
+   * back for the same duration the reveal itself will take (estimateRevealDurationMs,
+   * the exact formula useProgressiveReveal animates on) keeps the two in sync
+   * without either component needing to know about the other's internals.
+   */
+  const [quickActionsReady, setQuickActionsReady] = useState(false);
+  const [trackedQuickActions, setTrackedQuickActions] = useState(chat.lastQuickActions);
+  // `lastQuickActions` gets a fresh array both when a new turn starts
+  // (cleared to []) and when it ends (populated) — exactly the two moments
+  // "not ready yet" needs to (re)apply, done during render rather than as a
+  // setState sitting at the top of the effect below.
+  if (trackedQuickActions !== chat.lastQuickActions) {
+    setTrackedQuickActions(chat.lastQuickActions);
+    setQuickActionsReady(false);
+  }
+
+  useEffect(() => {
+    if (chat.status !== "idle" || chat.lastQuickActions.length === 0) return;
+    const charCount = lastMessage?.role === "assistant" ? lastMessage.content.length : 0;
+    const delay = prefersReducedMotion() ? 0 : estimateRevealDurationMs(charCount);
+    const timeout = setTimeout(() => setQuickActionsReady(true), delay);
+    return () => clearTimeout(timeout);
+    // lastMessage?.content intentionally omitted: it never changes once
+    // chat.status is idle (the turn is already fully settled by then), and
+    // including it would re-arm this timer on every unrelated re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chat.status, chat.lastQuickActions]);
+
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [visibleMessages.length, lastMessage?.content, isThinking]);
@@ -189,20 +227,28 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
           {visibleMessages.map((message, index) => {
             const isLastAssistant = index === visibleMessages.length - 1 && message.role === "assistant";
             if (isLastAssistant && (chat.status === "streaming" || chat.status === "error") && message.content.length === 0) return null;
+            // Identity-based, not `chat.status === "streaming"`: status can
+            // already read "idle" by this message's very first render with
+            // real content (see useTutoChat's liveAssistantId doc comment),
+            // which would otherwise skip the entrance fade and the reveal
+            // entirely instead of just cutting them short.
+            const isLiveTurn = message.id === chat.liveAssistantId;
             return (
               <ChatBubble
                 key={message.id}
                 message={message}
-                streaming={chat.status === "streaming" && isLastAssistant}
+                streaming={isLiveTurn}
                 showSender={message.role === "assistant"}
+                animateEntrance={isLiveTurn}
+                revealMode="committed"
               />
             );
           })}
 
           <AnimatePresence>
             {isThinking && (
-              <motion.div variants={fadeSlideUp} initial="hidden" animate="visible" exit={{ opacity: 0 }} className="flex items-center gap-2 py-1">
-                <TypingIndicator />
+              <motion.div variants={fadeSlideUp} initial="hidden" animate="visible" exit={{ opacity: 0 }}>
+                <AIStatusIndicator phase={thinkingPhase} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -220,7 +266,7 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
             </div>
           )}
 
-          {chat.status === "idle" && chat.lastQuickActions.length > 0 && (
+          {chat.status === "idle" && chat.lastQuickActions.length > 0 && quickActionsReady && (
             <ActionChips actions={chat.lastQuickActions} onSelect={chat.sendMessage} />
           )}
 
