@@ -143,8 +143,32 @@ export function TutoChatPanel({
           non-scrolling sibling, never part of this flow, so it can never
           overlap or hide the newest message the way a sticky element
           sharing this same scroll region used to. */}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div ref={contentSizeRef} className="flex flex-col gap-3 pb-3">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
+        {/*
+          Claude/ChatGPT-mobile anchor pattern: a short conversation sits
+          flush against the composer at the bottom (slack space goes
+          ABOVE the messages, via this auto top margin), instead of at
+          the top with dead space below it — so the typing indicator
+          lands right above the input the instant it appears, never
+          stranded mid-screen.
+
+          `mt-auto` on the content, NOT `justify-end` on the scroll
+          container: `justify-end` on an overflow-y:auto flex column is a
+          well-documented flexbug (Philip Walton's flexbugs #12) — once
+          content exceeds the container, the browser clips it from the
+          START with no way to scroll up to reach it, because scrollHeight
+          doesn't grow to account for the push-to-end offset. Confirmed
+          this exact failure live (Playwright): a 665px-tall response
+          inside a 470px container reported scrollHeight === clientHeight
+          (470), silently swallowing the first ~195px with no way to
+          scroll to it. `margin-top: auto` on the single content child
+          achieves the identical bottom-anchor for short content (auto
+          margins absorb free space, same as `justify-end` would), but
+          resolves to `0` once there's no free space left to absorb —
+          i.e. the instant content overflows, this has zero effect and
+          scrolling behaves exactly like a plain flex column always has.
+        */}
+        <div ref={contentSizeRef} className="mt-auto flex flex-col gap-3 pb-3">
           <TutoMascotStatus state={mascotState} level={learnerLevel} orchestratorAction={orchestratorAction} />
           {header}
           {showEmptyState && (
