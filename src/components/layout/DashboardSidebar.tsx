@@ -3,8 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Flame, Star, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DASHBOARD_NAV_ITEMS } from "@/components/layout/dashboard-nav-items";
+import { TutoOnlineAvatar } from "@/components/mascot/TutoOnlineAvatar";
+import type { LearnerSidebarStats } from "@/lib/content/sidebar-stats";
 
 /**
  * Fixed left rail, desktop/laptop only (≥1024px — max-lg:hidden). Tablet and
@@ -14,8 +17,15 @@ import { DASHBOARD_NAV_ITEMS } from "@/components/layout/dashboard-nav-items";
  * The brand mark uses the small gradient "L" icon (public/favicon.svg), not
  * a cropped Tuto — Tuto is the AI coach, never a logo, and our smallest
  * Tuto render (112px) doesn't fit a compact sidebar row anyway.
+ *
+ * "Learning Status" + the "Tuto · Ready to help" card (Base44 reference)
+ * fill what used to be dead space below the nav — real numbers
+ * (streak/xp/level/daily goal), fetched once in (app)/layout.tsx and
+ * passed down, never fabricated here. `null` while signed out/mid-
+ * onboarding: the section simply doesn't render rather than show a zero
+ * that isn't really the learner's.
  */
-export function DashboardSidebar() {
+export function DashboardSidebar({ learnerStats = null }: { learnerStats?: LearnerSidebarStats | null }) {
   const pathname = usePathname();
 
   return (
@@ -48,6 +58,60 @@ export function DashboardSidebar() {
           );
         })}
       </nav>
+
+      {learnerStats && (
+        <div className="mt-auto flex flex-col gap-4">
+          <div className="border-t border-border px-2 pt-5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-text-tertiary">Learning Status</p>
+            <div className="mt-3 flex flex-col gap-2.5">
+              <div className="flex items-center gap-2 text-sm">
+                <Flame className="h-4 w-4 text-primary" aria-hidden="true" />
+                <span className="font-bold text-text-primary">{learnerStats.streak}</span>
+                <span className="text-text-tertiary">Day streak</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Star className="h-4 w-4 text-primary" aria-hidden="true" />
+                <span className="font-bold text-text-primary">{learnerStats.xp}</span>
+                <span className="text-text-tertiary">Total XP</span>
+              </div>
+              {learnerStats.cefrLevel && (
+                <div className="flex items-center gap-2 text-sm">
+                  <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <span className="font-bold text-text-primary">{learnerStats.cefrLevel}</span>
+                  <span className="text-text-tertiary">English level</span>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-xs font-semibold">
+                <span className="text-text-secondary">Daily Goal</span>
+                <span className="text-primary">{learnerStats.dailyGoalPercent}%</span>
+              </div>
+              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-500"
+                  style={{ width: `${learnerStats.dailyGoalPercent}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <Link
+            href="/tuto"
+            className="flex items-center gap-3 rounded-2xl bg-primary-lighter px-3 py-2.5 transition-colors hover:bg-primary-light"
+          >
+            <TutoOnlineAvatar />
+            <div>
+              <p className="text-sm font-bold text-text-primary">Tuto</p>
+              <p className="flex items-center gap-1.5 text-xs text-text-tertiary">
+                <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />
+                Ready to help
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
     </aside>
   );
 }

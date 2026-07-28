@@ -3,7 +3,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import { X } from "lucide-react";
-import { markSheetOpen, markSheetClosed } from "@/lib/ui/sheetOpenStore";
 
 export interface EditSheetProps {
   open: boolean;
@@ -139,15 +138,6 @@ export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
   useLockBodyScroll(open);
   useBackButtonClosesSheet(open, onClose);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  // PRIORITY 2: lets unrelated fixed-position UI (the floating Ask Tuto
-  // button) know a sheet is up so it can get out of the way instead of
-  // sitting on top of it -- see FloatingTuto.tsx's subscribeSheetOpen use.
-  useEffect(() => {
-    if (!open) return;
-    markSheetOpen();
-    return () => markSheetClosed();
-  }, [open]);
 
   // CRITICAL ISSUE #5: a reopened sheet must always start scrolled to the
   // top, never wherever it happened to be scrolled to last time. The

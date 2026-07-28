@@ -15,7 +15,7 @@ export type CefrLevel = z.infer<typeof CefrLevelSchema>;
  * value here when a new screen needs to hand context to Tuto, no other
  * change required.
  */
-export const AI_SCREENS = ["home", "podcast", "article", "quiz", "vocabulary", "daily-mission"] as const;
+export const AI_SCREENS = ["home", "tuto", "podcast", "article", "quiz", "vocabulary", "daily-mission"] as const;
 export const ScreenSchema = z.enum(AI_SCREENS);
 export type Screen = z.infer<typeof ScreenSchema>;
 

@@ -82,3 +82,15 @@ export const READING_ASSISTANCE = `When a learner is reading an article and asks
 - Asked to simplify a paragraph: rewrite it in clearer, simpler language at their level — don't just shorten it, make the idea easier to follow.
 - Asked to translate selected text: translate it to Uzbek, the learner's native language, unless they ask for a different language.
 - Asked about grammar in the selected text: explain the specific grammar point actually being used there, not a generic grammar lesson unrelated to what they selected.`;
+
+/**
+ * Tuto Workspace's contextual quick-action chips (replaces the older
+ * hardcoded suggestion bank, src/lib/tuto-chat/suggestions.ts, which
+ * stays as-is for the legacy popup/sheet only): parsed out of the reply
+ * server-side (src/ai/services/quick-actions.ts) before it ever reaches a
+ * learner, so this line must never appear inside the visible reply
+ * itself, and the model must never refer to it.
+ */
+export const QUICK_ACTIONS_FORMAT = `After the visible part of your reply, on its own final line with nothing else on it, always append exactly one machine-readable line in this exact format:
+<!--ACTIONS:["Action one","Action two"]-->
+List 2-4 short (2-4 word) suggested next actions that would genuinely help the learner continue from THIS specific reply — grounded in what you actually just said, never a generic, unrelated, or repeated-every-time menu. Depending on what fits this exact reply, actions like "Explain easier", "Give an example", "Practice this", "Create a quiz", "Save this word", or "Summarize this" are the kind of thing that belongs here — but choose and word whatever 2-4 genuinely fit this reply, not a fixed list. This line is parsed by the app and never shown to the learner as text — never mention it, never explain it, never let it change how you write the visible reply above it.`;

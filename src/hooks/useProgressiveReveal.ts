@@ -6,8 +6,19 @@ const CHARS_PER_SECOND = 60;
 const MAX_REVEAL_MS = 900;
 const MIN_REVEAL_MS = 150;
 
-function prefersReducedMotion(): boolean {
+export function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/**
+ * Same duration formula useProgressiveReveal itself animates on — exported
+ * so a caller that needs to time something to "once the reveal settles"
+ * (Tuto Workspace delays its contextual quick actions until then) can match
+ * it exactly instead of re-guessing a duration that could drift out of
+ * sync with the actual animation.
+ */
+export function estimateRevealDurationMs(charCount: number): number {
+  return Math.min(MAX_REVEAL_MS, Math.max(MIN_REVEAL_MS, (charCount / CHARS_PER_SECOND) * 1000));
 }
 
 /**
