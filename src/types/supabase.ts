@@ -292,6 +292,10 @@ export interface Database {
           example: string | null;
           source_content_item_id: string | null;
           created_at: string;
+          /** Leitner box (1-5) — spaced-repetition review progress (supabase/vocabulary-review-schema.sql). */
+          box: number;
+          due_date: string;
+          last_reviewed_at: string | null;
         };
         Insert: {
           id?: string;
@@ -304,6 +308,9 @@ export interface Database {
           example?: string | null;
           source_content_item_id?: string | null;
           created_at?: string;
+          box?: number;
+          due_date?: string;
+          last_reviewed_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["vocabulary"]["Insert"]>;
         Relationships: [];
