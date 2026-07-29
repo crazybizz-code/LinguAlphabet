@@ -29,12 +29,29 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const targetUrl = event.notification.data && event.notification.data.url ? event.notification.data.url : "/dashboard";
 
+  // Product Intelligence Sprint — the only direct evidence a return visit
+  // was actually caused by this notification (see events.ts's
+  // notification_clicked doc comment). Posted directly rather than
+  // through src/lib/analytics/client.ts: that module is "use client"
+  // React code, not reachable from a service worker's own global scope.
+  // credentials: "include" carries the same-origin session cookie so
+  // /api/analytics/track can resolve which learner clicked.
+  const trackClick = fetch("/api/analytics/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ name: "notification_clicked", properties: {} }),
+  }).catch(() => {});
+
   event.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.includes(targetUrl) && "focus" in client) return client.focus();
-      }
-      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
-    }),
+    Promise.all([
+      trackClick,
+      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+        for (const client of clientList) {
+          if (client.url.includes(targetUrl) && "focus" in client) return client.focus();
+        }
+        if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
+      }),
+    ]),
   );
 });

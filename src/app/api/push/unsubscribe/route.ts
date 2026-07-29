@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { recordEvent } from "@/lib/analytics/record";
 
 const UnsubscribeRequestSchema = z.object({
   endpoint: z.string().min(1),
@@ -27,5 +28,7 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
 
   await supabase.from("push_subscriptions").delete().eq("user_id", user.id).eq("endpoint", parsed.data.endpoint);
+
+  await recordEvent(supabase, user.id, { name: "push_unsubscribed", properties: {} });
   return NextResponse.json({ success: true });
 }

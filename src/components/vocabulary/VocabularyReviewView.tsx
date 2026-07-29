@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Check, RotateCcw } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
+import { track } from "@/lib/analytics/client";
 import { recordVocabularyReview } from "@/lib/vocabulary/review";
 import type { DueVocabularyWord } from "@/lib/vocabulary/review";
 
@@ -23,18 +24,31 @@ export function VocabularyReviewView({ words }: { words: DueVocabularyWord[] }) 
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [done, setDone] = useState(words.length === 0);
+  const [correctCount, setCorrectCount] = useState(0);
 
   const total = words.length;
   const current = words[index];
   const isLast = index === total - 1;
+
+  useEffect(() => {
+    if (total > 0) {
+      track({ name: "vocabulary_review_started", properties: { dueWordCount: total } });
+    }
+    // Fires once per real mount with words actually due — "nothing due"
+    // (total === 0) is a distinct empty state, not a review that started.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function respond(wasCorrect: boolean) {
     // Fire-and-forget: recording the outcome must never block moving on to
     // the next word — a failed write here just means that one word's box
     // doesn't advance/reset until it comes up due again, not a stuck screen.
     recordVocabularyReview(current.word, wasCorrect).catch(() => {});
+    const nextCorrectCount = correctCount + (wasCorrect ? 1 : 0);
+    setCorrectCount(nextCorrectCount);
     if (isLast) {
       setDone(true);
+      track({ name: "vocabulary_review_completed", properties: { wordsReviewed: total, correctCount: nextCorrectCount } });
     } else {
       setFlipped(false);
       setIndex((value) => value + 1);

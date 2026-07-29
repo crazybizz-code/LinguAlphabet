@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service-client";
 import { isPushConfigured, sendPush } from "@/lib/push/vapid";
+import { recordEvent } from "@/lib/analytics/record";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -68,7 +69,10 @@ export async function GET(request: Request) {
       url: "/dashboard",
     });
 
-    if (result.delivered) sent += 1;
+    if (result.delivered) {
+      sent += 1;
+      await recordEvent(supabase, subscription.user_id, { name: "notification_sent", properties: { streakAtSend: streak } });
+    }
     if (result.expired) {
       expired += 1;
       await supabase.from("push_subscriptions").delete().eq("id", subscription.id);

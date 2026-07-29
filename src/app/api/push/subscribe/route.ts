@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { recordEvent } from "@/lib/analytics/record";
 
 const SubscribeRequestSchema = z.object({
   endpoint: z.string().min(1),
@@ -46,5 +47,7 @@ export async function POST(request: NextRequest) {
   );
 
   if (error) return NextResponse.json({ error: "Couldn't save subscription." }, { status: 500 });
+
+  await recordEvent(supabase, user.id, { name: "push_subscribed", properties: {} });
   return NextResponse.json({ success: true });
 }

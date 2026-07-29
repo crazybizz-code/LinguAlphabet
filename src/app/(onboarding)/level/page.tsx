@@ -54,7 +54,7 @@ export default function LevelPage() {
         })}
       </div>
 
-      <OnboardingNav backHref="/name" continueHref="/goal" continueDisabled={!level} />
+      <OnboardingNav backHref="/name" continueHref="/goal" continueDisabled={!level} step="level" stepIndex={3} />
     </OnboardingLayout>
   );
 }

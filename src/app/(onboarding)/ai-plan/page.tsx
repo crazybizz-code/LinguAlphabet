@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/Button";
 import { StatTile } from "@/components/ui/StatTile";
 import { Timeline } from "@/components/ui/Timeline";
 import { readOnboardingData, clearOnboardingData } from "@/lib/onboarding/storage";
+import { track } from "@/lib/analytics/client";
 
 const NEXT_LEVEL: Record<string, string> = { A1: "A2", A2: "B1", B1: "B2", B2: "C1", C1: "C2", C2: "Mastery" };
 const VOCAB_TARGET: Record<string, number> = { A1: 500, A2: 1000, B1: 2000, B2: 4000, C1: 6000, C2: 8000 };
@@ -77,6 +78,22 @@ export default function AiPlanPage() {
           onboarding_completed: true,
         })
         .eq("user_id", user.id);
+      if (!error) {
+        // The true "activated learner" moment — the D1/D7 retention
+        // denominator (see events.ts's onboarding_completed doc comment).
+        // Fires exactly once: persistProfile only ever runs its success
+        // path a single time per real completion (see handleDone below —
+        // a first-try success skips ever calling this again).
+        track({
+          name: "onboarding_completed",
+          properties: {
+            englishLevel: profile.level ?? "",
+            goal: profile.goal ?? "",
+            dailyTimeMinutes: profile.dailyTime ?? 0,
+            interestsCount: profile.interests.length,
+          },
+        });
+      }
       return !error;
     } catch {
       return false;

@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import { createClient } from "@/lib/supabase/server";
 import { createSignalRepository, type LearningSignal } from "@/ai/data";
+import { recordEvent } from "@/lib/analytics/record";
 import { applyXp, computeXpEarned } from "./xp";
 import { applyStreak } from "./streak";
 
@@ -79,6 +80,57 @@ async function recordCompletionSignals(
     await Promise.all(signals.map((signal) => signalRepository.record(signal)));
   } catch {
     // Best-effort — see doc comment above.
+  }
+}
+
+/**
+ * Product Intelligence Sprint — the analytics counterpart to
+ * recordCompletionSignals above: lesson_completed always, plus whichever
+ * of streak_reset/streak_shield_earned/streak_shield_used actually
+ * happened this completion (deriveStreakStatus/applyStreak's booleans
+ * are mutually exclusive per call, so at most one of the three fires).
+ */
+async function recordCompletionAnalytics(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  params: {
+    contentId: string;
+    contentType: "article" | "podcast";
+    isMission: boolean;
+    xpEarned: number;
+    quizScore: number;
+    quizTotal: number;
+    estimatedMinutes: number;
+    streakStatus: StreakStatus;
+    streakResult: ReturnType<typeof applyStreak>;
+    previousStreak: number;
+  },
+): Promise<void> {
+  await recordEvent(supabase, userId, {
+    name: "lesson_completed",
+    properties: {
+      contentId: params.contentId,
+      contentType: params.contentType,
+      isMission: params.isMission,
+      xpEarned: params.xpEarned,
+      quizScore: params.quizScore,
+      quizTotal: params.quizTotal,
+      durationMinutes: Math.round(params.estimatedMinutes),
+      streakAfter: params.streakResult.newStreak,
+    },
+  });
+
+  if (params.streakStatus === "reset") {
+    await recordEvent(supabase, userId, {
+      name: "streak_reset",
+      properties: { previousStreak: params.previousStreak, longestStreak: params.streakResult.newLongestStreak },
+    });
+  }
+  if (params.streakResult.shieldEarned) {
+    await recordEvent(supabase, userId, { name: "streak_shield_earned", properties: {} });
+  }
+  if (params.streakResult.shieldUsed) {
+    await recordEvent(supabase, userId, { name: "streak_shield_used", properties: { streakAfter: params.streakResult.newStreak } });
   }
 }
 
@@ -194,6 +246,18 @@ export async function completeMission(params: {
   ]);
 
   await recordCompletionSignals(supabase, user.id, params);
+  await recordCompletionAnalytics(supabase, user.id, {
+    contentId: params.contentId,
+    contentType: params.contentType,
+    isMission,
+    xpEarned,
+    quizScore: params.correctAnswers,
+    quizTotal: params.quizTotal,
+    estimatedMinutes: params.estimatedMinutes,
+    streakStatus,
+    streakResult,
+    previousStreak,
+  });
 
   return {
     xpEarned,

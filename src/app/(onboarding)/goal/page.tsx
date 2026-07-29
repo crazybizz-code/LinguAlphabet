@@ -46,7 +46,7 @@ export default function GoalPage() {
         })}
       </div>
 
-      <OnboardingNav backHref="/level" continueHref="/daily-time" continueDisabled={!goal} />
+      <OnboardingNav backHref="/level" continueHref="/daily-time" continueDisabled={!goal} step="goal" stepIndex={4} />
     </OnboardingLayout>
   );
 }

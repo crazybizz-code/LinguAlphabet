@@ -113,6 +113,25 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      /** Product Intelligence Sprint — src/lib/analytics/events.ts is the source of truth for event_name/properties shapes. */
+      analytics_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          event_name: string;
+          properties: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          event_name: string;
+          properties?: Json;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       content_items: {
         Row: {
           id: string;

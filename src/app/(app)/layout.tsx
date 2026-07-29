@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { getLearnerSidebarStats } from "@/lib/content/sidebar-stats";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { SessionTracker } from "@/components/analytics/SessionTracker";
 
 /**
  * Fetches the left rail's "Learning Status" numbers once, here, rather
@@ -20,5 +21,10 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   const learnerStats = user ? await getLearnerSidebarStats(supabase, user.id) : null;
 
-  return <DashboardShell learnerStats={learnerStats}>{children}</DashboardShell>;
+  return (
+    <DashboardShell learnerStats={learnerStats}>
+      <SessionTracker />
+      {children}
+    </DashboardShell>
+  );
 }

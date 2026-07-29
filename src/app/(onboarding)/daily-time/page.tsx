@@ -53,7 +53,7 @@ export default function DailyTimePage() {
         })}
       </div>
 
-      <OnboardingNav backHref="/goal" continueHref="/interests" continueDisabled={dailyTime === null} />
+      <OnboardingNav backHref="/goal" continueHref="/interests" continueDisabled={dailyTime === null} step="daily_time" stepIndex={5} />
     </OnboardingLayout>
   );
 }
