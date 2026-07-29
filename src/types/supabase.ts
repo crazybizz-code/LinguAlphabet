@@ -27,6 +27,8 @@ export interface Database {
           /** docs/domain-model.md §19 — supabase/progress-schema.sql. */
           longest_streak: number;
           last_study_date: string | null;
+          /** Banked "streak shields" — see supabase/streak-shield-schema.sql. */
+          streak_shields: number;
           total_minutes: number;
           tuto_name: string;
           /** CEFR code (A1-C2) collected by onboarding — see supabase/onboarding-fields.sql. */
@@ -49,6 +51,7 @@ export interface Database {
           streak?: number;
           longest_streak?: number;
           last_study_date?: string | null;
+          streak_shields?: number;
           total_minutes?: number;
           tuto_name?: string;
           english_level?: string | null;

@@ -25,6 +25,9 @@ export interface CompleteMissionResult {
    * same bare number whether the streak grew, stayed flat, or reset.
    */
   streakStatus: StreakStatus;
+  /** Execution Sprint P1 — see src/lib/learning-session/streak.ts's Streak Shield doc comment. */
+  shieldEarned: boolean;
+  shieldUsed: boolean;
 }
 
 /** Honest classification of what a streak update actually did — see StreakStatus. */
@@ -147,6 +150,7 @@ export async function completeMission(params: {
     longestStreak: profile?.longest_streak ?? 0,
     lastStudyDate: profile?.last_study_date ?? null,
     isMission,
+    shields: profile?.streak_shields ?? 0,
   });
   const streakStatus = deriveStreakStatus({
     previousStreak,
@@ -176,7 +180,14 @@ export async function completeMission(params: {
         xp_to_next: xpResult.newXpToNext,
         streak: streakResult.newStreak,
         longest_streak: streakResult.newLongestStreak,
-        last_study_date: today,
+        streak_shields: streakResult.newShields,
+        // Bug fix (Execution Sprint P1): this used to write `today`
+        // unconditionally, even for a casual (non-mission) completion —
+        // which silently let a casual-only day count as "consecutive" for
+        // a *future* mission completion's streak math, exactly the
+        // casual-inflation the mission-gating above exists to prevent.
+        // Only a real mission completion should ever advance this.
+        ...(isMission ? { last_study_date: today } : {}),
         total_minutes: (profile?.total_minutes ?? 0) + Math.round(params.estimatedMinutes),
       })
       .eq("user_id", user.id),
@@ -193,6 +204,8 @@ export async function completeMission(params: {
     isMission,
     isFirstSession,
     streakStatus,
+    shieldEarned: streakResult.shieldEarned,
+    shieldUsed: streakResult.shieldUsed,
   };
 }
 

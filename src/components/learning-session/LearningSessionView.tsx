@@ -107,6 +107,11 @@ export function LearningSessionView({
           // session!" or "streak reset" celebration.
           isFirstSession: false,
           streakStatus: "same",
+          // Same conservative reasoning as isFirstSession above: the real
+          // write already failed, so neither a shield-earned nor a
+          // shield-used moment can be claimed with any confidence.
+          shieldEarned: false,
+          shieldUsed: false,
         },
       );
       setStep("complete");
