@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { renderTutoMarkdown } from "@/lib/tuto-chat/markdown";
@@ -47,7 +47,15 @@ export interface ChatBubbleProps {
   revealMode?: "reactive" | "committed";
 }
 
-export function ChatBubble({
+/**
+ * Memoized: a long conversation can have dozens of settled bubbles that
+ * have nothing left to animate or reveal, and Tuto Workspace's own state
+ * (thinking-phase transitions, the quick-actions timer, keyboard-viewport
+ * resizes) re-renders it fairly often — without this, every one of those
+ * unrelated re-renders would re-render every past bubble too, even though
+ * their props never actually changed.
+ */
+export const ChatBubble = memo(function ChatBubble({
   message,
   streaming,
   showSender = false,
@@ -160,4 +168,4 @@ export function ChatBubble({
       {inner}
     </motion.div>
   );
-}
+});

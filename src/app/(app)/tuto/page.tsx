@@ -40,6 +40,26 @@ export default async function TutoPage() {
 
   const learnerName = profile.username || "there";
 
+  /**
+   * A generic "Hi, I'm Tuto — ask me anything" greeting reads like any
+   * chatbot's first message. Referencing what Tuto actually already knows
+   * about this learner (their streak if they have one, their own stated
+   * learning goal) makes the very first line feel like picking up a
+   * conversation with a coach who remembers them, not a fresh session
+   * with a stranger — see docs/CLAUDE.md's product model and the
+   * tuto-taste skill's "Remember the learner" principle. Streak is only
+   * ever mentioned when it's actually > 0, same rule the header's own
+   * streak badge already follows, so a brand-new learner never gets
+   * complimented on a streak that doesn't exist yet.
+   */
+  const hasStreak = (learnerProfile.streak ?? 0) > 0;
+  const greetingTitle = hasStreak
+    ? `Welcome back, ${learnerName}! ${learnerProfile.streak}-day streak and counting.`
+    : `Hi ${learnerName}, glad you're here.`;
+  const greetingDescription = learnerProfile.learningGoal
+    ? `I'm Tuto, your English coach — here to help with ${learnerProfile.learningGoal}. Ask me about grammar, vocabulary, pronunciation, or anything else on your mind.`
+    : "I'm Tuto, your English coach. Ask me about grammar, vocabulary, pronunciation, or anything else on your mind.";
+
   return (
     <TutoWorkspace
       mode="general"
@@ -47,8 +67,8 @@ export default async function TutoPage() {
       streak={learnerProfile.streak}
       placeholder="Ask Tuto anything…"
       emptyState={{
-        title: `Hi ${learnerName}! I'm Tuto — your AI English coach.`,
-        description: "Ask me about grammar, vocabulary, pronunciation, or anything else. What would you like to work on?",
+        title: greetingTitle,
+        description: greetingDescription,
         starters: ["When do I use 'present perfect'?", "Difference between 'affect' and 'effect'?", "How do phrasal verbs work?"],
       }}
     />

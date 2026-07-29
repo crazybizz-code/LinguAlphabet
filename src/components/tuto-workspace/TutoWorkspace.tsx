@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Send, Square, RotateCcw, ChevronRight, Flame } from "lucide-react";
+import { Send, Square, ChevronRight, Flame } from "lucide-react";
 import { ChatBubble } from "@/components/tuto-chat/ChatBubble";
 import { ActionChips } from "./ActionChips";
 import { AIStatusIndicator } from "./AIStatusIndicator";
+import { MessageActions } from "./MessageActions";
 import { TutoOnlineAvatar } from "@/components/mascot/TutoOnlineAvatar";
 import { useTutoChat } from "@/hooks/useTutoChat";
 import { useThinkingPhase } from "@/hooks/useThinkingPhase";
@@ -166,38 +167,39 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
   const thinkingPhase = useThinkingPhase(isThinking);
 
   /**
-   * Contextual quick actions (Base44 reference) are meant to feel like they
-   * follow Tuto finishing a reply, not pop in while it's still visually
-   * "writing" — chat.status flips to idle the instant the network turn
-   * completes, which can land slightly before ChatBubble's own client-side
-   * reveal animation has finished typing the text out. Holding the chips
-   * back for the same duration the reveal itself will take
+   * Both the message-actions row (copy/regenerate/rate) and the
+   * contextual quick-action chips (Base44 reference) are meant to feel
+   * like they follow Tuto finishing a reply, not pop in while it's still
+   * visually "writing" — chat.status flips to idle the instant the
+   * network turn completes, which can land slightly before ChatBubble's
+   * own client-side reveal animation has finished typing the text out.
+   * Holding both back for the same duration the reveal itself will take
    * (estimateChunkedRevealDurationMs, the exact formula useChunkedReveal
-   * animates on) keeps the two in sync without either component needing
-   * to know about the other's internals.
+   * animates on) keeps everything in sync without any of these
+   * components needing to know about each other's internals.
    */
-  const [quickActionsReady, setQuickActionsReady] = useState(false);
-  const [trackedQuickActions, setTrackedQuickActions] = useState(chat.lastQuickActions);
-  // `lastQuickActions` gets a fresh array both when a new turn starts
-  // (cleared to []) and when it ends (populated) — exactly the two moments
-  // "not ready yet" needs to (re)apply, done during render rather than as a
-  // setState sitting at the top of the effect below.
-  if (trackedQuickActions !== chat.lastQuickActions) {
-    setTrackedQuickActions(chat.lastQuickActions);
-    setQuickActionsReady(false);
+  const [isReplySettled, setIsReplySettled] = useState(false);
+  const [trackedMessageId, setTrackedMessageId] = useState(lastMessage?.id);
+  // A new message becoming the last one (a fresh user turn, then its
+  // assistant placeholder) is exactly when "not settled yet" needs to
+  // (re)apply — done during render rather than as a setState sitting at
+  // the top of the effect below.
+  if (trackedMessageId !== lastMessage?.id) {
+    setTrackedMessageId(lastMessage?.id);
+    setIsReplySettled(false);
   }
 
   useEffect(() => {
-    if (chat.status !== "idle" || chat.lastQuickActions.length === 0) return;
-    const content = lastMessage?.role === "assistant" ? lastMessage.content : "";
-    const delay = prefersReducedMotion() ? 0 : estimateChunkedRevealDurationMs(content);
-    const timeout = setTimeout(() => setQuickActionsReady(true), delay);
+    if (!canRegenerate) return;
+    const delay = prefersReducedMotion() ? 0 : estimateChunkedRevealDurationMs(lastMessage!.content);
+    const timeout = setTimeout(() => setIsReplySettled(true), delay);
     return () => clearTimeout(timeout);
-    // lastMessage?.content intentionally omitted: it never changes once
-    // chat.status is idle (the turn is already fully settled by then), and
-    // including it would re-arm this timer on every unrelated re-render.
+    // lastMessage intentionally omitted beyond canRegenerate: its content
+    // never changes once chat.status is idle (the turn is already fully
+    // settled by then), and including it would re-arm this timer on every
+    // unrelated re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chat.status, chat.lastQuickActions]);
+  }, [canRegenerate]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -305,19 +307,10 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
             </div>
           )}
 
-          {chat.status === "idle" && chat.lastQuickActions.length > 0 && quickActionsReady && (
-            <ActionChips actions={chat.lastQuickActions} onSelect={chat.sendMessage} />
-          )}
+          {canRegenerate && isReplySettled && <MessageActions content={lastMessage!.content} onRegenerate={chat.retryLast} />}
 
-          {canRegenerate && (
-            <button
-              type="button"
-              onClick={chat.retryLast}
-              className="flex w-fit items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:border-primary/40 hover:text-primary"
-            >
-              <RotateCcw className="h-3 w-3" aria-hidden="true" />
-              Regenerate
-            </button>
+          {chat.status === "idle" && chat.lastQuickActions.length > 0 && isReplySettled && (
+            <ActionChips actions={chat.lastQuickActions} onSelect={chat.sendMessage} />
           )}
 
           <div ref={endRef} aria-hidden="true" />
