@@ -20,6 +20,16 @@ export default function LoginPage() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+
+    if (!email.trim() || !password) {
+      setError("Enter your email and password to continue.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter a valid email address.");
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
@@ -61,7 +71,7 @@ export default function LoginPage() {
           <p className="mt-1 text-small text-text-secondary">Sign in to continue learning</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <Input
             label="Email"
             id="email"

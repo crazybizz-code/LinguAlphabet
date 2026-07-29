@@ -23,6 +23,14 @@ export default function SignUpPage() {
     event.preventDefault();
     setError("");
 
+    if (!email.trim() || !password || !confirmPassword) {
+      setError("Fill in all fields to continue.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter a valid email address.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -93,7 +101,7 @@ export default function SignUpPage() {
           <p className="mt-1 text-small text-text-secondary">Start your English journey today</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <Input
             label="Email"
             id="email"

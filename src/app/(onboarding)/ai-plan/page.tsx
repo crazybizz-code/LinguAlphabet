@@ -207,7 +207,7 @@ export default function AiPlanPage() {
           <Tuto pose="celebrating" size="md" animation="float" priority className="mx-auto mb-5" />
           <p className="mb-2 text-small font-semibold uppercase tracking-wide text-primary">Your Personalized Plan</p>
           <h1 className="mb-2 font-heading text-display font-extrabold text-text-primary">
-            {profile.displayName || "Your"}&apos;s Learning Roadmap
+            {profile.displayName ? `${profile.displayName}’s Learning Roadmap` : "Your Learning Roadmap"}
           </h1>
           <p className="text-text-secondary">
             {level} → {nextLevel} · Focused on {profile.goal || "General English"}

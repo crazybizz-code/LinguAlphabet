@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, KeyRound, LogOut, Mail } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, KeyRound, LogOut, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { StatRow } from "@/components/ui/StatRow";
@@ -27,19 +27,26 @@ export interface SettingsViewProps {
  */
 export function SettingsView({ email }: SettingsViewProps) {
   const [isPending, startTransition] = useTransition();
-  const [resetState, setResetState] = useState<"idle" | "sending" | "sent">("idle");
+  const [resetState, setResetState] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   function sendPasswordReset() {
-    if (resetState !== "idle") return;
+    if (resetState === "sending" || resetState === "sent") return;
     setResetState("sending");
     const supabase = createClient();
     supabase.auth
       .resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` })
-      .catch(() => {
-        // Never reveal whether the send failed vs. succeeded — same
-        // never-confirm-account-existence stance as /forgot-password.
+      .then(({ error }) => {
+        // supabase-js resolves (rather than rejects) even on an API-level
+        // failure — the promise only rejects on a true network exception.
+        // Checking `error` here is what actually catches a real send
+        // failure; a nonexistent email still resolves with error: null (no
+        // account-existence leak either way), so this stays honest without
+        // revealing whether the address is real.
+        setResetState(error ? "error" : "sent");
       })
-      .finally(() => setResetState("sent"));
+      .catch(() => {
+        setResetState("error");
+      });
   }
 
   return (
@@ -72,11 +79,23 @@ export function SettingsView({ email }: SettingsViewProps) {
           <StatRow
             icon={<KeyRound className="h-5 w-5" aria-hidden="true" />}
             label="Change Password"
-            value={resetState === "sent" ? `Reset link sent to ${email}` : "Send a reset link to your email"}
+            value={
+              resetState === "sent"
+                ? `Reset link sent to ${email}`
+                : resetState === "error"
+                  ? "Couldn't send the reset link — tap to try again"
+                  : "Send a reset link to your email"
+            }
             onClick={sendPasswordReset}
-            disabled={resetState !== "idle"}
+            disabled={resetState === "sending" || resetState === "sent"}
             liveValue
-            trailing={resetState === "sent" ? <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-hidden="true" /> : undefined}
+            trailing={
+              resetState === "sent" ? (
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-hidden="true" />
+              ) : resetState === "error" ? (
+                <AlertCircle className="h-5 w-5 shrink-0 text-danger" aria-hidden="true" />
+              ) : undefined
+            }
           />
         </div>
       </motion.section>

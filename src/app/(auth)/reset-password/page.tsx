@@ -68,6 +68,10 @@ export default function ResetPasswordPage() {
     event.preventDefault();
     setError("");
 
+    if (!password || !confirmPassword) {
+      setError("Enter and confirm your new password.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -152,7 +156,7 @@ export default function ResetPasswordPage() {
           <p className="mt-1 text-small text-text-secondary">Choose a strong password for your account</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <Input
             label="New Password"
             id="newPassword"
