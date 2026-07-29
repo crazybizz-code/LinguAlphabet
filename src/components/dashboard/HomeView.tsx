@@ -106,7 +106,12 @@ export function HomeView({
           slot, tracked independently. Once both are completed the entire
           card switches to a celebration state with a countdown to
           tomorrow — no new mission is generated for the rest of the day. */}
-      <TodaysMissionCard missions={missions} allMissionsCompleted={allMissionsCompleted} tomorrowPreview={recommendations[0] ?? null} />
+      <TodaysMissionCard
+        missions={missions}
+        allMissionsCompleted={allMissionsCompleted}
+        tomorrowPreview={recommendations[0] ?? null}
+        streak={streak}
+      />
 
       <WordReviewCard dueCount={dueVocabularyCount} />
 
