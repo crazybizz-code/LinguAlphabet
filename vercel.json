@@ -3,6 +3,10 @@
     {
       "path": "/api/content-engine/ingest",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/push/send-streak-reminders",
+      "schedule": "0 18 * * *"
     }
   ]
 }

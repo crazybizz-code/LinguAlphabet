@@ -283,6 +283,27 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["bookmarks"]["Insert"]>;
         Relationships: [];
       };
+      /** Web Push subscriptions — see supabase/push-subscriptions-schema.sql. */
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["push_subscriptions"]["Insert"]>;
+        Relationships: [];
+      };
       vocabulary: {
         Row: {
           id: string;
