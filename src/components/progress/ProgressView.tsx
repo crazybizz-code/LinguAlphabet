@@ -5,8 +5,10 @@ import { Award, CalendarDays, CheckCircle2, Clock, Flame, Sparkles } from "lucid
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { LearningCalendar } from "./LearningCalendar";
+import { WeeklyRecapCard } from "./WeeklyRecapCard";
 import type { WeekDay, MonthActivity, RecentActivityItem } from "@/lib/content/progress";
 import type { DailyActivity } from "@/lib/content/daily-activity";
+import type { LastWeekSummary } from "@/lib/content/home";
 import type { TutoNote } from "@/lib/tuto/messages";
 
 export interface ProgressViewProps {
@@ -25,6 +27,8 @@ export interface ProgressViewProps {
   recentActivity: RecentActivityItem[];
   earnedAchievementIds: Set<string>;
   tutoNote: TutoNote | null;
+  /** Execution Sprint P2 — null when there's nothing to recap yet (see buildLastWeekSummary). */
+  lastWeekSummary: LastWeekSummary | null;
 }
 
 export function ProgressView({
@@ -43,6 +47,7 @@ export function ProgressView({
   recentActivity,
   earnedAchievementIds,
   tutoNote,
+  lastWeekSummary,
 }: ProgressViewProps) {
   const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
   const xpPercentage = xpToNext > 0 ? Math.min(100, (xp / xpToNext) * 100) : 0;
@@ -168,6 +173,11 @@ export function ProgressView({
         </div>
         <p className="mt-2 text-xs text-text-tertiary">{Math.max(0, xpToNext - xp)} XP to Level {level + 1}</p>
       </motion.section>
+
+      {/* Weekly Recap — a renewable weekly rhythm the retention audit
+          found missing (only the streak number moves over time). Simply
+          omitted once there's nothing from last week to show. */}
+      {lastWeekSummary && <WeeklyRecapCard summary={lastWeekSummary} />}
 
       {/* Learning Calendar — the learner's personal study timeline: real
           per-day intensity coloring, and clicking any day opens its full
