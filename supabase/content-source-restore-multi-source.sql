@@ -29,16 +29,40 @@
 -- ============================================================
 
 -- ===================== RE-ENABLE CONFIRMED SOURCES =====================
--- Only sources this repo's own history records as having a CONFIRMED
--- exact feed URL (see content-source-legal-migration.sql's inline notes)
--- and an APPROVED license in docs/content-source-policy.md.
-
+-- Data-driven rather than a hardcoded name list: enable every 'rss' row
+-- that already carries a REAL feed URL. Those URLs came from this repo's
+-- own per-source migrations (content-source-enable-*.sql: NOAA, USGS,
+-- NIH, EPA, FEMA, Peace Corps, GOV.UK, Global Voices, Library of
+-- Congress, European Commission) plus the three confirmed at seed time
+-- (NASA News, CDC Newsroom, Wikinews).
+--
+-- Selecting on the data means a source whose URL is confirmed later is
+-- picked up by re-running this file, with no edit here — and rows still
+-- holding the '<FEED_URL>' placeholder stay disabled automatically
+-- rather than by being remembered individually.
+--
+-- The four exclusions are LICENSING, not URL quality, per
+-- docs/content-source-policy.md — they must not be re-enabled by a
+-- blanket rule:
+--   Breaking News English — REQUIRES_PERMISSION (copyright held by an
+--     individual, explicit anti-copying terms)
+--   News in Levels       — NOT_ALLOWED
+--   BBC Learning English — never classified; disabled because it is
+--     unresearched, not because it is known-bad
+--   VOA Learning English — APPROVED, but still no confirmed text-first
+--     feed URL
 update public.content_sources
 set enabled = true, updated_at = now()
 where provider_id = 'rss'
-  and name in ('NASA News', 'CDC Newsroom', 'Wikinews')
   and config->>'feedUrl' is not null
-  and config->>'feedUrl' not like '<%';
+  and config->>'feedUrl' <> ''
+  and config->>'feedUrl' like 'http%'
+  and name not in (
+    'Breaking News English',
+    'News in Levels',
+    'BBC Learning English',
+    'VOA Learning English'
+  );
 
 -- PLOS: a non-RSS provider (official Search API), disabled by the demo
 -- migration alongside everything else. Its thumbnail gap is fixed in the
@@ -48,28 +72,56 @@ set enabled = true, updated_at = now()
 where provider_id = 'plos';
 
 -- ===================== PER-SOURCE TUNING =====================
--- maxItemsPerRun caps BOTH feed work and Gemini enrichment volume so all
--- enabled sources together still fit inside the ingest route's 300s
--- maxDuration. With several sources now running per invocation, each
--- takes a smaller share than the single-source default of 5.
+-- THE BINDING CONSTRAINT IS TIME, NOT SOURCE COUNT. Every accepted item
+-- costs one sequential Gemini enrichment call (plus a feed fetch, a
+-- thumbnail HEAD, and for PLOS an article-page fetch). The ingest route's
+-- ceiling is maxDuration = 300s. Going from 1 enabled source to ~15
+-- multiplies per-run work by the same factor, so the per-source caps have
+-- to come DOWN as the source count goes up or the run gets killed
+-- mid-flight — which would also strand its content_ingestion_runs row in
+-- 'running' forever.
+--
+-- Budget at roughly 8s/item, worst case (every source has fresh items):
+--   ~13 rss x 1  = 13
+--   PLOS         =  2
+--   Conversation =  3
+--   ------------------
+--   18 items ~= 150s, comfortably inside 300s.
+--
+-- Steady state is much cheaper: the pipeline skips items whose
+-- processed_at is already set, so a source with nothing new costs only
+-- its feed fetch. 18 fresh articles/day is far more than a closed beta
+-- consumes, and it now arrives from many sources instead of one.
+--
+-- ORDERING CAVEAT: sources are processed in query order, so if a run ever
+-- does exhaust its budget, the same later sources get starved every day.
+-- Not addressed here (it would be new scheduling work) — sized to avoid
+-- the situation instead, and called out in docs/closed-beta-readiness.md.
 --
 -- minBodyLength is the teaser guard: a feed entry shorter than this is a
 -- summary, not an article. Dropping it in the provider avoids burning a
 -- Gemini call on content that would fail the quality gate anyway — the
 -- exact failure the original TechCrunch source shipped with.
 update public.content_sources
-set config = config || '{"maxItemsPerRun": 3, "minBodyLength": 600}'::jsonb,
+set config = config || '{"maxItemsPerRun": 1, "minBodyLength": 600}'::jsonb,
     updated_at = now()
 where provider_id = 'rss' and enabled = true;
 
--- The Conversation stays enabled and keeps its own larger share: it is
--- the one source with confirmed-good full bodies AND real article
--- photography, so it remains the quality anchor rather than being
--- levelled down to match the newly-added ones.
+-- The Conversation keeps the largest share: it is the one source with
+-- confirmed-good full bodies AND real article photography, so it stays
+-- the quality anchor rather than being levelled down to match the
+-- newly-added ones.
 update public.content_sources
-set config = config || '{"maxItemsPerRun": 5}'::jsonb,
+set config = config || '{"maxItemsPerRun": 3}'::jsonb,
     updated_at = now()
 where provider_id = 'the_conversation';
+
+-- PLOS shipped with rows=20, which alone would exceed the whole run
+-- budget (20 article-page fetches + 20 Gemini calls).
+update public.content_sources
+set config = config || '{"rows": 2}'::jsonb,
+    updated_at = now()
+where provider_id = 'plos';
 
 -- ===================== VERIFY =====================
 -- Expect MORE THAN ONE row, and no enabled row with a placeholder URL:
