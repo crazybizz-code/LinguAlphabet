@@ -4,6 +4,7 @@ import type { Database, Json } from "@/types/supabase";
 import { generateEnrichment, estimateReadingTimeMinutes, enrichmentToDetailsColumns } from "./ai-processing";
 import { GeminiTransientError } from "@/lib/gemini/client";
 import { runQualityGate, publishContentItem } from "./publishing";
+import { isFetchableImage } from "./thumbnails";
 import { upsertContentItem, upsertContentDetails } from "./storage";
 import type { ContentModality, ContentProvider, IngestionRunResult, ProviderDraft, RawContentItem } from "./types";
 
@@ -226,6 +227,18 @@ export async function runIngestionPipeline(
         continue;
       }
       await setRawItemStatus(supabase, rawRow.id, { status: "NORMALIZED" });
+
+      // Thumbnails are verified HERE, once, for every provider — the
+      // single guarantee that content_items.thumbnail_url either holds a
+      // URL that really serves an image or is empty. Doing it at
+      // ingestion rather than at render time is what makes the cards'
+      // branded fallback mean "this content genuinely has no image"
+      // instead of "this image happened to be broken or on an
+      // unrecognised host". Cheap (one HEAD) and deliberately before the
+      // Gemini call, so it never delays enrichment.
+      if (providerDraft.thumbnailUrl && !(await isFetchableImage(providerDraft.thumbnailUrl))) {
+        providerDraft = { ...providerDraft, thumbnailUrl: "" };
+      }
 
       let enrichment: Awaited<ReturnType<typeof generateEnrichment>>;
       try {
