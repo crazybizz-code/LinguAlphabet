@@ -42,6 +42,13 @@ export interface AIProviderCompletionInput {
   tools?: AIProviderToolSpec[];
   /** When set, the provider is asked to return content matching this JSON Schema instead of free text. */
   responseFormat?: AIProviderResponseFormat;
+  /**
+   * Attribution label for usage telemetry (src/ai/telemetry) — "chat",
+   * "turn_classifier", "vocabulary_explanation", … Purely observational:
+   * it never changes what is sent to the model, and an omitted value
+   * records as "unattributed" rather than failing the call.
+   */
+  feature?: string;
 }
 
 export interface AIProviderUsage {

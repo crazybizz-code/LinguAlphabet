@@ -114,6 +114,36 @@ export interface Database {
         Relationships: [];
       };
       /** Product Intelligence Sprint — src/lib/analytics/events.ts is the source of truth for event_name/properties shapes. */
+      ai_usage_events: {
+        Row: {
+          id: string;
+          model: string;
+          feature: string;
+          input_tokens: number | null;
+          output_tokens: number | null;
+          total_tokens: number | null;
+          latency_ms: number;
+          estimated_cost_usd: number | null;
+          ok: boolean;
+          streamed: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          model: string;
+          feature: string;
+          input_tokens?: number | null;
+          output_tokens?: number | null;
+          total_tokens?: number | null;
+          latency_ms: number;
+          estimated_cost_usd?: number | null;
+          ok?: boolean;
+          streamed?: boolean;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       analytics_events: {
         Row: {
           id: string;

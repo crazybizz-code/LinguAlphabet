@@ -25,6 +25,7 @@ Run in this order. Both are additive and idempotent; neither destroys data.
 |---|------|--------------|
 | 1 | `supabase/enrichment-expansion-schema.sql` | Adds Key Expressions / Discussion Questions to both `*_details` tables; Listening Notes to `podcast_details`; Grammar Notes + reading difficulty to `article_details`; transcript provenance columns. |
 | 2 | `supabase/content-source-restore-multi-source.sql` | Re-enables every RSS source with a real feed URL, re-enables PLOS, and sizes per-source item caps to the run's time budget. |
+| 3 | `supabase/ai-usage-telemetry-schema.sql` | Creates `ai_usage_events` — one row per AI request (model, tokens, latency, estimated cost, feature). Carries no learner identity. |
 
 > `supabase/demo-prep-clean-and-reingest.sql` and
 > `content-engine-reset-single-source.sql` are **destructive historical
@@ -43,6 +44,10 @@ Run in this order. Both are additive and idempotent; neither destroys data.
 | `NEXT_PUBLIC_SITE_URL` | public | Auth redirects, OG tags. |
 | `VAPID_PRIVATE_KEY` / `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_SUBJECT` | mixed | Web Push. Push degrades cleanly if absent. |
 | `ADMIN_EMAILS` | secret | Comma-separated admin allowlist. |
+| `OPENROUTER_API_KEY` | **secret** | Tuto's chat provider. |
+| `OPENROUTER_MODEL` | config | **Set to `google/gemini-2.5-flash` for Closed Beta.** Read fresh per request — changing it is a config change, not a deploy. Must match a slug in `src/ai/telemetry/pricing.ts` or `estimated_cost_usd` records as NULL. |
+| `AI_TOOL_RESULT_TOKEN_BUDGET` / `AI_TOOL_LOOP_TOKEN_BUDGET` | optional | Tool-result token caps (defaults 2000 / 4000). Lower to cut cost further, at some risk to answers on very long documents. |
+| `AI_MODEL_PRICING` | optional | Price overrides, `slug:in,out;…`. Built-in prices are a snapshot — verify at openrouter.ai/models. |
 
 ### 1.3 Scheduled jobs (`vercel.json`)
 
@@ -149,7 +154,36 @@ episode's file) and confirm it is rejected with a specific reason. The
 gate is the whole point of the workflow; verify it fires in production,
 not just in tests.
 
-### 2.4 Gemini enrichment quality
+### 2.4 AI cost telemetry is recording
+
+After any Tuto interaction on staging:
+
+```sql
+select feature, model, count(*) as requests,
+       round(avg(input_tokens)) as avg_input,
+       round(avg(output_tokens)) as avg_output,
+       round(avg(latency_ms)) as avg_latency_ms,
+       round(sum(estimated_cost_usd), 4) as est_usd
+from ai_usage_events
+where created_at > now() - interval '1 hour'
+group by feature, model order by est_usd desc nulls last;
+```
+
+- **No rows** → the sink never installed. It is a no-op without
+  `SUPABASE_SERVICE_ROLE_KEY`; check that first.
+- **`model` is not `google/gemini-2.5-flash`** → the env var did not take
+  effect and you are still paying the old rate.
+- **`estimated_cost_usd` is NULL** → the running model is not in
+  `pricing.ts`. Tokens are still recorded; only the cost estimate is
+  missing. Add it or set `AI_MODEL_PRICING`.
+- **`input_tokens` NULL on non-streamed rows** → OpenRouter stopped
+  returning usage; tokens cannot be trusted until that is resolved.
+
+Confirm the tool-result budget is working by looking at `avg_input` for
+`feature = 'chat'` during an article or podcast session. Pre-change this
+would run 20k-60k on long documents; it should now sit far below that.
+
+### 2.5 Gemini enrichment quality
 
 Read the actual output of the first few enriched articles. The prompt
 gained four new fields this sprint and **no real model response has ever

@@ -323,6 +323,7 @@ export async function generateResponse(input: GenerateResponseInput): Promise<As
   const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching, turnSignal);
   const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision, window), learningContext, {
     dependencies: input.dependencies,
+    feature: "chat",
   });
 
   await persistConversationMemory(input, learningContext, completion.content, orchestratorDecision);
@@ -360,7 +361,7 @@ export async function* streamResponse(
 
   if (listTools().length === 0) {
     const [memory, window] = await Promise.all([resolveMemory(input), resolveConversationWindow(input, provider)]);
-    for await (const chunk of provider.stream({ messages: toProviderMessages(input, memory, NO_TEACHING, null, window) })) {
+    for await (const chunk of provider.stream({ messages: toProviderMessages(input, memory, NO_TEACHING, null, window), feature: "chat_stream" })) {
       if (chunk.delta) yield chunk.delta;
     }
     return { orchestratorDecision: null, quickActions: [] };
@@ -376,6 +377,7 @@ export async function* streamResponse(
   const orchestratorDecision = resolveOrchestratorDecision(input, memory, teaching, turnSignal);
   const { completion } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision, window), learningContext, {
     dependencies: input.dependencies,
+    feature: "chat",
   });
 
   const { content, quickActions } = extractQuickActions(completion.content);
@@ -414,6 +416,9 @@ export async function generateStructuredResponse<T>(input: GenerateStructuredRes
   const { completion } = await runToolLoop(provider, toProviderMessages(input, memory), learningContext, {
     responseFormat,
     dependencies: input.dependencies,
+    // The structured feature's own name ("vocabulary_explanation",
+    // "article_summary", ...) doubles as its telemetry attribution.
+    feature: input.responseFormatName,
   });
 
   let parsed: unknown;
