@@ -58,6 +58,13 @@ where cs.enabled = true
     from public.content_sources keep
     where keep.provider_id = cs.provider_id
       and keep.name = cs.name
+      -- `keep.enabled` is REQUIRED, not cosmetic. Without it, an older
+      -- DISABLED row counts as the survivor and this disables the newer
+      -- ENABLED one, leaving that provider+name with zero enabled rows —
+      -- i.e. silently taking the source offline. Verified: that exact
+      -- case (older duplicate disabled, newer enabled) failed before this
+      -- clause was added.
+      and keep.enabled = true
       and (keep.created_at, keep.id) < (cs.created_at, cs.id)
   );
 
@@ -145,6 +152,13 @@ where cs.enabled = true
     from public.content_sources keep
     where keep.provider_id = cs.provider_id
       and keep.name = cs.name
+      -- `keep.enabled` is REQUIRED, not cosmetic. Without it, an older
+      -- DISABLED row counts as the survivor and this disables the newer
+      -- ENABLED one, leaving that provider+name with zero enabled rows —
+      -- i.e. silently taking the source offline. Verified: that exact
+      -- case (older duplicate disabled, newer enabled) failed before this
+      -- clause was added.
+      and keep.enabled = true
       and (keep.created_at, keep.id) < (cs.created_at, cs.id)
   );
 
