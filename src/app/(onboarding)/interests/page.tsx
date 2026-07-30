@@ -79,7 +79,7 @@ export default function InterestsPage() {
         </motion.p>
       )}
 
-      <OnboardingNav backHref="/daily-time" continueHref="/ready" continueDisabled={interests.length === 0} />
+      <OnboardingNav backHref="/daily-time" continueHref="/ready" continueDisabled={interests.length === 0} step="interests" stepIndex={6} />
     </OnboardingLayout>
   );
 }

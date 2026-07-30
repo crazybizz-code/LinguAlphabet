@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { renderTutoMarkdown } from "@/lib/tuto-chat/markdown";
-import { useProgressiveReveal, estimateRevealDurationMs, prefersReducedMotion } from "@/hooks/useProgressiveReveal";
+import { useProgressiveReveal, prefersReducedMotion } from "@/hooks/useProgressiveReveal";
+import { useChunkedReveal, estimateChunkedRevealDurationMs } from "@/hooks/useChunkedReveal";
 import { Tuto } from "@/components/mascot/Tuto";
 import { fadeSlideUp, EASE } from "@/lib/motion/variants";
 import type { ChatMessage } from "@/lib/tuto-chat/types";
@@ -46,7 +47,15 @@ export interface ChatBubbleProps {
   revealMode?: "reactive" | "committed";
 }
 
-export function ChatBubble({
+/**
+ * Memoized: a long conversation can have dozens of settled bubbles that
+ * have nothing left to animate or reveal, and Tuto Workspace's own state
+ * (thinking-phase transitions, the quick-actions timer, keyboard-viewport
+ * resizes) re-renders it fairly often — without this, every one of those
+ * unrelated re-renders would re-render every past bubble too, even though
+ * their props never actually changed.
+ */
+export const ChatBubble = memo(function ChatBubble({
   message,
   streaming,
   showSender = false,
@@ -86,7 +95,7 @@ export function ChatBubble({
 
   useEffect(() => {
     if (!isCommitted || !shouldReveal) return;
-    const duration = prefersReducedMotion() ? 0 : estimateRevealDurationMs(message.content.length) + CURSOR_GRACE_MS;
+    const duration = prefersReducedMotion() ? 0 : estimateChunkedRevealDurationMs(message.content) + CURSOR_GRACE_MS;
     const timeout = setTimeout(() => setCommittedRevealActive(false), duration);
     return () => clearTimeout(timeout);
     // message.content intentionally omitted: with this architecture a
@@ -96,7 +105,16 @@ export function ChatBubble({
   }, [isCommitted, shouldReveal]);
 
   const isRevealing = isCommitted ? committedRevealActive && !isUser : Boolean(streaming) && !isUser;
-  const revealed = useProgressiveReveal(isCommitted ? committedRevealTarget : message.content, isRevealing);
+  // Both hooks are always called (React's rules of hooks forbid
+  // conditionally calling one or the other) — only the branch matching
+  // `revealMode` ever actually animates, since the other's `active` is
+  // always false. Legacy (reactive) keeps useProgressiveReveal's
+  // character-by-character animation completely unchanged; Tuto Workspace
+  // (committed) uses the chunk-by-chunk one instead (see useChunkedReveal's
+  // own doc comment for why).
+  const reactiveRevealed = useProgressiveReveal(message.content, !isCommitted && isRevealing);
+  const chunkedRevealed = useChunkedReveal(committedRevealTarget, isCommitted && isRevealing);
+  const revealed = isCommitted ? chunkedRevealed : reactiveRevealed;
   // Only once revealed has actually caught up to the full target — a
   // streamed reply's content can still be growing while an earlier reveal
   // pass is mid-animation, and the cursor should track the true tail, not
@@ -150,4 +168,4 @@ export function ChatBubble({
       {inner}
     </motion.div>
   );
-}
+});

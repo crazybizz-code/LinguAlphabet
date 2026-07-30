@@ -9,8 +9,43 @@ import type {
   AIProviderToolSpec,
 } from "../types";
 import { AIProviderError } from "../errors";
+import { recordUsage, estimateCostUsd } from "@/ai/telemetry";
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+
+/**
+ * Emits one usage row per provider call. Placed here rather than in the
+ * AI Service because this is the single choke point every request
+ * already passes through — instrumenting the service instead would mean
+ * touching the tool loop, the classifier, the summarizer, and both
+ * feature services, and would still miss any future call site.
+ *
+ * Never throws (recordUsage swallows its own errors), so telemetry
+ * cannot fail a learner's request.
+ */
+async function emitUsage(params: {
+  model: string;
+  feature?: string;
+  usage?: { promptTokens: number; completionTokens: number; totalTokens: number };
+  startedAt: number;
+  ok: boolean;
+  streamed: boolean;
+}): Promise<void> {
+  const inputTokens = params.usage?.promptTokens ?? null;
+  const outputTokens = params.usage?.completionTokens ?? null;
+
+  await recordUsage({
+    model: params.model,
+    feature: params.feature ?? "unattributed",
+    inputTokens,
+    outputTokens,
+    totalTokens: params.usage?.totalTokens ?? null,
+    latencyMs: Math.round(performance.now() - params.startedAt),
+    estimatedCostUsd: estimateCostUsd(params.model, inputTokens, outputTokens),
+    ok: params.ok,
+    streamed: params.streamed,
+  });
+}
 
 interface OpenRouterWireToolCall {
   id: string;
@@ -111,6 +146,7 @@ function toWireResponseFormat(responseFormat?: AIProviderResponseFormat) {
  */
 async function complete(input: AIProviderCompletionInput): Promise<AIProviderCompletionResult> {
   const { apiKey, model } = getConfig();
+  const startedAt = performance.now();
 
   const response = await fetch(OPENROUTER_ENDPOINT, {
     method: "POST",
@@ -128,6 +164,10 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
 
   if (!response.ok) {
     const body = await readErrorBody(response);
+    // Recorded before throwing: a failed call still consumed latency and,
+    // on a mid-generation failure, real tokens. Dropping these rows would
+    // make the telemetry systematically under-report cost.
+    await emitUsage({ model, feature: input.feature, startedAt, ok: false, streamed: false });
     throw new AIProviderError(`OpenRouter error ${response.status}: ${body}`, response.status, isRetryableStatus(response.status));
   }
 
@@ -136,22 +176,27 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
   const content = choice?.message?.content ?? "";
   const toolCalls = fromWireToolCalls(choice?.message?.tool_calls);
 
+  const usage = data.usage
+    ? {
+        promptTokens: data.usage.prompt_tokens,
+        completionTokens: data.usage.completion_tokens,
+        totalTokens: data.usage.total_tokens,
+      }
+    : undefined;
+
   // A tool-call turn can legitimately have empty content — only a response with neither is broken.
   if (!content && !toolCalls) {
+    await emitUsage({ model, feature: input.feature, usage, startedAt, ok: false, streamed: false });
     throw new AIProviderError("OpenRouter returned no content", 502, true);
   }
+
+  await emitUsage({ model, feature: input.feature, usage, startedAt, ok: true, streamed: false });
 
   return {
     content,
     finishReason: choice?.finish_reason ?? null,
     toolCalls,
-    usage: data.usage
-      ? {
-          promptTokens: data.usage.prompt_tokens,
-          completionTokens: data.usage.completion_tokens,
-          totalTokens: data.usage.total_tokens,
-        }
-      : undefined,
+    usage,
   };
 }
 
@@ -171,6 +216,7 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
  */
 async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProviderStreamChunk> {
   const { apiKey, model } = getConfig();
+  const startedAt = performance.now();
 
   const response = await fetch(OPENROUTER_ENDPOINT, {
     method: "POST",
@@ -181,17 +227,24 @@ async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProvi
       temperature: input.temperature,
       max_tokens: input.maxTokens,
       stream: true,
+      // Asks OpenRouter for a final usage-only frame after the content
+      // frames. Without it a streamed response reports no token counts at
+      // all, which would leave a permanent hole in the telemetry. Purely
+      // additive to the response — content frames are unchanged.
+      stream_options: { include_usage: true },
     }),
   });
 
   if (!response.ok || !response.body) {
     const body = await readErrorBody(response);
+    await emitUsage({ model, feature: input.feature, startedAt, ok: false, streamed: true });
     throw new AIProviderError(`OpenRouter error ${response.status}: ${body}`, response.status, isRetryableStatus(response.status));
   }
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+  let streamUsage: { promptTokens: number; completionTokens: number; totalTokens: number } | undefined;
 
   try {
     while (true) {
@@ -214,6 +267,14 @@ async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProvi
 
         try {
           const parsed: OpenRouterResponse = JSON.parse(payload);
+          // The usage-only frame carries no choices; capture and continue.
+          if (parsed.usage) {
+            streamUsage = {
+              promptTokens: parsed.usage.prompt_tokens,
+              completionTokens: parsed.usage.completion_tokens,
+              totalTokens: parsed.usage.total_tokens,
+            };
+          }
           const delta = parsed.choices?.[0]?.delta?.content ?? "";
           if (delta) yield { delta, done: false };
         } catch {
@@ -224,6 +285,10 @@ async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProvi
     yield { delta: "", done: true };
   } finally {
     reader.releaseLock();
+    // In `finally` so a consumer that abandons the generator early (the
+    // learner hitting Stop) still produces a usage row — those tokens
+    // were generated and billed regardless of whether they were read.
+    await emitUsage({ model, feature: input.feature, usage: streamUsage, startedAt, ok: true, streamed: true });
   }
 }
 

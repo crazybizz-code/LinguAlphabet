@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Tuto } from "@/components/mascot/Tuto";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { recordSignupCompleted } from "@/lib/analytics/actions";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -23,6 +24,14 @@ export default function SignUpPage() {
     event.preventDefault();
     setError("");
 
+    if (!email.trim() || !password || !confirmPassword) {
+      setError("Fill in all fields to continue.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter a valid email address.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -40,6 +49,15 @@ export default function SignUpPage() {
       setError(signUpError.message || "Registration failed");
       setLoading(false);
       return;
+    }
+
+    // The D1/D7 retention cohort anchor — fired here rather than through
+    // track()/the /api/analytics/track route because a real user id
+    // exists now even when data.session doesn't yet (see below); that
+    // route needs a session cookie and would silently drop this exact
+    // event for anyone requiring email confirmation.
+    if (data.user) {
+      recordSignupCompleted(data.user.id).catch(() => {});
     }
 
     // If the Supabase project requires email confirmation, signUp()
@@ -93,7 +111,7 @@ export default function SignUpPage() {
           <p className="mt-1 text-small text-text-secondary">Start your English journey today</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <Input
             label="Email"
             id="email"

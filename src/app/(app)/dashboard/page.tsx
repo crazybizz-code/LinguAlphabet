@@ -7,6 +7,7 @@ import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
 import { createLearnerRepository } from "@/ai/data";
 import { buildTutoNote } from "@/lib/tuto/messages";
+import { fetchDueVocabulary } from "@/lib/vocabulary/review";
 import { HomeView } from "@/components/dashboard/HomeView";
 import { buildMetadata } from "@/lib/seo/metadata";
 
@@ -27,7 +28,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: previousMission }] = await Promise.all([
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: previousMission }, dueVocabulary] = await Promise.all([
     supabase.from("profiles").select("username, level, last_study_date, daily_time_minutes, interests, onboarding_completed").eq("user_id", user.id).single(),
     // Level/goal/streak come from LearnerRepository (src/ai/data, frozen) —
     // the same repository Tuto's own system prompt reads (ai-service.ts's
@@ -45,6 +46,7 @@ export default async function DashboardPage() {
       .order("mission_date", { ascending: false })
       .limit(1)
       .maybeSingle(),
+    fetchDueVocabulary(),
   ]);
 
   if (!profile?.onboarding_completed) redirect("/welcome");
@@ -123,6 +125,7 @@ export default async function DashboardPage() {
       allMissionsCompleted={allMissionsCompleted}
       tutoNote={tutoNote}
       recommendations={tutoRecommends}
+      dueVocabularyCount={dueVocabulary.length}
     />
   );
 }

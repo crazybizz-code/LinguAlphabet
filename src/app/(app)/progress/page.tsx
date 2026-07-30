@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
-import { buildWeeklyMinutes, startOfWeek } from "@/lib/content/home";
+import { buildLastWeekSummary, buildWeeklyMinutes, startOfWeek } from "@/lib/content/home";
 import { buildMonthActivity, buildRecentActivity, buildWeekActivity } from "@/lib/content/progress";
 import { buildDailyActivityIndex } from "@/lib/content/daily-activity";
 import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
@@ -100,6 +100,7 @@ export default async function ProgressPage() {
       recentActivity={buildRecentActivity(catalog, rows)}
       earnedAchievementIds={computeEarnedAchievementIds({ completedCount: completedRows.length, longestStreak, level })}
       tutoNote={tutoNote}
+      lastWeekSummary={buildLastWeekSummary(catalog, rows)}
     />
   );
 }

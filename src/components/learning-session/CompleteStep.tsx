@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Flame, Target, Zap } from "lucide-react";
+import { ArrowRight, Flame, Shield, Target, Zap } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { SESSION_STEP_CONTAINER, SESSION_STEP_CONTENT } from "./sessionStepLayout";
 import type { CompleteMissionResult } from "@/lib/learning-session/complete-mission";
@@ -83,6 +83,34 @@ export function CompleteStep({
                 className="relative inline-block rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold text-white"
               >
                 🎉 Level Up! You&apos;re now Level {result.newLevel}
+              </motion.p>
+            )}
+            {/* Streak Shield (Execution Sprint P1): earned by a second,
+                casual completion after Today's Mission is already done —
+                the "reason to come back a second time today" moment — or
+                spent to cover a single missed day instead of a reset.
+                Mutually exclusive in a single completion, same as
+                isFirstSession/leveledUp above. */}
+            {result.shieldEarned && (
+              <motion.p
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="relative inline-flex items-center gap-1.5 rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold text-white"
+              >
+                <Shield className="h-3.5 w-3.5" aria-hidden="true" />
+                Streak Shield earned — covers one future missed day
+              </motion.p>
+            )}
+            {result.shieldUsed && (
+              <motion.p
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="relative inline-flex items-center gap-1.5 rounded-full bg-white/20 px-4 py-1.5 text-sm font-bold text-white"
+              >
+                <Shield className="h-3.5 w-3.5" aria-hidden="true" />
+                Your Streak Shield covered yesterday
               </motion.p>
             )}
           </div>

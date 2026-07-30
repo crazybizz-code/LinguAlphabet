@@ -57,6 +57,7 @@ export async function classifyTurn(input: ClassifyTurnInput, provider: AIProvide
       ],
       temperature: 0,
       responseFormat: { name: "turn_signal", schema: z.toJSONSchema(TURN_SIGNAL_SCHEMA) },
+      feature: "turn_classifier",
     });
 
     const parsed = TURN_SIGNAL_SCHEMA.safeParse(JSON.parse(result.content));

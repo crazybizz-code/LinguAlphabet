@@ -1,11 +1,12 @@
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
-import { generateEnrichment, estimateReadingTimeMinutes } from "./ai-processing";
+import { generateEnrichment, estimateReadingTimeMinutes, enrichmentToDetailsColumns } from "./ai-processing";
 import { GeminiTransientError } from "@/lib/gemini/client";
 import { runQualityGate, publishContentItem } from "./publishing";
+import { isFetchableImage } from "./thumbnails";
 import { upsertContentItem, upsertContentDetails } from "./storage";
-import type { ContentProvider, IngestionRunResult, ProviderDraft, RawContentItem } from "./types";
+import type { ContentModality, ContentProvider, IngestionRunResult, ProviderDraft, RawContentItem } from "./types";
 
 type Client = SupabaseClient<Database>;
 type RawItemStatus = Database["public"]["Tables"]["content_raw_items"]["Row"]["status"];
@@ -121,6 +122,11 @@ export async function runIngestionPipeline(
     throw new Error(`Pipeline: failed to start an ingestion run: ${runInsertError?.message}`);
   }
 
+  // Which sense the learner consumes this source's content through —
+  // derived from the provider, never hardcoded, so registering an audio
+  // provider automatically routes it to listening-oriented enrichment.
+  const modality: ContentModality = provider.contentType === "podcast" || provider.contentType === "video" ? "audio" : "text";
+
   let itemsFetched = 0;
   let itemsPublished = 0;
   let itemsRejected = 0;
@@ -222,9 +228,21 @@ export async function runIngestionPipeline(
       }
       await setRawItemStatus(supabase, rawRow.id, { status: "NORMALIZED" });
 
+      // Thumbnails are verified HERE, once, for every provider — the
+      // single guarantee that content_items.thumbnail_url either holds a
+      // URL that really serves an image or is empty. Doing it at
+      // ingestion rather than at render time is what makes the cards'
+      // branded fallback mean "this content genuinely has no image"
+      // instead of "this image happened to be broken or on an
+      // unrecognised host". Cheap (one HEAD) and deliberately before the
+      // Gemini call, so it never delays enrichment.
+      if (providerDraft.thumbnailUrl && !(await isFetchableImage(providerDraft.thumbnailUrl))) {
+        providerDraft = { ...providerDraft, thumbnailUrl: "" };
+      }
+
       let enrichment: Awaited<ReturnType<typeof generateEnrichment>>;
       try {
-        enrichment = await generateEnrichment(raw.title, raw.body);
+        enrichment = await generateEnrichment(raw.title, raw.body, modality);
       } catch (error) {
         itemsRejected += 1;
         // A transient Gemini failure (rate limit / server-side outage,
@@ -243,7 +261,7 @@ export async function runIngestionPipeline(
       }
       await setRawItemStatus(supabase, rawRow.id, { status: "AI_ENRICHED" });
 
-      const { summary, vocabulary, quiz, takeaways, reflection, rawTopics, ...universal } = enrichment;
+      const { rawTopics, ...universal } = enrichment;
       const draft = {
         ...providerDraft,
         cefrLevelMin: universal.cefrLevelMin,
@@ -256,7 +274,11 @@ export async function runIngestionPipeline(
         // vocabulary (see EnrichmentResult.rawTopics).
         tags: Array.from(new Set([...providerDraft.tags, ...rawTopics])),
         estimatedTimeMinutes: estimateReadingTimeMinutes(raw.body),
-        detailsRow: { ...providerDraft.detailsRow, summary, vocabulary, quiz, takeaways, reflection, content_item_id: providerDraft.id },
+        detailsRow: {
+          ...providerDraft.detailsRow,
+          ...enrichmentToDetailsColumns(enrichment, modality),
+          content_item_id: providerDraft.id,
+        },
       };
 
       const gate = runQualityGate(draft);

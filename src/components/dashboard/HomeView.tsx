@@ -9,6 +9,7 @@ import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { PodcastCard } from "@/components/content/PodcastCard";
 import { ArticleCard } from "@/components/content/ArticleCard";
 import { TodaysMissionCard } from "@/components/dashboard/TodaysMissionCard";
+import { WordReviewCard } from "@/components/dashboard/WordReviewCard";
 import { getTimeGreeting } from "@/lib/content/home";
 import type { ArticleContent, PodcastContent } from "@/types/content";
 import type { DailyMissionSlot } from "@/lib/learning-brain";
@@ -29,6 +30,8 @@ export interface HomeViewProps {
   allMissionsCompleted: boolean;
   tutoNote: TutoNote | null;
   recommendations: Array<PodcastContent | ArticleContent>;
+  /** Execution Sprint P1 — words due for spaced-repetition review today. 0 renders nothing. */
+  dueVocabularyCount: number;
 }
 
 export function HomeView({
@@ -43,6 +46,7 @@ export function HomeView({
   allMissionsCompleted,
   tutoNote,
   recommendations,
+  dueVocabularyCount,
 }: HomeViewProps) {
   const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
   const dailyPercentage = dailyGoalMinutes > 0 ? Math.min(100, (todayMinutes / dailyGoalMinutes) * 100) : 0;
@@ -102,7 +106,14 @@ export function HomeView({
           slot, tracked independently. Once both are completed the entire
           card switches to a celebration state with a countdown to
           tomorrow — no new mission is generated for the rest of the day. */}
-      <TodaysMissionCard missions={missions} allMissionsCompleted={allMissionsCompleted} tomorrowPreview={recommendations[0] ?? null} />
+      <TodaysMissionCard
+        missions={missions}
+        allMissionsCompleted={allMissionsCompleted}
+        tomorrowPreview={recommendations[0] ?? null}
+        streak={streak}
+      />
+
+      <WordReviewCard dueCount={dueVocabularyCount} />
 
       {/* Tuto's note — optional, contextual, generated from the learner's actual state
           (docs/dashboard-architecture.md §4.3). Only appears when there's something

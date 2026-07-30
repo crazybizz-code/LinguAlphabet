@@ -39,12 +39,23 @@ export default async function LearnPage({ params }: { params: Promise<{ id: stri
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [podcast, { data: profile }] = await Promise.all([
+  const today = new Date().toISOString().slice(0, 10);
+  const [podcast, { data: profile }, { data: missionRow }] = await Promise.all([
     getPodcastById(supabase, id),
     supabase.from("profiles").select("username").eq("user_id", user.id).single(),
+    // Same "is this one of today's two guided slots" check completeMission
+    // makes at the end of the session — done here too so lesson_started
+    // can be tagged mission vs. casual at the start, not just completions.
+    supabase.from("daily_missions").select("content_item_id").eq("user_id", user.id).eq("mission_date", today).eq("content_item_id", id).maybeSingle(),
   ]);
 
   if (!podcast) notFound();
 
-  return <LearningSessionView content={toLearningSessionContent(podcast)} displayName={profile?.username || "there"} />;
+  return (
+    <LearningSessionView
+      content={toLearningSessionContent(podcast)}
+      displayName={profile?.username || "there"}
+      isMission={Boolean(missionRow)}
+    />
+  );
 }

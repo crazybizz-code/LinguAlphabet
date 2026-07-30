@@ -1,5 +1,6 @@
 import { registerProvider } from "./registry";
 import { plosArticleProvider } from "./plos-provider";
+import { rssProvider } from "./rss-provider";
 import { theConversationProvider } from "./the-conversation-provider";
 
 /**
@@ -9,5 +10,6 @@ import { theConversationProvider } from "./the-conversation-provider";
  * today. A future provider adds one more `registerProvider()` call here,
  * not a change to the registry or the pipeline.
  */
+registerProvider(rssProvider);
 registerProvider(plosArticleProvider);
 registerProvider(theConversationProvider);

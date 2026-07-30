@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import { CEFR_LEVELS, type CefrLevel } from "@/ai/context";
@@ -83,3 +84,27 @@ class SupabaseLearnerRepository implements LearnerRepository {
 export function createLearnerRepository(supabase: SupabaseClient<Database>, userId: string): LearnerRepository {
   return new SupabaseLearnerRepository(supabase, userId);
 }
+
+/**
+ * `getProfile()` (a `profiles` row plus `getLearnerState()`'s own signal
+ * query + Learning Engine computation) reads that are identical for a
+ * given (supabase, userId) pair within the same server request should
+ * only actually run once — e.g. `/tuto` has both `(app)/layout.tsx` (the
+ * sidebar's Learning Status panel) and the page itself asking for the
+ * same learner's profile. `React.cache()`'s memoization keys on argument
+ * identity, so this only actually dedupes when `supabase` is the same
+ * cached client instance every caller gets from
+ * `src/lib/supabase/server.ts`'s `createClient()` — pass that one, not a
+ * fresh client, for this to do anything.
+ *
+ * A Server Action or Route Handler that mutates the `profiles` row and
+ * then needs a truly fresh read back in the *same* request should still
+ * call `createLearnerRepository(...).getProfile()` directly rather than
+ * this — each such request gets its own fresh `cache()` scope regardless
+ * (so staleness never leaks across requests), but a call already cached
+ * earlier *within* this same request would still return the pre-mutation
+ * value.
+ */
+export const getCachedLearnerProfile = cache(async (supabase: SupabaseClient<Database>, userId: string): Promise<LearnerProfile> => {
+  return createLearnerRepository(supabase, userId).getProfile();
+});

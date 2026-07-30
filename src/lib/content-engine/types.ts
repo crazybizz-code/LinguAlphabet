@@ -51,6 +51,26 @@ export interface ContentProvider {
  * type. Reuses VocabularyEntry/QuizQuestion as-is rather than inventing a
  * parallel shape.
  */
+/**
+ * A multi-word phrase worth teaching as a unit (idiom, collocation,
+ * phrasal verb) — distinct from `vocabulary`, which is single words. Both
+ * content types carry these identically.
+ */
+export interface KeyExpression {
+  expression: string;
+  meaning: string;
+  example: string;
+}
+
+/**
+ * Which sense the learner consumes this content through. The ONE
+ * generateEnrichment() branches its prompt on this rather than having a
+ * separate "article agent" and "podcast agent" — the enrichment task is
+ * the same task, and a future PDF/YouTube type picks whichever modality
+ * fits instead of needing a third processor.
+ */
+export type ContentModality = "text" | "audio";
+
 export interface EnrichmentResult {
   cefrLevelMin: CefrLevel;
   cefrLevelMax: CefrLevel;
@@ -63,6 +83,22 @@ export interface EnrichmentResult {
   quiz: QuizQuestion[];
   takeaways: string[];
   reflection: string;
+  /** Multi-word phrases worth teaching as a unit — both modalities. */
+  keyExpressions: KeyExpression[];
+  /** Open-ended prompts for discussion/practice — both modalities. Distinct from `reflection` (a single, personal, low-pressure prompt) and from `quiz` (graded). */
+  discussionQuestions: string[];
+  /** Audio only — what to listen for (accent, pace, reductions, signposting). Empty array for text content. */
+  listeningNotes: string[];
+  /** Text only — grammar points the passage actually exercises. Empty array for audio content. */
+  grammarNotes: string[];
+  /**
+   * Text only — Flesch Reading Ease (0-100, higher = easier), computed
+   * deterministically rather than asked of the model, for the same reason
+   * estimateReadingTimeMinutes is: a model is unreliable at exact
+   * syllable/word counting. Null for audio content, where a *reading*
+   * difficulty score would be meaningless.
+   */
+  readingDifficulty: number | null;
 }
 
 /**

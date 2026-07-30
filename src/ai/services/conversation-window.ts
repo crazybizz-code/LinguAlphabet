@@ -64,6 +64,7 @@ export async function summarizeOverflow(overflow: ConversationMessage[], provide
       ],
       temperature: 0.3,
       maxTokens: 200,
+      feature: "conversation_summary",
     });
     const summary = result.content.trim();
     return summary.length > 0 ? summary : null;

@@ -1,0 +1,22 @@
+-- Streak Shield (Execution Sprint P1 — "let a second daily completion
+-- protect the streak", retention audit's session-length/habit-formation
+-- finding: once Today's Mission's two slots are done, nothing left in the
+-- app "counts" toward anything, so there's no reason for a second visit).
+--
+-- Mechanic (src/lib/learning-session/streak.ts is the source of truth):
+--   - Completing a THIRD thing today (a casual/Explore completion, on a
+--     day the learner already banked today's mission credit) earns one
+--     shield — capped at 1, so this stays "a second visit is worth
+--     something," not an unlimited stockpile.
+--   - A banked shield covers exactly one later missed day: instead of the
+--     streak resetting to 1 the next time the learner completes a
+--     mission after a single skipped day, it continues and the shield is
+--     spent. A gap of two or more days still resets — one shield covers
+--     exactly one day, same as it can only ever be earned one at a time.
+--
+-- This doesn't touch the deliberately forgiving, non-punitive streak
+-- philosophy already in place (docs/domain-model.md §19) — it adds a
+-- second, earned way to keep a streak alive, it doesn't change what
+-- happens when no shield is available.
+
+alter table public.profiles add column if not exists streak_shields integer not null default 0;

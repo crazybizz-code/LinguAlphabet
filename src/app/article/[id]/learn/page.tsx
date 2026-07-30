@@ -41,12 +41,20 @@ export default async function LearnPage({ params }: { params: Promise<{ id: stri
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [article, { data: profile }] = await Promise.all([
+  const today = new Date().toISOString().slice(0, 10);
+  const [article, { data: profile }, { data: missionRow }] = await Promise.all([
     getArticleById(supabase, id),
     supabase.from("profiles").select("username").eq("user_id", user.id).single(),
+    supabase.from("daily_missions").select("content_item_id").eq("user_id", user.id).eq("mission_date", today).eq("content_item_id", id).maybeSingle(),
   ]);
 
   if (!article) notFound();
 
-  return <LearningSessionView content={toLearningSessionContent(article)} displayName={profile?.username || "there"} />;
+  return (
+    <LearningSessionView
+      content={toLearningSessionContent(article)}
+      displayName={profile?.username || "there"}
+      isMission={Boolean(missionRow)}
+    />
+  );
 }

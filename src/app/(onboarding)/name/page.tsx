@@ -41,7 +41,7 @@ export default function NamePage() {
         </motion.p>
       )}
 
-      <OnboardingNav backHref="/welcome" continueHref="/level" continueDisabled={!name.trim()} />
+      <OnboardingNav backHref="/welcome" continueHref="/level" continueDisabled={!name.trim()} step="name" stepIndex={2} />
     </OnboardingLayout>
   );
 }

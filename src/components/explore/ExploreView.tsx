@@ -55,7 +55,6 @@ export function ExploreView({ podcasts, podcastRecommends, articles, articleReco
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
   const [topicFilter, setTopicFilter] = useState<string | null>(null);
-  const [notified, setNotified] = useState<Record<string, boolean>>({});
 
   const isArticlesTab = activeTab === "articles";
   const activeCatalog: (PodcastContent | ArticleContent)[] = isArticlesTab ? articles : podcasts;
@@ -321,29 +320,14 @@ export function ExploreView({ podcasts, podcastRecommends, articles, articleReco
             )}
           </motion.div>
         ) : (
-          activeChip && (
-            <ComingSoonPanel
-              key={activeChip.id}
-              tab={activeChip}
-              notified={Boolean(notified[activeChip.id])}
-              onNotify={() => setNotified((current) => ({ ...current, [activeChip.id]: true }))}
-            />
-          )
+          activeChip && <ComingSoonPanel key={activeChip.id} tab={activeChip} />
         )}
       </AnimatePresence>
     </div>
   );
 }
 
-function ComingSoonPanel({
-  tab,
-  notified,
-  onNotify,
-}: {
-  tab: KnowledgeHubTab;
-  notified: boolean;
-  onNotify: () => void;
-}) {
+function ComingSoonPanel({ tab }: { tab: KnowledgeHubTab }) {
   return (
     <motion.div
       role="tabpanel"
@@ -361,6 +345,12 @@ function ComingSoonPanel({
         Tuto is working on bringing you {tab.label.toLowerCase()} that will fit right into your learning journey.
       </p>
 
+      {/* Trust fix (Execution Sprint P0): this used to end with a "Notify Me
+          When Available" button that always confirmed "We'll let you know!"
+          — the product has no notification channel of any kind (no push,
+          no email), so that was a promise it could never keep. The
+          TutoNoteCard above already sets honest "stay tuned" expectations
+          without implying a message is coming. */}
       <TutoNoteCard
         note={{
           pose: "happy",
@@ -368,15 +358,6 @@ function ComingSoonPanel({
         }}
         className="mt-8 max-w-md text-left"
       />
-
-      <button
-        type="button"
-        onClick={onNotify}
-        disabled={notified}
-        className="mt-6 rounded-2xl bg-text-primary px-6 py-3 text-sm font-semibold text-text-on-primary transition-all hover:opacity-90 active:scale-95 disabled:opacity-60"
-      >
-        {notified ? "We'll let you know!" : "Notify Me When Available"}
-      </button>
     </motion.div>
   );
 }

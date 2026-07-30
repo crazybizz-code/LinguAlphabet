@@ -12,9 +12,17 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setError("");
+
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Enter a valid email address.");
+      return;
+    }
+
     setLoading(true);
 
     const supabase = createClient();
@@ -68,7 +76,7 @@ export default function ForgotPasswordPage() {
           <p className="mt-1 text-small text-text-secondary">Enter your email and we&apos;ll send a reset link</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <Input
             label="Email address"
             id="email"
@@ -81,6 +89,12 @@ export default function ForgotPasswordPage() {
             required
             autoFocus
           />
+
+          {error && (
+            <div role="alert" className="rounded-2xl border border-danger/15 bg-danger/10 px-4 py-3 text-small text-danger">
+              {error}
+            </div>
+          )}
 
           <Button type="submit" variant="primary" className="h-12" block loading={loading}>
             Send Reset Link

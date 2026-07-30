@@ -27,7 +27,7 @@ export default function ReadyPage() {
         </p>
       </motion.div>
 
-      <OnboardingNav backHref="/interests" continueHref="/ai-plan" continueLabel="Continue" />
+      <OnboardingNav backHref="/interests" continueHref="/ai-plan" continueLabel="Continue" step="ready" stepIndex={7} />
     </OnboardingLayout>
   );
 }

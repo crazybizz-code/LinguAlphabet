@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/Button";
 import { StatTile } from "@/components/ui/StatTile";
 import { Timeline } from "@/components/ui/Timeline";
 import { readOnboardingData, clearOnboardingData } from "@/lib/onboarding/storage";
+import { track } from "@/lib/analytics/client";
 
 const NEXT_LEVEL: Record<string, string> = { A1: "A2", A2: "B1", B1: "B2", B2: "C1", C1: "C2", C2: "Mastery" };
 const VOCAB_TARGET: Record<string, number> = { A1: 500, A2: 1000, B1: 2000, B2: 4000, C1: 6000, C2: 8000 };
@@ -77,6 +78,22 @@ export default function AiPlanPage() {
           onboarding_completed: true,
         })
         .eq("user_id", user.id);
+      if (!error) {
+        // The true "activated learner" moment — the D1/D7 retention
+        // denominator (see events.ts's onboarding_completed doc comment).
+        // Fires exactly once: persistProfile only ever runs its success
+        // path a single time per real completion (see handleDone below —
+        // a first-try success skips ever calling this again).
+        track({
+          name: "onboarding_completed",
+          properties: {
+            englishLevel: profile.level ?? "",
+            goal: profile.goal ?? "",
+            dailyTimeMinutes: profile.dailyTime ?? 0,
+            interestsCount: profile.interests.length,
+          },
+        });
+      }
       return !error;
     } catch {
       return false;
@@ -207,7 +224,7 @@ export default function AiPlanPage() {
           <Tuto pose="celebrating" size="md" animation="float" priority className="mx-auto mb-5" />
           <p className="mb-2 text-small font-semibold uppercase tracking-wide text-primary">Your Personalized Plan</p>
           <h1 className="mb-2 font-heading text-display font-extrabold text-text-primary">
-            {profile.displayName || "Your"}&apos;s Learning Roadmap
+            {profile.displayName ? `${profile.displayName}’s Learning Roadmap` : "Your Learning Roadmap"}
           </h1>
           <p className="text-text-secondary">
             {level} → {nextLevel} · Focused on {profile.goal || "General English"}

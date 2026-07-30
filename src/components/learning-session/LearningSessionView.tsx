@@ -1,10 +1,11 @@
 "use client";
 
-import { useLayoutEffect, useState, useTransition } from "react";
+import { useEffect, useLayoutEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
+import { track } from "@/lib/analytics/client";
 import { SessionStepper } from "./SessionStepper";
 import { PlayerStep } from "./PlayerStep";
 import { ReadingStep } from "./ReadingStep";
@@ -21,11 +22,31 @@ import { getSessionFlow, type LearningSessionContent, type SessionStep } from "@
 export function LearningSessionView({
   content,
   displayName,
+  isMission,
 }: {
   content: LearningSessionContent;
   displayName: string;
+  /** Product Intelligence Sprint — whether this is one of today's two guided Daily Mission slots vs. a casual Explore pick, for lesson_started's slotType. */
+  isMission: boolean;
 }) {
   const router = useRouter();
+
+  useEffect(() => {
+    track({
+      name: "lesson_started",
+      properties: {
+        contentId: content.contentId,
+        contentType: content.contentType as "podcast" | "article",
+        slotType: isMission ? "mission" : "casual",
+        cefrLevel: content.cefrLevel,
+      },
+    });
+    // Fired once per real mount of a Learning Session — deliberately not
+    // re-armed if any of these props somehow changed identity, since a
+    // learner never navigates to a *different* piece of content without
+    // this whole component remounting fresh anyway.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Steps whose data is empty are removed from the flow entirely -- an
   // article ingested with no vocabulary/quiz (real rows exist like this)
   // would otherwise dead-end the session on a Flashcards deck of zero
@@ -107,6 +128,11 @@ export function LearningSessionView({
           // session!" or "streak reset" celebration.
           isFirstSession: false,
           streakStatus: "same",
+          // Same conservative reasoning as isFirstSession above: the real
+          // write already failed, so neither a shield-earned nor a
+          // shield-used moment can be claimed with any confidence.
+          shieldEarned: false,
+          shieldUsed: false,
         },
       );
       setStep("complete");

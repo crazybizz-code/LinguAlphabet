@@ -27,6 +27,8 @@ export interface Database {
           /** docs/domain-model.md §19 — supabase/progress-schema.sql. */
           longest_streak: number;
           last_study_date: string | null;
+          /** Banked "streak shields" — see supabase/streak-shield-schema.sql. */
+          streak_shields: number;
           total_minutes: number;
           tuto_name: string;
           /** CEFR code (A1-C2) collected by onboarding — see supabase/onboarding-fields.sql. */
@@ -49,6 +51,7 @@ export interface Database {
           streak?: number;
           longest_streak?: number;
           last_study_date?: string | null;
+          streak_shields?: number;
           total_minutes?: number;
           tuto_name?: string;
           english_level?: string | null;
@@ -105,6 +108,55 @@ export interface Database {
           evidence?: Json;
           source: string;
           confidence?: number | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      /** Product Intelligence Sprint — src/lib/analytics/events.ts is the source of truth for event_name/properties shapes. */
+      ai_usage_events: {
+        Row: {
+          id: string;
+          model: string;
+          feature: string;
+          input_tokens: number | null;
+          output_tokens: number | null;
+          total_tokens: number | null;
+          latency_ms: number;
+          estimated_cost_usd: number | null;
+          ok: boolean;
+          streamed: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          model: string;
+          feature: string;
+          input_tokens?: number | null;
+          output_tokens?: number | null;
+          total_tokens?: number | null;
+          latency_ms: number;
+          estimated_cost_usd?: number | null;
+          ok?: boolean;
+          streamed?: boolean;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      analytics_events: {
+        Row: {
+          id: string;
+          user_id: string;
+          event_name: string;
+          properties: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          event_name: string;
+          properties?: Json;
           created_at?: string;
         };
         Update: never;
@@ -280,6 +332,27 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["bookmarks"]["Insert"]>;
         Relationships: [];
       };
+      /** Web Push subscriptions — see supabase/push-subscriptions-schema.sql. */
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["push_subscriptions"]["Insert"]>;
+        Relationships: [];
+      };
       vocabulary: {
         Row: {
           id: string;
@@ -292,6 +365,10 @@ export interface Database {
           example: string | null;
           source_content_item_id: string | null;
           created_at: string;
+          /** Leitner box (1-5) — spaced-repetition review progress (supabase/vocabulary-review-schema.sql). */
+          box: number;
+          due_date: string;
+          last_reviewed_at: string | null;
         };
         Insert: {
           id?: string;
@@ -304,6 +381,9 @@ export interface Database {
           example?: string | null;
           source_content_item_id?: string | null;
           created_at?: string;
+          box?: number;
+          due_date?: string;
+          last_reviewed_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["vocabulary"]["Insert"]>;
         Relationships: [];

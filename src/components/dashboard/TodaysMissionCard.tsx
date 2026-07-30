@@ -111,6 +111,15 @@ export interface TodaysMissionCardProps {
   missions: DailyMissionSlot[];
   allMissionsCompleted: boolean;
   /**
+   * Execution Sprint P2 ("Streak at risk" nudge): the retention audit's
+   * finding was that nothing signals a streak is on the line until it's
+   * already too late — this is that signal, but calm rather than
+   * alarmist, matching streak.ts's own explicit "never punitive, never
+   * 'you broke your streak'" philosophy. Only rendered once there's an
+   * actual streak to protect.
+   */
+  streak: number;
+  /**
    * Sprint Learning Polish 1 ("Tomorrow Preview"): the same tutoRecommends
    * list HomeView already fetches and renders in "Recommended by Tuto" —
    * its top item is a reasonable, already-computed preview of what Tuto is
@@ -129,7 +138,7 @@ export interface TodaysMissionCardProps {
  * switches to a celebration state with a countdown to tomorrow — no new
  * mission is generated for the rest of the calendar day.
  */
-export function TodaysMissionCard({ missions, allMissionsCompleted, tomorrowPreview }: TodaysMissionCardProps) {
+export function TodaysMissionCard({ missions, allMissionsCompleted, tomorrowPreview, streak }: TodaysMissionCardProps) {
   if (allMissionsCompleted) {
     return (
       <motion.section
@@ -173,7 +182,14 @@ export function TodaysMissionCard({ missions, allMissionsCompleted, tomorrowPrev
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="pointer-events-none absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
           <div className="relative">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70">Today&apos;s Mission</p>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70">Today&apos;s Mission</p>
+              {streak > 0 && (
+                <p className="text-xs font-semibold text-white/80">
+                  Keep your {streak}-day streak going
+                </p>
+              )}
+            </div>
             <div className="mt-4 flex flex-col gap-3">
               {missions.map((slot) => (
                 <MissionSlotRow key={slot.contentType} slot={slot} />

@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { ALLOWED_IMAGE_HOSTS } from "./src/lib/content/allowedImageHosts";
 
 // Baseline security headers only — no Content-Security-Policy yet. This
 // app loads Google Fonts, Framer Motion (inline transforms), Next/Image,
@@ -16,13 +15,23 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   images: {
-    // Sourced from src/lib/content/allowedImageHosts.ts — the same list
-    // ArticleCard/PodcastCard check at runtime before ever handing a URL to
-    // <Image>. next/image THROWS on any host not listed here, crashing the
-    // whole page (confirmed in production when the active content source
-    // changed without this list being updated) — one shared list is what
-    // keeps this file and the runtime check from drifting apart again.
-    remotePatterns: ALLOWED_IMAGE_HOSTS.map((hostname) => ({ protocol: "https" as const, hostname })),
+    // Any https host. A hand-maintained hostname list is unworkable once
+    // the catalog draws on multiple RSS sources whose image CDNs aren't
+    // knowable ahead of time: every missing entry silently replaced a
+    // real photo with the branded fallback, and next/image THROWS for an
+    // unlisted host, which previously crashed whole pages.
+    //
+    // Safety does not come from this list. It comes from
+    // content-engine/thumbnails.ts, which HEAD-validates every thumbnail
+    // at ingestion so only URLs that really serve an image are ever
+    // stored, plus the cards' isAllowedImageHost structural check and
+    // onError fallback.
+    //
+    // TRADEOFF (deliberate, revisit post-launch): this lets /_next/image
+    // optimize any https image, so it can be used as an open image
+    // resizing proxy. Narrow to the observed CDN hosts once the
+    // production source set has stabilised.
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];

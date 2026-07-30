@@ -63,3 +63,39 @@ export function buildTodayMinutes(
     .filter((row) => row.completed && new Date(row.updated_at) >= todayStart)
     .reduce((sum, row) => sum + (byId.get(row.content_item_id)?.estimatedTimeMinutes ?? 0), 0);
 }
+
+export interface LastWeekSummary {
+  completedCount: number;
+  totalMinutes: number;
+}
+
+/**
+ * Execution Sprint P2 ("Weekly recap ritual") — the previous calendar
+ * week's totals. The retention audit's Day-30 finding was that nothing
+ * gives the habit a recurring rhythm; the streak is the only number that
+ * moves over time. This is deliberately just a read of data Progress
+ * already fetches (no new query, no new schema, no "have we shown this
+ * week's recap yet" state to track) — it advances on its own every
+ * Monday simply because "last week" does. Returns null once there's
+ * genuinely nothing to recap, so the card can not render rather than
+ * show a hollow "0 lessons."
+ */
+export function buildLastWeekSummary(
+  catalog: Array<{ id: string; estimatedTimeMinutes: number }>,
+  progressRows: ProgressRow[],
+): LastWeekSummary | null {
+  const byId = new Map(catalog.map((item) => [item.id, item]));
+  const thisWeekStart = startOfWeek(new Date());
+  const lastWeekStart = new Date(thisWeekStart);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+  const lastWeekRows = progressRows.filter(
+    (row) => row.completed && new Date(row.updated_at) >= lastWeekStart && new Date(row.updated_at) < thisWeekStart,
+  );
+  if (lastWeekRows.length === 0) return null;
+
+  return {
+    completedCount: lastWeekRows.length,
+    totalMinutes: lastWeekRows.reduce((sum, row) => sum + (byId.get(row.content_item_id)?.estimatedTimeMinutes ?? 0), 0),
+  };
+}
