@@ -1,8 +1,7 @@
-import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import "@/lib/content-engine/providers/bootstrap";
 import { contentEngine } from "@/lib/content-engine";
-import { estimateReadingTimeMinutes } from "@/lib/content-engine/ai-processing";
+import { toArticleDraft } from "@/lib/content-engine/adapters/article";
 import { createServiceClient } from "@/lib/supabase/service-client";
 
 export const dynamic = "force-dynamic";
@@ -11,15 +10,6 @@ export const dynamic = "force-dynamic";
 // ceiling. Per-run volume is bounded by each source's maxItemsPerRun
 // config so a run fits inside this window.
 export const maxDuration = 300;
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function excerpt(body: string, maxLength = 200): string {
-  const text = stripHtml(body);
-  return text.length > maxLength ? `${text.slice(0, maxLength).trim()}…` : text;
-}
 
 /**
  * The Content Engine's single entry point today: Vercel Cron hits this
@@ -61,26 +51,17 @@ export async function GET(request: Request) {
       sourceId: source.id,
       sourceConfig: source.config as Record<string, unknown>,
       autoPublish: true,
+      // Dispatched on the PROVIDER's declared content type rather than
+      // hardcoded to "article" as it was inline here — an audio provider
+      // registered later routes to the Podcast Adapter through this same
+      // pipeline with no route change. Podcasts today arrive via the
+      // human-in-the-loop path (lib/content-engine/podcast-ingestion.ts)
+      // instead, which reuses that same adapter.
       normalize: (raw) => {
-        const thumbnailUrl = raw.thumbnailUrl ?? "";
-        return {
-          id: `article-${createHash("sha256").update(raw.externalId).digest("hex").slice(0, 16)}`,
-          contentType: "article",
-          title: raw.title,
-          description: excerpt(raw.body),
-          skills: ["Reading"],
-          goalAlignment: [],
-          tags: [],
-          thumbnailUrl,
-          publishedAt: raw.publishedAt,
-          detailsTable: "article_details",
-          detailsRow: {
-            body: raw.body,
-            source_url: raw.url ?? "",
-            author: raw.author ?? "",
-            reading_time_minutes: estimateReadingTimeMinutes(raw.body),
-          },
-        };
+        if (provider.contentType !== "article") {
+          throw new Error(`No adapter registered for content type '${provider.contentType}' in the scheduled ingest route.`);
+        }
+        return toArticleDraft(raw);
       },
     });
     runs.push({ sourceId: source.id, ...result });
