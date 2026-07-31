@@ -33,7 +33,11 @@ export function toArticleDraft(raw: RawContentItem): ProviderDraft {
     id: articleContentId(raw.externalId),
     contentType: "article",
     title: raw.title,
-    description: excerpt(raw.body),
+    // The source's own summary wins when it has one — it is written for
+    // humans, unlike a mechanical first-200-characters cut of the body.
+    // Falls back to excerpting the body, which is what every provider
+    // relied on before `description` existed.
+    description: raw.description?.trim() ? excerpt(raw.description) : excerpt(raw.body),
     skills: ["Reading"],
     goalAlignment: [],
     tags: [],
