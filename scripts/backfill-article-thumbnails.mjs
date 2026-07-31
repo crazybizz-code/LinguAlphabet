@@ -22,7 +22,10 @@
 // through content_raw_items -> content_sources.
 //   * the_conversation -> refetchThumbnailUrl(), the provider's own
 //     compliance-correct path (CC BY-ND; host-pinned to the confirmed
-//     content-image CDN, so a logo/CC badge/avatar can never be picked).
+//     content-image CDN, plus an og:image fallback for text-only articles
+//     that embed no photo). NOTE: rows ingested BEFORE that host pin
+//     existed can still hold a licence badge or logo, which is precisely
+//     why the validity check below treats site furniture as invalid.
 //   * everything else (plos, rss, and any provider added later) -> the
 //     shared extractor against the article's own source_url. A PLOS
 //     source_url is a doi.org link, which redirects to the journal page;
@@ -30,7 +33,10 @@
 //     resolving relative image paths.
 //
 // IDEMPOTENT: an article whose stored thumbnail already passes validation
-// is skipped without any network fetch or write. Re-running after a
+// is skipped without any network fetch or write. "Valid" means reachable
+// AND not site furniture — a Creative Commons badge is a real, 200-OK,
+// image/* URL, so a reachability check alone reported 17 badge rows as
+// already-valid and skipped them before extraction could re-run. Re-running after a
 // successful run therefore produces zero updates. An article that
 // genuinely has no image stays empty and is re-attempted on a later run —
 // that is intentional (a source may add artwork later) and still writes
@@ -50,7 +56,7 @@
 //   --limit N      only process the first N candidates (cautious first pass)
 //   --only <id>    restrict to one provider_id (e.g. --only plos)
 
-import { extractThumbnailFromHtml, isFetchableImage } from "../src/lib/content-engine/thumbnails.ts";
+import { extractThumbnailFromHtml, isFetchableImage, isStaticAssetUrl } from "../src/lib/content-engine/thumbnails.ts";
 import { refetchThumbnailUrl } from "../src/lib/content-engine/providers/the-conversation-provider.ts";
 
 const BROWSER_USER_AGENT =
@@ -189,6 +195,7 @@ async function main() {
   // Breakdown, so the four headline numbers are explainable.
   const reasons = {
     skippedAlreadyValid: 0,
+    staticAssetReplaced: 0,
     skippedUnchanged: 0,
     skippedStillNoImage: 0,
     skippedOtherProvider: 0,
@@ -206,6 +213,7 @@ async function main() {
     const providerId = providerByContentItem.get(article.id);
     const sourceUrl = unwrapOne(article.article_details)?.source_url;
     const current = article.thumbnail_url ?? "";
+    let wasStaticAsset = false;
 
     if (only && providerId !== only) {
       skipped += 1;
@@ -214,17 +222,31 @@ async function main() {
     }
 
     // --- Is the existing thumbnail already good? -------------------------
+    //
+    // "Reachable" is NOT the same as "correct". A Creative Commons badge,
+    // a logo or a favicon is a real, 200-OK, image/* URL, so
+    // isFetchableImage happily passes it — which is exactly how 17
+    // articles storing
+    // cdn.theconversation.com/static/tc/creative-commons-logo-*.png were
+    // reported as "already valid" and skipped before extraction could
+    // ever re-run. Site furniture has to be treated as INVALID here, not
+    // merely as something extraction would have rejected, or the backfill
+    // can never repair the rows it exists to repair.
     // A real HEAD check, not a host-list guess: that is exactly the
     // validation the ingestion pipeline now applies, so "valid" means the
     // same thing in both places. Costs one cheap request and is what makes
     // re-running this script a no-op.
     if (current) {
-      if (await isFetchableImage(current)) {
+      if (isStaticAssetUrl(current)) {
+        wasStaticAsset = true;
+        console.log(`FURNITURE "${article.title}"\n          stored thumbnail is site furniture, not a photo: ${current}`);
+      } else if (await isFetchableImage(current)) {
         skipped += 1;
         reasons.skippedAlreadyValid += 1;
         continue;
+      } else {
+        console.log(`INVALID "${article.title}"\n          stored thumbnail does not serve an image: ${current}`);
       }
-      console.log(`INVALID "${article.title}"\n          stored thumbnail does not serve an image: ${current}`);
     } else {
       console.log(`MISSING "${article.title}"`);
     }
@@ -293,6 +315,7 @@ async function main() {
     }
 
     updated += 1;
+    if (wasStaticAsset) reasons.staticAssetReplaced += 1;
     await sleep(DELAY_MS_BETWEEN_REQUESTS);
   }
 
@@ -304,6 +327,7 @@ async function main() {
 
   console.log(`\n--- breakdown ---`);
   console.log(`skipped, thumbnail already valid:     ${reasons.skippedAlreadyValid}`);
+  console.log(`re-extracted, was site furniture:     ${reasons.staticAssetReplaced}`);
   console.log(`skipped, still no image found:        ${reasons.skippedStillNoImage}`);
   if (only) console.log(`skipped, other provider:              ${reasons.skippedOtherProvider}`);
   console.log(`failed, provider unknown:             ${reasons.failedUnknownProvider}`);
