@@ -60,7 +60,13 @@ class SupabaseLearnerRepository implements LearnerRepository {
    */
   async getProfile(): Promise<LearnerProfile> {
     const [{ data: profile }, learnerState] = await Promise.all([
-      this.supabase.from("profiles").select("english_level, goal, streak, longest_streak, xp, daily_time_minutes").eq("user_id", this.userId).maybeSingle(),
+      this.supabase
+        .from("profiles")
+        .select(
+          "english_level, goal, streak, longest_streak, xp, daily_time_minutes, current_band, target_band, exam_timeline, exam_date, placement_completed",
+        )
+        .eq("user_id", this.userId)
+        .maybeSingle(),
       this.getLearnerState(),
     ]);
 
@@ -68,6 +74,11 @@ class SupabaseLearnerRepository implements LearnerRepository {
       id: this.userId,
       cefrLevel: toCefrLevel(profile?.english_level),
       learningGoal: profile?.goal ?? null,
+      currentBand: profile?.current_band ?? null,
+      targetBand: profile?.target_band ?? null,
+      examTimeline: profile?.exam_timeline ?? null,
+      examDate: profile?.exam_date ?? null,
+      placementCompleted: profile?.placement_completed ?? false,
       streak: profile?.streak ?? null,
       xp: profile?.xp ?? null,
       dailyGoalMinutes: profile?.daily_time_minutes ?? null,

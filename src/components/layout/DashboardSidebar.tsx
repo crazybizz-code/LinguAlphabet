@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Flame, Star, BookOpen } from "lucide-react";
+import { Flame, Star, Target, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DASHBOARD_NAV_ITEMS } from "@/components/layout/dashboard-nav-items";
 import { TutoOnlineAvatar } from "@/components/mascot/TutoOnlineAvatar";
@@ -74,11 +74,24 @@ export function DashboardSidebar({ learnerStats = null }: { learnerStats?: Learn
                 <span className="font-bold text-text-primary">{learnerStats.xp}</span>
                 <span className="text-text-tertiary">Total XP</span>
               </div>
-              {learnerStats.cefrLevel && (
+              {/* Bands replace the CEFR level here: CEFR is derived from the
+                  band and only calibrates language complexity, so showing it
+                  on every screen made the wrong number the visible one. Each
+                  row is omitted rather than showing a placeholder — an
+                  unassessed learner has no current band, and "—" in a status
+                  panel reads like a score of nothing. */}
+              {learnerStats.currentBand !== null && (
                 <div className="flex items-center gap-2 text-sm">
-                  <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
-                  <span className="font-bold text-text-primary">{learnerStats.cefrLevel}</span>
-                  <span className="text-text-tertiary">English level</span>
+                  <Trophy className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <span className="font-bold text-text-primary">{learnerStats.currentBand.toFixed(1)}</span>
+                  <span className="text-text-tertiary">Current band</span>
+                </div>
+              )}
+              {learnerStats.targetBand !== null && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Target className="h-4 w-4 text-primary" aria-hidden="true" />
+                  <span className="font-bold text-text-primary">{learnerStats.targetBand.toFixed(1)}</span>
+                  <span className="text-text-tertiary">Target band</span>
                 </div>
               )}
             </div>
