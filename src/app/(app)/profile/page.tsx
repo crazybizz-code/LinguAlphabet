@@ -23,8 +23,15 @@ export default async function ProfilePage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, learnerProfile, { data: progressRows }] = await Promise.all([
-    supabase.from("profiles").select("username, level, daily_time_minutes, interests, onboarding_completed").eq("user_id", user.id).single(),
-    // Level/goal/streak/longestStreak come from LearnerRepository (src/ai/data,
+    supabase
+      .from("profiles")
+      // current_band is now the editable source of truth; english_level is
+      // derived from it on write (src/lib/profile/actions.ts) and so is
+      // never read here.
+      .select("username, level, daily_time_minutes, interests, onboarding_completed, current_band, target_band, exam_timeline")
+      .eq("user_id", user.id)
+      .single(),
+    // streak/longestStreak come from LearnerRepository (src/ai/data,
     // frozen) — the same repository Tuto's system prompt and the
     // Dashboard/Progress/Explore pages all read, so Profile can never
     // independently drift on what these values mean.
@@ -45,8 +52,9 @@ export default async function ProfilePage() {
     <ProfileView
       displayName={profile?.username || "there"}
       email={user.email ?? ""}
-      englishLevel={learnerProfile.cefrLevel}
-      goal={learnerProfile.learningGoal}
+      currentBand={profile?.current_band ?? null}
+      targetBand={profile?.target_band ?? null}
+      examTimeline={profile?.exam_timeline ?? null}
       dailyTimeMinutes={profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES}
       interests={profile?.interests ?? []}
       earnedAchievementIds={earnedAchievementIds}

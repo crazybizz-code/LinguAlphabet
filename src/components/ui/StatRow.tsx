@@ -28,7 +28,10 @@ export function StatRow({ icon, label, value, onClick, disabled = false, trailin
     <>
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter text-primary">{icon}</div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-medium text-text-tertiary">{label}</p>
+        {/* text-secondary (4.76:1), not tertiary (2.56:1) — the label is
+            what tells you which value you're looking at. Same fix as the
+            dashboard pass; shared with Settings. */}
+        <p className="text-xs font-medium text-text-secondary">{label}</p>
         <p className="truncate text-sm font-bold text-text-primary" aria-live={liveValue ? "polite" : undefined}>
           {value}
         </p>

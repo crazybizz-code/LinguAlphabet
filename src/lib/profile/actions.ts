@@ -3,13 +3,16 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { bandToCefr } from "@/lib/onboarding/types";
 import type { Database } from "@/types/supabase";
 
 type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
 
 export interface LearningProfileUpdate {
-  englishLevel?: string;
-  goal?: string;
+  /** Null is a real value — "Not sure", the same answer onboarding accepts. */
+  currentBand?: number | null;
+  targetBand?: number | null;
+  examTimeline?: string;
   dailyTimeMinutes?: number;
   interests?: string[];
 }
@@ -46,8 +49,23 @@ export async function updateLearningProfile(update: LearningProfileUpdate): Prom
   if (!user) throw new Error("Not authenticated");
 
   const patch: ProfileUpdate = {};
-  if (update.englishLevel !== undefined) patch.english_level = update.englishLevel;
-  if (update.goal !== undefined) patch.goal = update.goal;
+  if (update.currentBand !== undefined) {
+    patch.current_band = update.currentBand;
+    // CEFR is DERIVED, never independently edited. It used to be its own
+    // Profile field, which meant a learner could set english_level to C1
+    // while current_band said 6.0 — and nothing reconciled them, so the
+    // Dashboard showed one number while the Learning Brain ranked against
+    // the other and Tuto's system prompt read a third story. Writing both
+    // here, from the band, is what makes "band is the source of truth"
+    // true rather than aspirational.
+    //
+    // Null in, null out: "Not sure" genuinely means we don't know their
+    // level, and the placement assessment is what resolves it. Defaulting
+    // would put a fabricated level in front of the ranker.
+    patch.english_level = bandToCefr(update.currentBand);
+  }
+  if (update.targetBand !== undefined) patch.target_band = update.targetBand;
+  if (update.examTimeline !== undefined) patch.exam_timeline = update.examTimeline;
   if (update.dailyTimeMinutes !== undefined) patch.daily_time_minutes = update.dailyTimeMinutes;
   if (update.interests !== undefined) patch.interests = update.interests;
 
