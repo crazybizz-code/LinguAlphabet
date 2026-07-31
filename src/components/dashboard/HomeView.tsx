@@ -10,6 +10,7 @@ import { PodcastCard } from "@/components/content/PodcastCard";
 import { ArticleCard } from "@/components/content/ArticleCard";
 import { TodaysMissionCard } from "@/components/dashboard/TodaysMissionCard";
 import { WordReviewCard } from "@/components/dashboard/WordReviewCard";
+import { PlacementAssessmentCard } from "@/components/dashboard/PlacementAssessmentCard";
 import { getTimeGreeting } from "@/lib/content/home";
 import type { ArticleContent, PodcastContent } from "@/types/content";
 import type { DailyMissionSlot } from "@/lib/learning-brain";
@@ -32,6 +33,8 @@ export interface HomeViewProps {
   recommendations: Array<PodcastContent | ArticleContent>;
   /** Execution Sprint P1 — words due for spaced-repetition review today. 0 renders nothing. */
   dueVocabularyCount: number;
+  /** True once the placement assessment has produced a plan; hides the first-mission card. */
+  placementCompleted: boolean;
 }
 
 export function HomeView({
@@ -47,6 +50,7 @@ export function HomeView({
   tutoNote,
   recommendations,
   dueVocabularyCount,
+  placementCompleted,
 }: HomeViewProps) {
   const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
   const dailyPercentage = dailyGoalMinutes > 0 ? Math.min(100, (todayMinutes / dailyGoalMinutes) * 100) : 0;
@@ -106,6 +110,11 @@ export function HomeView({
           slot, tracked independently. Once both are completed the entire
           card switches to a celebration state with a countdown to
           tomorrow — no new mission is generated for the rest of the day. */}
+      {/* Above Today's Mission on purpose: until the placement is done,
+          every other recommendation is working from a self-reported band
+          rather than evidence. */}
+      <PlacementAssessmentCard placementCompleted={placementCompleted} displayName={displayName} />
+
       <TodaysMissionCard
         missions={missions}
         allMissionsCompleted={allMissionsCompleted}

@@ -75,7 +75,11 @@ export default function AiPlanPage() {
           goal: profile.goal || null,
           daily_time_minutes: profile.dailyTime,
           interests: profile.interests,
+          // onboarding_completed is set by the wizard now; this screen
+          // marks the placement/plan step done, which is what removes the
+          // first-mission card from the Dashboard.
           onboarding_completed: true,
+          placement_completed: true,
         })
         .eq("user_id", user.id);
       if (!error) {
