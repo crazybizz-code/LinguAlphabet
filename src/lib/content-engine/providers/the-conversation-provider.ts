@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import Parser from "rss-parser";
 import type { ContentProvider, RawContentItem } from "../types";
+import { extractThumbnailFromHtml, isStaticAssetUrl } from "../thumbnails";
 
 /**
  * The Conversation — republished under CC BY-ND (Attribution-NoDerivatives),
@@ -89,6 +90,12 @@ function firstContentImage(html: string): string | undefined {
     }
     if (hostname !== CONTENT_IMAGE_HOST) continue;
     if (el.attr("width") === "1" || el.attr("height") === "1") continue;
+    // Second guard, independent of the host pin. The pin assumes only
+    // article photography is served from the content CDN; if a licence
+    // badge or logo is ever served from there too, the pin alone would
+    // pass it. A CC badge stored as the thumbnail for 17 different
+    // articles is what this exists to prevent recurring.
+    if (isStaticAssetUrl(src)) continue;
     return src;
   }
   return undefined;
@@ -103,6 +110,48 @@ function firstContentImage(html: string): string | undefined {
  * scripts/check-conversation-provider.mjs for real-feed verification. */
 function extractThumbnailUrl(republishBody: string, sharePageHtml: string, feedItemHtml: string): string | undefined {
   return firstContentImage(republishBody) ?? firstContentImage(sharePageHtml) ?? firstContentImage(feedItemHtml);
+}
+
+/**
+ * Final layer, and the only one that costs an extra request: the
+ * canonical article page's own og:image / twitter:image.
+ *
+ * Needed because the three <img>-scanning layers above only see markup
+ * that happens to embed a photo inline. The Conversation's republish text
+ * is deliberately text-focused, so an opinion or analysis piece routinely
+ * contains no <img> at all — leaving thumbnail_url null even though the
+ * article itself has a perfectly good lead image, which the page
+ * advertises as og:image. 14 published articles were in exactly that
+ * state.
+ *
+ * Runs ONLY when the cheaper layers found nothing, so an article with an
+ * inline photo still costs a single share-endpoint fetch.
+ *
+ * Uses the shared extractor (content-engine/thumbnails.ts), which already
+ * handles og:image -> twitter:image -> media -> first img plus URL
+ * normalization, rather than reimplementing that here. The host pin is
+ * deliberately NOT applied: og:image is the publisher's own declaration
+ * of "this is the image for this document", which is a stronger signal
+ * than the host heuristic the pin encodes. The static-asset filter still
+ * applies, so a default share graphic or licence badge is rejected.
+ *
+ * Never throws — a failure here means "no image found", which is a
+ * legitimate outcome, not a reason to fail the article.
+ */
+async function fetchArticlePageThumbnail(articleUrl: string): Promise<string | undefined> {
+  try {
+    const response = await fetch(articleUrl, {
+      headers: { "User-Agent": BROWSER_USER_AGENT, Accept: "text/html" },
+      redirect: "follow",
+    });
+    if (!response.ok) return undefined;
+
+    const candidate = extractThumbnailFromHtml(await response.text(), response.url || articleUrl);
+    if (!candidate || isStaticAssetUrl(candidate)) return undefined;
+    return candidate;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -132,14 +181,18 @@ function extractThumbnailUrl(republishBody: string, sharePageHtml: string, feedI
 export async function refetchThumbnailUrl(sourceUrl: string): Promise<string | undefined> {
   const articleId = extractArticleId(sourceUrl);
   if (!articleId) throw new Error(`Could not parse an article id out of stored source_url: ${sourceUrl}`);
-  const republish = await fetchRepublishHtml(articleId, "");
+  const republish = await fetchRepublishHtml(articleId, "", sourceUrl);
   if (!republish) {
     throw new Error(`Share page for article ${articleId} no longer has a non-attributed-body textarea -- can't confirm whether a photo exists`);
   }
   return republish.thumbnailUrl;
 }
 
-async function fetchRepublishHtml(articleId: string, feedItemHtml: string): Promise<{ body: string; thumbnailUrl?: string } | null> {
+async function fetchRepublishHtml(
+  articleId: string,
+  feedItemHtml: string,
+  articleUrl?: string,
+): Promise<{ body: string; thumbnailUrl?: string } | null> {
   const shareUrl = `${SHARE_ENDPOINT_BASE}${articleId}`;
 
   const response = await fetch(shareUrl, {
@@ -162,7 +215,11 @@ async function fetchRepublishHtml(articleId: string, feedItemHtml: string): Prom
   // page -- remove it so layer 2 only sees the page around it.
   textarea.remove();
 
-  return { body, thumbnailUrl: extractThumbnailUrl(body, $.html(), feedItemHtml) };
+  // Cheap layers first; the article-page fetch only happens if they all
+  // came back empty.
+  const thumbnailUrl = extractThumbnailUrl(body, $.html(), feedItemHtml) ?? (articleUrl ? await fetchArticlePageThumbnail(articleUrl) : undefined);
+
+  return { body, thumbnailUrl };
 }
 
 export const theConversationProvider: ContentProvider = {
@@ -204,7 +261,7 @@ export const theConversationProvider: ContentProvider = {
       // (not retried) so one broken article doesn't drop the whole feed.
       let republish: { body: string; thumbnailUrl?: string } | null;
       try {
-        republish = await fetchRepublishHtml(articleId, feedItemHtml);
+        republish = await fetchRepublishHtml(articleId, feedItemHtml, item.link);
       } catch {
         continue;
       }
