@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Award, ChevronRight, Target } from "lucide-react";
+import { Award, ChevronRight, Sparkles } from "lucide-react";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { TodaysMissionCard } from "@/components/dashboard/TodaysMissionCard";
@@ -97,6 +97,10 @@ export function HomeView({
           slot, tracked independently. Once both are completed the entire
           card switches to a celebration state with a countdown to
           tomorrow — no new mission is generated for the rest of the day. */}
+      {/* Stepped down to the secondary weight until placement is done, so
+          the page never shows two brand-filled cards with two competing
+          white CTAs — and so the one action that unlocks everything else
+          is unambiguously the primary one. */}
       <TodaysMissionCard
         missions={missions}
         allMissionsCompleted={allMissionsCompleted}
@@ -105,6 +109,7 @@ export function HomeView({
         resume={resume}
         todayMinutes={todayMinutes}
         dailyGoalMinutes={dailyGoalMinutes}
+        deemphasized={!placementCompleted}
       />
 
       <WordReviewCard dueCount={dueVocabularyCount} />
@@ -132,16 +137,23 @@ export function HomeView({
           transition={{ duration: 0.5, delay: 0.4 }}
           className="mt-8 px-5 sm:px-8"
         >
+          {/* "Chosen by Tuto", not Base44's "Recommended for your target
+              band": the ranking uses the learner's CURRENT level (level
+              match is the heaviest weight in scoring.ts) and never reads
+              target_band at all. A heading naming the target band would
+              promise a personalization the engine doesn't do — and each
+              card's reason line underneath says "matched to your level",
+              which would have contradicted it in the same breath. */}
           <div className="mb-1 flex items-center gap-2">
-            <Target className="h-4 w-4 text-primary" aria-hidden="true" />
-            <h2 className="text-sm font-semibold text-text-primary">Recommended for your target band</h2>
+            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-text-primary">Chosen by Tuto</h2>
           </div>
           {/* Sprint Learning Polish 1 ("Mission vs Extra Practice distinction"):
               only Today's Mission above counts toward streak/mission XP. */}
-          <p className="mb-3 text-xs text-text-tertiary">
+          <p className="mb-3 text-xs text-text-secondary">
             Extra practice — great for bonus XP, but Today&apos;s Mission is what keeps your streak going.
           </p>
-          <div className="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
+          <div className="grid grid-cols-3 items-stretch gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
             {recommendations.map((recommendation) => (
               <RecommendationCard key={recommendation.item.id} item={recommendation.item} reason={recommendation.reason} />
             ))}
@@ -160,12 +172,12 @@ export function HomeView({
       >
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Award className="h-4 w-4 text-text-tertiary" aria-hidden="true" />
+            <Award className="h-4 w-4 text-text-secondary" aria-hidden="true" />
             <h2 className="text-sm font-semibold text-text-primary">Achievements</h2>
           </div>
           <Link
             href="/progress"
-            className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+            className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-text-secondary transition-colors hover:text-primary-strong"
           >
             View progress
             <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />

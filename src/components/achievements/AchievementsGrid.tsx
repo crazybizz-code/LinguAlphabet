@@ -45,7 +45,11 @@ export function AchievementsGrid({ earnedAchievementIds, baseDelay = 0 }: Achiev
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-text-primary">{achievement.title}</p>
-              <p className="text-xs text-text-tertiary">{achievement.description}</p>
+              {/* text-secondary (4.76:1), not tertiary (2.56:1) — the
+                  description is the only thing that says what an
+                  achievement is for. Shared with Progress and Profile, so
+                  all three surfaces get the same fix. */}
+              <p className="text-xs text-text-secondary">{achievement.description}</p>
             </div>
             {unlocked && <CheckCircle2 className="h-5 w-5 shrink-0 text-success" aria-hidden="true" />}
           </motion.div>

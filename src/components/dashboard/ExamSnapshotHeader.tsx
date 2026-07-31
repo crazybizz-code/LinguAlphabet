@@ -70,9 +70,15 @@ export function ExamSnapshotHeader({ displayName, currentBand, targetBand, examT
   ];
 
   return (
-    <motion.section variants={fadeSlideUp} initial="hidden" animate="visible" className="px-5 pt-8 sm:px-8 md:pt-10">
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1 pt-1">
+    <motion.section
+      variants={fadeSlideUp}
+      initial="hidden"
+      animate="visible"
+      className="px-5 pt-8 sm:px-8 md:pt-10"
+      aria-labelledby="exam-snapshot-heading"
+    >
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
             {greeting}, {displayName}
           </h1>
@@ -85,10 +91,19 @@ export function ExamSnapshotHeader({ displayName, currentBand, targetBand, examT
         <div className="relative shrink-0">
           <div className="absolute inset-0 rounded-full bg-primary-soft blur-2xl" aria-hidden="true" />
           {/* `wave` is reserved for Welcome/first-time onboarding — this is
-              a daily-return greeting, so it gets Tuto's normal presence. */}
-          <Tuto pose="neutral" size="md" animation="float" priority />
+              a daily-return greeting, so it gets Tuto's normal presence.
+              `avatar` rather than `md`: here Tuto is company beside the
+              greeting, not the subject of the screen. */}
+          <Tuto pose="neutral" size="avatar" animation="float" priority />
         </div>
       </div>
+
+      {/* The tiles below are the section's real title, but a visible
+          heading above them would just repeat what each tile already
+          says. Screen readers still get a landmark to jump to. */}
+      <h2 id="exam-snapshot-heading" className="sr-only">
+        Your IELTS snapshot
+      </h2>
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {tiles.map((tile) => (
@@ -96,9 +111,12 @@ export function ExamSnapshotHeader({ displayName, currentBand, targetBand, examT
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary-lighter">
               <tile.icon className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
-            <p className="mt-3 text-xs font-medium text-text-tertiary">{tile.label}</p>
+            {/* text-secondary, not tertiary: #94A3B8 is 2.56:1 on white and
+                fails AA outright. These labels are what make the numbers
+                mean anything. */}
+            <p className="mt-3 text-xs font-medium text-text-secondary">{tile.label}</p>
             <p className="mt-0.5 text-lg font-bold text-text-primary">{tile.value}</p>
-            {tile.hint && <p className="mt-0.5 text-[11px] font-medium text-text-tertiary">{tile.hint}</p>}
+            {tile.hint && <p className="mt-0.5 text-[11px] font-medium text-text-secondary">{tile.hint}</p>}
           </div>
         ))}
       </div>

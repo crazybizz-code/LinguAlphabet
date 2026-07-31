@@ -25,8 +25,11 @@ export interface BandProgressBarProps {
  */
 export function BandProgressBar({ progress, currentBand, targetBand }: BandProgressBarProps) {
   const { currentPercent, targetPercent, bandsToGo } = progress;
-  // A target at or below the current band is legitimate (onboarding warns
-  // but doesn't block) — the ghost segment simply has nothing to draw.
+  // Target == current is a legitimate answer (isTargetBandTooLow uses a
+  // strict `<`, so onboarding allows it). Target < current is blocked by
+  // onboarding's canAdvance, but can still reach us through a backfill or
+  // a direct edit, so the ghost segment floors at zero width rather than
+  // rendering a negative one.
   const gapWidth = Math.max(0, targetPercent - currentPercent);
 
   return (
@@ -34,8 +37,10 @@ export function BandProgressBar({ progress, currentBand, targetBand }: BandProgr
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-text-primary">Band Progress</p>
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-bold text-primary">{formatBandValue(currentBand)}</span>
-          <span className="text-text-tertiary" aria-hidden="true">
+          {/* primary-strong, not primary: 14px bold is not "large text",
+              so #FF6B00's 2.86:1 fails AA here. Same hue, 5.18:1. */}
+          <span className="font-bold text-primary-strong">{formatBandValue(currentBand)}</span>
+          <span className="text-text-secondary" aria-hidden="true">
             &rarr;
           </span>
           <span className="font-bold text-text-primary">{formatBandValue(targetBand)}</span>
@@ -68,9 +73,9 @@ export function BandProgressBar({ progress, currentBand, targetBand }: BandProgr
         />
       </div>
 
-      <div className="mt-2.5 flex justify-between text-[10px] font-medium text-text-tertiary">
+      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-2 text-[11px] font-medium text-text-secondary">
         <span>Band 0</span>
-        <span className="font-semibold text-primary">
+        <span className="font-semibold text-primary-strong">
           {bandsToGo > 0 ? `${bandsToGo.toFixed(1)} bands to go` : "You're at your target band"}
         </span>
         <span>Band {BAND_SCALE_MAX}</span>

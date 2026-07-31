@@ -54,11 +54,16 @@ export function ExamReadinessCard({ placementCompleted, displayName }: ExamReadi
           chain. When the assessment ships, this href is the single place
           that changes — point it at the assessment, and let the
           assessment navigate on to /ai-plan when it finishes. */}
+      {/* Gradient toward primary-dark, matching Today's Mission: white on
+          #FF6B00 is 2.86:1, and darkening the far end lifts the small copy
+          that sits there to 3.50:1. No fill in this brand's range can
+          reach AA for body text, so the type is also solid (never
+          translucent) and weighted up to compensate. */}
       <Link
         href="/ai-plan"
-        className="group block rounded-[1.75rem] bg-primary p-5 text-text-on-primary shadow-glow transition-all hover:-translate-y-0.5 hover:shadow-lg sm:p-6"
+        className="group block rounded-[1.75rem] bg-gradient-to-br from-primary to-primary-dark p-5 text-text-on-primary shadow-glow transition-all hover:-translate-y-0.5 hover:shadow-lg sm:p-6"
       >
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-text-on-primary/80">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-white">
           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
           Your first mission
         </p>
@@ -67,7 +72,7 @@ export function ExamReadinessCard({ placementCompleted, displayName }: ExamReadi
           Reading &amp; Listening Placement Test
         </h2>
 
-        <p className="mt-2 max-w-md text-sm leading-relaxed text-text-on-primary/85">
+        <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-white/90">
           {displayName ? `${displayName}, this` : "This"} is how Tuto finds your real IELTS level — and unlocks the exam
           insights on this page.
         </p>
@@ -78,7 +83,7 @@ export function ExamReadinessCard({ placementCompleted, displayName }: ExamReadi
           <Chip icon={Clock} label="About 15 min" />
         </div>
 
-        <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-bg-card px-5 py-2.5 text-sm font-semibold text-primary">
+        <span className="mt-5 inline-flex items-center gap-2 rounded-full bg-bg-card px-5 py-2.5 text-sm font-bold text-primary-strong">
           Start Placement Test
           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
         </span>
@@ -89,7 +94,7 @@ export function ExamReadinessCard({ placementCompleted, displayName }: ExamReadi
 
 function Chip({ icon: Icon, label }: { icon: typeof Clock; label: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-text-on-primary/15 px-3 py-1 text-xs font-medium">
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/25 px-3 py-1 text-xs font-semibold">
       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
       {label}
     </span>

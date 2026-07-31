@@ -31,10 +31,11 @@ export function buildBandProgress(currentBand: number | null, targetBand: number
   return {
     currentPercent: (currentBand / BAND_SCALE_MAX) * 100,
     targetPercent: (targetBand / BAND_SCALE_MAX) * 100,
-    // Clamped at 0 rather than reported negative: a target at or below
-    // the current band is a legitimate state (onboarding only warns when
-    // target < current, it doesn't block), and "-0.5 bands to go" is not
-    // a sentence.
+    // Clamped at 0 rather than reported negative. Target == current is
+    // allowed by onboarding (isTargetBandTooLow uses a strict `<`), and
+    // target < current is blocked there but can still arrive via a
+    // backfill or a direct edit — either way "-0.5 bands to go" is not a
+    // sentence.
     bandsToGo: Math.max(0, Number((targetBand - currentBand).toFixed(1))),
   };
 }

@@ -9,17 +9,113 @@ import type { DailyMissionSlot } from "@/lib/learning-brain";
 import type { ResumeStrip } from "@/lib/dashboard/resume";
 import type { ArticleContent, PodcastContent } from "@/types/content";
 
+/** Imperative form — reads as an instruction next to a finished item ("Read today's article — done"). */
 const SLOT_LABEL: Record<DailyMissionSlot["contentType"], string> = {
   article: "Read today's article",
   podcast: "Listen to today's podcast",
 };
 
-function slotIcon(contentType: DailyMissionSlot["contentType"]) {
-  return contentType === "article" ? (
-    <BookOpen className="h-5 w-5 text-white" aria-hidden="true" />
-  ) : (
-    <Headphones className="h-5 w-5 text-white" aria-hidden="true" />
-  );
+/**
+ * Noun form. Needed separately because SLOT_LABEL is a verb phrase, and
+ * lowercasing it into "Tuto is preparing read today's article" produced a
+ * sentence with two verbs — the first thing a brand-new learner saw while
+ * the catalog was still empty.
+ */
+const SLOT_NOUN: Record<DailyMissionSlot["contentType"], string> = {
+  article: "today's article",
+  podcast: "today's podcast",
+};
+
+/**
+ * Two visual weights for the same card.
+ *
+ * `primary` is the brand-filled hero. `secondary` is the same card in a
+ * plain bordered surface, used while the placement assessment is still
+ * outstanding: two full-width orange cards stacked read as one slab with
+ * two competing white CTAs, and until placement is done the mission is
+ * genuinely the lesser of the two actions — it's picked from a
+ * self-reported (or unknown) band.
+ *
+ * A lookup rather than conditionals at each element, so the two variants
+ * can't drift apart element by element.
+ */
+type MissionVariant = "primary" | "secondary";
+
+interface MissionTheme {
+  surface: string;
+  glow: boolean;
+  eyebrow: string;
+  streakNote: string;
+  rowStatic: string;
+  rowLink: string;
+  iconChip: string;
+  icon: string;
+  title: string;
+  meta: string;
+  completedTitle: string;
+  track: string;
+  fill: string;
+  cta: string;
+  mobileArrow: string;
+  divider: string;
+  goalLabel: string;
+  goalValue: string;
+}
+
+const THEMES: Record<MissionVariant, MissionTheme> = {
+  primary: {
+    // Gradient runs toward primary-dark rather than the lighter #FF8C33
+    // it used to: white on #FF6B00 is 2.86:1 and on #FF8C33 only 2.32:1,
+    // so the old ramp got *less* readable toward the bottom of the card
+    // where the small labels live. primary-dark lifts that end to 3.50:1
+    // — still short of AA for body text (no fill in this brand's range
+    // can reach 4.5:1 against white), but every large/bold element on the
+    // card now clears AA-Large, and the type below is sized and weighted
+    // to compensate. Documented exception, not an oversight.
+    surface: "bg-gradient-to-br from-primary to-primary-dark text-text-on-primary shadow-glow",
+    glow: true,
+    eyebrow: "text-white",
+    streakNote: "text-white",
+    rowStatic: "bg-white/15",
+    rowLink: "bg-white/15 hover:bg-white/25",
+    iconChip: "bg-white/25",
+    icon: "text-white",
+    title: "text-white",
+    meta: "text-white/90",
+    completedTitle: "text-white/90 decoration-white/50",
+    track: "bg-white/30",
+    fill: "bg-white",
+    cta: "bg-white text-primary-strong",
+    mobileArrow: "text-white",
+    divider: "border-white/25",
+    goalLabel: "text-white/90",
+    goalValue: "text-white",
+  },
+  secondary: {
+    surface: "border border-border bg-bg-card text-text-primary shadow-sm",
+    glow: false,
+    eyebrow: "text-text-secondary",
+    streakNote: "text-text-secondary",
+    rowStatic: "bg-bg-muted",
+    rowLink: "bg-bg-muted hover:bg-primary-lighter",
+    iconChip: "bg-primary-lighter",
+    icon: "text-primary",
+    title: "text-text-primary",
+    meta: "text-text-secondary",
+    completedTitle: "text-text-secondary decoration-text-tertiary",
+    track: "bg-border",
+    fill: "bg-primary",
+    cta: "bg-text-primary text-white",
+    mobileArrow: "text-text-secondary",
+    divider: "border-border",
+    goalLabel: "text-text-secondary",
+    goalValue: "text-text-primary",
+  },
+};
+
+function slotIcon(contentType: DailyMissionSlot["contentType"], theme: MissionTheme) {
+  const Icon = contentType === "article" ? BookOpen : Headphones;
+  return <Icon className={`h-5 w-5 ${theme.icon}`} aria-hidden="true" />;
 }
 
 function msUntilNextMidnight(): number {
@@ -36,7 +132,7 @@ function formatCountdown(ms: number): string {
   return `${hours}:${minutes}:${seconds}`;
 }
 
-/** Live countdown to the next calendar day, when tomorrow's mission unlocks. Client-only — the server doesn't know the learner's timezone or clock, so the server/first-hydration snapshot stays a neutral placeholder (same pattern as the greeting in HomeView) and only the real client snapshot ticks. */
+/** Live countdown to the next calendar day, when tomorrow's mission unlocks. Client-only — the server doesn't know the learner's timezone or clock, so the server/first-hydration snapshot stays a neutral placeholder (same pattern as the greeting in ExamSnapshotHeader) and only the real client snapshot ticks. */
 function NextMissionCountdown() {
   const remainingMs = useSyncExternalStore(
     (onStoreChange) => {
@@ -56,14 +152,14 @@ function NextMissionCountdown() {
   );
 }
 
-function MissionSlotRow({ slot }: { slot: DailyMissionSlot }) {
+function MissionSlotRow({ slot, theme }: { slot: DailyMissionSlot; theme: MissionTheme }) {
   if (slot.completedTitle) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-4">
-        <CheckCircle2 className="h-5 w-5 shrink-0 text-white" aria-hidden="true" />
+      <div className={`flex items-center gap-3 rounded-choice p-4 ${theme.rowStatic}`}>
+        <CheckCircle2 className={`h-5 w-5 shrink-0 ${theme.icon}`} aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-white/70 line-through decoration-white/40">{slot.completedTitle}</p>
-          <p className="text-xs text-white/60">{SLOT_LABEL[slot.contentType]} — done</p>
+          <p className={`truncate text-sm font-semibold line-through ${theme.completedTitle}`}>{slot.completedTitle}</p>
+          <p className={`text-xs ${theme.meta}`}>{SLOT_LABEL[slot.contentType]} — done</p>
         </div>
       </div>
     );
@@ -71,24 +167,25 @@ function MissionSlotRow({ slot }: { slot: DailyMissionSlot }) {
 
   if (!slot.mission) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl bg-white/10 p-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15">{slotIcon(slot.contentType)}</span>
-        <p className="text-sm text-white/70">Tuto is preparing {SLOT_LABEL[slot.contentType].toLowerCase()}</p>
+      <div className={`flex items-center gap-3 rounded-choice p-4 ${theme.rowStatic}`}>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${theme.iconChip}`}>
+          {slotIcon(slot.contentType, theme)}
+        </span>
+        <p className={`text-sm font-medium ${theme.meta}`}>Tuto is preparing {SLOT_NOUN[slot.contentType]}</p>
       </div>
     );
   }
 
   const mission = slot.mission;
   return (
-    <Link
-      href={mission.ctaHref}
-      className="group flex items-center gap-3 rounded-2xl bg-white/15 p-4 transition-colors duration-200 hover:bg-white/25"
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/20">{slotIcon(slot.contentType)}</span>
+    <Link href={mission.ctaHref} className={`group flex items-center gap-3 rounded-choice p-4 transition-colors duration-200 ${theme.rowLink}`}>
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${theme.iconChip}`}>
+        {slotIcon(slot.contentType, theme)}
+      </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-white">{mission.title}</p>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-white/70">
-          <Clock className="h-3 w-3" aria-hidden="true" />
+        <p className={`truncate text-sm font-bold ${theme.title}`}>{mission.title}</p>
+        <p className={`mt-0.5 flex flex-wrap items-center gap-x-1 text-xs font-medium ${theme.meta}`}>
+          <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
           {Math.round(mission.estimatedMinutes)} min · Level {mission.cefrLevel}
           {/* Sprint Learning Polish 1 ("Mission vs Extra Practice
               distinction"): badgeLabel ("Prepared by Tuto" / "In Progress")
@@ -104,16 +201,19 @@ function MissionSlotRow({ slot }: { slot: DailyMissionSlot }) {
             computed progressPercentage; nothing ever rendered it, which
             is why a returning learner couldn't see how far in they were. */}
         {mission.progressPercentage !== null && (
-          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/25" aria-hidden="true">
-            <div className="h-full rounded-full bg-white" style={{ width: `${mission.progressPercentage}%` }} />
+          <div className={`mt-2 h-1 w-full overflow-hidden rounded-full ${theme.track}`} aria-hidden="true">
+            <div className={`h-full rounded-full ${theme.fill}`} style={{ width: `${mission.progressPercentage}%` }} />
           </div>
         )}
       </div>
-      <span className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary sm:flex">
+      <span className={`hidden shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold sm:flex ${theme.cta}`}>
         {mission.ctaLabel}
         <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
       </span>
-      <ArrowRight className="h-4 w-4 shrink-0 text-white/70 transition-transform duration-300 group-hover:translate-x-1 sm:hidden" aria-hidden="true" />
+      <ArrowRight
+        className={`h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 sm:hidden ${theme.mobileArrow}`}
+        aria-hidden="true"
+      />
     </Link>
   );
 }
@@ -124,33 +224,28 @@ function MissionSlotRow({ slot }: { slot: DailyMissionSlot }) {
  * after the plan rather than before it: today's plan is the commitment,
  * this is the loose end.
  */
-function ContinueLearningStrip({ resume }: { resume: ResumeStrip }) {
+function ContinueLearningStrip({ resume, theme }: { resume: ResumeStrip; theme: MissionTheme }) {
   return (
-    <Link
-      href={resume.href}
-      className="group mt-3 flex items-center gap-3 rounded-choice bg-white/10 p-3.5 transition-colors duration-200 hover:bg-white/20"
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/20">
-        <Play className="h-4 w-4 text-white" aria-hidden="true" />
+    <Link href={resume.href} className={`group mt-3 flex items-center gap-3 rounded-choice p-3.5 transition-colors duration-200 ${theme.rowLink}`}>
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${theme.iconChip}`}>
+        <Play className={`h-4 w-4 ${theme.icon}`} aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70">Pick up where you left off</p>
-        <p className="truncate text-sm font-bold text-white">{resume.title}</p>
+        <p className={`text-[11px] font-semibold uppercase tracking-wide ${theme.eyebrow}`}>Pick up where you left off</p>
+        <p className={`truncate text-sm font-bold ${theme.title}`}>{resume.title}</p>
         {resume.percentage !== null && (
           <div className="mt-1.5 flex items-center gap-2">
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/25" aria-hidden="true">
-              <div className="h-full rounded-full bg-white" style={{ width: `${resume.percentage}%` }} />
+            <div className={`h-1 max-w-[220px] flex-1 overflow-hidden rounded-full ${theme.track}`} aria-hidden="true">
+              <div className={`h-full rounded-full ${theme.fill}`} style={{ width: `${resume.percentage}%` }} />
             </div>
             {resume.minutesLeft !== null && (
-              <span className="shrink-0 text-[11px] font-medium tabular-nums text-white/70">
-                {resume.minutesLeft} min left
-              </span>
+              <span className={`shrink-0 text-[11px] font-semibold tabular-nums ${theme.meta}`}>{resume.minutesLeft} min left</span>
             )}
           </div>
         )}
       </div>
       <ArrowRight
-        className="h-4 w-4 shrink-0 text-white/70 transition-transform duration-300 group-hover:translate-x-1"
+        className={`h-4 w-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 ${theme.mobileArrow}`}
         aria-hidden="true"
       />
     </Link>
@@ -158,27 +253,38 @@ function ContinueLearningStrip({ resume }: { resume: ResumeStrip }) {
 }
 
 /** The learner's own daily_time_minutes, shown where the minutes are actually earned. */
-function DailyGoalFooter({ todayMinutes, dailyGoalMinutes }: { todayMinutes: number; dailyGoalMinutes: number }) {
+function DailyGoalFooter({
+  todayMinutes,
+  dailyGoalMinutes,
+  theme,
+}: {
+  todayMinutes: number;
+  dailyGoalMinutes: number;
+  theme: MissionTheme;
+}) {
   if (dailyGoalMinutes <= 0) return null;
   const percentage = Math.min(100, (todayMinutes / dailyGoalMinutes) * 100);
 
   return (
-    <div className="mt-5 border-t border-white/20 pt-4">
+    <div className={`mt-5 border-t pt-4 ${theme.divider}`}>
       <div className="mb-2 flex items-center justify-between">
-        <p className="text-xs font-medium text-white/70">Today&apos;s goal</p>
-        <p className="text-xs font-bold text-white tabular-nums">
+        {/* "Daily Goal" verbatim, matching the sidebar's label for the same
+            metric — two names for one number is how a learner ends up
+            wondering whether they're different numbers. */}
+        <p className={`text-xs font-medium ${theme.goalLabel}`}>Daily Goal</p>
+        <p className={`text-xs font-bold tabular-nums ${theme.goalValue}`}>
           {Math.round(todayMinutes)} / {Math.round(dailyGoalMinutes)} min
         </p>
       </div>
       <div
-        className="h-1.5 w-full overflow-hidden rounded-full bg-white/25"
+        className={`h-1.5 w-full overflow-hidden rounded-full ${theme.track}`}
         role="progressbar"
         aria-label="Daily goal progress"
         aria-valuenow={Math.round(percentage)}
         aria-valuemin={0}
         aria-valuemax={100}
       >
-        <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${percentage}%` }} />
+        <div className={`h-full rounded-full transition-all duration-500 ${theme.fill}`} style={{ width: `${percentage}%` }} />
       </div>
     </div>
   );
@@ -201,25 +307,10 @@ export interface TodaysMissionCardProps {
    */
   todayMinutes: number;
   dailyGoalMinutes: number;
-  /**
-   * Execution Sprint P2 ("Streak at risk" nudge): the retention audit's
-   * finding was that nothing signals a streak is on the line until it's
-   * already too late — this is that signal, but calm rather than
-   * alarmist, matching streak.ts's own explicit "never punitive, never
-   * 'you broke your streak'" philosophy. Only rendered once there's an
-   * actual streak to protect.
-   */
-  streak: number;
-  /**
-   * Sprint Learning Polish 1 ("Tomorrow Preview"): the same tutoRecommends
-   * list HomeView already fetches and renders in "Recommended by Tuto" —
-   * its top item is a reasonable, already-computed preview of what Tuto is
-   * likely to suggest next. Deliberately not a commitment (tomorrow's real
-   * Mission is only assigned once tomorrow's calendar day actually starts,
-   * docs/content-lifecycle.md §5), so this is framed as a teaser, not a
-   * guarantee — no new ranking/logic, just reusing data already on hand.
-   */
+  /** Steps the card down to the `secondary` weight while the placement assessment is still the page's primary action. */
+  deemphasized?: boolean;
   tomorrowPreview: PodcastContent | ArticleContent | null;
+  streak: number;
 }
 
 /**
@@ -237,7 +328,10 @@ export function TodaysMissionCard({
   resume,
   todayMinutes,
   dailyGoalMinutes,
+  deemphasized = false,
 }: TodaysMissionCardProps) {
+  const theme = THEMES[deemphasized ? "secondary" : "primary"];
+
   if (allMissionsCompleted) {
     return (
       <motion.section
@@ -245,29 +339,40 @@ export function TodaysMissionCard({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.2, ease: [0, 0, 0.2, 1] }}
         className="mt-4 px-5 sm:px-8"
+        aria-labelledby="todays-mission-heading"
       >
-        <div className="flex flex-col items-center gap-3 rounded-[2rem] border border-success/30 bg-success-soft px-6 py-10 text-center">
-          <Tuto pose="celebrating" size="sm" />
-          <p className="text-xl font-bold text-text-primary">🎉 Today&apos;s Mission Completed</p>
-          <p className="max-w-sm text-sm text-text-secondary">Great work! Come back tomorrow for your next personalized mission.</p>
-          <NextMissionCountdown />
-          {tomorrowPreview && (
-            <p className="mt-2 max-w-sm text-xs text-text-tertiary">
-              Tuto&apos;s already thinking about &ldquo;{tomorrowPreview.title}&rdquo; for next time.
-            </p>
-          )}
-          {/* Today's plan being finished doesn't finish a lesson they
-              abandoned last week — offered quietly here rather than
-              competing with the celebration. */}
-          {resume && (
-            <Link
-              href={resume.href}
-              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline"
-            >
-              <Play className="h-3.5 w-3.5" aria-hidden="true" />
-              Finish &ldquo;{resume.title}&rdquo;
-            </Link>
-          )}
+        <div className="rounded-[2rem] border border-success/30 bg-success-soft px-6 py-10">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <Tuto pose="celebrating" size="sm" />
+            <h2 id="todays-mission-heading" className="text-xl font-bold text-text-primary">
+              🎉 Today&apos;s Mission Completed
+            </h2>
+            <p className="max-w-sm text-sm text-text-secondary">Great work! Come back tomorrow for your next personalized mission.</p>
+            <NextMissionCountdown />
+            {tomorrowPreview && (
+              <p className="mt-2 max-w-sm text-xs text-text-secondary">
+                Tuto&apos;s already thinking about &ldquo;{tomorrowPreview.title}&rdquo; for next time.
+              </p>
+            )}
+            {/* Today's plan being finished doesn't finish a lesson they
+                abandoned last week — offered quietly here rather than
+                competing with the celebration. */}
+            {resume && (
+              <Link
+                href={resume.href}
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-strong underline-offset-4 hover:underline"
+              >
+                <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                Finish &ldquo;{resume.title}&rdquo;
+              </Link>
+            )}
+          </div>
+          {/* Finishing the mission doesn't necessarily meet the daily goal
+              — and with the Learning Journey strip gone this is the only
+              place the goal appears on Home for a mobile learner. */}
+          <div className="mx-auto max-w-sm">
+            <DailyGoalFooter todayMinutes={todayMinutes} dailyGoalMinutes={dailyGoalMinutes} theme={THEMES.secondary} />
+          </div>
         </div>
       </motion.section>
     );
@@ -279,35 +384,42 @@ export function TodaysMissionCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.2, ease: [0, 0, 0.2, 1] }}
       className="mt-4 px-5 sm:px-8"
+      aria-labelledby="todays-mission-heading"
     >
       <div className="relative">
         {/* Subtle, slow breathing glow — communicates "this is the one thing
-            that matters right now" without being distracting motion. */}
-        <motion.div
-          className="pointer-events-none absolute -inset-3 rounded-[2.5rem] bg-primary/25 blur-2xl"
-          aria-hidden="true"
-          animate={{ opacity: [0.5, 0.85, 0.5] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-[#FF8C33] p-6 shadow-glow sm:p-8">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-          <div className="pointer-events-none absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+            that matters right now" without being distracting motion. Skipped
+            entirely in the secondary variant: nothing should breathe when
+            it isn't the primary action. */}
+        {theme.glow && (
+          <motion.div
+            className="pointer-events-none absolute -inset-3 rounded-[2.5rem] bg-primary/25 blur-2xl"
+            aria-hidden="true"
+            animate={{ opacity: [0.5, 0.85, 0.5] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
+        <div className={`relative overflow-hidden rounded-[2rem] p-6 sm:p-8 ${theme.surface}`}>
+          {theme.glow && (
+            <>
+              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+              <div className="pointer-events-none absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+            </>
+          )}
           <div className="relative">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70">Today&apos;s Mission</p>
-              {streak > 0 && (
-                <p className="text-xs font-semibold text-white/80">
-                  Keep your {streak}-day streak going
-                </p>
-              )}
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <h2 id="todays-mission-heading" className={`text-xs font-semibold uppercase tracking-[0.15em] ${theme.eyebrow}`}>
+                Today&apos;s Mission
+              </h2>
+              {streak > 0 && <p className={`text-xs font-semibold ${theme.streakNote}`}>Keep your {streak}-day streak going</p>}
             </div>
             <div className="mt-4 flex flex-col gap-3">
               {missions.map((slot) => (
-                <MissionSlotRow key={slot.contentType} slot={slot} />
+                <MissionSlotRow key={slot.contentType} slot={slot} theme={theme} />
               ))}
             </div>
-            {resume && <ContinueLearningStrip resume={resume} />}
-            <DailyGoalFooter todayMinutes={todayMinutes} dailyGoalMinutes={dailyGoalMinutes} />
+            {resume && <ContinueLearningStrip resume={resume} theme={theme} />}
+            <DailyGoalFooter todayMinutes={todayMinutes} dailyGoalMinutes={dailyGoalMinutes} theme={theme} />
           </div>
         </div>
       </div>
