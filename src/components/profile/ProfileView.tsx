@@ -3,34 +3,64 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Check, Clock, LogOut, Settings, Sparkles, Target } from "lucide-react";
+import { Check, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tuto } from "@/components/mascot/Tuto";
 import { Button } from "@/components/ui/Button";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { StatRow } from "@/components/ui/StatRow";
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { updateLearningProfile, signOutAction } from "@/lib/profile/actions";
-import { DAILY_TIME_ICON, DAILY_TIME_OPTIONS, GOAL_OPTIONS, INTEREST_OPTIONS, LEVEL_LABELS, LEVEL_OPTIONS } from "@/lib/profile/options";
+import { bandToCefr } from "@/lib/onboarding/types";
+import {
+  BAND_ICON,
+  CURRENT_BAND_OPTIONS,
+  DAILY_TIME_ICON,
+  DAILY_TIME_OPTIONS,
+  INTERESTS_ICON,
+  INTEREST_OPTIONS,
+  TARGET_ICON,
+  TIMELINE_ICON,
+  TIMELINE_OPTIONS,
+  formatBand,
+  selectableTargetBands,
+} from "@/lib/profile/options";
+import { ProfileIdentityCard } from "./ProfileIdentityCard";
 import { EditSheet } from "./EditSheet";
 
 export interface ProfileViewProps {
   displayName: string;
   email: string;
-  englishLevel: string | null;
-  goal: string | null;
+  /** Null when the learner answered "Not sure" — never defaulted. */
+  currentBand: number | null;
+  targetBand: number | null;
+  examTimeline: string | null;
   dailyTimeMinutes: number;
   interests: string[];
   earnedAchievementIds: Set<string>;
 }
 
-type EditingField = "level" | "goal" | "dailyTime" | "interests" | null;
+type EditingField = "currentBand" | "targetBand" | "examTimeline" | "dailyTime" | "interests" | null;
 
+/**
+ * Profile, IELTS-first.
+ *
+ * The band replaces the CEFR level as the thing a learner edits. CEFR is
+ * still written — the Learning Brain, content matching and Tuto's prompt
+ * all speak it — but it is now derived from the band inside
+ * updateLearningProfile rather than being a second editable field that
+ * could disagree with it.
+ *
+ * Learning Goal is gone. The IELTS flow always writes "Exam Preparation",
+ * so a picker offering General English / Travel / Work was offering to
+ * contradict the product model, and it silently re-ranked their content
+ * when used (goal alignment is weight 25 in the rule engine).
+ */
 export function ProfileView({
   displayName,
   email,
-  englishLevel,
-  goal,
+  currentBand,
+  targetBand,
+  examTimeline,
   dailyTimeMinutes,
   interests,
   earnedAchievementIds,
@@ -41,39 +71,39 @@ export function ProfileView({
   // Mirrored locally so a save reflects instantly, same optimistic pattern
   // as the Learning Session's completion flow — the server action still
   // persists + revalidates Home/Explore/Progress for their next load.
-  const [level, setLevel] = useState(englishLevel);
-  const [currentGoal, setCurrentGoal] = useState(goal);
+  const [band, setBand] = useState(currentBand);
+  const [target, setTarget] = useState(targetBand);
+  const [timeline, setTimeline] = useState(examTimeline);
   const [dailyTime, setDailyTime] = useState(dailyTimeMinutes);
   const [currentInterests, setCurrentInterests] = useState(interests);
   const [pendingInterests, setPendingInterests] = useState(interests);
 
-  const DailyTimeIcon = DAILY_TIME_ICON;
-
-  function saveLevel(nextLevel: string) {
-    setLevel(nextLevel);
+  /** Non-fatal if the write fails (session hiccup, network blip) — the optimistic value shown here just won't survive the next full reload, and it must never crash the screen the way an unhandled rejection would. */
+  function persist(update: Parameters<typeof updateLearningProfile>[0]) {
     setEditingField(null);
     startTransition(async () => {
-      // Non-fatal if the write fails (session hiccup, network blip) — the
-      // optimistic value shown here just won't survive the next full reload,
-      // it must never crash the screen the way an unhandled rejection would.
-      await updateLearningProfile({ englishLevel: nextLevel }).catch(() => {});
+      await updateLearningProfile(update).catch(() => {});
     });
   }
 
-  function saveGoal(nextGoal: string) {
-    setCurrentGoal(nextGoal);
-    setEditingField(null);
-    startTransition(async () => {
-      await updateLearningProfile({ goal: nextGoal }).catch(() => {});
-    });
+  function saveCurrentBand(next: number | null) {
+    setBand(next);
+    persist({ currentBand: next });
   }
 
-  function saveDailyTime(nextValue: number) {
-    setDailyTime(nextValue);
-    setEditingField(null);
-    startTransition(async () => {
-      await updateLearningProfile({ dailyTimeMinutes: nextValue }).catch(() => {});
-    });
+  function saveTargetBand(next: number) {
+    setTarget(next);
+    persist({ targetBand: next });
+  }
+
+  function saveTimeline(next: string) {
+    setTimeline(next);
+    persist({ examTimeline: next });
+  }
+
+  function saveDailyTime(next: number) {
+    setDailyTime(next);
+    persist({ dailyTimeMinutes: next });
   }
 
   function toggleInterest(id: string) {
@@ -82,10 +112,7 @@ export function ProfileView({
 
   function saveInterests() {
     setCurrentInterests(pendingInterests);
-    setEditingField(null);
-    startTransition(async () => {
-      await updateLearningProfile({ interests: pendingInterests }).catch(() => {});
-    });
+    persist({ interests: pendingInterests });
   }
 
   function openInterests() {
@@ -93,9 +120,11 @@ export function ProfileView({
     setEditingField("interests");
   }
 
+  const derivedCefr = bandToCefr(band);
   const dailyTimeLabel = DAILY_TIME_OPTIONS.find((option) => option.value === dailyTime)?.label ?? `${dailyTime} min`;
-  const interestsSummary =
-    currentInterests.length > 0 ? currentInterests.join(", ") : "Add topics you enjoy";
+  const interestsSummary = currentInterests.length > 0 ? currentInterests.join(", ") : "Add topics you enjoy";
+
+  const selectableTargets = selectableTargetBands(band);
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 md:py-10">
@@ -115,49 +144,71 @@ export function ProfileView({
         </Link>
       </motion.header>
 
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="mt-6 flex flex-col items-center text-center"
-      >
-        {/* `wave` is reserved for Welcome/first-time onboarding — Profile is a
-            returning-learner surface, so it gets Tuto's normal presence
-            instead of a greeting gesture. */}
-        <Tuto pose="neutral" size="md" animation="float" priority />
-        <h2 className="mt-3 text-xl font-bold text-text-primary">{displayName}</h2>
-        <p className="mt-0.5 text-sm text-text-tertiary">{email}</p>
-      </motion.section>
+      <ProfileIdentityCard displayName={displayName} email={email} currentBand={band} />
 
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15 }}
         className="mt-8"
+        aria-labelledby="ielts-journey-heading"
       >
-        <h3 className="mb-3 text-sm font-semibold text-text-primary">Learning Profile</h3>
+        <h2 id="ielts-journey-heading" className="mb-3 text-sm font-semibold text-text-primary">
+          IELTS Journey
+        </h2>
         <div className="flex flex-col gap-3">
           <StatRow
-            icon={<span className="text-sm font-bold">{level ?? "—"}</span>}
-            label="English Level"
-            value={level ? `${level} — ${LEVEL_LABELS[level] ?? ""}` : "Not set"}
-            onClick={() => setEditingField("level")}
+            icon={<BAND_ICON className="h-5 w-5" aria-hidden="true" />}
+            label="Current Band"
+            value={band === null ? "Not set — take your placement test" : formatBand(band)}
+            onClick={() => setEditingField("currentBand")}
           />
           <StatRow
-            icon={<Target className="h-5 w-5" aria-hidden="true" />}
-            label="Learning Goal"
-            value={currentGoal ?? "Not set"}
-            onClick={() => setEditingField("goal")}
+            icon={<TARGET_ICON className="h-5 w-5" aria-hidden="true" />}
+            label="Target Band"
+            value={target === null ? "Not set" : formatBand(target)}
+            onClick={() => setEditingField("targetBand")}
           />
           <StatRow
-            icon={<DailyTimeIcon className="h-5 w-5" aria-hidden="true" />}
-            label="Daily Goal"
+            icon={<TIMELINE_ICON className="h-5 w-5" aria-hidden="true" />}
+            label="Exam Timeline"
+            value={timeline || "Not set"}
+            onClick={() => setEditingField("examTimeline")}
+          />
+        </div>
+        {/* Shown, not hidden, and explicitly labelled as derived. The rest
+            of the product still speaks CEFR — content ranges, the Learning
+            Brain, Tuto's prompt — so a learner who sees "B2" elsewhere
+            should be able to find out here where it came from. Read-only:
+            editing it independently is exactly the drift this redesign
+            removes. */}
+        <p className="mt-3 px-1 text-xs text-text-secondary">
+          {derivedCefr
+            ? `Your reading and listening level is set to ${derivedCefr}, calculated from your band.`
+            : "Your reading and listening level is calculated from your band once you have one."}
+        </p>
+      </motion.section>
+
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="mt-8"
+        aria-labelledby="learning-preferences-heading"
+      >
+        <h2 id="learning-preferences-heading" className="mb-3 text-sm font-semibold text-text-primary">
+          Learning Preferences
+        </h2>
+        <div className="flex flex-col gap-3">
+          <StatRow
+            icon={<DAILY_TIME_ICON className="h-5 w-5" aria-hidden="true" />}
+            label="Daily Study Time"
             value={`${dailyTimeLabel} / day`}
             onClick={() => setEditingField("dailyTime")}
           />
           <StatRow
-            icon={<Sparkles className="h-5 w-5" aria-hidden="true" />}
-            label="Interests"
+            icon={<INTERESTS_ICON className="h-5 w-5" aria-hidden="true" />}
+            label="Topics of Interest"
             value={interestsSummary}
             onClick={openInterests}
           />
@@ -167,11 +218,14 @@ export function ProfileView({
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
+        transition={{ duration: 0.5, delay: 0.25 }}
         className="mt-8"
+        aria-labelledby="profile-achievements-heading"
       >
-        <h3 className="mb-3 text-sm font-semibold text-text-primary">Achievements</h3>
-        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.25} />
+        <h2 id="profile-achievements-heading" className="mb-3 text-sm font-semibold text-text-primary">
+          Achievements
+        </h2>
+        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.3} />
       </motion.section>
 
       <motion.section
@@ -180,68 +234,50 @@ export function ProfileView({
         transition={{ duration: 0.5, delay: 0.3 }}
         className="mt-8"
       >
-        <Button
-          variant="secondary"
-          block
-          disabled={isPending}
-          onClick={() => startTransition(() => signOutAction())}
-        >
+        <Button variant="secondary" block disabled={isPending} onClick={() => startTransition(() => signOutAction())}>
           <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
           Sign Out
         </Button>
       </motion.section>
 
-      <EditSheet open={editingField === "level"} title="English Level" onClose={() => setEditingField(null)}>
-        <div className="grid grid-cols-2 gap-3">
-          {LEVEL_OPTIONS.map((option) => {
-            const selected = level === option.id;
-            return (
-              <SelectableCard key={option.id} selected={selected} onClick={() => saveLevel(option.id)} className="flex items-center gap-3 px-4 py-3.5">
-                <div
-                  className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-md font-heading text-xs font-bold",
-                    selected ? "bg-primary text-text-on-primary" : "bg-bg-muted text-text-secondary",
-                  )}
-                >
-                  {option.id}
-                </div>
-                <span className="text-sm font-medium text-text-primary">{option.title}</span>
-                {selected && <Check className="ml-auto h-4 w-4 shrink-0 text-primary" aria-hidden="true" />}
-              </SelectableCard>
-            );
-          })}
+      <EditSheet open={editingField === "currentBand"} title="Current Band" onClose={() => setEditingField(null)}>
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+          {CURRENT_BAND_OPTIONS.map((option) => (
+            <BandOption key={option} label={formatBand(option)} selected={band === option} onClick={() => saveCurrentBand(option)} />
+          ))}
+          {/* The same honest answer onboarding accepts — it writes NULL
+              rather than a guessed band, and the placement assessment is
+              what resolves it. */}
+          <BandOption label="Not sure" selected={band === null} onClick={() => saveCurrentBand(null)} className="col-span-3 sm:col-span-4" />
         </div>
       </EditSheet>
 
-      <EditSheet open={editingField === "goal"} title="Learning Goal" onClose={() => setEditingField(null)}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {GOAL_OPTIONS.map((option) => {
+      <EditSheet open={editingField === "targetBand"} title="Target Band" onClose={() => setEditingField(null)}>
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+          {selectableTargets.map((option) => (
+            <BandOption key={option} label={formatBand(option)} selected={target === option} onClick={() => saveTargetBand(option)} />
+          ))}
+        </div>
+        {band !== null && (
+          <p className="mt-4 text-center text-xs text-text-secondary">
+            Showing bands at or above your current band of {formatBand(band)}.
+          </p>
+        )}
+      </EditSheet>
+
+      <EditSheet open={editingField === "examTimeline"} title="Exam Timeline" onClose={() => setEditingField(null)}>
+        <div className="flex flex-col gap-3">
+          {TIMELINE_OPTIONS.map((option) => {
             const Icon = option.icon;
-            const selected = currentGoal === option.id;
+            const selected = timeline === option.id;
             return (
-              <SelectableCard key={option.id} selected={selected} onClick={() => saveGoal(option.id)} className="flex flex-col items-center gap-2.5 px-4 py-5">
-                <div className={cn("flex h-11 w-11 items-center justify-center rounded-md", selected ? "bg-primary-lighter text-primary" : "bg-bg-muted text-text-tertiary")}>
+              <SelectableCard key={option.id} selected={selected} onClick={() => saveTimeline(option.id)} className="flex w-full items-center gap-4 px-5 py-4">
+                <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-md", selected ? "bg-primary text-text-on-primary" : "bg-bg-muted text-text-secondary")}>
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <span className="text-center text-xs font-medium leading-tight text-text-secondary">{option.id}</span>
-              </SelectableCard>
-            );
-          })}
-        </div>
-      </EditSheet>
-
-      <EditSheet open={editingField === "dailyTime"} title="Daily Goal" onClose={() => setEditingField(null)}>
-        <div className="flex flex-col gap-3">
-          {DAILY_TIME_OPTIONS.map((option) => {
-            const selected = dailyTime === option.value;
-            return (
-              <SelectableCard key={option.value} selected={selected} onClick={() => saveDailyTime(option.value)} className="flex w-full items-center gap-4 px-5 py-4">
-                <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-md", selected ? "bg-primary text-text-on-primary" : "bg-bg-muted text-text-tertiary")}>
-                  <Clock className="h-5 w-5" aria-hidden="true" />
-                </div>
                 <div className="text-left">
-                  <p className="font-medium text-text-primary">{option.label}</p>
-                  <p className="text-xs text-text-tertiary">{option.desc}</p>
+                  <p className="font-medium text-text-primary">{option.id}</p>
+                  <p className="text-xs text-text-secondary">{option.desc}</p>
                 </div>
                 {selected && <Check className="ml-auto h-5 w-5 shrink-0 text-primary" aria-hidden="true" />}
               </SelectableCard>
@@ -250,14 +286,35 @@ export function ProfileView({
         </div>
       </EditSheet>
 
-      <EditSheet open={editingField === "interests"} title="Interests" onClose={() => setEditingField(null)}>
+      <EditSheet open={editingField === "dailyTime"} title="Daily Study Time" onClose={() => setEditingField(null)}>
+        <div className="flex flex-col gap-3">
+          {DAILY_TIME_OPTIONS.map((option) => {
+            const selected = dailyTime === option.value;
+            const Icon = DAILY_TIME_ICON;
+            return (
+              <SelectableCard key={option.value} selected={selected} onClick={() => saveDailyTime(option.value)} className="flex w-full items-center gap-4 px-5 py-4">
+                <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-md", selected ? "bg-primary text-text-on-primary" : "bg-bg-muted text-text-secondary")}>
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-text-primary">{option.label}</p>
+                  <p className="text-xs text-text-secondary">{option.desc}</p>
+                </div>
+                {selected && <Check className="ml-auto h-5 w-5 shrink-0 text-primary" aria-hidden="true" />}
+              </SelectableCard>
+            );
+          })}
+        </div>
+      </EditSheet>
+
+      <EditSheet open={editingField === "interests"} title="Topics of Interest" onClose={() => setEditingField(null)}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {INTEREST_OPTIONS.map((option) => {
             const Icon = option.icon;
             const selected = pendingInterests.includes(option.id);
             return (
               <SelectableCard key={option.id} selected={selected} onClick={() => toggleInterest(option.id)} className="flex items-center gap-2.5 px-4 py-3.5">
-                <Icon className={cn("h-4 w-4", selected ? "text-primary" : "text-text-tertiary")} aria-hidden="true" />
+                <Icon className={cn("h-4 w-4", selected ? "text-primary" : "text-text-secondary")} aria-hidden="true" />
                 <span className={cn("text-sm font-medium", selected ? "text-primary-dark" : "text-text-secondary")}>{option.id}</span>
                 {selected && <Check className="ml-auto h-4 w-4 text-primary" aria-hidden="true" />}
               </SelectableCard>
@@ -269,5 +326,28 @@ export function ProfileView({
         </Button>
       </EditSheet>
     </div>
+  );
+}
+
+/** Band tiles are numbers, not labelled options — the value IS the label, so they get a denser grid than the icon-and-description cards above. */
+function BandOption({
+  label,
+  selected,
+  onClick,
+  className,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <SelectableCard
+      selected={selected}
+      onClick={onClick}
+      className={cn("flex items-center justify-center px-3 py-3.5 text-sm font-bold", selected ? "text-primary-dark" : "text-text-primary", className)}
+    >
+      {label}
+    </SelectableCard>
   );
 }

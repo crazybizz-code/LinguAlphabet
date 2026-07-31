@@ -1,62 +1,71 @@
 import {
   BookOpen,
-  Mic,
   Briefcase,
-  Plane,
-  Building2,
-  GraduationCap,
-  FileCheck,
+  CalendarClock,
+  Clapperboard,
   Clock,
   Cpu,
   FlaskConical,
-  Clapperboard,
   Gamepad2,
   Music,
+  Plane,
+  Sparkles,
+  Target,
   Trophy,
+  Trophy as BandIcon,
   UtensilsCrossed,
 } from "lucide-react";
 
 /**
- * The controlled vocabularies collected by onboarding (level/goal/daily-time/
- * interests) — docs/domain-model.md §2 makes these editable from Profile, not
- * a frozen onboarding snapshot. Kept as Profile's own copy rather than a
- * shared import from the onboarding pages: those pages own their local
- * layout-specific constants (colors, descriptions) and aren't a public
- * module, so duplicating the small controlled lists here is lower blast
- * radius than reaching into onboarding to export them.
+ * Profile's controlled vocabularies.
+ *
+ * The band, timeline and daily-time lists are NOT redefined here — they
+ * are re-exported from `@/lib/onboarding/constants`, which is the module
+ * that already owns them. Profile used to keep its own copies, and they
+ * had already drifted: onboarding offered 15/30/45/60 minutes while
+ * Profile offered 10/20/30/45/60, so a learner who picked 15 opened
+ * Profile to find their own answer missing from the list and no option
+ * selected. One list, one owner, and that class of bug can't come back.
+ *
+ * What Profile still owns is the interest catalog, because onboarding
+ * doesn't collect it — the IELTS wizard writes `interests: []` and never
+ * asks, which makes Profile the only place it can be set.
  */
-export const LEVEL_OPTIONS = [
-  { id: "A1", title: "Beginner" },
-  { id: "A2", title: "Elementary" },
-  { id: "B1", title: "Intermediate" },
-  { id: "B2", title: "Upper Intermediate" },
-  { id: "C1", title: "Advanced" },
-  { id: "C2", title: "Mastery" },
-] as const;
 
-export const LEVEL_LABELS: Record<string, string> = Object.fromEntries(
-  LEVEL_OPTIONS.map((option) => [option.id, option.title]),
-);
+import { TARGET_BAND_OPTIONS } from "@/lib/onboarding/constants";
 
-export const GOAL_OPTIONS = [
-  { id: "General English", icon: BookOpen },
-  { id: "Speaking", icon: Mic },
-  { id: "Business English", icon: Briefcase },
-  { id: "Travel", icon: Plane },
-  { id: "Work", icon: Building2 },
-  { id: "School", icon: GraduationCap },
-  { id: "Exam Preparation", icon: FileCheck },
-] as const;
+export {
+  CURRENT_BAND_OPTIONS,
+  TARGET_BAND_OPTIONS,
+  TIMELINE_OPTIONS,
+  DAILY_TIME_OPTIONS,
+  formatBand,
+} from "@/lib/onboarding/constants";
 
-export const DAILY_TIME_OPTIONS = [
-  { value: 10, label: "10 min", desc: "Casual" },
-  { value: 20, label: "20 min", desc: "Regular" },
-  { value: 30, label: "30 min", desc: "Committed" },
-  { value: 45, label: "45 min", desc: "Serious" },
-  { value: 60, label: "60 min", desc: "Intensive" },
-] as const;
+/**
+ * The target bands a learner may pick, given where they are now.
+ *
+ * Onboarding blocks a target below the current band (canAdvance ->
+ * isTargetBandTooLow, strict `<`, so equal is allowed). Profile is the
+ * only other write path for these fields, so without the same rule here
+ * it would simply be the way around that validation. Filtering rather
+ * than disabling keeps the grid short and makes the rule self-evident
+ * without an error message.
+ *
+ * An unknown current band ("Not sure") constrains nothing — there is no
+ * floor to compare against, and inventing one would be the same
+ * fabrication the null is there to avoid.
+ */
+export function selectableTargetBands(currentBand: number | null): readonly number[] {
+  if (currentBand === null) return TARGET_BAND_OPTIONS;
+  return TARGET_BAND_OPTIONS.filter((band) => band >= currentBand);
+}
 
+export const BAND_ICON = BandIcon;
+export const TARGET_ICON = Target;
+export const TIMELINE_ICON = CalendarClock;
 export const DAILY_TIME_ICON = Clock;
+export const INTERESTS_ICON = Sparkles;
 
 export const INTEREST_OPTIONS = [
   { id: "Technology", icon: Cpu },

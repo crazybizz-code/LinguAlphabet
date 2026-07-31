@@ -43,6 +43,33 @@ function useLockBodyScroll(locked: boolean) {
 }
 
 /**
+ * Escape closes the sheet.
+ *
+ * This carries `role="dialog"` and `aria-modal="true"`, which is a promise
+ * to assistive tech that the usual modal conventions hold — and Escape is
+ * the first of them. Without it a keyboard user who opened a sheet could
+ * only leave by tabbing to the X; there is no other keyboard exit, since
+ * the backdrop is a click target and the swipe-down is a pointer gesture.
+ * Routed through the same onClose as every other dismissal, so the
+ * history-entry cleanup below still runs exactly once.
+ */
+function useEscapeClosesSheet(open: boolean, onClose: () => void) {
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onCloseRef.current();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+}
+
+/**
  * CRITICAL ISSUE #3: on Android, hardware/gesture Back must close an open
  * sheet, never exit the page underneath it. The standard cross-browser fix:
  * push one extra history entry the instant the sheet opens, so a Back press
@@ -136,6 +163,7 @@ const SHEET_HEIGHT_CLASSES = "h-[78vh] h-[78svh] h-[78dvh]";
  */
 export function EditSheet({ open, title, onClose, children }: EditSheetProps) {
   useLockBodyScroll(open);
+  useEscapeClosesSheet(open, onClose);
   useBackButtonClosesSheet(open, onClose);
   const contentRef = useRef<HTMLDivElement>(null);
 

@@ -113,7 +113,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           </>
         ) : (
           <>
-            <span>{children}</span>
+            {/* inline-flex, not a bare span: Tailwind's preflight sets
+                `svg { display: block }`, so a caller passing an inline icon
+                (`<LogOut className="mr-2" />Sign Out`) had the icon push the
+                label onto a second line. Both Sign Out buttons in the app
+                were rendering stacked. No effect on text-only buttons. */}
+            <span className="inline-flex items-center justify-center">{children}</span>
             {arrow && <ArrowIcon />}
           </>
         )}
