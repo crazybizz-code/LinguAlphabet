@@ -16,7 +16,16 @@ import { OnboardingContinue } from "../OnboardingStepShell";
  * personalize, the assessment measures — which is what stops the
  * preceding six screens from feeling like they were ignored.
  */
-export function PlacementStep({ onStart, saving }: { onStart: () => void; saving: boolean }) {
+export function PlacementStep({
+  onStart,
+  saving,
+  error,
+}: {
+  onStart: () => void;
+  saving: boolean;
+  /** Set when saving the answers failed — the learner stays here and retries rather than being pushed into a redirect loop. */
+  error?: string | null;
+}) {
   return (
     <div className="mx-auto max-w-md text-center">
       <Tuto pose="typing-laptop" size="xl" animation="float" className="mx-auto mb-8" alt="" />
@@ -46,8 +55,8 @@ export function PlacementStep({ onStart, saving }: { onStart: () => void; saving
         transition={{ delay: 0.3, duration: 0.5 }}
         className="mb-8 leading-relaxed text-text-secondary"
       >
-        Complete a short Reading and Listening assessment, and Tuto will create a personalized IELTS study plan based on
-        your performance.
+        A short Reading and Listening assessment is waiting as your first mission. Tuto will use it to build a
+        personalized IELTS study plan around your real level.
       </motion.p>
 
       <motion.p
@@ -60,9 +69,19 @@ export function PlacementStep({ onStart, saving }: { onStart: () => void; saving
         <span className="text-sm font-medium text-text-secondary">About 15 minutes</span>
       </motion.p>
 
+      {error && (
+        <p role="alert" className="mb-4 text-sm text-danger">
+          {error} Please try again.
+        </p>
+      )}
+
       <div>
+        {/* Honest label: this goes to the Dashboard, where the
+            assessment is waiting as the first mission. A button reading
+            "Start Assessment" that opens something else is the same
+            false-promise pattern removed elsewhere in this product. */}
         <OnboardingContinue onClick={onStart} loading={saving} size="lg">
-          Start Assessment
+          {error ? "Try Again" : "Go to My Dashboard"}
         </OnboardingContinue>
       </div>
     </div>

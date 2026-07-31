@@ -29,7 +29,7 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: previousMission }, dueVocabulary] = await Promise.all([
-    supabase.from("profiles").select("username, level, last_study_date, daily_time_minutes, interests, onboarding_completed").eq("user_id", user.id).single(),
+    supabase.from("profiles").select("username, level, last_study_date, daily_time_minutes, interests, onboarding_completed, placement_completed").eq("user_id", user.id).single(),
     // Level/goal/streak come from LearnerRepository (src/ai/data, frozen) —
     // the same repository Tuto's own system prompt reads (ai-service.ts's
     // resolveMemory()) — so Dashboard and Tuto can never independently
@@ -125,6 +125,7 @@ export default async function DashboardPage() {
       allMissionsCompleted={allMissionsCompleted}
       tutoNote={tutoNote}
       recommendations={tutoRecommends}
+      placementCompleted={profile?.placement_completed ?? false}
       dueVocabularyCount={dueVocabulary.length}
     />
   );

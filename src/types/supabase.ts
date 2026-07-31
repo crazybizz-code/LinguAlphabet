@@ -41,7 +41,10 @@ export interface Database {
           target_band: number | null;
           exam_timeline: string | null;
           interests: string[];
+          /** The wizard was answered. Gates every authenticated route. */
           onboarding_completed: boolean;
+          /** The placement assessment was completed and a plan generated — see supabase/placement-assessment-flag.sql. */
+          placement_completed: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -68,6 +71,7 @@ export interface Database {
           exam_timeline?: string | null;
           interests?: string[];
           onboarding_completed?: boolean;
+          placement_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };

@@ -30,9 +30,13 @@ export default function WelcomePage() {
 
     const supabase = createClient();
     const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) return;
+    // Throw rather than return: a silent no-op here would leave
+    // onboarding_completed false while still navigating to /dashboard,
+    // whose guard would bounce straight back to /welcome — an
+    // unexplained loop with no way out.
+    if (!auth.user) throw new Error("Your session expired. Please sign in again.");
 
-    await supabase
+    const { error } = await supabase
       .from("profiles")
       .update({
         username: data.displayName.trim() || undefined,
@@ -45,12 +49,21 @@ export default function WelcomePage() {
         current_band: data.currentBandUnsure ? null : data.currentBand,
         target_band: data.targetBand,
         exam_timeline: data.examTimeline || null,
+        // The wizard now owns this transition. /ai-plan used to set it,
+        // but the flow no longer passes through /ai-plan on the way out —
+        // without it here, every authenticated route guard would bounce
+        // the learner straight back to /welcome from the dashboard they
+        // were just sent to.
+        onboarding_completed: true,
       })
       .eq("user_id", auth.user.id);
+
+    if (error) throw new Error(error.message);
   }
 
-  // onboarding_completed is deliberately NOT set here — /ai-plan owns that
-  // transition, and it already handles a failed write without stranding
-  // the learner on a screen whose "Done" button bounces them back.
-  return <OnboardingWizard onComplete={handleComplete} destination="/ai-plan" />;
+  // The Dashboard, not the assessment. Ending the wizard on a 15-minute
+  // test makes the test feel like more paperwork before the product
+  // starts; ending on the Dashboard with the test waiting as mission one
+  // makes it the first thing they do inside the product.
+  return <OnboardingWizard onComplete={handleComplete} destination="/dashboard" />;
 }

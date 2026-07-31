@@ -33,7 +33,7 @@ import { PlacementStep } from "./steps/PlacementStep";
  * the selection rather than refetching it.
  */
 export interface OnboardingWizardProps {
-  /** Persists the collected answers. Rejecting must not strand the learner — see handleFinish. */
+  /** Persists the collected answers AND marks onboarding complete. Rejecting keeps the learner on the final screen with a retry — see handleFinish. */
   onComplete: (data: OnboardingData) => Promise<void>;
   /** Where to send the learner once their answers are saved. */
   destination: string;
@@ -44,6 +44,7 @@ export function OnboardingWizard({ onComplete, destination }: OnboardingWizardPr
   const [stepIndex, setStepIndex] = useState(0);
   const [data, setData] = useState<OnboardingData>(INITIAL_ONBOARDING_DATA);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const step = ONBOARDING_STEPS[stepIndex];
   const update = useCallback(<K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
@@ -54,13 +55,18 @@ export function OnboardingWizard({ onComplete, destination }: OnboardingWizardPr
 
   const handleFinish = useCallback(async () => {
     setSaving(true);
+    setSaveError(null);
     try {
       await onComplete(data);
-    } catch {
-      // Never trap the learner on the last screen because a write failed.
-      // Their answers personalize the plan; they are not a precondition
-      // for taking the assessment, and the assessment is the more
-      // accurate signal anyway.
+    } catch (error) {
+      // Navigating anyway is NOT safe here. Completion is what sets
+      // onboarding_completed, and every authenticated route guards on it
+      // — so pushing to the dashboard after a failed write sends the
+      // learner into an unexplained redirect loop back to this wizard.
+      // Far better to stay put, say what happened, and let them retry.
+      setSaving(false);
+      setSaveError(error instanceof Error ? error.message : "Something went wrong saving your answers.");
+      return;
     }
     router.push(destination);
   }, [data, destination, onComplete, router]);
@@ -180,7 +186,9 @@ export function OnboardingWizard({ onComplete, destination }: OnboardingWizardPr
                 />
               )}
 
-              {step === "placement" && <PlacementStep onStart={() => void handleFinish()} saving={saving} />}
+              {step === "placement" && (
+                <PlacementStep onStart={() => void handleFinish()} saving={saving} error={saveError} />
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
