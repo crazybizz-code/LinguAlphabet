@@ -35,6 +35,11 @@ export interface Database {
           english_level: string | null;
           goal: string | null;
           daily_time_minutes: number | null;
+          /** IELTS onboarding — see supabase/ielts-onboarding-fields.sql. Null band means "not known yet", never a default. */
+          exam_type: string | null;
+          current_band: number | null;
+          target_band: number | null;
+          exam_timeline: string | null;
           interests: string[];
           onboarding_completed: boolean;
           created_at: string;
@@ -57,6 +62,10 @@ export interface Database {
           english_level?: string | null;
           goal?: string | null;
           daily_time_minutes?: number | null;
+          exam_type?: string | null;
+          current_band?: number | null;
+          target_band?: number | null;
+          exam_timeline?: string | null;
           interests?: string[];
           onboarding_completed?: boolean;
           created_at?: string;

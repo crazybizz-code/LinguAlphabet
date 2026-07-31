@@ -102,6 +102,12 @@
   --radius-full: 9999px;
   --radius-card: 32px; /* large bordered sections */
   --radius-sheet: 32px;
+  /* IELTS onboarding choice cards + name input. Base44 uses Tailwind's
+     stock `rounded-2xl` (16px) there, but this project deliberately
+     overrides --radius-2xl to 36px, so writing `rounded-2xl` would render
+     more than twice the intended curve. A distinctly-named key avoids
+     both the collision and a scattering of arbitrary `rounded-[16px]`. */
+  --radius-choice: 16px;
 
   /* ---- Shadows ---- */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
