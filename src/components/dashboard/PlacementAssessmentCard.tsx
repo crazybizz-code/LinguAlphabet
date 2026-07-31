@@ -38,6 +38,13 @@ export function PlacementAssessmentCard({ placementCompleted, displayName }: Pla
       className="mt-5 px-5 sm:px-8"
       aria-labelledby="placement-mission-heading"
     >
+      {/* TEMPORARY, and a deliberate MVP decision rather than an
+          oversight: the Reading & Listening assessment engine is a
+          separate feature not yet built. /ai-plan already performs the AI
+          analysis and renders the plan, so it stands in as the end of the
+          chain. When the assessment ships, this href is the single place
+          that changes — point it at the assessment, and let the
+          assessment navigate on to /ai-plan when it finishes. */}
       <Link
         href="/ai-plan"
         className="group block rounded-[1.75rem] bg-primary p-5 text-text-on-primary shadow-glow transition-all hover:-translate-y-0.5 hover:shadow-lg sm:p-6"
