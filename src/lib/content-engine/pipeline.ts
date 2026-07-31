@@ -31,6 +31,9 @@ function sleep(ms: number): Promise<void> {
 /** Default 1.5s, inside the requested 1-2s band. Tunable per deployment without a deploy — raise it if 429s persist, lower it if the run approaches maxDuration. */
 const DEFAULT_ENRICHMENT_PACING_MS = 1500;
 
+/** Replay budget per run when a source's config does not set maxRetryItemsPerRun. Small on purpose: a backlog should drain over a few runs, not in one expensive burst. */
+const DEFAULT_MAX_RETRY_ITEMS_PER_RUN = 2;
+
 /** Consecutive rate-limited items before a source stops asking for this run. Three in a row is quota exhaustion, not a transient spike. */
 const MAX_CONSECUTIVE_RATE_LIMITS = 3;
 
@@ -39,6 +42,47 @@ function getEnrichmentPacingMs(): number {
   if (!raw) return DEFAULT_ENRICHMENT_PACING_MS;
   const parsed = Number(raw);
   return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_ENRICHMENT_PACING_MS;
+}
+
+/**
+ * How far back an unfinished item stays eligible for replay. An item
+ * that has been failing for a fortnight is not going to start working;
+ * leaving it eligible forever would let one permanently-broken item
+ * occupy a retry slot on every run and starve fresh content.
+ */
+const RETRY_WINDOW_DAYS = 14;
+
+/** Minimal shape of a stored RawContentItem — validated before replay rather than trusted. */
+function isReplayableItem(value: unknown): value is RawContentItem {
+  if (typeof value !== "object" || value === null) return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.externalId === "string" && item.externalId.length > 0 && typeof item.title === "string" && typeof item.body === "string";
+}
+
+/**
+ * Merges items awaiting replay with freshly fetched ones.
+ *
+ * Pending come FIRST: they have already waited at least one run, and the
+ * whole point is that they stop being overtaken. Fresh items win on
+ * collision — if an item is both pending and re-fetched, the newly
+ * fetched copy is the more current view of the source, and processing it
+ * twice in one run would just burn a Gemini call.
+ *
+ * Pure, so the ordering and dedup rules are testable without a database.
+ */
+export function mergePendingAndFetched(pending: RawContentItem[], fetched: RawContentItem[]): RawContentItem[] {
+  const fetchedIds = new Set(fetched.map((item) => item.externalId));
+  const pendingNotRefetched = pending.filter((item) => !fetchedIds.has(item.externalId));
+
+  // Dedup within `fetched` too — a feed can legitimately repeat a guid.
+  const seen = new Set<string>();
+  const uniqueFetched = fetched.filter((item) => {
+    if (seen.has(item.externalId)) return false;
+    seen.add(item.externalId);
+    return true;
+  });
+
+  return [...pendingNotRefetched, ...uniqueFetched];
 }
 
 /** Exact-match content fingerprint — catches the same real-world article syndicated through a different feed, not just a re-run of the same one. */
@@ -109,6 +153,44 @@ async function setRawItemStatus(
 }
 
 /**
+ * Loads items this source staged on an earlier run that never reached a
+ * terminal status, oldest first so nothing can be starved indefinitely.
+ *
+ * Replays from `normalized_item` rather than re-deriving from
+ * `raw_payload`: the latter holds each provider's own source-specific
+ * shape (a PLOS Solr doc, a feed-item wrapper), so rebuilding a
+ * RawContentItem from it would mean reimplementing every provider's
+ * mapping here. Rows written before that column existed have it null and
+ * are simply not replayable — they are pre-existing debris, and skipping
+ * them is preferable to guessing at their contents.
+ *
+ * Never throws: a failure to load the backlog must not stop the run from
+ * ingesting new content.
+ */
+async function loadReplayableItems(supabase: Client, sourceId: string, limit: number): Promise<RawContentItem[]> {
+  if (limit <= 0) return [];
+
+  const cutoff = new Date(Date.now() - RETRY_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabase
+    .from("content_raw_items")
+    .select("normalized_item")
+    .eq("source_id", sourceId)
+    .is("processed_at", null)
+    .not("normalized_item", "is", null)
+    .gte("stage_updated_at", cutoff)
+    .order("stage_updated_at", { ascending: true })
+    .limit(limit);
+
+  if (error || !data) return [];
+
+  // `normalized_item` is typed as Json; isReplayableItem is what narrows
+  // it, so a row written by an older or malformed writer is skipped
+  // rather than trusted into the pipeline.
+  return data.map((row) => row.normalized_item as unknown).filter(isReplayableItem);
+}
+
+/**
  * 2. Content Pipeline — the one orchestrated flow implementing
  * docs/content-lifecycle.md §1's four stages end to end, in the order
  * docs/content-engine.md specifies: Sourcing (the provider) -> stage into
@@ -160,7 +242,19 @@ export async function runIngestionPipeline(
   // provider automatically routes it to listening-oriented enrichment.
   const modality: ContentModality = provider.contentType === "podcast" || provider.contentType === "video" ? "audio" : "text";
 
+  // Replay budget, separate from the provider's own fetch cap so a
+  // backlog drains without shrinking the intake of fresh content.
+  // Worst case a run does maxItemsPerRun + maxRetryItemsPerRun items, and
+  // only while a backlog exists — steady state is zero pending and the
+  // run costs exactly what it does today.
+  const configuredRetryLimit = options.sourceConfig.maxRetryItemsPerRun;
+  const maxRetryItemsPerRun =
+    typeof configuredRetryLimit === "number" && configuredRetryLimit >= 0
+      ? Math.floor(configuredRetryLimit)
+      : DEFAULT_MAX_RETRY_ITEMS_PER_RUN;
+
   let itemsFetched = 0;
+  let itemsRetried = 0;
   let itemsPublished = 0;
   let itemsRejected = 0;
   // The one rejection branch below (raw upsert failure) has no
@@ -174,8 +268,18 @@ export async function runIngestionPipeline(
   let rateLimitedOut = false;
 
   try {
-    const rawItems = await provider.fetchRawItems(options.sourceConfig);
-    itemsFetched = rawItems.length;
+    // Items staged by an earlier run that never reached a terminal
+    // status, replayed BEFORE anything new is fetched. Without this,
+    // `processed_at is null` does not actually mean "will be retried":
+    // providers only return the newest N entries, so one newer article is
+    // enough to push an unfinished item out of the fetch window forever.
+    const pendingItems = await loadReplayableItems(supabase, options.sourceId, maxRetryItemsPerRun);
+    const fetchedItems = await provider.fetchRawItems(options.sourceConfig);
+
+    itemsRetried = pendingItems.length;
+    itemsFetched = fetchedItems.length;
+
+    const rawItems = mergePendingAndFetched(pendingItems, fetchedItems);
 
     for (const raw of rawItems) {
       const { data: existing } = await supabase
@@ -197,6 +301,9 @@ export async function runIngestionPipeline(
             source_id: options.sourceId,
             external_id: raw.externalId,
             raw_payload: (raw.raw ?? raw) as unknown as Json,
+            // The normalized item itself, so an unfinished attempt can be
+            // replayed later without the provider (see loadReplayableItems).
+            normalized_item: raw as unknown as Json,
             status: "FETCHED",
             stage_updated_at: new Date().toISOString(),
             content_hash: contentHash,
@@ -414,7 +521,7 @@ export async function runIngestionPipeline(
       })
       .eq("id", run.id);
 
-    return { runId: run.id, itemsFetched, itemsPublished, itemsRejected, status: "completed" };
+    return { runId: run.id, itemsFetched, itemsRetried, itemsPublished, itemsRejected, status: "completed" };
   } catch (error) {
     const message = errorMessage(error);
     await supabase
@@ -429,6 +536,6 @@ export async function runIngestionPipeline(
       })
       .eq("id", run.id);
 
-    return { runId: run.id, itemsFetched, itemsPublished, itemsRejected, status: "failed", error: message };
+    return { runId: run.id, itemsFetched, itemsRetried, itemsPublished, itemsRejected, status: "failed", error: message };
   }
 }

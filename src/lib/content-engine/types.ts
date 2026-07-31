@@ -158,6 +158,8 @@ export interface QualityGateResult {
 export interface IngestionRunResult {
   runId: string;
   itemsFetched: number;
+  /** Items replayed from a previous run that never reached a terminal status. Counted separately from itemsFetched so a run's totals reconcile. */
+  itemsRetried: number;
   itemsPublished: number;
   itemsRejected: number;
   status: "completed" | "failed";
