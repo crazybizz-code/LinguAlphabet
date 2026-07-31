@@ -452,6 +452,8 @@ export interface Database {
           source_id: string;
           external_id: string;
           raw_payload: Json;
+          /** The RawContentItem this row was staged from — lets an unfinished item be replayed without refetching. Null on rows written before the retry migration. */
+          normalized_item: Json | null;
           fetched_at: string;
           processed_at: string | null;
           content_item_id: string | null;
@@ -478,6 +480,7 @@ export interface Database {
           source_id: string;
           external_id: string;
           raw_payload: Json;
+          normalized_item?: Json | null;
           fetched_at?: string;
           processed_at?: string | null;
           content_item_id?: string | null;

@@ -106,6 +106,10 @@ export async function GET(request: Request) {
       sourcesFailed: runs.length - succeeded.length,
       sourcesPublishingContent: publishing.length,
       singleSourceRisk: publishing.length <= 1,
+      // Items replayed from earlier runs that never finished. A number
+      // that stays high run after run means a backlog is not draining;
+      // zero is the healthy steady state.
+      itemsRetried: runs.reduce((total, run) => total + ("itemsRetried" in run ? (run.itemsRetried ?? 0) : 0), 0),
     },
   });
 }
