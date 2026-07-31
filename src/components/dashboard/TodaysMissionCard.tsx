@@ -3,9 +3,10 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, CheckCircle2, Clock, Headphones } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, Clock, Headphones, Play } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import type { DailyMissionSlot } from "@/lib/learning-brain";
+import type { ResumeStrip } from "@/lib/dashboard/resume";
 import type { ArticleContent, PodcastContent } from "@/types/content";
 
 const SLOT_LABEL: Record<DailyMissionSlot["contentType"], string> = {
@@ -97,6 +98,16 @@ function MissionSlotRow({ slot }: { slot: DailyMissionSlot }) {
           <span aria-hidden="true">·</span>
           {mission.badgeLabel}
         </p>
+        {/* When today's mission IS the half-finished lesson (the common
+            case — Today's Mission is resume-priority), this bar is the
+            Continue Learning affordance, inline. buildMission has always
+            computed progressPercentage; nothing ever rendered it, which
+            is why a returning learner couldn't see how far in they were. */}
+        {mission.progressPercentage !== null && (
+          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-white/25" aria-hidden="true">
+            <div className="h-full rounded-full bg-white" style={{ width: `${mission.progressPercentage}%` }} />
+          </div>
+        )}
       </div>
       <span className="hidden shrink-0 items-center gap-1 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-primary sm:flex">
         {mission.ctaLabel}
@@ -107,9 +118,89 @@ function MissionSlotRow({ slot }: { slot: DailyMissionSlot }) {
   );
 }
 
+/**
+ * The compact Continue Learning strip — only ever rendered for a lesson
+ * that is NOT already one of today's slots (see buildResumeStrip). Sits
+ * after the plan rather than before it: today's plan is the commitment,
+ * this is the loose end.
+ */
+function ContinueLearningStrip({ resume }: { resume: ResumeStrip }) {
+  return (
+    <Link
+      href={resume.href}
+      className="group mt-3 flex items-center gap-3 rounded-choice bg-white/10 p-3.5 transition-colors duration-200 hover:bg-white/20"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-white/20">
+        <Play className="h-4 w-4 text-white" aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70">Pick up where you left off</p>
+        <p className="truncate text-sm font-bold text-white">{resume.title}</p>
+        {resume.percentage !== null && (
+          <div className="mt-1.5 flex items-center gap-2">
+            <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/25" aria-hidden="true">
+              <div className="h-full rounded-full bg-white" style={{ width: `${resume.percentage}%` }} />
+            </div>
+            {resume.minutesLeft !== null && (
+              <span className="shrink-0 text-[11px] font-medium tabular-nums text-white/70">
+                {resume.minutesLeft} min left
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      <ArrowRight
+        className="h-4 w-4 shrink-0 text-white/70 transition-transform duration-300 group-hover:translate-x-1"
+        aria-hidden="true"
+      />
+    </Link>
+  );
+}
+
+/** The learner's own daily_time_minutes, shown where the minutes are actually earned. */
+function DailyGoalFooter({ todayMinutes, dailyGoalMinutes }: { todayMinutes: number; dailyGoalMinutes: number }) {
+  if (dailyGoalMinutes <= 0) return null;
+  const percentage = Math.min(100, (todayMinutes / dailyGoalMinutes) * 100);
+
+  return (
+    <div className="mt-5 border-t border-white/20 pt-4">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-medium text-white/70">Today&apos;s goal</p>
+        <p className="text-xs font-bold text-white tabular-nums">
+          {Math.round(todayMinutes)} / {Math.round(dailyGoalMinutes)} min
+        </p>
+      </div>
+      <div
+        className="h-1.5 w-full overflow-hidden rounded-full bg-white/25"
+        role="progressbar"
+        aria-label="Daily goal progress"
+        aria-valuenow={Math.round(percentage)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${percentage}%` }} />
+      </div>
+    </div>
+  );
+}
+
 export interface TodaysMissionCardProps {
   missions: DailyMissionSlot[];
   allMissionsCompleted: boolean;
+  /**
+   * An unfinished lesson that today's plan has moved past — null in the
+   * common case where the in-progress lesson *is* one of the slots above
+   * and is already shown there.
+   */
+  resume: ResumeStrip | null;
+  /**
+   * Sprint Learning Polish 1 ("Daily Goal on Dashboard") moved here from
+   * the Learning Journey strip the IELTS redesign removes. It belongs
+   * next to the work that earns the minutes rather than in a stat block
+   * at the bottom of the page.
+   */
+  todayMinutes: number;
+  dailyGoalMinutes: number;
   /**
    * Execution Sprint P2 ("Streak at risk" nudge): the retention audit's
    * finding was that nothing signals a streak is on the line until it's
@@ -138,7 +229,15 @@ export interface TodaysMissionCardProps {
  * switches to a celebration state with a countdown to tomorrow — no new
  * mission is generated for the rest of the calendar day.
  */
-export function TodaysMissionCard({ missions, allMissionsCompleted, tomorrowPreview, streak }: TodaysMissionCardProps) {
+export function TodaysMissionCard({
+  missions,
+  allMissionsCompleted,
+  tomorrowPreview,
+  streak,
+  resume,
+  todayMinutes,
+  dailyGoalMinutes,
+}: TodaysMissionCardProps) {
   if (allMissionsCompleted) {
     return (
       <motion.section
@@ -156,6 +255,18 @@ export function TodaysMissionCard({ missions, allMissionsCompleted, tomorrowPrev
             <p className="mt-2 max-w-sm text-xs text-text-tertiary">
               Tuto&apos;s already thinking about &ldquo;{tomorrowPreview.title}&rdquo; for next time.
             </p>
+          )}
+          {/* Today's plan being finished doesn't finish a lesson they
+              abandoned last week — offered quietly here rather than
+              competing with the celebration. */}
+          {resume && (
+            <Link
+              href={resume.href}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              <Play className="h-3.5 w-3.5" aria-hidden="true" />
+              Finish &ldquo;{resume.title}&rdquo;
+            </Link>
           )}
         </div>
       </motion.section>
@@ -195,6 +306,8 @@ export function TodaysMissionCard({ missions, allMissionsCompleted, tomorrowPrev
                 <MissionSlotRow key={slot.contentType} slot={slot} />
               ))}
             </div>
+            {resume && <ContinueLearningStrip resume={resume} />}
+            <DailyGoalFooter todayMinutes={todayMinutes} dailyGoalMinutes={dailyGoalMinutes} />
           </div>
         </div>
       </div>

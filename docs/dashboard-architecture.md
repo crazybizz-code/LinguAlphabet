@@ -88,35 +88,67 @@ these five (e.g. a single podcast's detail screen, one level under Explore).
 
 ## 4. Home Structure
 
+Revised for the IELTS-first redesign. Home now opens with the exam rather
+than with a lesson: the previous ordering led with content, which quietly
+said "this is a content app". Everything below the header is unchanged in
+substance — the same finite daily plan, re-framed around what the learner
+is actually working toward.
+
 Top to bottom, in priority order:
 
-1. **Greeting** — personalized, time-of-day aware ("Good morning, {name}"),
-   with streak indicator if the learner has one. Small, quiet, not a hero.
-2. **Today's Mission** — the hero of the screen. One card, presenting a
-   **finite daily plan**: exactly one article and one podcast, each the
-   Learning Brain's top-ranked pick for *right now*, each with its own
-   CTA ("Continue" or "Start") and tracked to completion independently.
-   There are deliberately only ever these two — never a top-3 "choose one"
-   list here, that's Explore's job. Once both are completed, the card
-   becomes a "Today's Mission Completed" state with a countdown to
-   tomorrow, not a freshly-generated third item.
-3. **Tuto's note** — a short, contextual, personality-driven message tied to
+1. **Exam snapshot** — the greeting (time-of-day aware, quiet) plus four
+   tiles: current band, target band, exam timeline, current streak; then
+   the **band progress bar**, drawn against the full 0–9 IELTS scale, not
+   against the gap. This is the one place on Home where stat tiles are
+   correct rather than a smell (see §12) — a band and a deadline are the
+   two numbers an IELTS candidate holds in their head, and answering them
+   is the product's whole premise.
+   **Never substitute a default band.** "Not sure" during onboarding
+   writes NULL; the tile renders "—" with an "After placement" hint and
+   the progress bar does not render at all.
+2. **Exam Readiness** — until the placement assessment is done, this *is*
+   the placement assessment, rendered as the learner's first mission and
+   given the brand fill. It disappears entirely once placement is
+   complete. There is deliberately no populated readiness state yet:
+   per-skill band estimates come from the mock engine, and inventing them
+   from a self-reported band would be a fabricated diagnosis.
+3. **Today's Mission** — the hero of the screen once placement is done.
+   One card, presenting a **finite daily plan**: exactly one article and
+   one podcast, each the Learning Brain's top-ranked pick for *right now*,
+   each with its own CTA ("Continue" or "Start") and tracked to completion
+   independently. There are deliberately only ever these two — never a
+   top-3 "choose one" list here, that's Explore's job. Once both are
+   completed, the card becomes a "Today's Mission Completed" state with a
+   countdown to tomorrow, not a freshly-generated third item.
+   The card also carries two things that used to live elsewhere:
+   a compact **Continue Learning** strip for an unfinished lesson today's
+   plan has moved past (suppressed when that lesson already *is* one of
+   the slots — it's shown there with its own progress bar), and the
+   **daily goal** bar, which belongs next to the work that earns the
+   minutes.
+4. **Word review** — spaced-repetition items due today. Renders nothing
+   when nothing is due.
+5. **Tuto's note** — a short, contextual, personality-driven message tied to
    the learner's actual state (e.g. "Two more days to a 7-day streak" /
    "Nice work finishing yesterday's podcast"). Optional per visit — Tuto
    doesn't always have something to say, and forcing one on every load would
    cheapen it.
-4. **Tuto Recommends** — a short, secondary carousel (2–4 items) of other
-   Learning-Brain-picked content, explicitly framed as Tuto's picks. This is
-   the only place on Home where more than one content choice appears, and
-   it's still curated, not a browse grid.
-5. **Progress snapshot** — streak, this week's minutes, current level —
-   presented as a narrative strip (icons + short labels), not a dashboard of
-   stat tiles or percentage bars. Tapping it goes to the Progress tab for
-   anyone who wants more.
+6. **Recommended for your target band** — a short, secondary set (2–4
+   items) of other Learning-Brain-picked content. Each carries a **reason
+   line** stating the signal that actually decided the ranking ("Listening
+   practice matched to your level (B2), on travel"), never a claim about a
+   skill weakness we have no data for. Still curated, not a browse grid,
+   and deliberately not cover-art cards — those are Explore's language.
+7. **Achievements** — recognition, not a next action. Last on the page and
+   visually quiet, with a link through to Progress for the full view.
 
 Nothing below this. Home does not have a footer of "more content" — that
 temptation is exactly what turns it into a content platform. If a learner
 wants more, that's what Explore is for.
+
+The **Learning Journey** stat strip that used to close the page is gone.
+Streak, level and the weekly goal all live on Progress; the streak also has
+a header tile, and the daily goal moved into Today's Mission.
 
 ---
 
@@ -336,11 +368,20 @@ added later without a separate, explicit product decision.
 ## 11. UX Principles
 
 - One primary action per screen, always. If a screen has two competing CTAs,
-  it's wrong.
+  it's wrong. This survives the IELTS pivot intact and is the main thing to
+  hold the line on as exam surfaces land: Home is allowed exactly one filled
+  CTA at a time, selected by state (pre-placement → the placement test;
+  post-placement → today's mission).
 - Tuto's voice frames every recommendation surface — "Tuto Recommends," never
   "AI Recommended."
-- No percentages, no exam-like scoring, no leaderboard-style ranking of the
-  learner against others. Progress is personal and narrative.
+- No leaderboard-style ranking of the learner against others. Progress is
+  personal.
+- **Band scores are the exception to "no scoring."** The original rule
+  barred exam-like scoring anywhere post-onboarding; the IELTS pivot makes
+  the band the point, so bands, band gaps and (later) mock results are
+  legitimate. What the rule still bars is *inventing* one — a band shown to
+  a learner must come from their own answer or from a real assessment,
+  never from a default or an estimate presented as a measurement.
 - Coming Soon content types are visible, not hidden — transparency about
   what's next builds trust rather than eroding it.
 - Every empty state and loading state is Tuto-voiced and uses his idle
@@ -357,7 +398,10 @@ added later without a separate, explicit product decision.
 
 - A Home screen that's actually a content grid with extra steps (the
   Netflix/Spotify trap this whole architecture exists to avoid).
-- Percentage-based progress bars as the primary progress metaphor.
+- Stat tiles as decoration. The exam snapshot in §4.1 is the *only*
+  sanctioned tile block, and it earns its place by answering the two
+  questions the product exists to answer. A second tile grid anywhere on
+  Home is the stat-wall smell this rule was written for.
 - "AI Recommended" / "AI Suggested" / "AI Picks" language anywhere.
 - Treating Explore as equal-priority to Home — a returning learner always
   lands on Home.
@@ -367,7 +411,10 @@ added later without a separate, explicit product decision.
   table, own recommendation logic, own search) instead of extending the
   universal `content_items` model — this is the single biggest risk to
   "still makes sense at thousands of items."
-- Exam-like assessments or scoring anywhere post-onboarding, consistent with
-  the onboarding principle already established.
+- ~~Exam-like assessments or scoring anywhere post-onboarding.~~
+  **Superseded by the IELTS pivot.** The placement assessment and the mock
+  engine are exam-like by design and belong post-onboarding. What replaces
+  this rule is narrower and stricter: never show a band, readiness score or
+  skill diagnosis that wasn't measured — see §11.
 - A "Knowledge Hub" nav item competing with "Explore" for the same job —
   there is one browsing surface, not two.

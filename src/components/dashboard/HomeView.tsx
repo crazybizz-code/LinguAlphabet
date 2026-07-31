@@ -1,132 +1,119 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Flame, Sparkles } from "lucide-react";
-import { Tuto } from "@/components/mascot/Tuto";
+import { Award, ChevronRight, Target } from "lucide-react";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
-import { PodcastCard } from "@/components/content/PodcastCard";
-import { ArticleCard } from "@/components/content/ArticleCard";
+import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { TodaysMissionCard } from "@/components/dashboard/TodaysMissionCard";
 import { WordReviewCard } from "@/components/dashboard/WordReviewCard";
-import { PlacementAssessmentCard } from "@/components/dashboard/PlacementAssessmentCard";
-import { getTimeGreeting } from "@/lib/content/home";
+import { ExamReadinessCard } from "@/components/dashboard/ExamReadinessCard";
+import { ExamSnapshotHeader } from "@/components/dashboard/ExamSnapshotHeader";
+import { RecommendationCard } from "@/components/dashboard/RecommendationCard";
 import type { ArticleContent, PodcastContent } from "@/types/content";
 import type { DailyMissionSlot } from "@/lib/learning-brain";
+import type { ResumeStrip } from "@/lib/dashboard/resume";
 import type { TutoNote } from "@/lib/tuto/messages";
-import { fadeSlideUp } from "@/lib/motion/variants";
+
+export interface HomeRecommendation {
+  item: PodcastContent | ArticleContent;
+  /** Precomputed on the server so the reason string and the ranking that produced it can never drift apart. */
+  reason: string;
+}
 
 export interface HomeViewProps {
   displayName: string;
   streak: number;
-  level: number;
-  weeklyMinutes: number;
-  weeklyGoalMinutes: number;
-  /** Sprint Learning Polish 1 ("Daily Goal on Dashboard"): the same daily_time_minutes already set in Profile and already used (×7) for weeklyGoalMinutes — this is its first same-day counterpart. */
+  /** Null until the placement assessment establishes one — never defaulted. */
+  currentBand: number | null;
+  targetBand: number | null;
+  /** Onboarding's timeline bucket, not a date (src/lib/dashboard/exam-snapshot.ts). */
+  examTimeline: string | null;
+  /** Sprint Learning Polish 1 ("Daily Goal on Dashboard") — now rendered inside Today's Mission. */
   todayMinutes: number;
   dailyGoalMinutes: number;
   /** Today's finite daily plan: one article slot, one podcast slot (docs/content-lifecycle.md §5). */
   missions: DailyMissionSlot[];
   allMissionsCompleted: boolean;
+  /** An unfinished lesson today's plan has moved past — null when it's already one of the slots. */
+  resume: ResumeStrip | null;
   tutoNote: TutoNote | null;
-  recommendations: Array<PodcastContent | ArticleContent>;
+  recommendations: HomeRecommendation[];
   /** Execution Sprint P1 — words due for spaced-repetition review today. 0 renders nothing. */
   dueVocabularyCount: number;
   /** True once the placement assessment has produced a plan; hides the first-mission card. */
   placementCompleted: boolean;
+  earnedAchievementIds: Set<string>;
 }
 
+/**
+ * Home, IELTS-first (Base44 dashboard redesign, Phase 1).
+ *
+ * The reordering is the product change: the screen now opens with the
+ * band gap rather than with a lesson. Everything below it is the same
+ * finite daily plan as before — this is a re-frame of what the learner is
+ * working toward, not a new content model.
+ *
+ * The Learning Journey stat strip that used to close the page is gone.
+ * Streak, level and the weekly goal all live on /progress, which the
+ * redesign leaves untouched, and the streak now also has a tile in the
+ * header; the daily goal moved into Today's Mission, next to the work
+ * that actually earns the minutes.
+ */
 export function HomeView({
   displayName,
   streak,
-  level,
-  weeklyMinutes,
-  weeklyGoalMinutes,
+  currentBand,
+  targetBand,
+  examTimeline,
   todayMinutes,
   dailyGoalMinutes,
   missions,
   allMissionsCompleted,
+  resume,
   tutoNote,
   recommendations,
   dueVocabularyCount,
   placementCompleted,
+  earnedAchievementIds,
 }: HomeViewProps) {
-  const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
-  const dailyPercentage = dailyGoalMinutes > 0 ? Math.min(100, (todayMinutes / dailyGoalMinutes) * 100) : 0;
-
-  // The server has no idea what timezone the learner is in (and its own
-  // clock is UTC on Vercel), so the greeting can only be correct if it's
-  // read from the browser's clock. useSyncExternalStore (same pattern as
-  // useMediaQuery.ts) rather than useState+useEffect: there's no real
-  // "change event" to subscribe to (the greeting only needs to be right
-  // once per load, not ticking live), so the subscribe callback is a
-  // no-op — but this is still the sanctioned way to read external,
-  // clock-dependent state without a hydration mismatch, since the server
-  // snapshot (used for SSR and the client's first hydration pass) stays a
-  // neutral placeholder and only the real client snapshot reads the clock.
-  const greeting = useSyncExternalStore(
-    () => () => {},
-    () => getTimeGreeting(new Date().getHours()),
-    () => "Welcome back",
-  );
-
   return (
     <div className="mx-auto max-w-3xl">
-      {/* Greeting — docs/dashboard-architecture.md §4.1: personalized, quiet, not a hero.
-          Tuto appears here because a daily welcome is a meaningful moment, not decoration. */}
-      <header className="flex items-start justify-between gap-4 px-5 pb-2 pt-8 sm:px-8 md:pt-10">
-        <motion.div variants={fadeSlideUp} initial="hidden" animate="visible" className="min-w-0 flex-1 pt-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
-              {greeting}, {displayName} <span className="inline-block">👋</span>
-            </h1>
-            {streak > 0 && (
-              <span className="flex items-center gap-1 rounded-full bg-primary-lighter px-2.5 py-1 text-xs font-semibold text-primary">
-                <Flame className="h-3 w-3" aria-hidden="true" />
-                <span aria-label={`${streak} day streak`}>{streak}</span>
-              </span>
-            )}
-          </div>
-          <p className="mt-1.5 text-sm leading-relaxed text-text-secondary sm:text-[15px]">
-            &ldquo;I&apos;ve prepared today&apos;s learning session for you.&rdquo;
-          </p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="relative shrink-0"
-        >
-          <div className="absolute inset-0 rounded-full bg-primary-soft blur-2xl" aria-hidden="true" />
-          {/* `wave` is reserved for Welcome/first-time onboarding — this is
-              a daily-return greeting, so it gets Tuto's normal presence. */}
-          <Tuto pose="neutral" size="md" animation="float" priority />
-        </motion.div>
-      </header>
+      <ExamSnapshotHeader
+        displayName={displayName}
+        currentBand={currentBand}
+        targetBand={targetBand}
+        examTimeline={examTimeline}
+        streak={streak}
+      />
+
+      {/* Above Today's Mission on purpose: until the placement is done,
+          every other recommendation is working from a self-reported band
+          rather than evidence. Renders nothing once it's done. */}
+      <ExamReadinessCard placementCompleted={placementCompleted} displayName={displayName} />
 
       {/* Today's Mission — a finite daily plan, not an endless recommendation
           stream (docs/content-lifecycle.md §5): one article slot, one podcast
           slot, tracked independently. Once both are completed the entire
           card switches to a celebration state with a countdown to
           tomorrow — no new mission is generated for the rest of the day. */}
-      {/* Above Today's Mission on purpose: until the placement is done,
-          every other recommendation is working from a self-reported band
-          rather than evidence. */}
-      <PlacementAssessmentCard placementCompleted={placementCompleted} displayName={displayName} />
-
       <TodaysMissionCard
         missions={missions}
         allMissionsCompleted={allMissionsCompleted}
-        tomorrowPreview={recommendations[0] ?? null}
+        tomorrowPreview={recommendations[0]?.item ?? null}
         streak={streak}
+        resume={resume}
+        todayMinutes={todayMinutes}
+        dailyGoalMinutes={dailyGoalMinutes}
       />
 
       <WordReviewCard dueCount={dueVocabularyCount} />
 
-      {/* Tuto's note — optional, contextual, generated from the learner's actual state
-          (docs/dashboard-architecture.md §4.3). Only appears when there's something
-          genuine to say; never a generic greeting or a random quote. */}
+      {/* Tuto's note — optional, contextual, generated from the learner's actual
+          state (docs/dashboard-architecture.md §4.3). Kept even though the
+          Base44 redesign drops it: without it Tuto never speaks on Home,
+          only appears, which is the wrong thing to cut from a product whose
+          differentiator is a coach. */}
       {tutoNote && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
@@ -138,7 +125,6 @@ export function HomeView({
         </motion.section>
       )}
 
-      {/* Tuto Recommends — the only place on Home with more than one choice, still curated. */}
       {recommendations.length > 0 && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
@@ -147,107 +133,45 @@ export function HomeView({
           className="mt-8 px-5 sm:px-8"
         >
           <div className="mb-1 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-            <h3 className="text-sm font-semibold text-text-primary">Recommended by Tuto</h3>
+            <Target className="h-4 w-4 text-primary" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-text-primary">Recommended for your target band</h2>
           </div>
           {/* Sprint Learning Polish 1 ("Mission vs Extra Practice distinction"):
-              only Today's Mission above counts toward streak/mission XP —
-              that was already true in the code, just never said anywhere. */}
-          <p className="mb-3 text-xs text-text-tertiary">Extra practice — great for bonus XP, but Today&apos;s Mission is what keeps your streak going.</p>
-          <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-2 max-md:grid-cols-1">
-            {recommendations.map((item, index) =>
-              item.contentType === "article" ? (
-                <ArticleCard key={item.id} article={item} tutosPick index={index} />
-              ) : (
-                <PodcastCard key={item.id} podcast={item} tutosPick index={index} />
-              ),
-            )}
+              only Today's Mission above counts toward streak/mission XP. */}
+          <p className="mb-3 text-xs text-text-tertiary">
+            Extra practice — great for bonus XP, but Today&apos;s Mission is what keeps your streak going.
+          </p>
+          <div className="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
+            {recommendations.map((recommendation) => (
+              <RecommendationCard key={recommendation.item.id} item={recommendation.item} reason={recommendation.reason} />
+            ))}
           </div>
         </motion.section>
       )}
 
-      {/* Progress snapshot — narrative strip, never a stat wall (docs/dashboard-architecture.md §4.5). */}
+      {/* Achievements — deliberately the last thing on the page and
+          visually quiet. They're recognition, not a next action, and the
+          full milestone view lives on Progress. */}
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5 }}
         className="mb-10 mt-8 px-5 sm:px-8"
       >
-        <h3 className="mb-3 text-sm font-semibold text-text-primary">Learning Journey</h3>
-        <Link href="/progress" className="block rounded-[1.75rem] bg-bg-muted p-6 transition-colors hover:bg-bg-muted/70 sm:p-8">
-          <div className="flex flex-wrap items-center gap-6">
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-lighter">
-                <Flame className="h-6 w-6 text-primary" aria-hidden="true" />
-              </span>
-              <div>
-                <p className="text-2xl font-bold leading-none text-text-primary">{streak} Day Streak</p>
-                <p className="mt-1 text-xs text-text-tertiary">Keep your momentum going</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-lighter text-sm font-bold text-primary">
-                Lv{level}
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-text-primary">Level {level}</p>
-                <p className="text-xs text-text-tertiary">Current level</p>
-              </div>
-            </div>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Award className="h-4 w-4 text-text-tertiary" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-text-primary">Achievements</h2>
           </div>
-
-          <div className="my-6 h-px bg-border" />
-
-          <div>
-            {/* Sprint Learning Polish 1 ("Daily Goal on Dashboard"): the
-                learner's own daily_time_minutes (set in Profile) previously
-                only ever appeared multiplied ×7 as the Weekly Goal below —
-                same bar pattern, just for today. */}
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-semibold text-text-primary">Daily Goal</p>
-              <p className="text-sm font-semibold text-text-tertiary">
-                {Math.round(todayMinutes)} / {Math.round(dailyGoalMinutes)} min today
-              </p>
-            </div>
-            <div
-              className="h-2.5 w-full overflow-hidden rounded-full bg-border"
-              role="progressbar"
-              aria-label="Daily goal progress"
-              aria-valuenow={Math.round(dailyPercentage)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className="h-full rounded-full bg-primary transition-all duration-500"
-                style={{ width: `${dailyPercentage}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="my-6 h-px bg-border" />
-
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-semibold text-text-primary">Weekly Goal</p>
-              <p className="text-sm font-semibold text-text-tertiary">
-                {Math.round(weeklyMinutes)} / {Math.round(weeklyGoalMinutes)} min
-              </p>
-            </div>
-            <div
-              className="h-2.5 w-full overflow-hidden rounded-full bg-border"
-              role="progressbar"
-              aria-label="Weekly goal progress"
-              aria-valuenow={Math.round(weeklyPercentage)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className="h-full rounded-full bg-primary transition-all duration-500"
-                style={{ width: `${weeklyPercentage}%` }}
-              />
-            </div>
-          </div>
-        </Link>
+          <Link
+            href="/progress"
+            className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+          >
+            View progress
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+          </Link>
+        </div>
+        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.55} />
       </motion.section>
     </div>
   );

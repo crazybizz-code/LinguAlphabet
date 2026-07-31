@@ -5,9 +5,13 @@ import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/querie
 import { buildWeeklyMinutes, buildTodayMinutes } from "@/lib/content/home";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
+import { continueLearningStrategy } from "@/lib/learning-brain/strategies/continue-learning";
 import { createLearnerRepository } from "@/ai/data";
 import { buildTutoNote } from "@/lib/tuto/messages";
 import { fetchDueVocabulary } from "@/lib/vocabulary/review";
+import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
+import { buildResumeStrip } from "@/lib/dashboard/resume";
+import { buildRecommendationReason } from "@/lib/dashboard/recommendation-reason";
 import { HomeView } from "@/components/dashboard/HomeView";
 import { buildMetadata } from "@/lib/seo/metadata";
 
@@ -29,7 +33,17 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: previousMission }, dueVocabulary] = await Promise.all([
-    supabase.from("profiles").select("username, level, last_study_date, daily_time_minutes, interests, onboarding_completed, placement_completed").eq("user_id", user.id).single(),
+    supabase
+      .from("profiles")
+      // current_band/target_band/exam_timeline are the IELTS onboarding
+      // fields (supabase/ielts-onboarding-fields.sql) the redesigned
+      // header reads. current_band is nullable on purpose: "Not sure"
+      // writes NULL rather than a fabricated starting band.
+      .select(
+        "username, level, last_study_date, daily_time_minutes, interests, onboarding_completed, placement_completed, current_band, target_band, exam_timeline",
+      )
+      .eq("user_id", user.id)
+      .single(),
     // Level/goal/streak come from LearnerRepository (src/ai/data, frozen) —
     // the same repository Tuto's own system prompt reads (ai-service.ts's
     // resolveMemory()) — so Dashboard and Tuto can never independently
@@ -112,21 +126,45 @@ export default async function DashboardPage() {
     daysSinceLastStudy,
   });
 
+  // The most recently touched unfinished lesson. buildResumeStrip drops it
+  // when it's already one of today's mission slots, so the strip only ever
+  // surfaces a genuine orphan rather than repeating a row on screen.
+  const resume = buildResumeStrip({
+    candidate: continueLearningStrategy.find(rows, catalog),
+    missions,
+  });
+
+  const level = profile?.level ?? 1;
+  const earnedAchievementIds = computeEarnedAchievementIds({
+    completedCount: completedRows.length,
+    longestStreak: Math.max(learnerProfile.streak ?? 0, learnerProfile.studyConsistency?.longestStreak ?? 0),
+    level,
+  });
+
+  // Built here rather than in the component so the reason string is
+  // derived from the same learner context that produced the ranking.
+  const recommendations = tutoRecommends.map((item) => ({
+    item,
+    reason: buildRecommendationReason(item, { englishLevel: effectiveLevel, interests: context.interests }),
+  }));
+
   return (
     <HomeView
       displayName={profile?.username || "there"}
       streak={learnerProfile.streak ?? 0}
-      level={profile?.level ?? 1}
-      weeklyMinutes={weeklyMinutes}
-      weeklyGoalMinutes={weeklyGoalMinutes}
+      currentBand={profile?.current_band ?? null}
+      targetBand={profile?.target_band ?? null}
+      examTimeline={profile?.exam_timeline ?? null}
       todayMinutes={todayMinutes}
       dailyGoalMinutes={dailyMinutes}
       missions={missions}
       allMissionsCompleted={allMissionsCompleted}
+      resume={resume}
       tutoNote={tutoNote}
-      recommendations={tutoRecommends}
+      recommendations={recommendations}
       placementCompleted={profile?.placement_completed ?? false}
       dueVocabularyCount={dueVocabulary.length}
+      earnedAchievementIds={earnedAchievementIds}
     />
   );
 }
