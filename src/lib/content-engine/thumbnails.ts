@@ -47,8 +47,46 @@ const NON_CONTENT_PATTERNS: readonly RegExp[] = [
   /\bgoogle-analytics\b/i,
 ];
 
+/**
+ * Site furniture: licence badges, logos, avatars, icons. Real, reachable,
+ * correctly-typed images that are not photographs of anything, so no
+ * amount of HTTP validation can distinguish them — only the URL can.
+ *
+ * Added after a Creative Commons badge
+ * (cdn.theconversation.com/static/tc/creative-commons-logo-*.png) was
+ * found stored as the thumbnail for 17 different articles. One image
+ * shared across many articles is the signature of this class.
+ *
+ * Word boundaries are load-bearing: a bare /icon/ substring would reject
+ * a legitimate photo named "iconic-building.jpg", while `\bicon\b` does
+ * not match "iconic". Rejecting a real photo by mistake only degrades to
+ * the branded cover, but the fewer false positives the better.
+ */
+const STATIC_ASSET_PATTERNS: readonly RegExp[] = [
+  /\bcreative[-_]?commons\b/i,
+  /\/static\//i,
+  /\blogos?\b/i,
+  /\bavatars?\b/i,
+  /\bicons?\b/i,
+  /\bfavicons?\b/i,
+  /\bbadges?\b/i,
+  /\bsprites?\b/i,
+  /\bplaceholders?\b/i,
+  /\bwatermarks?\b/i,
+];
+
+/**
+ * Whether a URL points at site furniture rather than content imagery.
+ * Exported so providers with their own extractors (The Conversation's
+ * host-pinned one) can apply the same rule without duplicating it.
+ */
+export function isStaticAssetUrl(url: string): boolean {
+  return STATIC_ASSET_PATTERNS.some((pattern) => pattern.test(url));
+}
+
 function isPlausibleContentImage(url: string): boolean {
   if (!url.startsWith("https://")) return false;
+  if (isStaticAssetUrl(url)) return false;
   return !NON_CONTENT_PATTERNS.some((pattern) => pattern.test(url));
 }
 
