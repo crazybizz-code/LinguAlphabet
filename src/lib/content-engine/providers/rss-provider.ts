@@ -118,10 +118,20 @@ export const rssProvider: ContentProvider = {
       const itemHtml = collectItemHtml(item);
       const thumbnailUrl = extractThumbnailFromFeedItem(item) ?? extractThumbnailFromHtml(itemHtml, link);
 
+      // The feed's own short summary, kept separate from `body`.
+      // contentSnippet is rss-parser's pre-stripped text form of the
+      // item's summary; description is the raw element. Either is a
+      // better card description than a mechanical cut of the full body.
+      const feedSummary =
+        (typeof item.contentSnippet === "string" ? item.contentSnippet : undefined) ??
+        (typeof item.summary === "string" ? item.summary : undefined) ??
+        (typeof item.description === "string" ? item.description : undefined);
+
       items.push({
         externalId,
         title: typeof item.title === "string" ? item.title : "Untitled",
         body,
+        description: feedSummary ? stripHtml(feedSummary) : undefined,
         url: link,
         publishedAt: (typeof item.isoDate === "string" ? item.isoDate : undefined) ?? (typeof item.pubDate === "string" ? item.pubDate : undefined),
         thumbnailUrl,

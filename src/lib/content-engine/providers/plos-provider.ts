@@ -23,6 +23,9 @@ interface PlosDoc {
   abstract?: string[];
   author_display?: string[];
   publication_date?: string;
+  /** Requested only so they reach content_raw_items.raw_payload for diagnosis — never branched on. */
+  article_type?: string;
+  doc_type?: string;
 }
 
 interface PlosSearchResponse {
@@ -34,6 +37,53 @@ interface PlosSearchResponse {
 
 function stripHtml(value: string): string {
   return value.replace(/<[^>]+>/g, "").trim();
+}
+
+/**
+ * PLOS's Solr index does not contain one document per article. It also
+ * contains a separate document for each SECTION of every article, whose
+ * id is the article's DOI with a section suffix appended:
+ *
+ *   10.1371/journal.pone.0003322              <- the canonical article
+ *   10.1371/journal.pone.0003322/abstract     <- a section sub-document
+ *   10.1371/journal.pone.0003322/references   <- a section sub-document
+ *
+ * These sub-documents carry no title_display and no abstract field, so
+ * they were being ingested as articles named "Untitled" with an empty
+ * body — reaching the quality gate and failing there as "Missing
+ * description", which pointed at entirely the wrong problem. They also
+ * produced a broken source URL, since https://doi.org/<doi>/abstract is
+ * not a resolvable DOI.
+ *
+ * A canonical DOI has exactly two slash-separated parts. Section
+ * documents always add a third. Checking the shape rather than
+ * blocklisting known suffixes ("/abstract", "/references", "/body",
+ * "/title", ...) means a suffix PLOS adds later is rejected too.
+ */
+export function isCanonicalArticleId(id: string | undefined): boolean {
+  if (!id) return false;
+  const parts = id.split("/");
+  return parts.length === 2 && parts[0].startsWith("10.") && parts[1].length > 0;
+}
+
+/**
+ * Whether a Solr document is a real, ingestible article.
+ *
+ * Deliberately belt-and-braces with the server-side `fq` filter in
+ * fetchRawItems: that filter is the primary control, but it has never
+ * been verified against the live API from this codebase, and the cost of
+ * it silently not applying is exactly the bug this fixes. This check runs
+ * on what actually came back, so a filter that fails open still cannot
+ * put a section sub-document into the catalog.
+ */
+export function isIngestableArticleDoc(doc: PlosDoc): boolean {
+  if (!isCanonicalArticleId(doc.id)) return false;
+  // A real article record always carries a title. A section sub-document
+  // does not — which the old "Untitled" fallback silently papered over.
+  if (!doc.title_display || !doc.title_display.trim()) return false;
+  // No abstract means no body, and PLOS's body IS its abstract here.
+  const abstract = (doc.abstract ?? []).map(stripHtml).join("").trim();
+  return abstract.length > 0;
 }
 
 export function mapPlosDocToRaw(doc: PlosDoc): RawContentItem {
@@ -117,7 +167,20 @@ export const plosArticleProvider: ContentProvider = {
 
     const url = new URL("https://api.plos.org/search");
     url.searchParams.set("q", query);
-    url.searchParams.set("fl", "id,title_display,abstract,author_display,publication_date");
+    // doc_type:full selects canonical article records and excludes the
+    // per-section sub-documents PLOS also indexes (see
+    // isCanonicalArticleId). Issue Image records are catalog entries for
+    // cover art, not articles. Both are Solr filter queries, applied on
+    // top of `q` rather than baked into it, so a source's own configured
+    // query stays independent of these correctness filters.
+    url.searchParams.append("fq", "doc_type:full");
+    url.searchParams.append("fq", '-article_type_facet:"Issue Image"');
+    // article_type/doc_type are requested purely so they land in
+    // content_raw_items.raw_payload. Without them a stored payload cannot
+    // be used to tell a research article from a correction or an editorial,
+    // which is a gap that made diagnosing this bug harder than it needed
+    // to be.
+    url.searchParams.set("fl", "id,title_display,abstract,author_display,publication_date,article_type,doc_type");
     url.searchParams.set("rows", String(rows));
     url.searchParams.set("wt", "json");
 
@@ -127,7 +190,10 @@ export const plosArticleProvider: ContentProvider = {
     }
 
     const data = (await response.json()) as PlosSearchResponse;
-    const items = data.response.docs.map(mapPlosDocToRaw);
+    // Filtered before mapping, so a section sub-document never becomes a
+    // RawContentItem at all — it is not staged, not enriched, and never
+    // consumes a Gemini call or a content_raw_items row.
+    const items = data.response.docs.filter(isIngestableArticleDoc).map(mapPlosDocToRaw);
 
     // Sequential, not parallel: one landing-page fetch per article, and
     // the run is already bounded by `rows`. Parallelising would hammer

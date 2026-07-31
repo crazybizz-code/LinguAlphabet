@@ -64,6 +64,15 @@ function normalizeCanonicalUrl(url: string | undefined): string | null {
  * Every status transition for one content_raw_items row is written here —
  * the single place that updates it, so no exit path can update status
  * without also updating stage_updated_at alongside it.
+ *
+ * `clearErrors` wipes the diagnostic columns from a PREVIOUS attempt.
+ * Without it these updates are purely additive: a row that failed with a
+ * 429 on Monday, then succeeded on Tuesday, kept its stale
+ * `gemini_error` forever and read as "PUBLISHED, with a Gemini error" —
+ * which is not a state the pipeline can actually produce (an enrichment
+ * failure `continue`s and never reaches publish). Every forward
+ * transition therefore clears them, so the columns describe THIS attempt
+ * rather than the worst thing that ever happened to the row.
  */
 async function setRawItemStatus(
   supabase: Client,
@@ -75,12 +84,19 @@ async function setRawItemStatus(
     geminiError?: string;
     normalizationError?: string;
     markPublished?: { contentItemId: string };
+    clearErrors?: boolean;
   },
 ): Promise<void> {
   const update: Database["public"]["Tables"]["content_raw_items"]["Update"] = {
     status: fields.status,
     stage_updated_at: new Date().toISOString(),
   };
+  if (fields.clearErrors) {
+    update.rejection_reason = null;
+    update.quality_gate_reasons = null;
+    update.gemini_error = null;
+    update.normalization_error = null;
+  }
   if (fields.rejectionReason !== undefined) update.rejection_reason = fields.rejectionReason;
   if (fields.qualityGateReasons !== undefined) update.quality_gate_reasons = fields.qualityGateReasons as unknown as Json;
   if (fields.geminiError !== undefined) update.gemini_error = fields.geminiError;
@@ -247,7 +263,7 @@ export async function runIngestionPipeline(
         });
         continue;
       }
-      await setRawItemStatus(supabase, rawRow.id, { status: "NORMALIZED" });
+      await setRawItemStatus(supabase, rawRow.id, { status: "NORMALIZED", clearErrors: true });
 
       // Thumbnails are verified HERE, once, for every provider — the
       // single guarantee that content_items.thumbnail_url either holds a
@@ -303,7 +319,7 @@ export async function runIngestionPipeline(
         continue;
       }
       consecutiveRateLimits = 0;
-      await setRawItemStatus(supabase, rawRow.id, { status: "AI_ENRICHED" });
+      await setRawItemStatus(supabase, rawRow.id, { status: "AI_ENRICHED", clearErrors: true });
 
       // Pacing between SUCCESSFUL enrichment calls. The pipeline is
       // sequential, so without this a run fires ~18 Gemini requests
@@ -364,6 +380,7 @@ export async function runIngestionPipeline(
         await setRawItemStatus(supabase, rawRow.id, {
           status: "PUBLISHED",
           markPublished: { contentItemId: draft.id },
+          clearErrors: true,
         });
         itemsPublished += 1;
       } catch (error) {

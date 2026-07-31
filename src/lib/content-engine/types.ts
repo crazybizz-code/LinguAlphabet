@@ -25,6 +25,18 @@ export interface RawContentItem {
   title: string;
   /** Raw source text/HTML — what AI Processing enriches from. Never rendered directly. */
   body: string;
+  /**
+   * The source's OWN short summary, when it publishes one distinct from
+   * the body (an RSS `<description>`, an Atom `<summary>`). Optional:
+   * providers whose only text is the body leave it unset and the adapter
+   * falls back to excerpting the body.
+   *
+   * Exists because deriving the card description solely from `body` means
+   * an empty body produces an empty description, which the quality gate
+   * then reports as "Missing description" — a misleading diagnosis for
+   * what is actually a missing body.
+   */
+  description?: string;
   url?: string;
   publishedAt?: string;
   thumbnailUrl?: string;

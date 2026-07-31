@@ -16,7 +16,43 @@ type Client = SupabaseClient<Database>;
  * way a future search case does.
  */
 
-const TYPE_SPECIFIC_CHECKS: Partial<Record<ContentType, (draft: ContentItemDraft) => string[]>> = {};
+/**
+ * Shortest article body that is still something a learner can read and
+ * study. Well below the RSS provider's own `minBodyLength` (600), which
+ * remains the primary control — this is the last-resort floor that
+ * catches sources with no length filter of their own. PLOS is exactly
+ * that case: its body is the abstract, and a PLOS record with no
+ * abstract at all yields an empty string.
+ */
+const MIN_ARTICLE_BODY_LENGTH = 200;
+
+const TYPE_SPECIFIC_CHECKS: Partial<Record<ContentType, (draft: ContentItemDraft) => string[]>> = {
+  /**
+   * Guards the one thing an article cannot be published without: actual
+   * text to read.
+   *
+   * This previously had no check at all, and a missing body was caught
+   * only by ACCIDENT — `description` was derived by excerpting `body`, so
+   * an empty body produced an empty description and the universal
+   * "Missing description" check fired. That diagnosis pointed at the
+   * wrong field entirely and sent debugging down the wrong path.
+   *
+   * It also became load-bearing the moment the adapter gained a
+   * description fallback: without this check, an article with no body but
+   * a perfectly good feed summary would now sail through the gate and
+   * publish as an empty lesson.
+   */
+  article: (draft) => {
+    const body = draft.detailsRow.body;
+    if (typeof body !== "string" || body.trim().length === 0) {
+      return ["Missing article body"];
+    }
+    if (body.trim().length < MIN_ARTICLE_BODY_LENGTH) {
+      return [`Article body is too short to learn from (${body.trim().length} chars, minimum ${MIN_ARTICLE_BODY_LENGTH})`];
+    }
+    return [];
+  },
+};
 
 function checkUniversalFields(draft: ContentItemDraft): string[] {
   const reasons: string[] = [];
