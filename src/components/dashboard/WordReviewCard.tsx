@@ -24,6 +24,7 @@ export function WordReviewCard({ dueCount }: WordReviewCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.35 }}
       className="mt-5 px-5 sm:px-8"
+      aria-labelledby="word-review-heading"
     >
       <Link
         href="/review"
@@ -33,12 +34,15 @@ export function WordReviewCard({ dueCount }: WordReviewCardProps) {
           <Layers className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-bold text-text-primary">
+          {/* A heading, not a paragraph: this is a section of Home in its
+              own right, and heading navigation was skipping straight past
+              it to the recommendations. */}
+          <h2 id="word-review-heading" className="font-bold text-text-primary">
             {dueCount} {dueCount === 1 ? "word" : "words"} ready for review
-          </p>
+          </h2>
           <p className="mt-0.5 text-sm text-text-secondary">Quick recall practice for words you&apos;ve already saved</p>
         </div>
-        <ArrowRight className="h-5 w-5 shrink-0 text-text-tertiary transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
+        <ArrowRight className="h-5 w-5 shrink-0 text-text-secondary transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
       </Link>
     </motion.section>
   );

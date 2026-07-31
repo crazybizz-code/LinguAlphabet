@@ -32,6 +32,13 @@
   --color-primary-focus: #FF8A33;    /* 400 — input focus border/ring */
   --color-primary: #FF6B00;          /* 500 */
   --color-primary-dark: #E65F00;     /* 600 — hover */
+  /* 700 — the brand orange darkened just far enough to clear WCAG AA as
+     TEXT on a light surface (5.18:1 on white; --color-primary itself is
+     2.86:1 and cannot pass at any weight). Same hue family, so small
+     informational text reads as brand rather than as a second color.
+     For fills, borders and large display type keep --color-primary; this
+     token is for small text on white/muted surfaces only. */
+  --color-primary-strong: #C2410C;   /* 700 — AA-safe text on light */
   --color-primary-soft: rgba(255, 107, 0, 0.15);
   --color-primary-soft-2: rgba(255, 107, 0, 0.06);
 

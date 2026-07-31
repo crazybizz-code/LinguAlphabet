@@ -48,6 +48,15 @@ const POSE_FILE: Record<TutoPose, string> = {
 const SIZE_CLASSES = {
   /** Compact inline presence — status rows, not a hero moment. */
   xs: "w-10 h-10",
+  /**
+   * Header/greeting presence: Tuto is company on the screen, not the
+   * subject of it. Sized against Base44's dashboard avatar (80px) rather
+   * than the t-shirt ramp below, which starts at 112px — enough to
+   * dominate a mobile header and leave a dead gap under the greeting.
+   * Deliberately its own key: `sm`/`md` are load-bearing on ~25 other
+   * screens where Tuto IS the subject.
+   */
+  avatar: "w-20 h-20 sm:w-28 sm:h-28",
   sm: "w-28 h-28 sm:w-36 sm:h-36",
   md: "w-40 h-40 sm:w-48 sm:h-48",
   lg: "w-52 h-52 sm:w-64 sm:h-64",
@@ -58,6 +67,7 @@ const SIZE_CLASSES = {
  * appropriately-sized source instead of always fetching the xl variant. */
 const SIZE_SIZES = {
   xs: "40px",
+  avatar: "(min-width: 640px) 112px, 80px",
   sm: "(min-width: 640px) 144px, 112px",
   md: "(min-width: 640px) 192px, 160px",
   lg: "(min-width: 640px) 256px, 208px",

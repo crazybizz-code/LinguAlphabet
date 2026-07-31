@@ -13,6 +13,18 @@ function missionSubtitle(content: MissionContent): string {
   return `${content.skills.slice(0, 2).join(" & ")} Practice`;
 }
 
+/**
+ * The Learning Session is the one real destination for both content types
+ * today (Podcast Detail/Player remain unbuilt, tasks #31/#32).
+ *
+ * Exported because Home's Continue Learning strip has to link to exactly
+ * the same place a mission row would — two copies of this mapping would
+ * drift the moment the player ships.
+ */
+export function missionHref(content: MissionContent): string {
+  return content.contentType === "article" ? `/article/${content.id}/learn` : `/podcast/${content.id}/learn`;
+}
+
 function buildMission(content: MissionContent, isResume: boolean, positionSeconds?: number): Mission {
   const isArticle = content.contentType === "article";
   return {
@@ -23,9 +35,7 @@ function buildMission(content: MissionContent, isResume: boolean, positionSecond
     badgeLabel: isResume ? "In Progress" : "Prepared by Tuto",
     cefrLevel: content.cefrLevelMin,
     estimatedMinutes: content.estimatedTimeMinutes,
-    // The Learning Session is the one real destination for both types
-    // today (Podcast Detail/Player remain unbuilt, tasks #31/#32).
-    ctaHref: isArticle ? `/article/${content.id}/learn` : `/podcast/${content.id}/learn`,
+    ctaHref: missionHref(content),
     ctaLabel: isResume ? "Resume Learning" : "Start Learning",
     // A meaningful percentage needs an audio duration -- podcast-only.
     // Articles have no positional resume state, so their bar stays hidden.
