@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import { generateEnrichment, estimateReadingTimeMinutes, enrichmentToDetailsColumns } from "./ai-processing";
-import { GeminiTransientError } from "@/lib/gemini/client";
+import { GeminiRateLimitError } from "@/lib/gemini/client";
 import { runQualityGate, publishContentItem } from "./publishing";
 import { isFetchableImage } from "./thumbnails";
 import { upsertContentItem, upsertContentDetails } from "./storage";
@@ -22,6 +22,23 @@ export interface RunIngestionPipelineOptions {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function sleep(ms: number): Promise<void> {
+  return ms > 0 ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+}
+
+/** Default 1.5s, inside the requested 1-2s band. Tunable per deployment without a deploy — raise it if 429s persist, lower it if the run approaches maxDuration. */
+const DEFAULT_ENRICHMENT_PACING_MS = 1500;
+
+/** Consecutive rate-limited items before a source stops asking for this run. Three in a row is quota exhaustion, not a transient spike. */
+const MAX_CONSECUTIVE_RATE_LIMITS = 3;
+
+function getEnrichmentPacingMs(): number {
+  const raw = process.env.AI_ENRICHMENT_PACING_MS;
+  if (!raw) return DEFAULT_ENRICHMENT_PACING_MS;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.floor(parsed) : DEFAULT_ENRICHMENT_PACING_MS;
 }
 
 /** Exact-match content fingerprint — catches the same real-world article syndicated through a different feed, not just a re-run of the same one. */
@@ -136,6 +153,10 @@ export async function runIngestionPipeline(
   // isn't silently discarded the way it was before.
   const rawInsertFailures: Array<{ externalId: string; message: string }> = [];
 
+  // See the circuit breaker at the enrichment catch below.
+  let consecutiveRateLimits = 0;
+  let rateLimitedOut = false;
+
   try {
     const rawItems = await provider.fetchRawItems(options.sourceConfig);
     itemsFetched = rawItems.length;
@@ -245,21 +266,54 @@ export async function runIngestionPipeline(
         enrichment = await generateEnrichment(raw.title, raw.body, modality);
       } catch (error) {
         itemsRejected += 1;
-        // A transient Gemini failure (rate limit / server-side outage,
-        // already retried 3x with backoff inside generateJson) isn't a
-        // permanent rejection — leaving processed_at unset (unchanged
-        // either way) means it's retried automatically on the next run,
-        // but RETRY_PENDING vs FAILED tells a human whether that's
-        // expected to resolve itself or actually needs attention.
-        const isTransient = error instanceof GeminiTransientError;
+        // RETRY_PENDING is reserved for QUOTA/RATE-LIMIT refusals only
+        // (GeminiRateLimitError, i.e. HTTP 429). That makes the status a
+        // precise signal — "we asked faster than the quota allows" —
+        // rather than a catch-all for every transient condition, which is
+        // what made it useless for diagnosing the 429 outage this change
+        // fixes.
+        //
+        // A 429 is NEVER a permanent failure. Neither branch below sets
+        // processed_at, so both are retried automatically on the next
+        // run; the status only tells a human which kind of problem it
+        // was. A server-side 5xx therefore still retries exactly as
+        // before, it just reads as FAILED instead of RETRY_PENDING.
+        const isRateLimited = error instanceof GeminiRateLimitError;
         await setRawItemStatus(supabase, rawRow.id, {
-          status: isTransient ? "RETRY_PENDING" : "FAILED",
+          status: isRateLimited ? "RETRY_PENDING" : "FAILED",
           rejectionReason: `AI enrichment failed: ${errorMessage(error)}`,
           geminiError: errorMessage(error),
         });
+
+        // Circuit breaker. A per-call retry budget bounds one item, but
+        // not the run: if the quota is genuinely exhausted, EVERY item
+        // 429s and each still burns its full budget, so the route gets
+        // killed mid-flight at maxDuration and leaves this run row stuck
+        // in 'running' forever. Once the quota is clearly gone, the
+        // correct move is to stop asking and let the remaining items —
+        // which all still have processed_at null — be picked up by the
+        // next run.
+        if (isRateLimited) {
+          consecutiveRateLimits += 1;
+          if (consecutiveRateLimits >= MAX_CONSECUTIVE_RATE_LIMITS) {
+            rateLimitedOut = true;
+            break;
+          }
+        }
         continue;
       }
+      consecutiveRateLimits = 0;
       await setRawItemStatus(supabase, rawRow.id, { status: "AI_ENRICHED" });
+
+      // Pacing between SUCCESSFUL enrichment calls. The pipeline is
+      // sequential, so without this a run fires ~18 Gemini requests
+      // back-to-back as fast as they complete and walks straight into the
+      // per-minute quota — the failure mode that produced 429s across
+      // every source. Deliberately placed here rather than inside the
+      // Gemini client so it applies to ingestion only: the client is also
+      // used by interactive word lookup (src/lib/vocabulary/lookup.ts),
+      // where a second of added latency would be a real UX regression.
+      await sleep(getEnrichmentPacingMs());
 
       const { rawTopics, ...universal } = enrichment;
       const draft = {
@@ -329,7 +383,17 @@ export async function runIngestionPipeline(
         items_published: itemsPublished,
         items_rejected: itemsRejected,
         status: "completed",
-        error: rawInsertFailures.length > 0 ? ({ rawInsertFailures } as unknown as Json) : null,
+        // rateLimitedOut is recorded so "this run stopped early because
+        // the Gemini quota was exhausted" is visible in the run history,
+        // not silently indistinguishable from "this source had nothing
+        // new to publish".
+        error:
+          rawInsertFailures.length > 0 || rateLimitedOut
+            ? ({
+                ...(rawInsertFailures.length > 0 ? { rawInsertFailures } : {}),
+                ...(rateLimitedOut ? { stoppedEarly: "Gemini quota exhausted — remaining items deferred to the next run" } : {}),
+              } as unknown as Json)
+            : null,
       })
       .eq("id", run.id);
 
