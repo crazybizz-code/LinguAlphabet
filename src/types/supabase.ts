@@ -184,6 +184,8 @@ export interface Database {
           content_type: "podcast" | "article" | "story" | "video" | "news" | "conversation" | "challenge";
           title: string;
           description: string | null;
+          /** publisher | generated — who wrote `description` (supabase/description-provenance.sql). Null on rows predating the column. */
+          description_provenance: string | null;
           cefr_level_min: string;
           cefr_level_max: string;
           topics: string[];
@@ -204,6 +206,7 @@ export interface Database {
           content_type: Database["public"]["Tables"]["content_items"]["Row"]["content_type"];
           title: string;
           description?: string | null;
+          description_provenance?: string | null;
           cefr_level_min: string;
           cefr_level_max: string;
           topics?: string[];

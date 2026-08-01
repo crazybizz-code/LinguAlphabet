@@ -5,6 +5,7 @@ import type { TranscriptSegment } from "@/types/content";
 import { generateEnrichment, estimateReadingTimeMinutes, enrichmentToDetailsColumns } from "./ai-processing";
 import { GeminiRateLimitError } from "@/lib/gemini/client";
 import { runQualityGate, publishContentItem } from "./publishing";
+import { resolveDescription } from "./description";
 import { isFetchableImage } from "./thumbnails";
 import { upsertContentItem, upsertContentDetails } from "./storage";
 import type { ContentModality, ContentProvider, IngestionRunResult, ProviderDraft, RawContentItem } from "./types";
@@ -475,8 +476,25 @@ export async function runIngestionPipeline(
       await sleep(getEnrichmentPacingMs());
 
       const { rawTopics, ...universal } = enrichment;
+
+      // A card needs a description, and the quality gate is right to
+      // insist. VOA's podcast feeds publish none anywhere — not in
+      // <description>, <itunes:summary> or <itunes:subtitle> — so for
+      // those episodes the only honest description is one written from
+      // the episode's own verified transcript, which enrichment has just
+      // produced. Publisher copy always wins; generation is recorded as
+      // generated and never applies to an item with no real body, so the
+      // gate's failed-extraction diagnostic still works.
+      const resolvedDescription = resolveDescription(
+        providerDraft.description,
+        universal.summary,
+        raw.body.trim().length,
+      );
+
       const draft = {
         ...providerDraft,
+        description: resolvedDescription.description,
+        descriptionProvenance: resolvedDescription.provenance,
         cefrLevelMin: universal.cefrLevelMin,
         cefrLevelMax: universal.cefrLevelMax,
         topics: universal.topics,

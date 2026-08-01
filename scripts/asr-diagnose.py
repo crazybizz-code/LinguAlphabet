@@ -1,5 +1,20 @@
 """Isolate a native crash in the faster-whisper stack, one stage at a time.
 
+RESOLVED, 2026 — kept because the next machine will need it.
+
+    Root cause: an outdated Microsoft Visual C++ runtime. onnxruntime
+    could not even be imported (0xC0000005 inside
+    onnxruntime/capi/_pybind_state.py), which took WhisperModel down with
+    it at construction. Updating the Microsoft Visual C++ 2015-2022 x64
+    Redistributable fixed every stage at once: onnxruntime, CTranslate2
+    model loading, faster_whisper model loading, VAD, word timestamps,
+    the wrapper and the Node subprocess.
+
+    No Python package pin was needed. numpy 2.5.1, onnxruntime 1.28.0,
+    ctranslate2 4.8.1 and av 18.0.0 on Python 3.12 are all fine TOGETHER,
+    provided the system C++ runtime underneath them is current. Reach for
+    probe 7 in asr-native-probe.py before pinning anything.
+
     python scripts/asr-diagnose.py
 
 Windows exit code 3221225477 is 0xC0000005, an access violation: a native

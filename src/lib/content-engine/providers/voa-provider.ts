@@ -130,7 +130,22 @@ export function parseVoaFeed(xml: string): RawContentItem[] {
     // arrives with no transcriptRef and is dropped by the pipeline's
     // Transcript Resolution stage rather than published without one.
     const encoded = textBetween(itemXml, "content:encoded");
-    const description = textBetween(itemXml, "description");
+    // The publisher's own blurb, wherever the feed happens to put it.
+    //
+    // `<description>` is only the most common home for it, not the only
+    // one — the iTunes namespace has carried summaries and subtitles
+    // since podcasting existed, and a feed populating one and not the
+    // other is completely ordinary. Reading a single element and
+    // reporting "Missing description" was our bug, not the publisher's.
+    //
+    // Every entry here is written BY VOA. None of it is derived,
+    // excerpted or generated, so whatever this returns can be shown as
+    // publisher copy without qualification.
+    const description =
+      textBetween(itemXml, "description") ??
+      textBetween(itemXml, "itunes:summary") ??
+      textBetween(itemXml, "itunes:subtitle") ??
+      textBetween(itemXml, "media:description");
     const transcriptText = encoded ? stripHtml(encoded) : "";
     const hasTranscript = transcriptText.length >= MIN_TRANSCRIPT_CHARS;
 

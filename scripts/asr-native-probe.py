@@ -1,5 +1,16 @@
 """Separate the two native runtimes faster-whisper sits on.
 
+RESOLVED, 2026 — the answer was probe 7, not a package pin.
+
+    An outdated Microsoft Visual C++ 2015-2022 x64 Redistributable made
+    `import onnxruntime` crash with 0xC0000005, and WhisperModel went
+    down with it. Updating the redistributable fixed everything with no
+    change to numpy, onnxruntime, ctranslate2 or av.
+
+    The lesson worth keeping: when BOTH native runtimes crash, it is the
+    system underneath them, not the Python packages on top. Run probe 7
+    first next time.
+
     python scripts/asr-native-probe.py
 
 The bisect established that stage 7 - WhisperModel("tiny.en") - crashes

@@ -174,6 +174,19 @@ export interface ContentItemDraft {
   contentType: ContentType;
   title: string;
   description: string;
+  /**
+   * Where `description` came from.
+   *
+   * `publisher` — the source wrote it, and it can be shown as the
+   * publisher's words.
+   * `generated` — the source published none, so it was written from
+   * this item's own verified content during enrichment.
+   *
+   * Recorded because the two are indistinguishable once rendered on a
+   * card, and "who wrote this sentence" is not a question the answer to
+   * which should have to be re-derived from which provider ingested it.
+   */
+  descriptionProvenance?: "publisher" | "generated";
   cefrLevelMin: CefrLevel;
   cefrLevelMax: CefrLevel;
   topics: string[];

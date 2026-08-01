@@ -8,6 +8,8 @@ import { verifyTranscript } from "@/lib/content-engine/transcripts/verify";
 import { getAdapter } from "@/lib/content-engine/adapters/registry";
 import { runQualityGate } from "@/lib/content-engine/publishing";
 import { isReachableAudio } from "@/lib/content-engine/audio";
+import { resolveDescription } from "@/lib/content-engine/description";
+import { generateEnrichment } from "@/lib/content-engine/ai-processing";
 
 /**
  * OPERATOR ASR PROOF — real VOA feed, real MP3s, real transcription.
@@ -37,6 +39,8 @@ const ENABLED = process.env.VOA_ASR_PROOF === "1";
 const ZONES = (process.env.VOA_ASR_ZONES ?? "3521").split(",").map((zone) => Number(zone.trim()));
 const PER_ZONE = Number(process.env.VOA_ASR_PER_ZONE ?? 3);
 const MODEL = process.env.VOA_ASR_MODEL ?? "medium.en";
+/** Real Gemini enrichment, one call per episode. Off by default so the proof costs nothing. */
+const ENRICH = process.env.VOA_ASR_ENRICH === "1";
 
 interface EpisodeReport {
   programme: string;
@@ -53,6 +57,10 @@ interface EpisodeReport {
   timestampCoverage?: number;
   transcriptVerified: boolean;
   verificationConfidence?: number;
+  /** Which elements the publisher's own <item> actually contains - answers "does VOA publish a description anywhere" from the bytes. */
+  itemElements?: string[];
+  descriptionProvenance?: string;
+  description?: string;
   gatePassed: boolean;
   elapsedMs?: number;
 }
@@ -112,6 +120,13 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
           };
           reports.push(report);
 
+          // Every child element of the publisher's own <item>. This is
+          // how we answer "does VOA publish a description under some
+          // other name" from the feed itself rather than by guessing at
+          // element names.
+          const itemXml = (raw.raw as { feedItem?: string } | undefined)?.feedItem ?? "";
+          report.itemElements = [...new Set([...itemXml.matchAll(/<([a-zA-Z][\w:.-]*)[\s/>]/g)].map((m) => m[1]))].sort();
+
           // ---------- Audio validation ----------
           if (!raw.audio?.url) {
             report.reasons.push("No <enclosure> audio URL");
@@ -167,10 +182,30 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
           }
           report.transcriptVerified = true;
 
-          // ---------- Adapt + quality gate ----------
+          // ---------- Adapt ----------
           const draft = getAdapter("podcast")!(raw, { transcript: segments });
+
+          // ---------- Description ----------
+          // Exactly what the pipeline does: publisher copy if the feed
+          // carried any, otherwise one written from this episode's own
+          // verified transcript, recorded as generated.
+          //
+          // The summary is REAL when VOA_ASR_ENRICH=1 (one Gemini call
+          // per episode); otherwise it is a labelled stand-in, so the
+          // default run still costs nothing. Either way the resolution
+          // logic under test is the production one.
+          const body = segments.map((segment) => segment.text).join(" ");
+          const summary = ENRICH
+            ? (await generateEnrichment(raw.title, body, "audio")).summary
+            : `STUB SUMMARY (set VOA_ASR_ENRICH=1 for a real one): ${raw.title} - an episode of ${programme} from VOA Learning English.`;
+          const resolved = resolveDescription(draft.description, summary, body.trim().length);
+          report.descriptionProvenance = resolved.provenance ?? "none";
+          report.description = resolved.description;
+
           const gated = runQualityGate({
             ...draft,
+            description: resolved.description,
+            descriptionProvenance: resolved.provenance,
             // What generateEnrichment() would fill. Stubbed so no Gemini
             // call is made; every check that is the PROVIDER's or ASR's
             // responsibility still runs for real.
@@ -202,6 +237,9 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
         log(`    transcript words:    ${report.wordCount ?? 0}`);
         log(`    timestamp coverage:  ${pct(report.timestampCoverage)}`);
         log(`    verification:        ${report.transcriptVerified ? "accept" : `reject${report.verificationConfidence !== undefined ? ` (confidence ${report.verificationConfidence.toFixed(2)})` : ""}`}`);
+        log(`    <item> elements:     ${report.itemElements?.join(", ") ?? "(none captured)"}`);
+        log(`    description source:  ${report.descriptionProvenance ?? "n/a"}`);
+        log(`    description:         ${report.description ? `"${report.description.slice(0, 120)}"` : "(none)"}`);
         log(`    quality gate:        ${report.gatePassed ? "pass" : "fail"}`);
         log(`    processing time:     ${report.elapsedMs !== undefined ? `${(report.elapsedMs / 1000).toFixed(1)}s` : "n/a"}${report.cacheHit ? " (cached)" : ""}`);
         log(`    outcome:             ${report.outcome}`);
@@ -219,6 +257,8 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
       log(`Audio validated:      ${reports.filter((report) => report.audioValidated).length}`);
       log(`ASR completed:        ${reports.filter((report) => report.asrCompleted).length}`);
       log(`Transcript verified:  ${reports.filter((report) => report.transcriptVerified).length}`);
+      log(`Publisher description: ${reports.filter((report) => report.descriptionProvenance === "publisher").length}`);
+      log(`Generated description: ${reports.filter((report) => report.descriptionProvenance === "generated").length}`);
       log(`Passed quality gate:  ${reports.filter((report) => report.gatePassed).length}`);
       log(`Would publish:        ${wouldPublish.length}`);
       log(`Rejected:             ${reports.length - wouldPublish.length}`);
