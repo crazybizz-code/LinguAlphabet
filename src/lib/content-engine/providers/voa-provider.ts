@@ -81,6 +81,15 @@ export function parseItunesDuration(value: string | undefined): number | null {
   return seconds > 0 ? seconds : null;
 }
 
+/** `<itunes:image href="...">` carries the programme artwork as an attribute, not as element text. */
+function parseItunesImage(itemXml: string): string | undefined {
+  const match = /<itunes:image\b([^>]*)>/i.exec(itemXml);
+  if (!match) return undefined;
+  const href =
+    /href\s*=\s*"([^"]+)"/i.exec(match[1])?.[1] ?? /href\s*=\s*'([^']+)'/i.exec(match[1])?.[1];
+  return href ? decodeXml(href) : undefined;
+}
+
 /** The enclosure is the episode. No audio URL means there is no episode, whatever else the item carries. */
 function parseEnclosure(itemXml: string): { url: string; type: string } | null {
   const match = /<enclosure\b([^>]*)>/i.exec(itemXml);
@@ -111,12 +120,19 @@ export function parseVoaFeed(xml: string): RawContentItem[] {
     );
     if (durationSeconds === null) continue;
 
-    // VOA publishes the script in the item body. `content:encoded` is the
-    // full text where present; `description` is the summary and is used
-    // as the card description, never as the transcript.
+    // `content:encoded` is the full script where a feed carries one.
+    //
+    // VOA'S DO NOT. The operator recon confirmed it across all six
+    // Learning English podcast feeds: audio and metadata only, no
+    // content:encoded anywhere. This branch is kept because it costs
+    // nothing and is correct for any feed that does carry a script, but
+    // for VOA it never fires — which is why every VOA item currently
+    // arrives with no transcriptRef and is dropped by the pipeline's
+    // Transcript Resolution stage rather than published without one.
     const encoded = textBetween(itemXml, "content:encoded");
     const description = textBetween(itemXml, "description");
     const transcriptText = encoded ? stripHtml(encoded) : "";
+    const hasTranscript = transcriptText.length >= MIN_TRANSCRIPT_CHARS;
 
     const link = textBetween(itemXml, "link");
     const guid = textBetween(itemXml, "guid") ?? link ?? enclosure.url;
@@ -131,11 +147,19 @@ export function parseVoaFeed(xml: string): RawContentItem[] {
       description: description ? stripHtml(description) : undefined,
       url: link,
       publishedAt: textBetween(itemXml, "pubDate"),
+      thumbnailUrl: parseItunesImage(itemXml),
+      author:
+        textBetween(itemXml, "itunes:author") ??
+        textBetween(itemXml, "dc:creator") ??
+        textBetween(itemXml, "author"),
       audio: { url: enclosure.url, durationSeconds },
-      transcriptRef: transcriptText.length >= MIN_TRANSCRIPT_CHARS ? { kind: "inline", text: transcriptText } : undefined,
+      transcriptRef: hasTranscript ? { kind: "inline", text: transcriptText } : undefined,
       licence: VOA_LICENCE,
       attribution: VOA_ATTRIBUTION,
-      transcriptProvenance: "publisher",
+      // Only claimed when there IS a transcript. Stamping "publisher" on
+      // an item that carries none would record a provenance for text that
+      // does not exist.
+      transcriptProvenance: hasTranscript ? "publisher" : undefined,
       raw: { feedItem: itemXml },
     });
   }

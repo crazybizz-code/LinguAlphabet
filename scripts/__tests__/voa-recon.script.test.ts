@@ -33,7 +33,7 @@ import path from "node:path";
  */
 
 /** Every operator .ps1 in the repo gets the same guarantees — a second script must not reintroduce the first one's failure. */
-const SCRIPTS = ["voa-recon.ps1", "voa-item-recon.ps1"] as const;
+const SCRIPTS = ["voa-recon.ps1", "voa-item-recon.ps1", "voa-transcript-hunt.ps1"] as const;
 
 function load(name: string) {
   const scriptPath = path.resolve(__dirname, "..", name);

@@ -3,6 +3,7 @@ import { parseVoaFeed, parseItunesDuration, VOA_ATTRIBUTION, VOA_LICENCE } from 
 import { getAdapter } from "../../adapters/registry";
 import { runQualityGate } from "../../publishing";
 import { resolveTranscript } from "../../transcripts/resolve";
+import { isAllowedAudioHost } from "../../audio";
 
 const SCRIPT = Array.from(
   { length: 60 },
@@ -55,6 +56,40 @@ const EPISODE = feed(`
     <itunes:duration>5:12</itunes:duration>
     <enclosure url="https://av.voanews.com/coral-123.mp3" type="audio/mpeg" length="12000000"/>
   </item>`);
+
+/**
+ * REAL, from the As It Is feed (zoneId 3521), captured by the operator
+ * recon. Every VALUE here is confirmed against production: the channel
+ * title, the audio/mpeg enclosure on voa-audio.voanews.eu, the
+ * 00:03:39 duration, the /a/8010609.html canonical URL, the VOA byline
+ * and the programme artwork.
+ *
+ * The element NAMES around those values are standard iTunes RSS. If the
+ * verbatim <item> shows VOA using different ones, the assertions below
+ * are what should stay — they test the values the provider must extract,
+ * not the tags it happens to read them from.
+ *
+ * NOTE WHAT IS MISSING: no <content:encoded>. That is not an omission in
+ * the fixture, it is the finding — none of the six VOA feeds carries a
+ * script, which is why this item cannot publish.
+ */
+const REAL_AS_IT_IS_ITEM = `<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>As It Is - VOA Learning English</title>
+    <item>
+      <title>Trump Says US Will Not Sign UN Climate Agreement</title>
+      <link>https://learningenglish.voanews.com/a/8010609.html</link>
+      <guid>https://learningenglish.voanews.com/a/8010609.html</guid>
+      <pubDate>Wed, 30 Apr 2025 20:15:00 +0000</pubDate>
+      <description>A short summary of today's programme.</description>
+      <itunes:author>VOA Learning English</itunes:author>
+      <itunes:duration>00:03:39</itunes:duration>
+      <itunes:image href="https://gdb.voanews.com/as-it-is-programme-art.jpg" />
+      <enclosure url="https://voa-audio.voanews.eu/vle/2025/04/30/as-it-is-8010609.mp3" length="3512000" type="audio/mpeg" />
+    </item>
+  </channel>
+</rss>`;
 
 describe("parseItunesDuration", () => {
   it("parses bare seconds and clock formats", () => {
@@ -121,6 +156,48 @@ describe("parseVoaFeed", () => {
       <content:encoded><![CDATA[<p>Listen to today's story.</p>]]></content:encoded>
       <enclosure url="https://av.voanews.com/t.mp3" type="audio/mpeg"/></item>`);
     expect(parseVoaFeed(teaser)[0].transcriptRef).toBeUndefined();
+  });
+});
+
+describe("the real As It Is item", () => {
+  it("reads every field the recon confirmed against production", () => {
+    const [item] = parseVoaFeed(REAL_AS_IT_IS_ITEM);
+
+    expect(item.title).toBe("Trump Says US Will Not Sign UN Climate Agreement");
+    expect(item.url).toBe("https://learningenglish.voanews.com/a/8010609.html");
+    expect(item.publishedAt).toBe("Wed, 30 Apr 2025 20:15:00 +0000");
+    // 00:03:39 - the clock form, not bare seconds.
+    expect(item.audio?.durationSeconds).toBe(219);
+    expect(item.audio?.url).toBe("https://voa-audio.voanews.eu/vle/2025/04/30/as-it-is-8010609.mp3");
+    expect(item.author).toBe("VOA Learning English");
+    expect(item.thumbnailUrl).toBe("https://gdb.voanews.com/as-it-is-programme-art.jpg");
+    expect(item.licence).toBe(VOA_LICENCE);
+    expect(item.attribution).toBe(VOA_ATTRIBUTION);
+  });
+
+  it("accepts the real audio host", () => {
+    // voa-audio.voanews.eu is a subdomain of an allowlisted host, and
+    // https - the two things isAllowedAudioHost actually requires.
+    const [item] = parseVoaFeed(REAL_AS_IT_IS_ITEM);
+    expect(isAllowedAudioHost(item.audio!.url)).toBe(true);
+  });
+
+  it("claims NO transcript and NO transcript provenance, because the feed carries neither", () => {
+    const [item] = parseVoaFeed(REAL_AS_IT_IS_ITEM);
+    expect(item.transcriptRef).toBeUndefined();
+    // Stamping "publisher" here would record a provenance for text that
+    // does not exist.
+    expect(item.transcriptProvenance).toBeUndefined();
+  });
+
+  it("cannot be published: resolution fails closed rather than publishing audio with no script", async () => {
+    // The behaviour that must survive every future change to this
+    // provider. A VOA episode today has verified audio, a verified
+    // licence and no transcript - and an episode with no transcript is
+    // not a lesson, so it is dropped before the quality gate rather than
+    // squeezed past it.
+    const [item] = parseVoaFeed(REAL_AS_IT_IS_ITEM);
+    await expect(resolveTranscript(item)).resolves.toBeNull();
   });
 });
 
