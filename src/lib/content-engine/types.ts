@@ -42,6 +42,32 @@ export interface RawContentItem {
   thumbnailUrl?: string;
   /** Original creator's byline, when the source exposes one (e.g. RSS `dc:creator`) — some approved sources (docs/content-source-policy.md, e.g. Global Voices' CC license) require author-name attribution alongside the source link. */
   author?: string;
+  /**
+   * Audio, for providers whose content type is `podcast`. Absent for
+   * every text type — the adapter registry treats a podcast raw item
+   * without this as a provider bug, not a bad episode.
+   */
+  audio?: {
+    url: string;
+    durationSeconds: number;
+  };
+  /**
+   * The publisher's transcript when the feed exposes one directly, or a
+   * URL to fetch it from. Resolved by the pipeline's Transcript
+   * Resolution stage into real segments — a provider is not expected to
+   * parse or verify it.
+   */
+  transcriptRef?: { kind: "inline"; text: string } | { kind: "url"; url: string };
+  /**
+   * Licensing provenance, carried from the source's registration rather
+   * than guessed per item (docs/content-source-policy.md). Persisted so
+   * every published episode can answer "under what licence are we
+   * serving this, and who must we credit" without a lookup.
+   */
+  licence?: string;
+  attribution?: string;
+  /** How the transcript was obtained. Set by the pipeline stage that resolves it, not by the provider. */
+  transcriptProvenance?: "publisher" | "operator" | "asr";
   /** The complete original source record (an RSS item, an API payload) — preserved as-is for content_raw_items.raw_payload, never interpreted by the pipeline. */
   raw?: unknown;
 }

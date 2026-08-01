@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
+import type { TranscriptSegment } from "@/types/content";
 import { generateEnrichment, estimateReadingTimeMinutes, enrichmentToDetailsColumns } from "./ai-processing";
 import { GeminiRateLimitError } from "@/lib/gemini/client";
 import { runQualityGate, publishContentItem } from "./publishing";
@@ -17,7 +18,15 @@ export interface RunIngestionPipelineOptions {
   /** If true, an item that passes the quality gate publishes immediately; otherwise it's written as `draft` for manual review. */
   autoPublish?: boolean;
   /** Maps a fetched RawContentItem into the universal draft (minus AI-derived fields) + its type-specific details row — provider-specific normalization the pipeline itself stays agnostic to. */
-  normalize: (raw: RawContentItem) => ProviderDraft;
+  normalize: (raw: RawContentItem, context?: { transcript?: TranscriptSegment[] }) => ProviderDraft;
+  /**
+   * Transcript Resolution — the one podcast-specific stage in an
+   * otherwise type-agnostic pipeline. Runs between Normalize and
+   * Deduplicate so the resolved transcript can become the item's `body`,
+   * which is what makes the EXISTING content-hash dedup work for audio
+   * with no second dedup system. Absent for text providers.
+   */
+  resolveTranscript?: (raw: RawContentItem) => Promise<TranscriptSegment[] | null>;
 }
 
 function errorMessage(error: unknown): string {
@@ -262,6 +271,8 @@ export async function runIngestionPipeline(
   // docstring above -- captured here instead so the real Postgres error
   // isn't silently discarded the way it was before.
   const rawInsertFailures: Array<{ externalId: string; message: string }> = [];
+  /** Episodes dropped before any AI spend because no transcript could be resolved — reported like rawInsertFailures rather than silently counted. */
+  const transcriptFailures: Array<{ externalId: string; message: string }> = [];
 
   // See the circuit breaker at the enrichment catch below.
   let consecutiveRateLimits = 0;
@@ -281,7 +292,7 @@ export async function runIngestionPipeline(
 
     const rawItems = mergePendingAndFetched(pendingItems, fetchedItems);
 
-    for (const raw of rawItems) {
+    for (let raw of rawItems) {
       const { data: existing } = await supabase
         .from("content_raw_items")
         .select("id, processed_at")
@@ -290,6 +301,31 @@ export async function runIngestionPipeline(
         .maybeSingle();
 
       if (existing?.processed_at) continue; // already published by a previous run
+
+      // ---- Transcript Resolution (podcast only) ----
+      // Before the hash, deliberately. A podcast's `body` is its
+      // transcript, so resolving first means computeContentHash() —
+      // unchanged, still the article dedup — identifies an episode by
+      // what it says. The same episode under a second audio URL hashes
+      // identically and is caught by the cross-source dedup below,
+      // without a podcast-specific duplicate check existing anywhere.
+      let resolvedTranscript: TranscriptSegment[] | null = null;
+      if (options.resolveTranscript) {
+        try {
+          resolvedTranscript = await options.resolveTranscript(raw);
+        } catch {
+          resolvedTranscript = null;
+        }
+        if (!resolvedTranscript || resolvedTranscript.length === 0) {
+          // No transcript means no lesson. Rejected here rather than at
+          // the quality gate so it costs zero Gemini spend, the same
+          // ordering the manual podcast path already uses.
+          itemsRejected += 1;
+          transcriptFailures.push({ externalId: raw.externalId, message: "No usable transcript could be resolved" });
+          continue;
+        }
+        raw = { ...raw, body: resolvedTranscript.map((segment) => segment.text).join(" ") };
+      }
 
       const contentHash = computeContentHash(raw.body);
       const canonicalUrl = normalizeCanonicalUrl(raw.url);
@@ -360,7 +396,7 @@ export async function runIngestionPipeline(
 
       let providerDraft: ProviderDraft;
       try {
-        providerDraft = options.normalize(raw);
+        providerDraft = options.normalize(raw, { transcript: resolvedTranscript ?? undefined });
       } catch (error) {
         itemsRejected += 1;
         await setRawItemStatus(supabase, rawRow.id, {
@@ -512,9 +548,10 @@ export async function runIngestionPipeline(
         // not silently indistinguishable from "this source had nothing
         // new to publish".
         error:
-          rawInsertFailures.length > 0 || rateLimitedOut
+          rawInsertFailures.length > 0 || transcriptFailures.length > 0 || rateLimitedOut
             ? ({
                 ...(rawInsertFailures.length > 0 ? { rawInsertFailures } : {}),
+                ...(transcriptFailures.length > 0 ? { transcriptFailures } : {}),
                 ...(rateLimitedOut ? { stoppedEarly: "Gemini quota exhausted — remaining items deferred to the next run" } : {}),
               } as unknown as Json)
             : null,

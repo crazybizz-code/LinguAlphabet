@@ -228,6 +228,12 @@ export interface Database {
           audio_url: string;
           duration_seconds: number;
           transcript: Json;
+          /** Provenance + content-identity dedup — see supabase/podcast-provenance.sql. */
+          source_url: string | null;
+          licence: string | null;
+          attribution: string | null;
+          transcript_provenance: string | null;
+          transcript_hash: string | null;
           summary: string | null;
           takeaways: Json;
           vocabulary: Json;

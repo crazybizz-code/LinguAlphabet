@@ -69,7 +69,22 @@ describe("quality gate — article body", () => {
   });
 
   it("does not apply the article body check to other content types", () => {
+    // Podcasts now have checks of their own, so "passes the gate" is no
+    // longer the way to prove the ARTICLE check didn't leak. What matters
+    // is that the failures a podcast collects are podcast failures — an
+    // episode is never asked for an article body.
     const podcast = articleDraft({ contentType: "podcast", detailsTable: "podcast_details", detailsRow: { audio_url: "https://x/a.mp3" } });
+    const reasons = runQualityGate(podcast).reasons;
+    expect(reasons).not.toContain("Missing article body");
+    expect(reasons.some((reason) => reason.includes("Article body"))).toBe(false);
+  });
+
+  it("applies the podcast checks to a podcast draft", () => {
+    const podcast = articleDraft({
+      contentType: "podcast",
+      detailsTable: "podcast_details",
+      detailsRow: { audio_url: "https://av.voanews.com/a.mp3", duration_seconds: 600, transcript: [{ text: "hi" }] },
+    });
     expect(runQualityGate(podcast).passed).toBe(true);
   });
 });

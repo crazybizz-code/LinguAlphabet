@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { TranscriptSegment } from "@/types/content";
 import type { ProviderDraft } from "../types";
+import { computeTranscriptHash } from "../transcripts/hash";
 
 /**
  * Podcast Adapter — mirrors the Article Adapter exactly, differing only
@@ -21,6 +22,16 @@ export interface PodcastEpisodeInput {
   durationSeconds: number;
   publishedAt?: string;
   thumbnailUrl?: string;
+  /**
+   * Provenance. Stored rather than inferred at read time: every one of
+   * these is a fact about the moment we ingested, and a source's licence
+   * can change afterwards without retroactively changing what we were
+   * allowed to do with what we already have.
+   */
+  sourceUrl?: string;
+  licence?: string;
+  attribution?: string;
+  transcriptProvenance?: "publisher" | "operator" | "asr";
 }
 
 export function podcastContentId(externalId: string): string {
@@ -52,6 +63,15 @@ export function toPodcastDraft(input: PodcastEpisodeInput, transcript: Transcrip
       // Stored in the exact shape podcast_details.transcript already uses
       // and the Learning Session's PlayerStep already renders — snake_case
       // keys, so no translation layer is needed at read time.
+      source_url: input.sourceUrl ?? "",
+      licence: input.licence ?? "",
+      attribution: input.attribution ?? "",
+      transcript_provenance: input.transcriptProvenance ?? "operator",
+      // Identifies the episode by what it SAYS, so the same episode under
+      // a second audio URL is still recognisable as a duplicate. Null for
+      // an empty transcript — the quality gate rejects those anyway, and a
+      // hash of nothing would collide every empty episode with every other.
+      transcript_hash: computeTranscriptHash(transcript),
       transcript: transcript.map((segment) => ({
         speaker: segment.speaker,
         text: segment.text,

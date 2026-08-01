@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import "@/lib/content-engine/providers/bootstrap";
 import { contentEngine } from "@/lib/content-engine";
-import { toArticleDraft } from "@/lib/content-engine/adapters/article";
+import { requireAdapter } from "@/lib/content-engine/adapters/registry";
+import { resolveTranscript } from "@/lib/content-engine/transcripts/resolve";
 import { createServiceClient } from "@/lib/supabase/service-client";
 
 export const dynamic = "force-dynamic";
@@ -58,24 +59,40 @@ export async function GET(request: Request) {
     // here would abandon every source after this one in the loop. With
     // one source that was invisible; with a multi-source catalog it means
     // a single bad source silently costs a whole day of content.
+    // Resolved once per source, outside the per-item closure: an
+    // unregistered content type is a deployment error, not a bad item, so
+    // it should fail this source immediately rather than once per episode.
+    let adapter;
+    try {
+      adapter = requireAdapter(provider.contentType);
+    } catch (error) {
+      runs.push({
+        sourceId: source.id,
+        sourceName: source.name,
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
+      });
+      continue;
+    }
+
     let result;
     try {
       result = await contentEngine.runIngestionPipeline(supabase, provider, {
         sourceId: source.id,
         sourceConfig: source.config as Record<string, unknown>,
         autoPublish: true,
-        // Dispatched on the PROVIDER's declared content type rather than
-        // hardcoded to "article" as it was inline here — an audio provider
-        // registered later routes to the Podcast Adapter through this same
-        // pipeline with no route change. Podcasts today arrive via the
-        // human-in-the-loop path (lib/content-engine/podcast-ingestion.ts)
-        // instead, which reuses that same adapter.
-        normalize: (raw) => {
-          if (provider.contentType !== "article") {
-            throw new Error(`No adapter registered for content type '${provider.contentType}' in the scheduled ingest route.`);
-          }
-          return toArticleDraft(raw);
-        },
+        // Dispatched through the adapter registry on the PROVIDER's
+        // declared content type. This used to be a hardcoded
+        // `provider.contentType !== "article"` throw, which was the one
+        // line preventing a second content type from using the shared
+        // pipeline — everything else here (staging, dedup, retry,
+        // enrichment, quality gate, publishing) was already type-agnostic.
+        // A podcast provider now routes to the Podcast Adapter with no
+        // change to this route at all.
+        normalize: (raw, context) => adapter(raw, context),
+        // Podcast-only stage. Absent for article providers, so their path
+        // through the pipeline is byte-for-byte what it was.
+        ...(provider.contentType === "podcast" ? { resolveTranscript } : {}),
       });
     } catch (error) {
       runs.push({
