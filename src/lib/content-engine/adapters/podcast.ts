@@ -31,7 +31,7 @@ export interface PodcastEpisodeInput {
   sourceUrl?: string;
   licence?: string;
   attribution?: string;
-  transcriptProvenance?: "publisher" | "operator" | "asr";
+  transcriptProvenance?: "publisher" | "publisher_episode_page" | "operator" | "asr";
 }
 
 export function podcastContentId(externalId: string): string {

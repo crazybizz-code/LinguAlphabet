@@ -42,7 +42,7 @@ comment on column public.podcast_details.attribution is
   'The exact credit line the licence requires, captured at ingest. Stored rather than derived so a later change to a source''s attribution text cannot silently rewrite what we displayed for already-published episodes.';
 
 comment on column public.podcast_details.transcript_provenance is
-  'publisher | operator | asr. Load-bearing for trust, not display: a publisher-supplied transcript deserves a different verification bar than an operator-typed one, and when ASR lands you need to know which episodes were machine-transcribed without re-deriving it.';
+  'publisher | publisher_episode_page | operator | asr. Load-bearing for trust, not display: a publisher-supplied transcript deserves a different verification bar than an operator-typed one, and when ASR lands you need to know which episodes were machine-transcribed without re-deriving it. publisher_episode_page is the publisher''s own text taken from the episode page rather than the feed — same authority, more fragile extraction, so it is tracked separately.';
 
 comment on column public.podcast_details.transcript_hash is
   'SHA-256 of the normalized transcript text (speaker labels, casing, punctuation and whitespace stripped). Identifies the episode by content so the same episode cannot publish twice under two audio URLs. Null when there is no transcript — the quality gate rejects those, and a hash of nothing would collide every empty episode with every other.';

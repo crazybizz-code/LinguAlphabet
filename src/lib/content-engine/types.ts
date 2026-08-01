@@ -66,8 +66,18 @@ export interface RawContentItem {
    */
   licence?: string;
   attribution?: string;
-  /** How the transcript was obtained. Set by the pipeline stage that resolves it, not by the provider. */
-  transcriptProvenance?: "publisher" | "operator" | "asr";
+  /**
+   * How the transcript was obtained.
+   *
+   * `publisher` is a transcript the FEED carried. `publisher_episode_page`
+   * is one lifted from the publisher's own episode page because the feed
+   * carried none — same publisher, same authority, but a different and
+   * more fragile extraction path, since a page's body markup is not the
+   * contract a feed element is. Keeping them distinct means a later
+   * "which episodes came from page scraping" question is answerable
+   * without re-deriving it from source ids.
+   */
+  transcriptProvenance?: "publisher" | "publisher_episode_page" | "operator" | "asr";
   /** The complete original source record (an RSS item, an API payload) — preserved as-is for content_raw_items.raw_payload, never interpreted by the pipeline. */
   raw?: unknown;
 }

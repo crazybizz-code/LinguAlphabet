@@ -7,6 +7,7 @@ import {
   parseIsoDuration,
   selectPodcastFeed,
 } from "../voa-discovery";
+import { VOA_PROGRAMMES, findVoaProgramme, voaFeedUrl } from "../voa-programmes";
 
 const BASE = "https://learningenglish.voanews.com/z/1689";
 
@@ -164,6 +165,22 @@ describe("selectPodcastFeed", () => {
     const result = await selectPodcastFeed([{ url: "https://learningenglish.voanews.com/api/", via: "anchor" }], fetchImpl);
     expect(result.feed).toBeNull();
     expect(result.probes[0].error).toBe("ENOTFOUND");
+  });
+});
+
+describe("VOA_PROGRAMMES", () => {
+  it("builds the feed URL shape the recon actually verified", () => {
+    // Three recons to find this. It is not a <link rel=alternate>, not a
+    // JSON config entry and not an anchor - it is VOA's own podcast
+    // endpoint keyed by the programme's zone id.
+    expect(voaFeedUrl(3521)).toBe("https://learningenglish.voanews.com/podcast/?zoneId=3521");
+  });
+
+  it("records the six programmes that passed classification against production", () => {
+    expect(VOA_PROGRAMMES).toHaveLength(6);
+    expect(VOA_PROGRAMMES.map((programme) => programme.zoneId)).toEqual([3521, 986, 1581, 5535, 4456, 7468]);
+    expect(findVoaProgramme(3521)?.name).toBe("As It Is");
+    expect(findVoaProgramme(9999)).toBeUndefined();
   });
 });
 

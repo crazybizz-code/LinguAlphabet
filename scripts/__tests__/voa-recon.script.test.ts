@@ -32,11 +32,21 @@ import path from "node:path";
  * with pwsh installed), the last test runs the real language parser.
  */
 
-const SCRIPT_PATH = path.resolve(__dirname, "../voa-recon.ps1");
-const bytes = readFileSync(SCRIPT_PATH);
-const source = bytes.slice(3).toString("ascii");
+/** Every operator .ps1 in the repo gets the same guarantees — a second script must not reintroduce the first one's failure. */
+const SCRIPTS = ["voa-recon.ps1", "voa-item-recon.ps1"] as const;
 
-describe("voa-recon.ps1 encoding", () => {
+function load(name: string) {
+  const scriptPath = path.resolve(__dirname, "..", name);
+  const bytes = readFileSync(scriptPath);
+  return { scriptPath, bytes, source: bytes.slice(3).toString("ascii") };
+}
+
+/** The regex-derivation and report-shape suites below are specific to the main recon script. */
+const source = load("voa-recon.ps1").source;
+
+describe.each(SCRIPTS)("%s encoding", (name) => {
+  const { bytes } = load(name);
+
   it("starts with a UTF-8 BOM so PowerShell 5.1 cannot fall back to the ANSI codepage", () => {
     expect([bytes[0], bytes[1], bytes[2]]).toEqual([0xef, 0xbb, 0xbf]);
   });
@@ -54,7 +64,7 @@ describe("voa-recon.ps1 encoding", () => {
     }
     // Em dashes, curly quotes and ellipses are the usual culprits; they
     // read as mojibake under the ANSI codepage.
-    expect(offenders, `Non-ASCII bytes in voa-recon.ps1: ${offenders.slice(0, 5).join(", ")}`).toEqual([]);
+    expect(offenders, `Non-ASCII bytes in ${name}: ${offenders.slice(0, 5).join(", ")}`).toEqual([]);
   });
 });
 
@@ -72,11 +82,11 @@ interface ScannedLiteral {
  * "double-quoted" strings and 'single-quoted' strings, which is exactly
  * the ambiguity the old file got wrong.
  */
-function scanSingleQuotedLiterals(): { literals: ScannedLiteral[]; unterminated: string[] } {
+function scanSingleQuotedLiterals(text: string): { literals: ScannedLiteral[]; unterminated: string[] } {
   const literals: ScannedLiteral[] = [];
   const unterminated: string[] = [];
 
-  source.split("\n").forEach((line, index) => {
+  text.split("\n").forEach((line, index) => {
     let i = 0;
     while (i < line.length) {
       const char = line[i];
@@ -116,10 +126,12 @@ function scanSingleQuotedLiterals(): { literals: ScannedLiteral[]; unterminated:
   return { literals, unterminated };
 }
 
-describe("voa-recon.ps1 quoting", () => {
+describe.each(SCRIPTS)("%s quoting", (name) => {
+  const text = load(name).source;
+
   it("builds quote characters from codepoints rather than embedding them in regex literals", () => {
-    expect(source).toContain("$DQ = [string][char]34");
-    expect(source).toContain("$SQ = [string][char]39");
+    expect(text).toContain("$DQ = [string][char]34");
+    expect(text).toContain("$SQ = [string][char]39");
   });
 
   it("has no single-quoted literal containing a quote character", () => {
@@ -127,7 +139,7 @@ describe("voa-recon.ps1 quoting", () => {
     // ["'']alternate["''] - both quote characters inside one literal,
     // one of them escaped. Keeping every literal quote-free means there
     // is nothing left for the 5.1 parser to misread.
-    const offenders = scanSingleQuotedLiterals()
+    const offenders = scanSingleQuotedLiterals(text)
       .literals.filter((literal) => /["']/.test(literal.value))
       .map((literal) => `line ${literal.line}: ${literal.value}`);
     expect(offenders, `Quote inside a string literal: ${offenders.join(" | ")}`).toEqual([]);
@@ -136,7 +148,7 @@ describe("voa-recon.ps1 quoting", () => {
   it("closes every single-quoted literal on the line it opens", () => {
     // An unterminated literal swallows the rest of the line and cascades
     // into "unexpected token" errors many lines later, far from the cause.
-    const { unterminated } = scanSingleQuotedLiterals();
+    const { unterminated } = scanSingleQuotedLiterals(text);
     expect(unterminated, `Unterminated string: ${unterminated.join(" | ")}`).toEqual([]);
   });
 });
@@ -383,11 +395,11 @@ function findPowerShell(): string | null {
 
 const powerShell = findPowerShell();
 
-describe.skipIf(!powerShell)("voa-recon.ps1 parses under the real PowerShell parser", () => {
+describe.skipIf(!powerShell).each(SCRIPTS)("%s parses under the real PowerShell parser", (name) => {
   it("produces zero parse errors", () => {
     const command = [
       "$errors = $null",
-      `[void][System.Management.Automation.Language.Parser]::ParseFile('${SCRIPT_PATH}', [ref]$null, [ref]$errors)`,
+      `[void][System.Management.Automation.Language.Parser]::ParseFile('${load(name).scriptPath}', [ref]$null, [ref]$errors)`,
       "if ($errors -and $errors.Count -gt 0) { $errors | ForEach-Object { Write-Output $_.ToString() }; exit 1 }",
       "exit 0",
     ].join("; ");
