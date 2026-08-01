@@ -3,6 +3,7 @@ import type { RawContentItem } from "../types";
 import type { TranscriptCandidate } from "./types";
 import { parseTranscript } from "./manual-source";
 import { verifyTranscript } from "./verify";
+import type { Transcriber } from "./asr";
 
 /**
  * Transcript Resolution — the pipeline's one podcast-specific stage.
@@ -18,34 +19,58 @@ import { verifyTranscript } from "./verify";
  * all run the same verification, and swapping ASR in changes the `kind`
  * a provider emits, nothing here.
  */
+export interface ResolveOptions {
+  fetchImpl?: typeof fetch;
+  /**
+   * Required to resolve an `asr` ref. Injected rather than imported so
+   * this stage stays testable without a Python subprocess, and so a
+   * pipeline run that has NOT been given a transcriber drops ASR items
+   * instead of silently publishing them transcript-less.
+   */
+  transcribe?: Transcriber;
+}
+
 export async function resolveTranscript(
   raw: RawContentItem,
-  fetchImpl: typeof fetch = fetch,
+  options: ResolveOptions = {},
 ): Promise<TranscriptSegment[] | null> {
   const ref = raw.transcriptRef;
   if (!ref) return null;
 
-  let text: string;
-  if (ref.kind === "inline") {
-    text = ref.text;
+  const fetchImpl = options.fetchImpl ?? fetch;
+  let segments: TranscriptSegment[];
+
+  if (ref.kind === "asr") {
+    // Generated, not found. Everything after this point is identical to
+    // the publisher path on purpose — the transcript is not trusted more
+    // because we made it, and verification below is the same gate.
+    if (!options.transcribe) return null;
+    const result = await options.transcribe(ref.audioUrl, raw.audio?.durationSeconds);
+    if (!result || result.segments.length === 0) return null;
+    segments = result.segments;
   } else {
+    let text: string;
+    if (ref.kind === "inline") {
+      text = ref.text;
+    } else {
+      try {
+        const response = await fetchImpl(ref.url);
+        if (!response.ok) return null;
+        text = await response.text();
+      } catch {
+        return null;
+      }
+    }
+
     try {
-      const response = await fetchImpl(ref.url);
-      if (!response.ok) return null;
-      text = await response.text();
+      segments = parseTranscript(text);
     } catch {
+      // A malformed transcript is a rejected episode, not a failed run —
+      // the pipeline's per-item handling records it and moves on.
       return null;
     }
   }
 
-  let segments: TranscriptSegment[];
-  try {
-    segments = parseTranscript(text);
-  } catch {
-    // A malformed transcript is a rejected episode, not a failed run —
-    // the pipeline's per-item handling records it and moves on.
-    return null;
-  }
   if (segments.length === 0) return null;
 
   const candidate: TranscriptCandidate = {

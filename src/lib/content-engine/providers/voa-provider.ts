@@ -153,13 +153,20 @@ export function parseVoaFeed(xml: string): RawContentItem[] {
         textBetween(itemXml, "dc:creator") ??
         textBetween(itemXml, "author"),
       audio: { url: enclosure.url, durationSeconds },
-      transcriptRef: hasTranscript ? { kind: "inline", text: transcriptText } : undefined,
+      // If the feed ever carries a script, use it. VOA's do not, so in
+      // practice every VOA episode takes the ASR branch: the provider
+      // names the audio and the Transcript Resolution stage generates
+      // the transcript. The provider itself runs nothing.
+      transcriptRef: hasTranscript
+        ? { kind: "inline", text: transcriptText }
+        : { kind: "asr", audioUrl: enclosure.url },
       licence: VOA_LICENCE,
       attribution: VOA_ATTRIBUTION,
-      // Only claimed when there IS a transcript. Stamping "publisher" on
-      // an item that carries none would record a provenance for text that
-      // does not exist.
-      transcriptProvenance: hasTranscript ? "publisher" : undefined,
+      // Declared up front, and it cannot become a lie: resolution fails
+      // closed, so an episode that never got a generated transcript is
+      // dropped rather than persisted. Every stored `generated_asr` row
+      // therefore did come from ASR.
+      transcriptProvenance: hasTranscript ? "publisher" : "generated_asr",
       raw: { feedItem: itemXml },
     });
   }

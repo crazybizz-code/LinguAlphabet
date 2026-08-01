@@ -57,7 +57,19 @@ export interface RawContentItem {
    * Resolution stage into real segments — a provider is not expected to
    * parse or verify it.
    */
-  transcriptRef?: { kind: "inline"; text: string } | { kind: "url"; url: string };
+  transcriptRef?:
+    | { kind: "inline"; text: string }
+    | { kind: "url"; url: string }
+    /**
+     * No transcript exists anywhere — generate one from the audio.
+     *
+     * The provider names the audio and stops there. It does NOT run the
+     * transcriber: transcription is IO, cost and a Python subprocess, and
+     * a provider that did it would be a second ingestion pipeline wearing
+     * a provider's clothes. The Transcript Resolution stage owns it, the
+     * same stage that already owns fetching a `url` ref.
+     */
+    | { kind: "asr"; audioUrl: string };
   /**
    * Licensing provenance, carried from the source's registration rather
    * than guessed per item (docs/content-source-policy.md). Persisted so
@@ -77,7 +89,7 @@ export interface RawContentItem {
    * "which episodes came from page scraping" question is answerable
    * without re-deriving it from source ids.
    */
-  transcriptProvenance?: "publisher" | "publisher_episode_page" | "operator" | "asr";
+  transcriptProvenance?: "publisher" | "publisher_episode_page" | "operator" | "generated_asr";
   /** The complete original source record (an RSS item, an API payload) — preserved as-is for content_raw_items.raw_payload, never interpreted by the pipeline. */
   raw?: unknown;
 }

@@ -31,7 +31,7 @@ export interface PodcastEpisodeInput {
   sourceUrl?: string;
   licence?: string;
   attribution?: string;
-  transcriptProvenance?: "publisher" | "publisher_episode_page" | "operator" | "asr";
+  transcriptProvenance?: "publisher" | "publisher_episode_page" | "operator" | "generated_asr";
 }
 
 export function podcastContentId(externalId: string): string {
@@ -77,6 +77,19 @@ export function toPodcastDraft(input: PodcastEpisodeInput, transcript: Transcrip
         text: segment.text,
         start_ms: segment.startMs ?? 0,
         end_ms: segment.endMs ?? 0,
+        // Only ASR produces word timings, and they cannot be recovered
+        // later without re-transcribing — so they are persisted when
+        // present and the key is simply absent otherwise, leaving every
+        // existing publisher/operator row's shape untouched.
+        ...(segment.words && segment.words.length > 0
+          ? {
+              words: segment.words.map((word) => ({
+                word: word.word,
+                start_ms: word.startMs,
+                end_ms: word.endMs,
+              })),
+            }
+          : {}),
       })),
     },
   };

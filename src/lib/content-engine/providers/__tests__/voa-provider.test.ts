@@ -151,11 +151,16 @@ describe("parseVoaFeed", () => {
     expect(parseVoaFeed(noDuration)).toHaveLength(0);
   });
 
-  it("ignores a teaser too short to be a transcript", () => {
+  it("never mistakes a teaser for a transcript, and falls through to ASR instead", () => {
     const teaser = feed(`<item><title>T</title><guid>t</guid><itunes:duration>600</itunes:duration>
       <content:encoded><![CDATA[<p>Listen to today's story.</p>]]></content:encoded>
       <enclosure url="https://av.voanews.com/t.mp3" type="audio/mpeg"/></item>`);
-    expect(parseVoaFeed(teaser)[0].transcriptRef).toBeUndefined();
+    const [item] = parseVoaFeed(teaser);
+
+    // The teaser is 25 characters. Publishing it as the transcript of a
+    // 10-minute episode is the failure this threshold exists to stop.
+    expect(item.transcriptRef).toEqual({ kind: "asr", audioUrl: "https://av.voanews.com/t.mp3" });
+    expect(item.transcriptProvenance).toBe("generated_asr");
   });
 });
 
@@ -182,22 +187,104 @@ describe("the real As It Is item", () => {
     expect(isAllowedAudioHost(item.audio!.url)).toBe(true);
   });
 
-  it("claims NO transcript and NO transcript provenance, because the feed carries neither", () => {
+  it("routes to ASR, and never claims the publisher wrote what we generated", () => {
     const [item] = parseVoaFeed(REAL_AS_IT_IS_ITEM);
-    expect(item.transcriptRef).toBeUndefined();
-    // Stamping "publisher" here would record a provenance for text that
-    // does not exist.
-    expect(item.transcriptProvenance).toBeUndefined();
+
+    // The feed carries no script, so the audio is the only raw material.
+    expect(item.transcriptRef).toEqual({
+      kind: "asr",
+      audioUrl: "https://voa-audio.voanews.eu/vle/2025/04/30/as-it-is-8010609.mp3",
+    });
+    expect(item.transcriptProvenance).toBe("generated_asr");
   });
 
-  it("cannot be published: resolution fails closed rather than publishing audio with no script", async () => {
-    // The behaviour that must survive every future change to this
-    // provider. A VOA episode today has verified audio, a verified
-    // licence and no transcript - and an episode with no transcript is
-    // not a lesson, so it is dropped before the quality gate rather than
-    // squeezed past it.
+  it("is dropped when no transcriber is available, rather than published transcript-less", async () => {
+    // Fail-closed, and specifically fail-closed on the MISSING TOOL case:
+    // a pipeline run configured without a transcriber must drop ASR items
+    // rather than quietly publish audio with no script.
     const [item] = parseVoaFeed(REAL_AS_IT_IS_ITEM);
     await expect(resolveTranscript(item)).resolves.toBeNull();
+  });
+
+  it("is dropped when ASR fails, returns nothing, or returns an unusable transcript", async () => {
+    const [item] = parseVoaFeed(REAL_AS_IT_IS_ITEM);
+
+    await expect(resolveTranscript(item, { transcribe: async () => null })).resolves.toBeNull();
+
+    const empty = async () => ({
+      segments: [],
+      engine: "faster-whisper",
+      model: "medium.en",
+      audioSeconds: 219,
+      wordCount: 0,
+      timestampCoverage: 0,
+      cacheHit: false,
+      elapsedMs: 1,
+      audioHash: "x",
+    });
+    await expect(resolveTranscript(item, { transcribe: empty })).resolves.toBeNull();
+
+    // A truncated run: 20 words against 219 seconds of audio. This is the
+    // ASR failure mode duration_consistency was already built to catch,
+    // and it must reject without the gate being touched.
+    const truncated = async () => ({
+      segments: [{ speaker: "Speaker", text: "Just a few words that stop far too early for this episode length.", startMs: 0, endMs: 4000 }],
+      engine: "faster-whisper",
+      model: "medium.en",
+      audioSeconds: 219,
+      wordCount: 13,
+      timestampCoverage: 1,
+      cacheHit: false,
+      elapsedMs: 1,
+      audioHash: "x",
+    });
+    await expect(resolveTranscript(item, { transcribe: truncated })).resolves.toBeNull();
+  });
+
+  it("publishes a good ASR transcript through the unchanged gate, with word timings preserved", async () => {
+    const [item] = parseVoaFeed(REAL_AS_IT_IS_ITEM);
+
+    // ~9 words/segment x 60 = ~540 words against 219s, which is a
+    // plausible ~148 wpm read.
+    const segments = Array.from({ length: 60 }, (_, i) => ({
+      speaker: "Speaker",
+      text: `Welcome to As It Is, sentence number ${i} about the climate agreement.`,
+      startMs: i * 3600,
+      endMs: (i + 1) * 3600,
+      words: [{ word: "Welcome", startMs: i * 3600, endMs: i * 3600 + 300 }],
+    }));
+
+    const transcript = await resolveTranscript(item, {
+      transcribe: async () => ({
+        segments,
+        engine: "faster-whisper",
+        model: "medium.en",
+        audioSeconds: 219,
+        wordCount: 660,
+        timestampCoverage: 1,
+        cacheHit: false,
+        elapsedMs: 1,
+        audioHash: "x",
+      }),
+    });
+    expect(transcript).not.toBeNull();
+
+    const draft = getAdapter("podcast")!(item, { transcript: transcript! });
+    expect(draft.detailsRow.transcript_provenance).toBe("generated_asr");
+    // Word timings survive persistence - they cannot be rebuilt later
+    // without paying for transcription again.
+    const rows = draft.detailsRow.transcript as Array<Record<string, unknown>>;
+    expect(rows[0].words).toEqual([{ word: "Welcome", start_ms: 0, end_ms: 300 }]);
+
+    const gated = runQualityGate({
+      ...draft,
+      cefrLevelMin: "B1",
+      cefrLevelMax: "B2",
+      topics: ["Environment"],
+      estimatedTimeMinutes: 4,
+    });
+    expect(gated.reasons).toEqual([]);
+    expect(gated.passed).toBe(true);
   });
 });
 
