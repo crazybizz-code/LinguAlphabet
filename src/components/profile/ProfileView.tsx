@@ -11,6 +11,7 @@ import { StatRow } from "@/components/ui/StatRow";
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { updateLearningProfile, signOutAction } from "@/lib/profile/actions";
 import { bandToCefr } from "@/lib/onboarding/types";
+import { describeExamCountdown } from "@/lib/dashboard/exam-snapshot";
 import {
   BAND_ICON,
   CURRENT_BAND_OPTIONS,
@@ -34,6 +35,8 @@ export interface ProfileViewProps {
   currentBand: number | null;
   targetBand: number | null;
   examTimeline: string | null;
+  /** A booked exam date (`YYYY-MM-DD`), when the learner has one. */
+  examDate: string | null;
   dailyTimeMinutes: number;
   interests: string[];
   earnedAchievementIds: Set<string>;
@@ -61,6 +64,7 @@ export function ProfileView({
   currentBand,
   targetBand,
   examTimeline,
+  examDate,
   dailyTimeMinutes,
   interests,
   earnedAchievementIds,
@@ -74,6 +78,7 @@ export function ProfileView({
   const [band, setBand] = useState(currentBand);
   const [target, setTarget] = useState(targetBand);
   const [timeline, setTimeline] = useState(examTimeline);
+  const [bookedDate, setBookedDate] = useState(examDate);
   const [dailyTime, setDailyTime] = useState(dailyTimeMinutes);
   const [currentInterests, setCurrentInterests] = useState(interests);
   const [pendingInterests, setPendingInterests] = useState(interests);
@@ -101,6 +106,12 @@ export function ProfileView({
     persist({ examTimeline: next });
   }
 
+  /** Kept in the same sheet as the bucket: they answer one question at two precisions, and a date always wins over a bucket. */
+  function saveExamDate(next: string) {
+    setBookedDate(next || null);
+    persist({ examDate: next || null });
+  }
+
   function saveDailyTime(next: number) {
     setDailyTime(next);
     persist({ dailyTimeMinutes: next });
@@ -121,6 +132,7 @@ export function ProfileView({
   }
 
   const derivedCefr = bandToCefr(band);
+  const countdown = describeExamCountdown({ examDate: bookedDate, examTimeline: timeline });
   const dailyTimeLabel = DAILY_TIME_OPTIONS.find((option) => option.value === dailyTime)?.label ?? `${dailyTime} min`;
   const interestsSummary = currentInterests.length > 0 ? currentInterests.join(", ") : "Add topics you enjoy";
 
@@ -169,10 +181,12 @@ export function ProfileView({
             value={target === null ? "Not set" : formatBand(target)}
             onClick={() => setEditingField("targetBand")}
           />
+          {/* One row, labelled by what it actually knows: a booked date
+              shows a real countdown, otherwise the coarse bucket. */}
           <StatRow
             icon={<TIMELINE_ICON className="h-5 w-5" aria-hidden="true" />}
-            label="Exam Timeline"
-            value={timeline || "Not set"}
+            label={countdown.label}
+            value={bookedDate ? `${formatExamDate(bookedDate)} · ${countdown.value}` : countdown.value}
             onClick={() => setEditingField("examTimeline")}
           />
         </div>
@@ -265,7 +279,26 @@ export function ProfileView({
         )}
       </EditSheet>
 
-      <EditSheet open={editingField === "examTimeline"} title="Exam Timeline" onClose={() => setEditingField(null)}>
+      <EditSheet open={editingField === "examTimeline"} title="Exam Date" onClose={() => setEditingField(null)}>
+        {/* The precise answer first. Most learners haven't booked, so the
+            buckets below stay — but anyone who HAS booked should not have
+            to translate their date into "Within 2 weeks", and a real date
+            is what turns every countdown in the product from a range into
+            a number. */}
+        <label className="mb-5 block">
+          <span className="mb-2 block text-sm font-semibold text-text-primary">Booked your exam?</span>
+          <input
+            type="date"
+            value={bookedDate ?? ""}
+            onChange={(event) => saveExamDate(event.target.value)}
+            className="w-full rounded-lg border-2 border-border bg-bg-card px-4 py-3 text-sm font-medium text-text-primary transition-colors focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary-soft"
+          />
+          <span className="mt-2 block text-xs text-text-secondary">
+            {bookedDate ? "Clear the date to go back to a rough timeline." : "Leave empty if you haven't booked yet."}
+          </span>
+        </label>
+
+        <p className="mb-3 text-sm font-semibold text-text-primary">Or choose a rough timeline</p>
         <div className="flex flex-col gap-3">
           {TIMELINE_OPTIONS.map((option) => {
             const Icon = option.icon;
@@ -327,6 +360,17 @@ export function ProfileView({
       </EditSheet>
     </div>
   );
+}
+
+/** Long-form date for the row's value — "14 Aug 2026" rather than the raw ISO string a date input stores. */
+function formatExamDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 /** Band tiles are numbers, not labelled options — the value IS the label, so they get a denser grid than the icon-and-description cards above. */

@@ -19,7 +19,23 @@ export function buildLearnerMemoryBlock(profile?: LearnerProfile | null): string
   if (!profile) return null;
 
   const lines: string[] = [];
-  if (profile.cefrLevel) lines.push(`CEFR level: ${profile.cefrLevel}`);
+
+  // Bands first, and labelled by provenance. Until the placement
+  // assessment has run, the current band is the learner's own guess —
+  // saying so is what stops the model reasoning from it as though it were
+  // a measurement ("your Band 6.0 reading" about a number nobody tested).
+  if (profile.currentBand !== null) {
+    lines.push(
+      `Current IELTS band: ${profile.currentBand.toFixed(1)} (${profile.placementCompleted ? "from their placement assessment" : "self-reported, not yet assessed"})`,
+    );
+  } else {
+    lines.push("Current IELTS band: not known yet — they have not been assessed and did not estimate one");
+  }
+  if (profile.targetBand !== null) lines.push(`Target IELTS band: ${profile.targetBand.toFixed(1)}`);
+  if (profile.examDate) lines.push(`Exam date: ${profile.examDate}`);
+  else if (profile.examTimeline) lines.push(`Exam timeline: ${profile.examTimeline}`);
+
+  if (profile.cefrLevel) lines.push(`CEFR level: ${profile.cefrLevel} (derived from their band — use it to pitch language, not as their goal)`);
   if (profile.learningGoal) lines.push(`Learning goal: ${profile.learningGoal}`);
   if (profile.streak !== null) lines.push(`Current streak: ${profile.streak} day(s)`);
   if (profile.xp !== null) lines.push(`XP: ${profile.xp}`);

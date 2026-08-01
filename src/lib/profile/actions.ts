@@ -13,6 +13,8 @@ export interface LearningProfileUpdate {
   currentBand?: number | null;
   targetBand?: number | null;
   examTimeline?: string;
+  /** `YYYY-MM-DD`, or null to clear a booked date and fall back to the timeline bucket. */
+  examDate?: string | null;
   dailyTimeMinutes?: number;
   interests?: string[];
 }
@@ -66,6 +68,10 @@ export async function updateLearningProfile(update: LearningProfileUpdate): Prom
   }
   if (update.targetBand !== undefined) patch.target_band = update.targetBand;
   if (update.examTimeline !== undefined) patch.exam_timeline = update.examTimeline;
+  // Empty string from a cleared <input type="date"> means "no date", not
+  // an invalid date — normalized to null so the display falls cleanly back
+  // to the timeline bucket rather than failing the column's check.
+  if (update.examDate !== undefined) patch.exam_date = update.examDate || null;
   if (update.dailyTimeMinutes !== undefined) patch.daily_time_minutes = update.dailyTimeMinutes;
   if (update.interests !== undefined) patch.interests = update.interests;
 

@@ -40,6 +40,8 @@ export interface Database {
           current_band: number | null;
           target_band: number | null;
           exam_timeline: string | null;
+          /** A booked exam date, when the learner has one — see supabase/exam-date.sql. Null falls back to exam_timeline, never to a derived guess. */
+          exam_date: string | null;
           interests: string[];
           /** The wizard was answered. Gates every authenticated route. */
           onboarding_completed: boolean;
@@ -69,6 +71,7 @@ export interface Database {
           current_band?: number | null;
           target_band?: number | null;
           exam_timeline?: string | null;
+          exam_date?: string | null;
           interests?: string[];
           onboarding_completed?: boolean;
           placement_completed?: boolean;

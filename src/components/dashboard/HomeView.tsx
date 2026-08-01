@@ -27,8 +27,10 @@ export interface HomeViewProps {
   /** Null until the placement assessment establishes one — never defaulted. */
   currentBand: number | null;
   targetBand: number | null;
-  /** Onboarding's timeline bucket, not a date (src/lib/dashboard/exam-snapshot.ts). */
+  /** Onboarding's coarse timeline bucket — used only when no booked date exists. */
   examTimeline: string | null;
+  /** A booked exam date (`YYYY-MM-DD`), when the learner has one. */
+  examDate: string | null;
   /** Sprint Learning Polish 1 ("Daily Goal on Dashboard") — now rendered inside Today's Mission. */
   todayMinutes: number;
   dailyGoalMinutes: number;
@@ -66,6 +68,7 @@ export function HomeView({
   currentBand,
   targetBand,
   examTimeline,
+  examDate,
   todayMinutes,
   dailyGoalMinutes,
   missions,
@@ -84,6 +87,7 @@ export function HomeView({
         currentBand={currentBand}
         targetBand={targetBand}
         examTimeline={examTimeline}
+        examDate={examDate}
         streak={streak}
       />
 

@@ -28,7 +28,7 @@ export default async function ProfilePage() {
       // current_band is now the editable source of truth; english_level is
       // derived from it on write (src/lib/profile/actions.ts) and so is
       // never read here.
-      .select("username, level, daily_time_minutes, interests, onboarding_completed, current_band, target_band, exam_timeline")
+      .select("username, level, daily_time_minutes, interests, onboarding_completed, current_band, target_band, exam_timeline, exam_date")
       .eq("user_id", user.id)
       .single(),
     // streak/longestStreak come from LearnerRepository (src/ai/data,
@@ -55,6 +55,7 @@ export default async function ProfilePage() {
       currentBand={profile?.current_band ?? null}
       targetBand={profile?.target_band ?? null}
       examTimeline={profile?.exam_timeline ?? null}
+      examDate={profile?.exam_date ?? null}
       dailyTimeMinutes={profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES}
       interests={profile?.interests ?? []}
       earnedAchievementIds={earnedAchievementIds}

@@ -62,9 +62,34 @@ export type StudyConsistency = z.infer<typeof StudyConsistencySchema>;
 export const LearnerProfileSchema = z.object({
   id: z.string(),
 
+  /**
+   * DERIVED from currentBand (src/lib/profile/actions.ts), not
+   * independently set. Still first-class here because it is what
+   * calibrates language complexity — see CEFR_AWARENESS in the Tuto
+   * prompt — but it is no longer what the learner is working toward.
+   */
   cefrLevel: CefrLevelSchema.nullable().default(null),
   /** Free-form on purpose, same reasoning as LearningContext's own learningGoal — this module doesn't own the canonical goal list. */
   learningGoal: z.string().nullable().default(null),
+
+  /**
+   * The IELTS facts. Null bands mean "not known yet" and must never be
+   * defaulted — "Not sure" during onboarding writes NULL precisely so
+   * nothing downstream claims to know a level nobody measured.
+   */
+  currentBand: z.number().min(0).max(9).nullable().default(null),
+  targetBand: z.number().min(0).max(9).nullable().default(null),
+  /** The coarse onboarding bucket ('Within 2 weeks', ...). Free-form for the same reason as learningGoal. */
+  examTimeline: z.string().nullable().default(null),
+  /** A booked date as `YYYY-MM-DD`, when the learner has one. Null falls back to examTimeline. */
+  examDate: z.string().nullable().default(null),
+  /**
+   * Whether the placement assessment has actually run. Load-bearing for
+   * honesty rather than for display: until this is true, currentBand is
+   * the learner's own estimate, and anything reasoning from it — Tuto
+   * included — has to say so rather than treat it as measured.
+   */
+  placementCompleted: z.boolean().default(false),
   /** The learner's native language — a backend personalization signal (e.g. which language to translate into), not a product-level target-language selection screen; LinguABC remains English-only in its UI (CLAUDE.md). */
   nativeLanguage: z.string().nullable().default(null),
 

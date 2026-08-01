@@ -40,7 +40,7 @@ export default async function DashboardPage() {
       // header reads. current_band is nullable on purpose: "Not sure"
       // writes NULL rather than a fabricated starting band.
       .select(
-        "username, level, last_study_date, daily_time_minutes, interests, onboarding_completed, placement_completed, current_band, target_band, exam_timeline",
+        "username, level, last_study_date, daily_time_minutes, interests, onboarding_completed, placement_completed, current_band, target_band, exam_timeline, exam_date",
       )
       .eq("user_id", user.id)
       .single(),
@@ -155,6 +155,7 @@ export default async function DashboardPage() {
       currentBand={profile?.current_band ?? null}
       targetBand={profile?.target_band ?? null}
       examTimeline={profile?.exam_timeline ?? null}
+      examDate={profile?.exam_date ?? null}
       todayMinutes={todayMinutes}
       dailyGoalMinutes={dailyMinutes}
       missions={missions}

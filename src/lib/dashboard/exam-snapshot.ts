@@ -40,15 +40,56 @@ export function buildBandProgress(currentBand: number | null, targetBand: number
   };
 }
 
+/** Whole days from `now` to a `YYYY-MM-DD` exam date, counted in calendar days rather than elapsed hours — "tomorrow" should read as 1 day even at 11pm. Negative once the date has passed. */
+export function daysUntilExam(examDate: string, now: Date = new Date()): number | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(examDate);
+  if (!match) return null;
+
+  const exam = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((exam - today) / 86_400_000);
+}
+
+export interface ExamCountdown {
+  /** Tile label — the honest one for the data we actually have. */
+  label: string;
+  value: string;
+  /** True when this came from a booked date rather than the coarse bucket. */
+  precise: boolean;
+}
+
 /**
- * The exam-timing tile's value.
+ * What the exam-timing tile says.
  *
- * Deliberately NOT a day count. The Base44 design shows "Days Until Exam
- * — 14", but onboarding collects `exam_timeline`, a bucket ("Within 2
- * weeks", "I haven't booked it yet"), not a date. Deriving "14" from
- * "Within 2 weeks" would invent precision the learner never gave us and
- * would be wrong for anyone who booked 3 days out. When a real
- * `exam_date` exists, this is the one function that changes.
+ * Two sources, and which one is used is visible in the label rather than
+ * hidden. A booked `exam_date` earns "Days Until Exam" and a real count;
+ * without one the tile stays "Exam Timeline" and shows the onboarding
+ * bucket, because deriving "14 days" from "Within 2 weeks" would invent
+ * precision the learner never gave and would be wrong for anyone booked
+ * three days out.
+ */
+export function describeExamCountdown(
+  input: { examDate?: string | null; examTimeline?: string | null },
+  now: Date = new Date(),
+): ExamCountdown {
+  const days = input.examDate ? daysUntilExam(input.examDate, now) : null;
+
+  if (days !== null) {
+    if (days > 1) return { label: "Days Until Exam", value: `${days} days`, precise: true };
+    if (days === 1) return { label: "Your Exam", value: "Tomorrow", precise: true };
+    if (days === 0) return { label: "Your Exam", value: "Today", precise: true };
+    // Past dates aren't hidden or silently ignored — a stale date left on
+    // the profile should say so, so the learner knows to update it rather
+    // than wondering why nothing counts down.
+    return { label: "Your Exam", value: "Date passed", precise: true };
+  }
+
+  return { label: "Exam Timeline", value: describeExamTimeline(input.examTimeline), precise: false };
+}
+
+/**
+ * The coarse bucket, shortened for a tile. Used only when no booked date
+ * exists — see describeExamCountdown.
  */
 export function describeExamTimeline(timeline: string | null | undefined): string {
   switch (timeline) {

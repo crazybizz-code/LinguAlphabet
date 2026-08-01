@@ -10,6 +10,7 @@ import {
   TEACHING_PHILOSOPHY,
   ACTIVE_LEARNING,
   CEFR_AWARENESS,
+  IELTS_AWARENESS,
   TEACHING_MODES,
   KNOWLEDGE_BASE_USAGE,
   UNTRUSTED_CONTENT_POLICY,
@@ -75,6 +76,12 @@ export function buildTutoSystemPrompt(input: TutoPromptInput = {}): string {
     ACTIVE_LEARNING,
     "# Adaptive explanations by CEFR level",
     CEFR_AWARENESS,
+    // Immediately after CEFR_AWARENESS on purpose: that section is the one
+    // most likely to be over-applied now that CEFR is derived rather than
+    // chosen, so the correction ("use it to pitch language, never as their
+    // goal") should be the very next thing read.
+    "# IELTS awareness",
+    IELTS_AWARENESS,
     "# Teaching modes",
     TEACHING_MODES,
     "# Knowledge base",

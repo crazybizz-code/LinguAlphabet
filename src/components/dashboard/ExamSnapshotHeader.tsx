@@ -7,7 +7,7 @@ import { CalendarClock, Flame, Target, Trophy } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { BandProgressBar } from "@/components/dashboard/BandProgressBar";
 import { getTimeGreeting } from "@/lib/content/home";
-import { buildBandProgress, describeExamTimeline, formatBandValue } from "@/lib/dashboard/exam-snapshot";
+import { buildBandProgress, describeExamCountdown, formatBandValue } from "@/lib/dashboard/exam-snapshot";
 import { fadeSlideUp } from "@/lib/motion/variants";
 
 export interface ExamSnapshotHeaderProps {
@@ -15,8 +15,10 @@ export interface ExamSnapshotHeaderProps {
   /** Null is a real state — "Not sure" during onboarding writes NULL rather than a fabricated band. */
   currentBand: number | null;
   targetBand: number | null;
-  /** The onboarding bucket ("Within 2 weeks", …), not a date — see describeExamTimeline. */
+  /** The coarse onboarding bucket ("Within 2 weeks", …). Used only when no booked date exists. */
   examTimeline: string | null;
+  /** A booked exam date (`YYYY-MM-DD`), when the learner has one — turns the tile into a real countdown. */
+  examDate: string | null;
   streak: number;
 }
 
@@ -39,7 +41,7 @@ interface StatTile {
  * it matches the only two numbers an IELTS candidate actually holds in
  * their head.
  */
-export function ExamSnapshotHeader({ displayName, currentBand, targetBand, examTimeline, streak }: ExamSnapshotHeaderProps) {
+export function ExamSnapshotHeader({ displayName, currentBand, targetBand, examTimeline, examDate, streak }: ExamSnapshotHeaderProps) {
   // The server has no idea what timezone the learner is in (and its own
   // clock is UTC on Vercel), so the greeting can only be correct if it's
   // read from the browser's clock. useSyncExternalStore (same pattern as
@@ -53,6 +55,7 @@ export function ExamSnapshotHeader({ displayName, currentBand, targetBand, examT
   );
 
   const progress = buildBandProgress(currentBand, targetBand);
+  const countdown = describeExamCountdown({ examDate, examTimeline });
 
   const tiles: StatTile[] = [
     {
@@ -65,7 +68,10 @@ export function ExamSnapshotHeader({ displayName, currentBand, targetBand, examT
       hint: currentBand === null ? "After placement" : undefined,
     },
     { icon: Target, label: "Target Band", value: formatBandValue(targetBand) },
-    { icon: CalendarClock, label: "Exam Timeline", value: describeExamTimeline(examTimeline) },
+    // Label and value both come from the same call: a booked date earns
+    // "Days Until Exam" and a real count, no date keeps "Exam Timeline"
+    // and the bucket. The tile never claims precision it doesn't have.
+    { icon: CalendarClock, label: countdown.label, value: countdown.value },
     { icon: Flame, label: "Current Streak", value: streak === 1 ? "1 day" : `${streak} days` },
   ];
 

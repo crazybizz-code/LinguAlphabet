@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type { CefrLevel } from "@/ai/context";
 import { getCachedLearnerProfile } from "@/ai/data";
 import { getPublishedPodcasts, getPublishedArticles } from "@/lib/content/queries";
 import { buildTodayMinutes } from "@/lib/content/home";
@@ -10,14 +9,16 @@ const DEFAULT_DAILY_MINUTES = 20;
 export interface LearnerSidebarStats {
   streak: number;
   xp: number;
-  cefrLevel: CefrLevel | null;
+  /** Null until reported or assessed — the row is omitted rather than showing a placeholder. */
+  currentBand: number | null;
+  targetBand: number | null;
   dailyGoalPercent: number;
 }
 
 /**
  * The left rail's "Learning Status" panel (DashboardSidebar.tsx) needs a
  * small, cheap cross-section of what Dashboard/Progress already compute in
- * full for their own pages — streak/xp/cefrLevel come from the same
+ * full for their own pages — streak/xp/bands come from the same
  * LearnerRepository every AI route already reads (so the sidebar can never
  * independently drift from what Tuto itself knows), and today's goal
  * percent reuses buildTodayMinutes (src/lib/content/home.ts) exactly like
@@ -48,7 +49,11 @@ export async function getLearnerSidebarStats(supabase: SupabaseClient<Database>,
   return {
     streak: learnerProfile.streak ?? 0,
     xp: learnerProfile.xp ?? 0,
-    cefrLevel: learnerProfile.cefrLevel,
+    // Bands, not CEFR. CEFR is derived and used to pitch language
+    // complexity; it isn't what the learner is working toward, so it has
+    // no business being the one level they see on every screen.
+    currentBand: learnerProfile.currentBand,
+    targetBand: learnerProfile.targetBand,
     dailyGoalPercent,
   };
 }
