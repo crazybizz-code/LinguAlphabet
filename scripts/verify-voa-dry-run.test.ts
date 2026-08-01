@@ -6,6 +6,7 @@ import { getAdapter } from "@/lib/content-engine/adapters/registry";
 import { runQualityGate } from "@/lib/content-engine/publishing";
 import { isReachableAudio } from "@/lib/content-engine/audio";
 import { computeTranscriptHash } from "@/lib/content-engine/transcripts/hash";
+import { classifyFeed } from "@/lib/content-engine/providers/voa-discovery";
 
 /**
  * OPERATOR DRY RUN — verifies the VOA provider against the REAL feed.
@@ -65,6 +66,31 @@ describe.skipIf(!FEED_URL)("VOA live dry run", () => {
 
       const xml = await response.text();
       log(`      ${xml.length} bytes`);
+
+      // ---------- 1b. Is it even a podcast feed? ----------
+      // The check whose absence let VOA's site-wide Top Stories feed
+      // (20 items, real <enclosure>s, all image/jpeg) be reported as a
+      // successful discovery. A dry run against the wrong feed produces
+      // a tidy "0 would publish" that looks like a content problem and
+      // is actually a source problem, so it stops here instead.
+      const classification = classifyFeed(xml);
+      log(`      channel: ${classification.channelTitle ?? "(untitled)"}`);
+      log(
+        `      items: ${classification.itemCount}  audio enclosures: ${classification.audioEnclosures}  other: ${classification.otherEnclosures}` +
+          (classification.enclosureTypes.length > 0 ? `  [${classification.enclosureTypes.join(", ")}]` : ""),
+      );
+      for (const warning of classification.warnings) log(`      WARNING: ${warning}`);
+
+      if (!classification.isPodcastFeed) {
+        log();
+        log("================ DRY RUN ABORTED ================");
+        log("This URL is not a podcast feed:");
+        for (const reason of classification.reasons) log(`  - ${reason}`);
+        log("NOTHING WAS WRITTEN. Find the real podcast feed before re-running.");
+        console.log(lines.join("\n"));
+        expect.fail(`VOA_FEED_URL is not a podcast feed: ${classification.reasons.join("; ")}`);
+      }
+      log();
 
       // ---------- 2. Parses ----------
       const rawItemCount = (xml.match(/<item\b/gi) ?? []).length;

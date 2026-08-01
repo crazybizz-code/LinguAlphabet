@@ -4,22 +4,36 @@ import * as cheerio from "cheerio";
  * VOA source discovery.
  *
  * WHY THIS EXISTS. The subscribe/RSS URL is not an `<a href>` on VOA's
- * pages, which is why scraping the rendered HTML for links finds nothing.
- * On VOA's CMS the feed is published the way feeds are supposed to be
- * published — as `<link rel="alternate" type="application/rss+xml">` in
- * `<head>` — and as an entry in a JSON config blob the page's own
- * JavaScript reads. Both are in the server-rendered HTML; neither is an
- * anchor.
+ * program pages, so scraping rendered HTML for links finds nothing. Feeds
+ * live in `<link rel="alternate">` in `<head>`, in a JSON config blob the
+ * page's own JavaScript reads, and — on VOA's `/podcasts` and `/rssfeeds`
+ * directory pages — as ordinary anchors. All three are searched.
  *
- * So the provider discovers its feed instead of hardcoding one. That is
- * also the more robust production strategy: a feed URL pasted into a
- * config today is a silent outage the day VOA renumbers a zone, whereas
- * discovery re-derives it from a stable program page on every run.
+ * WHAT THE FIRST OPERATOR RECON PROVED, and why this file now looks the
+ * way it does. Running against the real `/z/1689` program page found
+ * exactly one advertised feed:
+ *
+ *     <link rel="alternate" type="application/rss+xml"
+ *           title="VOA - Top Stories [RSS]" href="/api/">
+ *
+ * That feed is real, returns HTTP 200, and carries 20 `<item>` elements.
+ * It is also completely wrong: `<channel><title>Voice of America</title>`,
+ * and its enclosures are `type="image/jpeg"` article thumbnails, not
+ * audio. A program page advertises the SITE's feed, not the program's.
+ *
+ * The lesson is not "discovery was a bad idea" — a hardcoded feed URL
+ * would have been just as wrong, and silently so. The lesson is that
+ * finding an RSS feed and finding a PODCAST feed are different problems,
+ * and only the second one is ours. So discovery is now deliberately
+ * broad, and `classifyFeed()` is the narrow part: a candidate is a
+ * podcast feed only if its items actually carry audio enclosures. The
+ * site-wide Top Stories feed fails that test on the evidence in its own
+ * bytes rather than on a guess about its URL.
  *
  * TWO TIERS, in order:
- *   1. RSS discovered from a program page  — preferred, cheap, one fetch
+ *   1. A discovered feed that PASSES classification — preferred, cheap
  *   2. The program's episode listing + per-episode pages — fallback,
- *      used only when no feed is advertised
+ *      used only when no candidate feed classifies as a podcast feed
  *
  * Tier 2 is deliberately built on schema.org JSON-LD and OpenGraph rather
  * than on CSS selectors. Those are contracts the publisher maintains for
@@ -34,7 +48,7 @@ export interface DiscoveredFeed {
   url: string;
   title?: string;
   /** Where it was found — reported by the operator diagnostic so a brittle path is visible rather than silent. */
-  via: "link-alternate" | "json-config";
+  via: "link-alternate" | "json-config" | "anchor";
 }
 
 /**
@@ -88,7 +102,183 @@ export function discoverFeeds(html: string, baseUrl: string): DiscoveredFeed[] {
     add(match[1].replace(/\\\//g, "/"), "json-config");
   }
 
+  // Anchors. VOA's /podcasts and /rssfeeds directory pages list feeds as
+  // ordinary links, which is the one place `<link rel="alternate">` will
+  // never help. Casting this wide is only safe because classifyFeed() is
+  // what actually decides — a candidate costs one HEAD-ish fetch and is
+  // rejected on its contents, not on the shape of its URL.
+  $("a[href]").each((_, element) => {
+    const href = $(element).attr("href");
+    if (!href) return;
+    if (!/\/api\/|\/rss|\/feed|\/podcast|\.xml(\?|$)/i.test(href)) return;
+    add(href, "anchor", $(element).attr("title") ?? ($(element).text().trim() || undefined));
+  });
+
   return found;
+}
+
+export interface FeedClassification {
+  channelTitle?: string;
+  itemCount: number;
+  /** Items whose `<enclosure>` is `type="audio/*"` — the only kind that is an episode. */
+  audioEnclosures: number;
+  /** Everything else: `image/jpeg` thumbnails on a news feed, `video/mp4` on a TV feed. */
+  otherEnclosures: number;
+  /** The distinct enclosure MIME types seen, so a rejection says WHAT it found rather than only what it wanted. */
+  enclosureTypes: string[];
+  hasItunesDuration: boolean;
+  hasContentEncoded: boolean;
+  isPodcastFeed: boolean;
+  /** Why it is not a podcast feed. Empty when `isPodcastFeed` is true. */
+  reasons: string[];
+  /** Real problems that do not disqualify the feed — an operator must read these before enabling a source. */
+  warnings: string[];
+}
+
+const ITEM_PATTERN = /<item\b[\s\S]*?<\/item>/gi;
+
+/**
+ * Decides whether a feed is a PODCAST feed, from its own bytes.
+ *
+ * This is the check whose absence let `/api/` — VOA's site-wide Top
+ * Stories feed — be accepted as the Learning English podcast feed. It
+ * parses as RSS, returns 20 items and has `<enclosure>` elements, so
+ * every structural test it was given, it passed. What it does not have
+ * is a single `audio/*` enclosure, because its enclosures are article
+ * thumbnails.
+ *
+ * Deliberately NOT a relaxation of the publishing quality gate. That gate
+ * is correct and untouched; this rejects the wrong SOURCE, before any
+ * item reaches it.
+ */
+export function classifyFeed(xml: string): FeedClassification {
+  const items = xml.match(ITEM_PATTERN) ?? [];
+  const beforeFirstItem = xml.split(/<item\b/i)[0];
+  const channelTitle = /<title[^>]*>([\s\S]*?)<\/title>/i
+    .exec(beforeFirstItem)?.[1]
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .trim();
+
+  const types = new Set<string>();
+  let audioEnclosures = 0;
+  let otherEnclosures = 0;
+
+  for (const item of items) {
+    const enclosure = /<enclosure\b([^>]*)>/i.exec(item);
+    if (!enclosure) continue;
+    const type = (
+      /type\s*=\s*"([^"]*)"/i.exec(enclosure[1])?.[1] ??
+      /type\s*=\s*'([^']*)'/i.exec(enclosure[1])?.[1] ??
+      ""
+    ).toLowerCase();
+    if (type) types.add(type);
+    if (type.startsWith("audio/")) audioEnclosures += 1;
+    else otherEnclosures += 1;
+  }
+
+  const hasItunesDuration = /<itunes:duration\b/i.test(xml);
+  const hasContentEncoded = /<content:encoded\b/i.test(xml);
+
+  const reasons: string[] = [];
+  if (items.length === 0) {
+    reasons.push("Feed contains no <item> elements");
+  } else if (audioEnclosures === 0) {
+    const seen = types.size > 0 ? [...types].join(", ") : "no enclosures at all";
+    reasons.push(
+      `No item carries an audio/* enclosure (found ${seen} across ${items.length} items) - this is an article or video feed, not a podcast feed`,
+    );
+  } else if (audioEnclosures * 2 < items.length) {
+    // A news feed that happens to include one audio clip is still a news
+    // feed. Requiring a majority is a judgement call, but the alternative
+    // -- accepting on a single audio item -- is what lets a general feed
+    // masquerade as a programme.
+    reasons.push(
+      `Only ${audioEnclosures} of ${items.length} items carry audio - a podcast feed is audio throughout, not incidentally`,
+    );
+  }
+
+  const warnings: string[] = [];
+  if (reasons.length === 0) {
+    if (!hasItunesDuration) {
+      // parseVoaFeed() drops any item it cannot get a duration for, so
+      // this is the difference between "0 episodes" and a working run.
+      warnings.push("No <itunes:duration> anywhere in the feed - parseVoaFeed() will skip every item until duration is read from elsewhere");
+    }
+    if (!hasContentEncoded) {
+      warnings.push("No <content:encoded> - transcripts cannot come from the feed and must be resolved from each episode page");
+    }
+    if (otherEnclosures > 0) {
+      warnings.push(`${otherEnclosures} of ${items.length} items carry a non-audio enclosure (${[...types].join(", ")})`);
+    }
+  }
+
+  return {
+    channelTitle,
+    itemCount: items.length,
+    audioEnclosures,
+    otherEnclosures,
+    enclosureTypes: [...types].sort(),
+    hasItunesDuration,
+    hasContentEncoded,
+    isPodcastFeed: reasons.length === 0,
+    reasons,
+    warnings,
+  };
+}
+
+export interface FeedProbe {
+  url: string;
+  via: DiscoveredFeed["via"];
+  title?: string;
+  ok: boolean;
+  status: number;
+  classification?: FeedClassification;
+  error?: string;
+}
+
+/**
+ * Probes every candidate and returns the first that is genuinely a
+ * podcast feed, with the full record of what each one turned out to be.
+ *
+ * Fails CLOSED: no candidate classifying as a podcast feed returns null,
+ * never a best guess. An ingest run that finds no podcast feed must do
+ * nothing, which is strictly better than ingesting article thumbnails.
+ */
+export async function selectPodcastFeed(
+  candidates: DiscoveredFeed[],
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ feed: DiscoveredFeed | null; classification: FeedClassification | null; probes: FeedProbe[] }> {
+  const probes: FeedProbe[] = [];
+  let selected: { feed: DiscoveredFeed; classification: FeedClassification } | null = null;
+
+  for (const candidate of candidates) {
+    try {
+      const response = await fetchImpl(candidate.url, {
+        headers: { accept: "application/rss+xml, application/xml, text/xml" },
+      });
+      if (!response.ok) {
+        probes.push({ ...candidate, ok: false, status: response.status, error: `HTTP ${response.status}` });
+        continue;
+      }
+      const classification = classifyFeed(await response.text());
+      probes.push({ ...candidate, ok: true, status: response.status, classification });
+      if (classification.isPodcastFeed && !selected) {
+        selected = { feed: candidate, classification };
+      }
+    } catch (error) {
+      probes.push({
+        ...candidate,
+        ok: false,
+        status: 0,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  // Every candidate is probed even after a winner is found, so the
+  // operator report shows what else was on offer rather than stopping at
+  // the first success.
+  return { feed: selected?.feed ?? null, classification: selected?.classification ?? null, probes };
 }
 
 /** Episode/article links on a program listing page (e.g. /z/1689), absolute and same-origin. */
@@ -107,10 +297,15 @@ export function extractEpisodeLinks(html: string, baseUrl: string): string[] {
       return;
     }
     if (absolute.hostname !== origin) return;
-    // VOA article/episode permalinks are /a/<slug>/<id>.html. Listing
-    // pages also link to zones, tags and the player shell, none of which
-    // are episodes.
-    if (!/\/a\/[^/]+\/\d+\.html$/.test(absolute.pathname)) return;
+    // VOA permalinks are /a/<id>.html, and sometimes /a/<slug>/<id>.html.
+    //
+    // This pattern used to require the slug segment, which was wrong: the
+    // real feed capture shows Learning English publishing the bare form
+    // (https://learningenglish.voanews.com/a/8008342.html). That mistake
+    // is why the first recon reported "0 episode links" on a page whose
+    // links it simply refused to match - a false negative read as
+    // evidence about VOA. Both forms are accepted now.
+    if (!/^\/a\/(?:[^/]+\/)*\d+\.html$/.test(absolute.pathname)) return;
     absolute.hash = "";
     absolute.search = "";
     links.add(absolute.toString());

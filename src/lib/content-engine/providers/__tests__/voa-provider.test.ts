@@ -13,6 +13,37 @@ function feed(itemXml: string) {
   return `<?xml version="1.0"?><rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"><channel>${itemXml}</channel></rss>`;
 }
 
+/**
+ * REAL, captured from production: https://learningenglish.voanews.com/api/
+ *
+ * The site-wide Top Stories feed, which /z/1689 advertises as its only
+ * <link rel="alternate">. It is valid RSS with 20 items and real
+ * <enclosure> elements - the enclosures are just JPEGs. The provider must
+ * yield nothing from it, and does so on the enclosure MIME type alone,
+ * before duration or transcript are ever considered.
+ */
+const REAL_TOP_STORIES_FEED = `<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Voice of America</title>
+    <link>https://learningenglish.voanews.com/</link>
+    <item>
+      <title>Everyday Grammar Video: Ramen, A Popular Food in Japan</title>
+      <link>https://learningenglish.voanews.com/a/8008342.html</link>
+      <guid>https://learningenglish.voanews.com/a/8008342.html</guid>
+      <pubDate>Tue, 29 Apr 2025 22:05:00 +0000</pubDate>
+      <category>Everyday Grammar Video</category>
+      <enclosure url="https://gdb.voanews.com/04dc51b7-6304-4483-06e7-08dd5c8b1668_tv_w800_h450.jpg" length="0" type="image/jpeg" />
+    </item>
+  </channel>
+</rss>`;
+
+/**
+ * PROVISIONAL. VOA's actual podcast feed has not been located yet, so
+ * this is the shape a podcast item takes, not VOA's bytes. Replace it
+ * with a real captured <item> as soon as the podcast feed is found - the
+ * assertions below should survive that swap unchanged.
+ */
 const EPISODE = feed(`
   <item>
     <title>How Coral Reefs Recover</title>
@@ -60,6 +91,13 @@ describe("parseVoaFeed", () => {
     const [item] = parseVoaFeed(EPISODE);
     expect(item.body).toBe("");
     expect(item.transcriptRef).toMatchObject({ kind: "inline" });
+  });
+
+  it("yields nothing from the real VOA Top Stories feed", () => {
+    // The regression that matters most on this branch. This feed reached
+    // the point of being probed and reported as a success by the first
+    // recon; it must never produce a single content item.
+    expect(parseVoaFeed(REAL_TOP_STORIES_FEED)).toEqual([]);
   });
 
   it("skips a text-only post with no enclosure instead of failing the run", () => {

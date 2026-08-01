@@ -199,16 +199,21 @@ function derivePattern(name: string): string {
 
 // VOA-shaped markup. Attributes are deliberately a mix of double- and
 // single-quoted, because matching both is the entire reason the quote
-// character class exists.
+// character class exists. The Top Stories link tag and the bare
+// /a/8008342.html permalink are REAL, captured from production.
 const PROGRAM_HTML = `<!doctype html><html><head>
-<link rel="alternate" type="application/rss+xml" title="Learning English Podcast" href="/api/zmgpoemtkq">
+<link rel="alternate" type="application/rss+xml" title="VOA - Top Stories [RSS]" href="/api/">
 <link rel='alternate' type='application/atom+xml' title='Atom' href='/api/atom-xyz'>
 <link rel="alternate" hreflang="es" href="https://learningenglish.voanews.com/es">
 </head><body>
 <script>window.CONFIG = {"rssUrl":"https://learningenglish.voanews.com/api/zmgpoemtkq","podcast_feed":"https:\\/\\/learningenglish.voanews.com\\/api\\/epiqbeuvpq","unrelated":"nope"};</script>
+<a href="/a/8008342.html">Everyday Grammar Video: Ramen</a>
 <a href="/a/lets-learn-english-lesson-1/8123456.html">Lesson 1</a>
 <a href='/a/as-it-is-a-story/7654321.html'>As It Is</a>
 <a href="/z/1690">Another zone</a>
+<a href="/podcast/lets-learn-english.xml">Subscribe</a>
+<a href="/contact">Contact</a>
+<script type="application/json">{"zoneId":1689}</script>
 </body></html>`;
 
 const EPISODE_HTML = `<!doctype html><html><head>
@@ -243,6 +248,24 @@ describe("voa-recon.ps1 regexes still capture what the recon is for", () => {
     expect(title?.[1]).toBe("Atom");
   });
 
+  it("$reLinkTag reads the REAL Top Stories tag exactly as production serves it", () => {
+    const tag = matchAll(derivePattern("reLinkTag"), PROGRAM_HTML)[0][0];
+    expect(new RegExp(derivePattern("reHref"), "i").exec(tag)?.[1]).toBe("/api/");
+    expect(new RegExp(derivePattern("reTitle"), "i").exec(tag)?.[1]).toBe("VOA - Top Stories [RSS]");
+  });
+
+  it("$reAnchor finds feeds listed as plain anchors and ignores ordinary links", () => {
+    const hrefs = matchAll(derivePattern("reAnchor"), PROGRAM_HTML).map((m) => m[1]);
+    expect(hrefs).toContain("/podcast/lets-learn-english.xml");
+    expect(hrefs).not.toContain("/contact");
+    expect(hrefs).not.toContain("/z/1690");
+  });
+
+  it("$reJsonScript captures embedded JSON config blocks", () => {
+    const match = new RegExp(derivePattern("reJsonScript"), "i").exec(PROGRAM_HTML);
+    expect(JSON.parse(match![1]).zoneId).toBe(1689);
+  });
+
   it("$reConfig matches feed URLs by KEY, since VOA's feed URLs are opaque", () => {
     const matches = matchAll(derivePattern("reConfig"), PROGRAM_HTML);
     const keys = matches.map((m) => m[1]);
@@ -255,12 +278,21 @@ describe("voa-recon.ps1 regexes still capture what the recon is for", () => {
     );
   });
 
-  it("$reEpisode keeps /a/<slug>/<id>.html permalinks and drops zone links", () => {
+  it("$reEpisode matches BOTH permalink forms and drops zone links", () => {
+    // Recon 1 required the slug segment and so reported zero episode
+    // links on a page that publishes /a/8008342.html. That false
+    // negative was read as evidence about VOA's HTML; it was ours.
     const urls = matchAll(derivePattern("reEpisode"), PROGRAM_HTML).map((m) => m[1]);
     expect(urls).toEqual([
+      "/a/8008342.html",
       "/a/lets-learn-english-lesson-1/8123456.html",
       "/a/as-it-is-a-story/7654321.html",
     ]);
+  });
+
+  it("$reEpisode does not mistake a non-episode path containing /a/ for one", () => {
+    const urls = matchAll(derivePattern("reEpisode"), `<a href="/media/a/x123.html">x</a>`).map((m) => m[1]);
+    expect(urls).toEqual([]);
   });
 
   it("$reLdJson captures the ld+json payload", () => {
@@ -293,19 +325,30 @@ describe("voa-recon.ps1 report shape", () => {
   // discovered when the operator's JSON turns out to be missing it.
   const REQUIRED_FIELDS = [
     "capturedAt",
-    "programUrl",
-    "programPage",
-    "feedLinks",
-    "configFeeds",
-    "feedProbe",
-    "episodeCount",
+    "pages",
+    "candidateCount",
+    "feedProbes",
+    "podcastFeedCount",
+    "episodeLinkCount",
     "episodeLinks",
     "episode",
+    // Per-page capture
+    "feedLinks",
+    "configFeeds",
+    "anchorFeeds",
+    "jsonBlocks",
+    "podcastScripts",
+    // Feed classification - the check recon 1 lacked
+    "channelTitle",
     "itemCount",
-    "hasEnclosure",
+    "audioEnclosures",
+    "otherEnclosures",
+    "enclosureTypes",
     "hasItunesDuration",
     "hasContentEncoded",
+    "isPodcastFeed",
     "firstItemXml",
+    // Episode page
     "jsonLdCount",
     "jsonLd",
     "openGraph",

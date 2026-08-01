@@ -1,15 +1,190 @@
 import { describe, it, expect } from "vitest";
-import { discoverFeeds, extractEpisodeLinks, parseEpisodePage, parseIsoDuration } from "../voa-discovery";
+import {
+  classifyFeed,
+  discoverFeeds,
+  extractEpisodeLinks,
+  parseEpisodePage,
+  parseIsoDuration,
+  selectPodcastFeed,
+} from "../voa-discovery";
 
 const BASE = "https://learningenglish.voanews.com/z/1689";
 
 /**
- * PROVISIONAL FIXTURES. These encode the *shapes* the discovery layer
- * targets — <link rel="alternate">, schema.org JSON-LD, OpenGraph — not
- * VOA's literal bytes, which the build environment cannot reach. They are
- * replaced with real captured HTML the moment the operator diagnostic
- * returns it; the assertions below should survive that swap unchanged.
+ * FIXTURE PROVENANCE — read before changing any of these.
+ *
+ * REAL, captured by the operator recon against production VOA:
+ *   - REAL_TOP_STORIES_LINK_TAG  the only feed /z/1689 advertises
+ *   - REAL_TOP_STORIES_FEED      what that feed actually serves
+ *   - the /a/8008342.html permalink shape
+ *
+ * PROVISIONAL, still awaiting a real capture: everything describing a
+ * VOA PODCAST feed or episode page. We have not yet found VOA's podcast
+ * feed, so no fixture here can honestly claim to be one. These encode
+ * the shapes the code targets and are labelled at each use.
  */
+
+/** Verbatim from the recon: the one <link rel="alternate"> on the program page. */
+const REAL_TOP_STORIES_LINK_TAG =
+  '<link rel="alternate" type="application/rss+xml" title="VOA - Top Stories [RSS]" href="/api/">';
+
+/**
+ * Verbatim item shape from https://learningenglish.voanews.com/api/.
+ *
+ * This is the feed that nearly became our podcast source. It is real RSS,
+ * HTTP 200, 20 items, and it has <enclosure> elements - so every check
+ * short of "is the enclosure audio" passes. The enclosure is a JPEG
+ * thumbnail.
+ */
+const REAL_TOP_STORIES_FEED = `<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Voice of America</title>
+    <link>https://learningenglish.voanews.com/</link>
+    <item>
+      <title>Everyday Grammar Video: Ramen, A Popular Food in Japan</title>
+      <link>https://learningenglish.voanews.com/a/8008342.html</link>
+      <guid>https://learningenglish.voanews.com/a/8008342.html</guid>
+      <pubDate>Tue, 29 Apr 2025 22:05:00 +0000</pubDate>
+      <category>Everyday Grammar Video</category>
+      <enclosure url="https://gdb.voanews.com/04dc51b7-6304-4483-06e7-08dd5c8b1668_tv_w800_h450.jpg" length="0" type="image/jpeg" />
+    </item>
+  </channel>
+</rss>`;
+
+/** PROVISIONAL: the shape a genuine podcast feed has. No real VOA capture exists yet. */
+const PODCAST_FEED = `<?xml version="1.0"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>VOA Learning English Podcast</title>
+    <item>
+      <title>Episode One</title>
+      <itunes:duration>5:12</itunes:duration>
+      <enclosure url="https://av.voanews.com/one.mp3" length="1" type="audio/mpeg" />
+    </item>
+    <item>
+      <title>Episode Two</title>
+      <itunes:duration>6:00</itunes:duration>
+      <enclosure url="https://av.voanews.com/two.mp3" length="1" type="audio/mpeg" />
+    </item>
+  </channel>
+</rss>`;
+
+describe("classifyFeed", () => {
+  it("REJECTS the real VOA Top Stories feed that /z/1689 advertises", () => {
+    const classification = classifyFeed(REAL_TOP_STORIES_FEED);
+
+    expect(classification.isPodcastFeed).toBe(false);
+    expect(classification.channelTitle).toBe("Voice of America");
+    expect(classification.audioEnclosures).toBe(0);
+    expect(classification.enclosureTypes).toEqual(["image/jpeg"]);
+    // The rejection has to name what it actually found, or an operator
+    // cannot tell a wrong feed from an unreachable one.
+    expect(classification.reasons.join(" ")).toContain("image/jpeg");
+    expect(classification.reasons.join(" ")).toContain("not a podcast feed");
+  });
+
+  it("accepts a feed whose items really are audio", () => {
+    const classification = classifyFeed(PODCAST_FEED);
+    expect(classification.isPodcastFeed).toBe(true);
+    expect(classification.audioEnclosures).toBe(2);
+    expect(classification.reasons).toEqual([]);
+  });
+
+  it("rejects a news feed that merely happens to contain one audio item", () => {
+    const mixed = REAL_TOP_STORIES_FEED.replace(
+      "</channel>",
+      `<item><title>One clip</title><enclosure url="https://av.voanews.com/x.mp3" type="audio/mpeg" /></item>
+       <item><title>Another photo</title><enclosure url="https://gdb.voanews.com/y.jpg" type="image/jpeg" /></item>
+       <item><title>A third photo</title><enclosure url="https://gdb.voanews.com/z.jpg" type="image/jpeg" /></item></channel>`,
+    );
+    const classification = classifyFeed(mixed);
+    expect(classification.isPodcastFeed).toBe(false);
+    expect(classification.reasons.join(" ")).toContain("1 of 4 items carry audio");
+  });
+
+  it("rejects a feed with no items rather than treating empty as clean", () => {
+    const empty = classifyFeed('<?xml version="1.0"?><rss><channel><title>Nothing</title></channel></rss>');
+    expect(empty.isPodcastFeed).toBe(false);
+    expect(empty.reasons.join(" ")).toContain("no <item> elements");
+  });
+
+  it("warns, without rejecting, when a real podcast feed omits duration or script", () => {
+    const noExtras = PODCAST_FEED.replace(/<itunes:duration>[^<]*<\/itunes:duration>/g, "");
+    const classification = classifyFeed(noExtras);
+
+    expect(classification.isPodcastFeed).toBe(true);
+    // parseVoaFeed() drops every item it cannot get a duration for, so
+    // this warning is the difference between "0 episodes" and a run.
+    expect(classification.warnings.join(" ")).toContain("skip every item");
+    expect(classification.warnings.join(" ")).toContain("<content:encoded>");
+  });
+});
+
+describe("selectPodcastFeed", () => {
+  const respondWith = (body: string) =>
+    (async () => new Response(body, { status: 200 })) as unknown as typeof fetch;
+
+  it("returns null for the real Top Stories feed instead of accepting it", async () => {
+    const result = await selectPodcastFeed(
+      [{ url: "https://learningenglish.voanews.com/api/", via: "link-alternate", title: "VOA - Top Stories [RSS]" }],
+      respondWith(REAL_TOP_STORIES_FEED),
+    );
+
+    expect(result.feed).toBeNull();
+    expect(result.classification).toBeNull();
+    expect(result.probes[0].classification?.reasons.join(" ")).toContain("image/jpeg");
+  });
+
+  it("picks the audio feed and still reports what the others were", async () => {
+    const bodies: Record<string, string> = {
+      "https://learningenglish.voanews.com/api/": REAL_TOP_STORIES_FEED,
+      "https://learningenglish.voanews.com/api/podcast": PODCAST_FEED,
+    };
+    const fetchImpl = (async (url: string) => new Response(bodies[url])) as unknown as typeof fetch;
+
+    const result = await selectPodcastFeed(
+      [
+        { url: "https://learningenglish.voanews.com/api/", via: "link-alternate" },
+        { url: "https://learningenglish.voanews.com/api/podcast", via: "anchor" },
+      ],
+      fetchImpl,
+    );
+
+    expect(result.feed?.url).toBe("https://learningenglish.voanews.com/api/podcast");
+    expect(result.probes).toHaveLength(2);
+    expect(result.probes[0].classification?.isPodcastFeed).toBe(false);
+  });
+
+  it("records an unreachable candidate rather than throwing the run away", async () => {
+    const fetchImpl = (async () => {
+      throw new Error("ENOTFOUND");
+    }) as unknown as typeof fetch;
+
+    const result = await selectPodcastFeed([{ url: "https://learningenglish.voanews.com/api/", via: "anchor" }], fetchImpl);
+    expect(result.feed).toBeNull();
+    expect(result.probes[0].error).toBe("ENOTFOUND");
+  });
+});
+
+describe("end to end: the mistake this all exists to prevent", () => {
+  it("discovers the real Top Stories link tag but never selects it as a podcast feed", async () => {
+    const html = `<html><head>${REAL_TOP_STORIES_LINK_TAG}</head><body></body></html>`;
+
+    // Discovery is broad on purpose - it SHOULD surface this candidate.
+    const candidates = discoverFeeds(html, BASE);
+    expect(candidates).toEqual([
+      { url: "https://learningenglish.voanews.com/api/", title: "VOA - Top Stories [RSS]", via: "link-alternate" },
+    ]);
+
+    // Classification is the narrow part, and it is what says no.
+    const result = await selectPodcastFeed(
+      candidates,
+      (async () => new Response(REAL_TOP_STORIES_FEED)) as unknown as typeof fetch,
+    );
+    expect(result.feed).toBeNull();
+  });
+});
 
 describe("discoverFeeds", () => {
   it("finds the feed in <link rel=alternate>, which is why href-scraping missed it", () => {
@@ -45,13 +220,38 @@ describe("discoverFeeds", () => {
     </head><body><script>var c = {"feed":"https://learningenglish.voanews.com/api/z1.xml"};</script></body></html>`;
     expect(discoverFeeds(html, BASE)).toHaveLength(1);
   });
+
+  it("finds feeds listed as plain anchors, which is how /podcasts and /rssfeeds publish them", () => {
+    // The one place <link rel="alternate"> cannot help: a directory page
+    // listing OTHER pages' feeds.
+    const html = `<html><body>
+      <a href="/api/">Top Stories</a>
+      <a href="/podcast/lets-learn-english.xml">Let's Learn English</a>
+      <a href="/z/1689">Programme page</a>
+      <a href="/contact">Contact us</a>
+    </body></html>`;
+    const urls = discoverFeeds(html, "https://learningenglish.voanews.com/rssfeeds").map((feed) => feed.url);
+
+    expect(urls).toContain("https://learningenglish.voanews.com/api/");
+    expect(urls).toContain("https://learningenglish.voanews.com/podcast/lets-learn-english.xml");
+    expect(urls).not.toContain("https://learningenglish.voanews.com/contact");
+  });
 });
 
 describe("extractEpisodeLinks", () => {
+  it("keeps the bare /a/<id>.html permalink VOA Learning English actually publishes", () => {
+    // Captured from the real feed. The pattern used to demand a slug
+    // segment and rejected this, which is why the first recon reported
+    // zero episode links.
+    const html = `<a href="/a/8008342.html">Everyday Grammar Video: Ramen</a>`;
+    expect(extractEpisodeLinks(html, BASE)).toEqual(["https://learningenglish.voanews.com/a/8008342.html"]);
+  });
+
   it("keeps episode permalinks and drops navigation", () => {
     const html = `<html><body>
       <a href="/a/how-coral-reefs-recover/7654321.html">Coral</a>
       <a href="/a/ocean-warming/7654322.html">Ocean</a>
+      <a href="/a/8008342.html">Bare form</a>
       <a href="/z/1689">More episodes</a>
       <a href="/podcasts">Podcasts</a>
       <a href="https://www.voanews.com/a/other/999.html">Off-site</a>
@@ -59,6 +259,7 @@ describe("extractEpisodeLinks", () => {
     expect(extractEpisodeLinks(html, BASE)).toEqual([
       "https://learningenglish.voanews.com/a/how-coral-reefs-recover/7654321.html",
       "https://learningenglish.voanews.com/a/ocean-warming/7654322.html",
+      "https://learningenglish.voanews.com/a/8008342.html",
     ]);
   });
 
