@@ -14,6 +14,7 @@ import { SummaryStep } from "./SummaryStep";
 import { VocabularyStep } from "./VocabularyStep";
 import { FlashcardsStep } from "./FlashcardsStep";
 import { QuizStep } from "./QuizStep";
+import { ReflectionStep } from "./ReflectionStep";
 import { CompleteStep } from "./CompleteStep";
 import { completeMission, type CompleteMissionResult } from "@/lib/learning-session/complete-mission";
 import { computeXpEarned } from "@/lib/learning-session/xp";
@@ -189,6 +190,9 @@ export function LearningSessionView({
           <FlashcardsStep key="flashcards" content={content} onNext={() => setStep(nextAfter("flashcards"))} />
         )}
         {step === "quiz" && <QuizStep key="quiz" content={content} onNext={handleQuizFinished} previewMode={previewMode} />}
+        {step === "reflection" && (
+          <ReflectionStep key="reflection" content={content} onNext={() => setStep(nextAfter("reflection"))} />
+        )}
         {step === "summary" && (
           <SummaryStep
             key="summary"

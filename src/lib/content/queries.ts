@@ -1,11 +1,37 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import type { ArticleContent, CefrLevel, PodcastContent } from "@/types/content";
+import type { ArticleContent, CefrLevel, KeyExpression, PodcastContent, TranscriptSegment, TranscriptWord } from "@/types/content";
 
 type Client = SupabaseClient<Database>;
 type ContentItemRow = Database["public"]["Tables"]["content_items"]["Row"];
 type PodcastDetailsRow = Database["public"]["Tables"]["podcast_details"]["Row"];
 type ArticleDetailsRow = Database["public"]["Tables"]["article_details"]["Row"];
+
+/**
+ * Normalizes a raw transcript from DB into typed TranscriptSegment[].
+ * Handles both camelCase keys (BBC seed data) and snake_case keys (VOA
+ * pipeline adapter) that may coexist in the same table. The fix belongs
+ * here at read time so no production data needs migration and future
+ * writers can use either convention without breaking playback.
+ */
+export function normalizeTranscript(raw: unknown): TranscriptSegment[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((seg: Record<string, unknown>) => ({
+    speaker: String(seg.speaker ?? ""),
+    text: String(seg.text ?? ""),
+    startMs: Number(seg.startMs ?? seg.start_ms ?? 0),
+    endMs: Number(seg.endMs ?? seg.end_ms ?? 0),
+    ...(Array.isArray(seg.words) && seg.words.length > 0
+      ? {
+          words: (seg.words as Record<string, unknown>[]).map((w) => ({
+            word: String(w.word ?? ""),
+            startMs: Number(w.startMs ?? w.start_ms ?? 0),
+            endMs: Number(w.endMs ?? w.end_ms ?? 0),
+          })) satisfies TranscriptWord[],
+        }
+      : {}),
+  }));
+}
 
 function toPodcastContent(item: ContentItemRow, details: PodcastDetailsRow): PodcastContent {
   return {
@@ -31,12 +57,15 @@ function toPodcastContent(item: ContentItemRow, details: PodcastDetailsRow): Pod
     publishedAt: item.published_at ?? item.created_at,
     audioUrl: details.audio_url,
     durationSeconds: details.duration_seconds,
-    transcript: (details.transcript ?? []) as unknown as PodcastContent["transcript"],
+    transcript: normalizeTranscript(details.transcript),
     summary: details.summary ?? "",
     takeaways: (details.takeaways ?? []) as unknown as string[],
     vocabulary: (details.vocabulary ?? []) as unknown as PodcastContent["vocabulary"],
     quiz: (details.quiz ?? []) as unknown as PodcastContent["quiz"],
     reflection: details.reflection ?? "",
+    keyExpressions: (details.key_expressions ?? []) as unknown as KeyExpression[],
+    listeningNotes: (details.listening_notes ?? []) as unknown as string[],
+    discussionQuestions: (details.discussion_questions ?? []) as unknown as string[],
   };
 }
 

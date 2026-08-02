@@ -69,5 +69,8 @@ export function toLearningSessionContent(article: ArticleContent): LearningSessi
     reflectionPrompt:
       article.reflection?.trim() ||
       `What's one thing from "${article.title}" you could use in your own conversations this week?`,
+    keyExpressions: [],
+    listeningNotes: [],
+    discussionQuestions: [],
   };
 }

@@ -60,9 +60,6 @@ export function toPodcastDraft(input: PodcastEpisodeInput, transcript: Transcrip
     detailsRow: {
       audio_url: input.audioUrl,
       duration_seconds: Math.round(input.durationSeconds),
-      // Stored in the exact shape podcast_details.transcript already uses
-      // and the Learning Session's PlayerStep already renders — snake_case
-      // keys, so no translation layer is needed at read time.
       source_url: input.sourceUrl ?? "",
       licence: input.licence ?? "",
       attribution: input.attribution ?? "",
@@ -72,11 +69,14 @@ export function toPodcastDraft(input: PodcastEpisodeInput, transcript: Transcrip
       // an empty transcript — the quality gate rejects those anyway, and a
       // hash of nothing would collide every empty episode with every other.
       transcript_hash: computeTranscriptHash(transcript),
+      // camelCase keys match TranscriptSegment/TranscriptWord — the
+      // normalizeTranscript() read path in queries.ts handles both this
+      // convention and any legacy snake_case rows already in the table.
       transcript: transcript.map((segment) => ({
         speaker: segment.speaker,
         text: segment.text,
-        start_ms: segment.startMs ?? 0,
-        end_ms: segment.endMs ?? 0,
+        startMs: segment.startMs ?? 0,
+        endMs: segment.endMs ?? 0,
         // Only ASR produces word timings, and they cannot be recovered
         // later without re-transcribing — so they are persisted when
         // present and the key is simply absent otherwise, leaving every
@@ -85,8 +85,8 @@ export function toPodcastDraft(input: PodcastEpisodeInput, transcript: Transcrip
           ? {
               words: segment.words.map((word) => ({
                 word: word.word,
-                start_ms: word.startMs,
-                end_ms: word.endMs,
+                startMs: word.startMs,
+                endMs: word.endMs,
               })),
             }
           : {}),

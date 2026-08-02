@@ -274,7 +274,7 @@ describe("the real As It Is item", () => {
     // Word timings survive persistence - they cannot be rebuilt later
     // without paying for transcription again.
     const rows = draft.detailsRow.transcript as Array<Record<string, unknown>>;
-    expect(rows[0].words).toEqual([{ word: "Welcome", start_ms: 0, end_ms: 300 }]);
+    expect(rows[0].words).toEqual([{ word: "Welcome", startMs: 0, endMs: 300 }]);
 
     const gated = runQualityGate({
       ...draft,

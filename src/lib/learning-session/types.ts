@@ -1,4 +1,4 @@
-import type { ContentItem, QuizQuestion, TranscriptSegment, VocabularyEntry } from "@/types/content";
+import type { ContentItem, KeyExpression, QuizQuestion, TranscriptSegment, VocabularyEntry } from "@/types/content";
 
 /**
  * The Learning Session's own content shape — deliberately NOT `PodcastContent`
@@ -36,6 +36,9 @@ export interface LearningSessionContent {
   vocabulary: VocabularyEntry[];
   quiz: QuizQuestion[];
   reflectionPrompt: string;
+  keyExpressions: KeyExpression[];
+  listeningNotes: string[];
+  discussionQuestions: string[];
 }
 
 export const SESSION_STEPS = [
@@ -63,11 +66,11 @@ export const SESSION_STEP_LABELS: Record<SessionStep, string> = {
   complete: "Complete",
 };
 
-// Summary comes AFTER the quiz, as the session's recap/reward screen
-// (product direction: intake -> practice -> quiz -> summary -> complete).
-// Reflection is intentionally absent from both flows -- the session ends
-// on Summary's "Finish Session", which triggers completion directly.
-const PODCAST_FLOW: SessionStep[] = ["player", "vocabulary", "flashcards", "quiz", "summary", "complete"];
+// Reflection comes after the quiz and before the Summary recap/reward
+// screen (intake → practice → quiz → reflect → summary → complete).
+// "Finish Session" on the Summary screen commits XP/streak/progress —
+// it is always the last user action before the Complete celebration.
+const PODCAST_FLOW: SessionStep[] = ["player", "vocabulary", "flashcards", "quiz", "reflection", "summary", "complete"];
 const ARTICLE_FLOW: SessionStep[] = [
   "reading",
   "dictionary",

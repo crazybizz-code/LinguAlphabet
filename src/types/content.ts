@@ -34,6 +34,12 @@ export interface TranscriptSegment {
   words?: TranscriptWord[];
 }
 
+export interface KeyExpression {
+  expression: string;
+  meaning: string;
+  example: string;
+}
+
 export interface VocabularyEntry {
   word: string;
   phonetic: string;
@@ -88,6 +94,12 @@ export interface PodcastContent extends ContentItem {
   vocabulary: VocabularyEntry[];
   quiz: QuizQuestion[];
   reflection: string;
+  /** Populated by the Content Engine for pipeline-ingested content; absent on seed/legacy rows. */
+  keyExpressions?: KeyExpression[];
+  /** Populated by the Content Engine for podcast content (audio modality); absent on seed/legacy rows. */
+  listeningNotes?: string[];
+  /** Populated by the Content Engine for pipeline-ingested content; absent on seed/legacy rows. */
+  discussionQuestions?: string[];
 }
 
 /** content_items + article_details joined — mirrors PodcastContent exactly. */

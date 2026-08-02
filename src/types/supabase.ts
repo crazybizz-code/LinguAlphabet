@@ -242,6 +242,9 @@ export interface Database {
           vocabulary: Json;
           quiz: Json;
           reflection: string | null;
+          key_expressions: Json | null;
+          listening_notes: Json | null;
+          discussion_questions: Json | null;
         };
         Insert: {
           content_item_id: string;
@@ -253,6 +256,9 @@ export interface Database {
           vocabulary?: Json;
           quiz?: Json;
           reflection?: string | null;
+          key_expressions?: Json | null;
+          listening_notes?: Json | null;
+          discussion_questions?: Json | null;
         };
         Update: Partial<Database["public"]["Tables"]["podcast_details"]["Insert"]>;
         Relationships: [];
