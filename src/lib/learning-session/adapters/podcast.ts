@@ -16,7 +16,7 @@ export function toLearningSessionContent(podcast: PodcastContent): LearningSessi
     title: podcast.title,
     cefrLevel: podcast.cefrLevelMin,
     topics: podcast.topics,
-    estimatedMinutes: podcast.estimatedTimeMinutes,
+    estimatedMinutes: Math.round(podcast.durationSeconds / 60),
     thumbnailUrl: podcast.thumbnailUrl,
     audioUrl: podcast.audioUrl,
     durationSeconds: podcast.durationSeconds,

@@ -77,7 +77,6 @@ const ARTICLE_FLOW: SessionStep[] = [
   "vocabulary",
   "flashcards",
   "quiz",
-  "reflection",
   "summary",
   "complete",
 ];
