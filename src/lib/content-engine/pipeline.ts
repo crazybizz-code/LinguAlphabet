@@ -504,7 +504,10 @@ export async function runIngestionPipeline(
         // merged into goalAlignment, a differently-scoped controlled
         // vocabulary (see EnrichmentResult.rawTopics).
         tags: Array.from(new Set([...providerDraft.tags, ...rawTopics])),
-        estimatedTimeMinutes: estimateReadingTimeMinutes(raw.body),
+        estimatedTimeMinutes:
+          modality === "audio" && raw.audio
+            ? Math.round(raw.audio.durationSeconds / 60)
+            : estimateReadingTimeMinutes(raw.body),
         detailsRow: {
           ...providerDraft.detailsRow,
           ...enrichmentToDetailsColumns(enrichment, modality),

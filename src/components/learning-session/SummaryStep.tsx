@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, BookOpen, CheckCircle2, Target } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, Headphones, MessageSquare, Sparkles, Target } from "lucide-react";
 import { Tuto } from "@/components/mascot/Tuto";
 import { SESSION_STEP_CONTAINER, SESSION_STEP_CONTENT } from "./sessionStepLayout";
 import type { LearningSessionContent } from "@/lib/learning-session/types";
@@ -108,6 +108,58 @@ export function SummaryStep({
                   {entry.word}
                 </span>
               ))}
+            </div>
+          )}
+
+          {content.listeningNotes.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-border bg-bg-card p-4">
+              <div className="mb-2 flex items-center gap-1.5">
+                <Headphones className="h-3.5 w-3.5 text-text-tertiary" aria-hidden="true" />
+                <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">Listening highlights</p>
+              </div>
+              <ul className="flex flex-col gap-2">
+                {content.listeningNotes.map((note, index) => (
+                  <li key={index} className="text-sm leading-relaxed text-text-secondary">
+                    {note}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {content.keyExpressions.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-border bg-bg-card p-4">
+              <div className="mb-3 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-text-tertiary" aria-hidden="true" />
+                <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">Key expressions</p>
+              </div>
+              <div className="flex flex-col gap-3">
+                {content.keyExpressions.map((expr, index) => (
+                  <div key={index}>
+                    <p className="text-sm font-semibold text-text-primary">&ldquo;{expr.expression}&rdquo;</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-text-secondary">{expr.meaning}</p>
+                    {expr.example && (
+                      <p className="mt-0.5 text-xs italic text-text-tertiary">{expr.example}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {content.discussionQuestions.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-border bg-bg-card p-4">
+              <div className="mb-2 flex items-center gap-1.5">
+                <MessageSquare className="h-3.5 w-3.5 text-text-tertiary" aria-hidden="true" />
+                <p className="text-xs font-bold uppercase tracking-wide text-text-tertiary">Keep the conversation going</p>
+              </div>
+              <ul className="flex flex-col gap-2">
+                {content.discussionQuestions.map((question, index) => (
+                  <li key={index} className="text-sm leading-relaxed text-text-secondary">
+                    {question}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>

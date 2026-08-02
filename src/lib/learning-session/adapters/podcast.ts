@@ -34,5 +34,8 @@ export function toLearningSessionContent(podcast: PodcastContent): LearningSessi
     reflectionPrompt:
       podcast.reflection?.trim() ||
       `What's one thing from "${podcast.title}" you could use in your own conversations this week?`,
+    keyExpressions: podcast.keyExpressions ?? [],
+    listeningNotes: podcast.listeningNotes ?? [],
+    discussionQuestions: podcast.discussionQuestions ?? [],
   };
 }
