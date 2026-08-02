@@ -79,7 +79,19 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
       const reports: EpisodeReport[] = [];
 
       log(`MODEL ${MODEL}   ZONES ${ZONES.join(", ")}   ${PER_ZONE} episode(s) per zone`);
+      log(`ENRICHMENT ${ENRICH ? "real Gemini call per episode" : "stubbed (set VOA_ASR_ENRICH=1 for a real summary)"}`);
       log();
+
+      // Checked up front rather than after transcription: discovering a
+      // missing key at the end of a run that has already spent minutes
+      // on ASR wastes the run and tells you nothing you could not have
+      // known in the first second.
+      if (ENRICH && !process.env.GEMINI_API_KEY) {
+        throw new Error(
+          "VOA_ASR_ENRICH=1 requires GEMINI_API_KEY. vitest.config.ts loads .env.local then .env from the repo root, " +
+            "the same files Next.js reads — check the key is present in one of them, or drop VOA_ASR_ENRICH to use the labelled stand-in.",
+        );
+      }
 
       for (const zoneId of ZONES) {
         const programme = findVoaProgramme(zoneId)?.name ?? `zone ${zoneId}`;
