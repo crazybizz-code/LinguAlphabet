@@ -71,9 +71,25 @@ export interface AIProviderStreamChunk {
   done: boolean;
 }
 
+/** What a provider needs in the environment before it can be called at all. */
+export interface AIProviderConfigurationStatus {
+  ok: boolean;
+  /** Names of the missing environment variables, in the order a human should set them. Empty when `ok`. */
+  missing: string[];
+}
+
 export interface AIProvider {
   /** Stable id used for registration/lookup (src/ai/providers/registry.ts) — e.g. "openrouter". */
   readonly id: string;
+  /**
+   * Reports missing configuration WITHOUT making a request.
+   *
+   * Optional: a provider needing no configuration omits it. It exists so
+   * a caller can preflight "is the AI layer usable" without knowing
+   * which provider AI_PROVIDER selected or which variables that provider
+   * happens to read — the knowledge stays with the provider that owns it.
+   */
+  checkConfiguration?(): AIProviderConfigurationStatus;
   complete(input: AIProviderCompletionInput): Promise<AIProviderCompletionResult>;
   /** Text-only streaming — does not itself support tool-calling (src/ai/services/tool-loop.ts explains why). */
   stream(input: AIProviderCompletionInput): AsyncGenerator<AIProviderStreamChunk>;

@@ -1,6 +1,7 @@
 import type {
   AIProvider,
   AIProviderCompletionInput,
+  AIProviderConfigurationStatus,
   AIProviderCompletionResult,
   AIProviderMessage,
   AIProviderResponseFormat,
@@ -69,6 +70,14 @@ interface OpenRouterChoice {
 interface OpenRouterResponse {
   choices?: OpenRouterChoice[];
   usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+}
+
+/** The single place that names this provider's environment variables, so `getConfig` and `checkConfiguration` can never disagree about them. */
+const REQUIRED_ENV_VARS = ["OPENROUTER_API_KEY", "OPENROUTER_MODEL"] as const;
+
+function checkConfiguration(): AIProviderConfigurationStatus {
+  const missing = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
+  return { ok: missing.length === 0, missing: [...missing] };
 }
 
 function getConfig(): { apiKey: string; model: string } {
@@ -321,5 +330,5 @@ async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProvi
 }
 
 export function createOpenRouterProvider(): AIProvider {
-  return { id: "openrouter", complete, stream };
+  return { id: "openrouter", complete, stream, checkConfiguration };
 }

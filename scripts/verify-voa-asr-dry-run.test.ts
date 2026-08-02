@@ -10,6 +10,7 @@ import { runQualityGate } from "@/lib/content-engine/publishing";
 import { isReachableAudio } from "@/lib/content-engine/audio";
 import { resolveDescription } from "@/lib/content-engine/description";
 import { generateEnrichment } from "@/lib/content-engine/ai-processing";
+import { checkProviderConfiguration } from "@/ai/providers";
 
 /**
  * OPERATOR ASR PROOF — real VOA feed, real MP3s, real transcription.
@@ -27,11 +28,13 @@ import { generateEnrichment } from "@/lib/content-engine/ai-processing";
  * REQUIRES: python3 with faster-whisper installed, and ffmpeg on PATH.
  *     pip install faster-whisper
  *
- * WRITES NOTHING TO THE CATALOG. No Supabase client is constructed, no
- * content_items or podcast_details row is touched, and no Gemini call is
- * made — the post-enrichment fields the gate needs (CEFR, topics,
- * estimated time) are stubbed and labelled as such. Transcripts ARE
- * written, to the local .asr-cache directory, which is the point: a
+ * WRITES NOTHING TO THE CATALOG. No Supabase client is constructed and
+ * no content_items or podcast_details row is touched. By default no model
+ * call is made either — the post-enrichment fields the gate needs (CEFR,
+ * topics, estimated time) are stubbed and labelled as such; VOA_ASR_ENRICH=1
+ * opts into one real call per episode through the shared AI gateway
+ * (src/ai/providers), whichever provider AI_PROVIDER selects. Transcripts
+ * ARE written, to the local .asr-cache directory, which is the point: a
  * second run must not pay for transcription again.
  */
 
@@ -39,7 +42,7 @@ const ENABLED = process.env.VOA_ASR_PROOF === "1";
 const ZONES = (process.env.VOA_ASR_ZONES ?? "3521").split(",").map((zone) => Number(zone.trim()));
 const PER_ZONE = Number(process.env.VOA_ASR_PER_ZONE ?? 3);
 const MODEL = process.env.VOA_ASR_MODEL ?? "medium.en";
-/** Real Gemini enrichment, one call per episode. Off by default so the proof costs nothing. */
+/** Real enrichment through the shared AI gateway, one call per episode. Off by default so the proof costs nothing. */
 const ENRICH = process.env.VOA_ASR_ENRICH === "1";
 
 interface EpisodeReport {
@@ -79,18 +82,34 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
       const reports: EpisodeReport[] = [];
 
       log(`MODEL ${MODEL}   ZONES ${ZONES.join(", ")}   ${PER_ZONE} episode(s) per zone`);
-      log(`ENRICHMENT ${ENRICH ? "real Gemini call per episode" : "stubbed (set VOA_ASR_ENRICH=1 for a real summary)"}`);
+      log(
+        `ENRICHMENT ${
+          ENRICH
+            ? `real call per episode via the "${checkProviderConfiguration().providerId}" provider`
+            : "stubbed (set VOA_ASR_ENRICH=1 for a real summary)"
+        }`,
+      );
       log();
 
-      // Checked up front rather than after transcription: discovering a
-      // missing key at the end of a run that has already spent minutes
-      // on ASR wastes the run and tells you nothing you could not have
-      // known in the first second.
-      if (ENRICH && !process.env.GEMINI_API_KEY) {
-        throw new Error(
-          "VOA_ASR_ENRICH=1 requires GEMINI_API_KEY. vitest.config.ts loads .env.local then .env from the repo root, " +
-            "the same files Next.js reads — check the key is present in one of them, or drop VOA_ASR_ENRICH to use the labelled stand-in.",
-        );
+      // Checked up front rather than after transcription: discovering
+      // missing configuration at the end of a run that has already spent
+      // minutes on ASR wastes the run and tells you nothing that was not
+      // knowable in the first second.
+      //
+      // Asked of the provider rather than named here. Enrichment reaches
+      // the model through the shared AI gateway, so which credentials it
+      // needs is the selected provider's business — this file naming a
+      // specific variable is what made it go stale the moment enrichment
+      // moved off the direct Gemini client.
+      if (ENRICH) {
+        const configuration = checkProviderConfiguration();
+        if (!configuration.ok) {
+          throw new Error(
+            `VOA_ASR_ENRICH=1 needs the "${configuration.providerId}" AI provider configured. ` +
+              `Missing: ${configuration.missing.join(", ")}. vitest.config.ts loads .env.local then .env from the ` +
+              `repo root, the same files Next.js reads — set them there, or drop VOA_ASR_ENRICH to use the labelled stand-in.`,
+          );
+        }
       }
 
       for (const zoneId of ZONES) {
@@ -202,10 +221,10 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
           // carried any, otherwise one written from this episode's own
           // verified transcript, recorded as generated.
           //
-          // The summary is REAL when VOA_ASR_ENRICH=1 (one Gemini call
-          // per episode); otherwise it is a labelled stand-in, so the
-          // default run still costs nothing. Either way the resolution
-          // logic under test is the production one.
+          // The summary is REAL when VOA_ASR_ENRICH=1 (one model call per
+          // episode through the shared gateway); otherwise it is a
+          // labelled stand-in, so the default run still costs nothing.
+          // Either way the resolution logic under test is the production one.
           const body = segments.map((segment) => segment.text).join(" ");
           const summary = ENRICH
             ? (await generateEnrichment(raw.title, body, "audio")).summary
@@ -218,9 +237,9 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
             ...draft,
             description: resolved.description,
             descriptionProvenance: resolved.provenance,
-            // What generateEnrichment() would fill. Stubbed so no Gemini
-            // call is made; every check that is the PROVIDER's or ASR's
-            // responsibility still runs for real.
+            // What generateEnrichment() would fill. Stubbed so no model
+            // call is made; every check that is the content PROVIDER's or
+            // ASR's responsibility still runs for real.
             cefrLevelMin: "B1",
             cefrLevelMax: "B2",
             topics: ["Science"],

@@ -31,3 +31,26 @@ export function getDefaultProvider(): AIProvider {
   bootstrapProviders();
   return getProvider(getActiveProviderId());
 }
+
+export interface ProviderConfigurationStatus {
+  providerId: string;
+  ok: boolean;
+  missing: string[];
+}
+
+/**
+ * Preflight: is the AI layer usable, and if not, what is missing?
+ *
+ * Asks whichever provider AI_PROVIDER selected, so a caller never needs
+ * to know which environment variables that provider reads. A batch job
+ * can then fail in the first second with an actionable message instead
+ * of part-way through, and swapping providers cannot leave a stale
+ * credential name hardcoded in an unrelated file — which is exactly the
+ * bug this replaced.
+ *
+ * A provider that declares no requirements is reported as configured.
+ */
+export function checkProviderConfiguration(provider: AIProvider = getDefaultProvider()): ProviderConfigurationStatus {
+  const status = provider.checkConfiguration?.() ?? { ok: true, missing: [] };
+  return { providerId: provider.id, ok: status.ok, missing: status.missing };
+}

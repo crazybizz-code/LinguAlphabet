@@ -7,12 +7,12 @@ import path from "node:path";
  * already does for `next dev` and `next build`.
  *
  * WHY THIS IS HERE. Next.js reads `.env.local`/`.env` itself, so the app
- * has GEMINI_API_KEY and nothing in the codebase has to think about it.
- * Vitest is a different runner and does no such thing, so an operator
- * script calling real project code got "GEMINI_API_KEY is not configured"
+ * has its AI credentials and nothing in the codebase has to think about
+ * it. Vitest is a different runner and does no such thing, so an operator
+ * script calling real project code reported the credential as missing
  * while the identical code worked in the app. The gap was the runner's,
- * not the Gemini client's — which is why the fix is here and the client
- * is untouched.
+ * not any provider client's — which is why the fix is here and no client
+ * was touched.
  *
  * PRECEDENCE, matching Next.js: `.env.local` beats `.env`, and anything
  * already in the real environment beats both. That last rule is what
