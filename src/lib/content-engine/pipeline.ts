@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/types/supabase";
 import type { TranscriptSegment } from "@/types/content";
 import { generateEnrichment, estimateReadingTimeMinutes, enrichmentToDetailsColumns } from "./ai-processing";
-import { GeminiRateLimitError } from "@/lib/gemini/client";
+import { isRateLimitError } from "@/ai/providers";
 import { runQualityGate, publishContentItem } from "./publishing";
 import { resolveDescription } from "./description";
 import { isFetchableImage } from "./thumbnails";
@@ -427,7 +427,7 @@ export async function runIngestionPipeline(
       } catch (error) {
         itemsRejected += 1;
         // RETRY_PENDING is reserved for QUOTA/RATE-LIMIT refusals only
-        // (GeminiRateLimitError, i.e. HTTP 429). That makes the status a
+        // (HTTP 429, detected provider-neutrally). That makes the status a
         // precise signal — "we asked faster than the quota allows" —
         // rather than a catch-all for every transient condition, which is
         // what made it useless for diagnosing the 429 outage this change
@@ -438,7 +438,7 @@ export async function runIngestionPipeline(
         // run; the status only tells a human which kind of problem it
         // was. A server-side 5xx therefore still retries exactly as
         // before, it just reads as FAILED instead of RETRY_PENDING.
-        const isRateLimited = error instanceof GeminiRateLimitError;
+        const isRateLimited = isRateLimitError(error);
         await setRawItemStatus(supabase, rawRow.id, {
           status: isRateLimited ? "RETRY_PENDING" : "FAILED",
           rejectionReason: `AI enrichment failed: ${errorMessage(error)}`,

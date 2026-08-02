@@ -9,6 +9,7 @@ import type {
   AIProviderToolSpec,
 } from "../types";
 import { AIProviderError } from "../errors";
+import { parseRetryAfter } from "@/ai/retry";
 import { recordUsage, estimateCostUsd } from "@/ai/telemetry";
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
@@ -98,6 +99,23 @@ function isRetryableStatus(status: number): boolean {
   return status === 429 || status >= 500;
 }
 
+/**
+ * Retry-After, defensively.
+ *
+ * Reading an advisory header must never be able to turn a clean "429
+ * rate limited" into a TypeError — that would replace an actionable
+ * error with a meaningless one at precisely the moment things are going
+ * wrong. Absent or malformed headers simply mean "no hint", and the
+ * caller falls back to computed backoff.
+ */
+function readRetryAfter(response: Response): number | null {
+  try {
+    return parseRetryAfter(response.headers?.get("retry-after") ?? null);
+  } catch {
+    return null;
+  }
+}
+
 /** OpenAI-compatible wire format: a "tool" message needs `tool_call_id`; an assistant tool-call turn needs `tool_calls`. */
 function toWireMessage(message: AIProviderMessage): OpenRouterWireMessage {
   const wire: OpenRouterWireMessage = { role: message.role, content: message.content || null };
@@ -168,7 +186,12 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
     // on a mid-generation failure, real tokens. Dropping these rows would
     // make the telemetry systematically under-report cost.
     await emitUsage({ model, feature: input.feature, startedAt, ok: false, streamed: false });
-    throw new AIProviderError(`OpenRouter error ${response.status}: ${body}`, response.status, isRetryableStatus(response.status));
+    throw new AIProviderError(
+      `OpenRouter error ${response.status}: ${body}`,
+      response.status,
+      isRetryableStatus(response.status),
+      readRetryAfter(response),
+    );
   }
 
   const data: OpenRouterResponse = await response.json();
@@ -238,7 +261,12 @@ async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProvi
   if (!response.ok || !response.body) {
     const body = await readErrorBody(response);
     await emitUsage({ model, feature: input.feature, startedAt, ok: false, streamed: true });
-    throw new AIProviderError(`OpenRouter error ${response.status}: ${body}`, response.status, isRetryableStatus(response.status));
+    throw new AIProviderError(
+      `OpenRouter error ${response.status}: ${body}`,
+      response.status,
+      isRetryableStatus(response.status),
+      readRetryAfter(response),
+    );
   }
 
   const reader = response.body.getReader();
