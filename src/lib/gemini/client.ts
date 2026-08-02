@@ -1,32 +1,25 @@
+import { BATCH_RETRY_POLICY, createRetryController, parseRetryAfter, sleep } from "@/ai/retry";
+
+/**
+ * SCHEDULED FOR REMOVAL. Content Engine enrichment has moved to the
+ * OpenRouter gateway (src/ai/services/generate-structured-json.ts); the
+ * only remaining caller is src/lib/vocabulary/lookup.ts, which is
+ * migrating separately. Nothing new should import this.
+ *
+ * The retry schedules that used to live here now live in src/ai/retry —
+ * unchanged, and shared with the gateway so that moving off this client
+ * could not silently discard them. This file drives the same state
+ * machine and its behaviour is identical, which its own test suite
+ * (client.test.ts, untouched) still verifies.
+ */
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 /** 5xx: the API is momentarily unwell. Short backoff, few attempts — these clear in milliseconds or not at all. */
 const SERVER_ERROR_STATUS_CODES = new Set([500, 502, 503, 504]);
-const SERVER_ERROR_MAX_RETRIES = 3;
-const SERVER_ERROR_BASE_DELAY_MS = 500;
 
-/**
- * 429 is a different failure with a different shape and needs its own
- * schedule. Gemini's free-tier quotas are windowed (per-minute and
- * per-day), so the old shared policy — 3 retries at 500ms/1s/2s, ~3.5s
- * total — could never outlast even a per-minute window. That is exactly
- * why a real production ingest run marked every item RETRY_PENDING with
- * "429 after 3 retries": the retries were real, they were just far too
- * short to matter.
- */
-const RATE_LIMIT_MAX_RETRIES = 5;
-const RATE_LIMIT_BASE_DELAY_MS = 2000;
-/** Ceiling on any single wait, so one absurd Retry-After can't stall a run. */
-const RATE_LIMIT_MAX_DELAY_MS = 20_000;
-/**
- * Total time one call may spend waiting on 429 before giving up. The
- * ingest route's maxDuration is 300s and a run processes ~18 items, so an
- * item that camps on a quota window forever would starve every source
- * after it. Giving up here is safe: the pipeline leaves processed_at
- * null, so the item is retried on the next run rather than lost.
- */
-const RATE_LIMIT_TOTAL_BUDGET_MS = 45_000;
+/** Re-exported so this client's public surface — and its tests — are unchanged by the move. */
+export { parseRetryAfter, computeBackoffDelay } from "@/ai/retry";
 
 interface GeminiGenerateContentResponse {
   candidates?: Array<{
@@ -52,61 +45,6 @@ export class GeminiTransientError extends Error {}
  * the outage this fixes.
  */
 export class GeminiRateLimitError extends GeminiTransientError {}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Parses a Retry-After header into milliseconds. HTTP allows either
- * delta-seconds or an HTTP-date, and Gemini has been observed using the
- * former; both are handled rather than assuming one.
- *
- * Returns null for absent/unparseable/negative values so the caller
- * falls back to computed backoff — a malformed header must never be able
- * to produce a NaN sleep or a negative one.
- *
- * Exported for tests.
- */
-export function parseRetryAfter(value: string | null, now: number = Date.now()): number | null {
-  if (!value) return null;
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-
-  // delta-seconds
-  if (/^\d+$/.test(trimmed)) {
-    const ms = Number(trimmed) * 1000;
-    return Number.isFinite(ms) ? ms : null;
-  }
-
-  // HTTP-date
-  const parsed = Date.parse(trimmed);
-  if (Number.isNaN(parsed)) return null;
-  const delta = parsed - now;
-  return delta > 0 ? delta : 0;
-}
-
-/**
- * Full-jitter exponential backoff (AWS's "Exponential Backoff and
- * Jitter"): a random wait in [0, exponential), not exponential ± a
- * wobble. Without jitter, every item in a run that hits the same quota
- * wall retries on the same schedule and collides again on every attempt —
- * with 15 sources ingesting in one invocation that is a self-inflicted
- * thundering herd, and it is a large part of why the previous policy
- * failed.
- *
- * `random` is injectable so tests can assert bounds deterministically.
- * Exported for tests.
- */
-export function computeBackoffDelay(
-  attempt: number,
-  baseDelayMs: number,
-  maxDelayMs: number,
-  random: () => number = Math.random,
-): number {
-  const exponential = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs);
-  return Math.floor(random() * exponential);
-}
 
 /**
  * Thin fetch wrapper — no SDK dependency for a single endpoint. Server-only:
@@ -136,9 +74,7 @@ export async function generateJson(prompt: string, responseSchema: object): Prom
     throw new Error("GEMINI_API_KEY is not configured");
   }
 
-  let rateLimitAttempts = 0;
-  let serverErrorAttempts = 0;
-  let rateLimitWaitedMs = 0;
+  const retry = createRetryController(BATCH_RETRY_POLICY);
   let lastRateLimitStatus = "";
 
   for (;;) {
@@ -166,42 +102,27 @@ export async function generateJson(prompt: string, responseSchema: object): Prom
     if (response.status === 429) {
       lastRateLimitStatus = `${response.status} ${response.statusText}`;
 
-      if (rateLimitAttempts >= RATE_LIMIT_MAX_RETRIES) {
+      const decision = retry.onRateLimit(parseRetryAfter(response.headers.get("retry-after")));
+      if (decision.action === "give-up") {
         throw new GeminiRateLimitError(
-          `Gemini API rate limited: ${lastRateLimitStatus} after ${rateLimitAttempts} retries (waited ${Math.round(rateLimitWaitedMs / 1000)}s total)`,
+          decision.reason === "attempts"
+            ? `Gemini API rate limited: ${lastRateLimitStatus} after ${retry.rateLimitAttempts} retries (waited ${Math.round(retry.rateLimitWaitedMs / 1000)}s total)`
+            : `Gemini API rate limited: ${lastRateLimitStatus}; giving up after ${Math.round(retry.rateLimitWaitedMs / 1000)}s of waiting to protect the run's time budget (item will be retried on the next run)`,
         );
       }
 
-      // An explicit Retry-After is the API telling us exactly when the
-      // window reopens — always better than a guess, but still capped so
-      // a large value can't stall the run.
-      const retryAfterMs = parseRetryAfter(response.headers.get("retry-after"));
-      const delay =
-        retryAfterMs !== null
-          ? Math.min(retryAfterMs, RATE_LIMIT_MAX_DELAY_MS)
-          : computeBackoffDelay(rateLimitAttempts, RATE_LIMIT_BASE_DELAY_MS, RATE_LIMIT_MAX_DELAY_MS);
-
-      if (rateLimitWaitedMs + delay > RATE_LIMIT_TOTAL_BUDGET_MS) {
-        throw new GeminiRateLimitError(
-          `Gemini API rate limited: ${lastRateLimitStatus}; giving up after ${Math.round(rateLimitWaitedMs / 1000)}s of waiting to protect the run's time budget (item will be retried on the next run)`,
-        );
-      }
-
-      rateLimitAttempts += 1;
-      rateLimitWaitedMs += delay;
-      await sleep(delay);
+      await sleep(decision.delayMs);
       continue;
     }
 
     if (SERVER_ERROR_STATUS_CODES.has(response.status)) {
-      if (serverErrorAttempts >= SERVER_ERROR_MAX_RETRIES) {
+      const decision = retry.onServerError();
+      if (decision.action === "give-up") {
         throw new GeminiTransientError(
-          `Gemini API error after ${serverErrorAttempts} retries: ${response.status} ${response.statusText}`,
+          `Gemini API error after ${retry.serverErrorAttempts} retries: ${response.status} ${response.statusText}`,
         );
       }
-      const delay = computeBackoffDelay(serverErrorAttempts, SERVER_ERROR_BASE_DELAY_MS, 8000);
-      serverErrorAttempts += 1;
-      await sleep(delay);
+      await sleep(decision.delayMs);
       continue;
     }
 

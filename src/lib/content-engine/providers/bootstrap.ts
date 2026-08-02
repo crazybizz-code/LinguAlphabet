@@ -2,6 +2,7 @@ import { registerProvider } from "./registry";
 import { plosArticleProvider } from "./plos-provider";
 import { rssProvider } from "./rss-provider";
 import { theConversationProvider } from "./the-conversation-provider";
+import { voaProvider } from "./voa-provider";
 
 /**
  * Registers every real Content Provider once, at process startup.
@@ -13,3 +14,6 @@ import { theConversationProvider } from "./the-conversation-provider";
 registerProvider(rssProvider);
 registerProvider(plosArticleProvider);
 registerProvider(theConversationProvider);
+// The first PODCAST provider — proves the adapter registry routes a
+// non-article content type through the same pipeline with no route change.
+registerProvider(voaProvider);

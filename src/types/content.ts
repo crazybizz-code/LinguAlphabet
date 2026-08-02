@@ -9,11 +9,29 @@
 
 export type CefrLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
+/**
+ * One word with its own timing.
+ *
+ * Only ASR produces these — a publisher's HTML script has no timings at
+ * all, which is the one respect in which machine transcription is better
+ * raw material than a human one. Karaoke-style highlighting, click-a-word
+ * -to-seek, and IELTS listening interactions that need "where in the
+ * audio was this answer" all require word-level timing and cannot be
+ * reconstructed later without re-transcribing.
+ */
+export interface TranscriptWord {
+  word: string;
+  startMs: number;
+  endMs: number;
+}
+
 export interface TranscriptSegment {
   speaker: string;
   text: string;
   startMs: number;
   endMs: number;
+  /** Present for ASR transcripts, absent for publisher and operator ones. Nothing may depend on it existing. */
+  words?: TranscriptWord[];
 }
 
 export interface VocabularyEntry {

@@ -9,11 +9,22 @@
 export class AIProviderError extends Error {
   readonly status?: number;
   readonly retryable: boolean;
+  /**
+   * Parsed `Retry-After`, in milliseconds, when the upstream sent one.
+   *
+   * Additive and inert: nothing reads it unless a caller opts into a
+   * retry policy (src/ai/retry). It exists because honouring an explicit
+   * Retry-After was a tested behaviour of the direct Gemini client, and
+   * moving batch work onto this gateway would otherwise have quietly
+   * downgraded it to guessed backoff.
+   */
+  readonly retryAfterMs?: number | null;
 
-  constructor(message: string, status?: number, retryable = false) {
+  constructor(message: string, status?: number, retryable = false, retryAfterMs?: number | null) {
     super(message);
     this.name = "AIProviderError";
     this.status = status;
     this.retryable = retryable;
+    this.retryAfterMs = retryAfterMs;
   }
 }

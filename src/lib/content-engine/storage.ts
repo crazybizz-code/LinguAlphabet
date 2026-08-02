@@ -21,6 +21,10 @@ function toContentItemsRow(draft: ContentItemDraft, status: "draft" | "published
     content_type: draft.contentType,
     title: draft.title,
     description: draft.description,
+    // Null rather than a default: an older row predating this column was
+    // not necessarily publisher-written, and claiming it was would be the
+    // exact misrepresentation this column exists to prevent.
+    description_provenance: draft.descriptionProvenance ?? null,
     cefr_level_min: draft.cefrLevelMin,
     cefr_level_max: draft.cefrLevelMax,
     topics: draft.topics,

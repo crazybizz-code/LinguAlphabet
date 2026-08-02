@@ -34,3 +34,7 @@ next-env.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# Content-addressed ASR transcript cache (src/lib/content-engine/transcripts/asr.ts).
+# Regenerable from the audio, and large - never committed.
+.asr-cache/

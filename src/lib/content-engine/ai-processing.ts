@@ -1,12 +1,8 @@
-import { generateJson } from "@/lib/gemini/client";
-import type { CefrLevel, QuizQuestion, VocabularyEntry } from "@/types/content";
+import { z } from "zod";
+import { generateStructuredJson } from "@/ai/services/generate-structured-json";
+import { BATCH_RETRY_POLICY } from "@/ai/retry";
 import { CONTROLLED_TOPICS } from "@/lib/constants/topics";
-import type { ContentModality, EnrichmentResult, KeyExpression } from "./types";
-
-const CEFR_LEVELS: readonly CefrLevel[] = ["A1", "A2", "B1", "B2", "C1", "C2"];
-function isCefrLevel(value: unknown): value is CefrLevel {
-  return typeof value === "string" && (CEFR_LEVELS as readonly string[]).includes(value);
-}
+import type { ContentModality, EnrichmentResult } from "./types";
 
 /**
  * 3. AI Processing — the first real AI-based content enrichment in the
@@ -15,103 +11,99 @@ function isCefrLevel(value: unknown): value is CefrLevel {
  * content-type-agnostic: title + raw body text in, the universal
  * enrichment attachments out (docs/domain-model.md's Podcast Model
  * section — Vocabulary/Quiz/Reflection/Takeaways apply to every content
- * type identically). Follows src/lib/vocabulary/lookup.ts's exact
- * convention: prompt string -> Gemini responseSchema -> JSON.parse ->
- * manual runtime validation before trusting the model's output. No
- * "use server" here (this isn't a form-invoked entry point, it's a
- * library function called by the pipeline/scripts — same posture as
- * gemini/client.ts itself).
+ * type identically).
+ *
+ * Reaches the model through the shared AI gateway
+ * (src/ai/services/generate-structured-json.ts -> src/ai/providers ->
+ * OpenRouter), not a provider-specific client. The model is still Gemini;
+ * which model that is belongs to OPENROUTER_MODEL, so changing it is a
+ * config change rather than a code change, and enrichment now shares one
+ * integration with Tuto instead of maintaining a second.
+ *
+ * No "use server" here (this isn't a form-invoked entry point, it's a
+ * library function called by the pipeline/scripts).
  */
 
-const KEY_EXPRESSION_SCHEMA = {
-  type: "ARRAY",
-  items: {
-    type: "OBJECT",
-    properties: {
-      expression: { type: "STRING" },
-      meaning: { type: "STRING" },
-      example: { type: "STRING" },
-    },
-    required: ["expression", "meaning", "example"],
-  },
-};
+/**
+ * The enrichment contract, as Zod.
+ *
+ * Replaces a hand-written Google `responseSchema` (`type: "OBJECT"`,
+ * `"STRING"`) because the model is now reached through the OpenRouter
+ * gateway, which speaks standard JSON Schema. Zod is the source of truth
+ * for both directions at once: `z.toJSONSchema()` constrains what the
+ * model may return, and `safeParse()` validates what it did — so the
+ * request and the check can no longer drift apart, which they could when
+ * the wire schema and the hand-rolled `isQuizQuestion`-style guards were
+ * maintained separately.
+ *
+ * CEFR levels are an enum rather than a string, which is strictly
+ * stronger than the old `isCefrLevel()` check: an invalid level is now
+ * refused by the model's own decoder, not caught afterwards.
+ *
+ * REQUIREDNESS CHANGED SHAPE, NOT MEANING. Structured outputs are strict:
+ * every property must be present. Fields the old schema let the model
+ * omit are therefore declared explicitly — `phonetic` and `translation`
+ * as strings the model may leave empty, `grammarTopic` and
+ * `vocabularyWord` as nullable because "this question tests no grammar
+ * point" is real information and an empty string would blur it. The
+ * mapping below normalizes both to exactly what it produced before.
+ */
+const CEFR_LEVEL = z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]);
 
-const RESPONSE_SCHEMA = {
-  type: "OBJECT",
-  properties: {
-    cefrLevelMin: { type: "STRING" },
-    cefrLevelMax: { type: "STRING" },
-    topics: { type: "ARRAY", items: { type: "STRING" } },
-    summary: { type: "STRING" },
-    keyExpressions: KEY_EXPRESSION_SCHEMA,
-    discussionQuestions: { type: "ARRAY", items: { type: "STRING" } },
-    vocabulary: {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          word: { type: "STRING" },
-          phonetic: { type: "STRING" },
-          pos: { type: "STRING" },
-          translation: { type: "STRING" },
-          definition: { type: "STRING" },
-          example: { type: "STRING" },
-        },
-        required: ["word", "pos", "definition", "example"],
-      },
-    },
-    quiz: {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          type: { type: "STRING" },
-          question: { type: "STRING" },
-          options: { type: "ARRAY", items: { type: "STRING" } },
-          correct: { type: "NUMBER" },
-          explanation: { type: "STRING" },
-          grammarTopic: { type: "STRING" },
-          vocabularyWord: { type: "STRING" },
-        },
-        required: ["type", "question", "options", "correct", "explanation"],
-      },
-    },
-    takeaways: { type: "ARRAY", items: { type: "STRING" } },
-    reflection: { type: "STRING" },
-  },
-  required: [
-    "cefrLevelMin",
-    "cefrLevelMax",
-    "topics",
-    "summary",
-    "vocabulary",
-    "quiz",
-    "takeaways",
-    "reflection",
-    "keyExpressions",
-    "discussionQuestions",
-  ],
+const KeyExpressionSchema = z.object({
+  expression: z.string(),
+  meaning: z.string(),
+  example: z.string(),
+});
+
+const VocabularySchema = z.object({
+  word: z.string(),
+  phonetic: z.string(),
+  pos: z.string(),
+  translation: z.string(),
+  definition: z.string(),
+  example: z.string(),
+});
+
+const QuizSchema = z.object({
+  type: z.string(),
+  question: z.string(),
+  options: z.array(z.string()),
+  correct: z.number(),
+  explanation: z.string(),
+  grammarTopic: z.string().nullable(),
+  vocabularyWord: z.string().nullable(),
+});
+
+const BASE_ENRICHMENT_FIELDS = {
+  cefrLevelMin: CEFR_LEVEL,
+  cefrLevelMax: CEFR_LEVEL,
+  topics: z.array(z.string()),
+  summary: z.string(),
+  keyExpressions: z.array(KeyExpressionSchema),
+  discussionQuestions: z.array(z.string()),
+  vocabulary: z.array(VocabularySchema),
+  quiz: z.array(QuizSchema),
+  takeaways: z.array(z.string()),
+  reflection: z.string(),
 };
 
 /**
  * Built per-modality rather than one union schema with half the fields
  * always empty: asking the model for `listeningNotes` on an article is
  * an invitation to hallucinate something plausible-sounding about audio
- * that doesn't exist. Declared after RESPONSE_SCHEMA it spreads, so there
- * is no temporal-dead-zone hazard if this is ever called at module scope.
+ * that doesn't exist.
  */
-function buildResponseSchema(modality: ContentModality) {
-  const modalityNotes =
-    modality === "audio"
-      ? { listeningNotes: { type: "ARRAY", items: { type: "STRING" } } }
-      : { grammarNotes: { type: "ARRAY", items: { type: "STRING" } } };
-  const modalityRequired = modality === "audio" ? ["listeningNotes"] : ["grammarNotes"];
+type EnrichmentModelOutput = z.infer<z.ZodObject<typeof BASE_ENRICHMENT_FIELDS>> & {
+  /** Exactly one of these is ever present, decided by the modality that built the schema. */
+  listeningNotes?: string[];
+  grammarNotes?: string[];
+};
 
-  return {
-    ...RESPONSE_SCHEMA,
-    properties: { ...RESPONSE_SCHEMA.properties, ...modalityNotes },
-    required: [...RESPONSE_SCHEMA.required, ...modalityRequired],
-  };
+function buildEnrichmentSchema(modality: ContentModality): z.ZodType<EnrichmentModelOutput> {
+  return modality === "audio"
+    ? z.object({ ...BASE_ENRICHMENT_FIELDS, listeningNotes: z.array(z.string()) })
+    : z.object({ ...BASE_ENRICHMENT_FIELDS, grammarNotes: z.array(z.string()) });
 }
 
 function buildPrompt(title: string, body: string, modality: ContentModality): string {
@@ -134,48 +126,13 @@ ${modalityInstruction}
 - cefrLevelMax: the hardest CEFR level (same six values) this content still meaningfully suits — equal to cefrLevelMin if it's narrowly aimed at one level.
 - topics: 1-3 topics that best describe this content, chosen ONLY from this exact list, verbatim: ${CONTROLLED_TOPICS.join(", ")}. Never invent a topic outside this list — if nothing fits well, return an empty array.
 - summary: a 2-3 sentence plain-English recap of what this content teaches or covers.
-- vocabulary: 5-8 key words or phrases from the content genuinely useful for an English learner, each with word, pos (part of speech), definition (simple, plain-language), example (a natural sentence using it, different from the source), translation (Uzbek translation), and phonetic (IPA, omit if uncertain).
-- quiz: 3-4 multiple-choice comprehension/vocabulary questions, each with type ("mc"), question, options (4 plausible choices), correct (the 0-based index of the right option), explanation (why that answer is correct), grammarTopic (a short, specific grammar-unit label like "present-perfect" or "reported-speech" ONLY if this question specifically tests that grammar point — omit or leave empty for a plain comprehension question, most will not have one), and vocabularyWord (the exact word from the vocabulary list above this question tests, ONLY if it's a vocabulary question — omit otherwise).
+- vocabulary: 5-8 key words or phrases from the content genuinely useful for an English learner, each with word, pos (part of speech), definition (simple, plain-language), example (a natural sentence using it, different from the source), translation (Uzbek translation), and phonetic (IPA, or an empty string if uncertain).
+- quiz: 3-4 multiple-choice comprehension/vocabulary questions, each with type ("mc"), question, options (4 plausible choices), correct (the 0-based index of the right option), explanation (why that answer is correct), grammarTopic (a short, specific grammar-unit label like "present-perfect" or "reported-speech" ONLY if this question specifically tests that grammar point — null for a plain comprehension question, most will be null), and vocabularyWord (the exact word from the vocabulary list above this question tests, ONLY if it's a vocabulary question — null otherwise).
 - takeaways: 2-4 short bullet-point key takeaways from the content.
 - reflection: one open-ended, low-pressure reflection prompt inviting the learner to relate the content to their own experience — never a test question.`;
 }
 
-function isVocabularyEntry(value: unknown): value is VocabularyEntry {
-  if (typeof value !== "object" || value === null) return false;
-  const entry = value as Record<string, unknown>;
-  return (
-    typeof entry.word === "string" &&
-    typeof entry.pos === "string" &&
-    typeof entry.definition === "string" &&
-    typeof entry.example === "string"
-  );
-}
-
-function isQuizQuestion(value: unknown): value is QuizQuestion {
-  if (typeof value !== "object" || value === null) return false;
-  const question = value as Record<string, unknown>;
-  return (
-    typeof question.question === "string" &&
-    Array.isArray(question.options) &&
-    question.options.every((option) => typeof option === "string") &&
-    typeof question.correct === "number" &&
-    typeof question.explanation === "string" &&
-    (question.grammarTopic === undefined || typeof question.grammarTopic === "string") &&
-    (question.vocabularyWord === undefined || typeof question.vocabularyWord === "string")
-  );
-}
-
-function isKeyExpression(value: unknown): value is KeyExpression {
-  if (typeof value !== "object" || value === null) return false;
-  const entry = value as Record<string, unknown>;
-  return typeof entry.expression === "string" && typeof entry.meaning === "string" && typeof entry.example === "string";
-}
-
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
-}
-
-/** Empty/whitespace-only counts as "not tagged" — Gemini sometimes returns "" instead of omitting the field. */
+/** Empty/whitespace-only counts as "not tagged" — a model sometimes returns "" instead of null. */
 function normalizeTag(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
@@ -196,42 +153,24 @@ export async function generateEnrichment(
   body: string,
   modality: ContentModality = "text",
 ): Promise<EnrichmentResult> {
-  const raw = await generateJson(buildPrompt(title, body, modality), buildResponseSchema(modality));
-  const parsed: unknown = JSON.parse(raw);
+  // Through the shared AI gateway (OpenRouter), not a provider-specific
+  // client. The model is still Gemini — that is OPENROUTER_MODEL's job,
+  // and changing it is a config change rather than a code change.
+  //
+  // BATCH_RETRY_POLICY is passed explicitly: this is ingestion, where a
+  // 429 means "we asked faster than the quota allows" and waiting is the
+  // correct response. Interactive callers deliberately get no retries.
+  const result = await generateStructuredJson({
+    messages: [{ role: "user", content: buildPrompt(title, body, modality) }],
+    schema: buildEnrichmentSchema(modality),
+    schemaName: "content_enrichment",
+    retryPolicy: BATCH_RETRY_POLICY,
+  });
 
-  if (typeof parsed !== "object" || parsed === null) {
-    throw new Error("AI Processing: Gemini returned an unexpected response shape");
-  }
-
-  const result = parsed as Record<string, unknown>;
-
-  if (
-    !isCefrLevel(result.cefrLevelMin) ||
-    !isCefrLevel(result.cefrLevelMax) ||
-    !Array.isArray(result.topics) ||
-    !result.topics.every((topic) => typeof topic === "string") ||
-    typeof result.summary !== "string" ||
-    !Array.isArray(result.vocabulary) ||
-    !result.vocabulary.every(isVocabularyEntry) ||
-    !Array.isArray(result.quiz) ||
-    !result.quiz.every(isQuizQuestion) ||
-    !Array.isArray(result.takeaways) ||
-    !result.takeaways.every((takeaway) => typeof takeaway === "string") ||
-    typeof result.reflection !== "string" ||
-    !Array.isArray(result.keyExpressions) ||
-    !result.keyExpressions.every(isKeyExpression) ||
-    !isStringArray(result.discussionQuestions)
-  ) {
-    throw new Error("AI Processing: Gemini returned an unexpected response shape");
-  }
-
-  // Only the modality's own note field is required — the other is absent
-  // by construction (buildResponseSchema never asks for it).
-  const listeningNotes = modality === "audio" ? result.listeningNotes : [];
-  const grammarNotes = modality === "text" ? result.grammarNotes : [];
-  if (!isStringArray(listeningNotes) || !isStringArray(grammarNotes)) {
-    throw new Error("AI Processing: Gemini returned an unexpected response shape");
-  }
+  // Only the modality's own note field is requested — the other is absent
+  // by construction (buildEnrichmentSchema never asks for it).
+  const listeningNotes = result.listeningNotes ?? [];
+  const grammarNotes = result.grammarNotes ?? [];
 
   const controlledTopics: readonly string[] = CONTROLLED_TOPICS;
 

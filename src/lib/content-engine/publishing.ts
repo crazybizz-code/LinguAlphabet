@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { ContentItemDraft, ContentType, QualityGateResult } from "./types";
+import { isAllowedAudioHost } from "./audio";
 
 type Client = SupabaseClient<Database>;
 
@@ -51,6 +52,50 @@ const TYPE_SPECIFIC_CHECKS: Partial<Record<ContentType, (draft: ContentItemDraft
       return [`Article body is too short to learn from (${body.trim().length} chars, minimum ${MIN_ARTICLE_BODY_LENGTH})`];
     }
     return [];
+  },
+
+  /**
+   * Guards the three things a listening lesson cannot exist without:
+   * audio you can actually play, a duration to scrub against, and a
+   * transcript to learn from.
+   *
+   * There was no podcast check at all until now, and the schema's own
+   * defaults made that dangerous rather than merely incomplete:
+   * `transcript jsonb not null default '[]'` means an episode with no
+   * transcript is a perfectly valid row. Combined with an unvalidated
+   * `audio_url`, the table would happily accept a silent lesson with
+   * nothing to read.
+   *
+   * FAILS CLOSED. Every branch that cannot prove the field is good
+   * rejects. Reachability is deliberately NOT checked here — it needs a
+   * network call, and the gate is a synchronous pure function that both
+   * the pipeline and its tests depend on staying that way. The caller
+   * probes the URL before reaching the gate (see isReachableAudio) and
+   * the gate covers everything checkable offline.
+   */
+  podcast: (draft) => {
+    const reasons: string[] = [];
+
+    const audioUrl = draft.detailsRow.audio_url;
+    if (typeof audioUrl !== "string" || audioUrl.trim().length === 0) {
+      reasons.push("Missing audio URL");
+    } else if (!isAllowedAudioHost(audioUrl)) {
+      reasons.push("Audio URL is not https or not on an approved host");
+    }
+
+    const duration = draft.detailsRow.duration_seconds;
+    if (typeof duration !== "number" || !Number.isFinite(duration) || duration <= 0) {
+      reasons.push("Missing or invalid audio duration");
+    }
+
+    // An empty array is the schema default, so "absent" and "empty" are
+    // the same failure and get the same message.
+    const transcript = draft.detailsRow.transcript;
+    if (!Array.isArray(transcript) || transcript.length === 0) {
+      reasons.push("Missing transcript");
+    }
+
+    return reasons;
   },
 };
 

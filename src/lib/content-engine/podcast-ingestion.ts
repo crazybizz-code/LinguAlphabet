@@ -3,16 +3,18 @@ import type { Database } from "@/types/supabase";
 import { generateEnrichment, enrichmentToDetailsColumns } from "./ai-processing";
 import { runQualityGate, publishContentItem } from "./publishing";
 import { upsertContentItem, upsertContentDetails } from "./storage";
-import { toPodcastDraft, type PodcastEpisodeInput } from "./adapters/podcast";
+import { podcastContentId, toPodcastDraft, type PodcastEpisodeInput } from "./adapters/podcast";
 import { manualTranscriptSource } from "./transcripts/manual-source";
 import { verifyTranscript } from "./transcripts/verify";
+import { computeTranscriptHash } from "./transcripts/hash";
+import { isReachableAudio } from "./audio";
 import type { TranscriptSource, VerificationResult } from "./transcripts/types";
 
 type Client = SupabaseClient<Database>;
 
 export type PodcastIngestionOutcome =
   | { status: "rejected"; stage: "transcript_verification"; verification: VerificationResult; reasons: string[] }
-  | { status: "rejected"; stage: "transcript_parse" | "enrichment" | "quality_gate" | "storage"; reasons: string[] }
+  | { status: "rejected"; stage: "transcript_parse" | "audio_validation" | "duplicate" | "enrichment" | "quality_gate" | "storage"; reasons: string[] }
   | { status: "published"; contentItemId: string; verification: VerificationResult };
 
 export interface IngestPodcastOptions {
@@ -76,6 +78,38 @@ export async function ingestPodcastEpisode(
       verification,
       reasons: verification.rejectionReasons,
     };
+  }
+
+  // --- 2b. Prove the audio is real, before spending anything ---
+  // Same ordering principle as verification: a dead URL should cost zero
+  // Gemini spend and zero DB writes. Fails closed (src/lib/content-engine/audio.ts).
+  const audioProbe = await isReachableAudio(input.audioUrl);
+  if (!audioProbe.ok) {
+    return { status: "rejected", stage: "audio_validation", reasons: [audioProbe.reason ?? "Audio URL could not be validated"] };
+  }
+
+  // --- 2c. Has this episode already been published under another URL? ---
+  // podcastContentId() hashes the audio URL, so a re-host would otherwise
+  // publish a second copy of the same lesson. The transcript hash
+  // identifies the episode by what it says.
+  const transcriptHash = computeTranscriptHash(candidate.segments);
+  if (transcriptHash) {
+    const contentItemId = podcastContentId(input.externalId ?? input.audioUrl);
+    const { data: duplicate } = await supabase
+      .from("podcast_details")
+      .select("content_item_id")
+      .eq("transcript_hash", transcriptHash)
+      .neq("content_item_id", contentItemId)
+      .limit(1)
+      .maybeSingle();
+
+    if (duplicate) {
+      return {
+        status: "rejected",
+        stage: "duplicate",
+        reasons: [`This transcript is already published as '${duplicate.content_item_id}'. Re-submitting the same episode under a different audio URL would create a second copy.`],
+      };
+    }
   }
 
   // --- 3. Enrich, via the SAME processor articles use (audio modality) ---

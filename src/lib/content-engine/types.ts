@@ -42,6 +42,54 @@ export interface RawContentItem {
   thumbnailUrl?: string;
   /** Original creator's byline, when the source exposes one (e.g. RSS `dc:creator`) — some approved sources (docs/content-source-policy.md, e.g. Global Voices' CC license) require author-name attribution alongside the source link. */
   author?: string;
+  /**
+   * Audio, for providers whose content type is `podcast`. Absent for
+   * every text type — the adapter registry treats a podcast raw item
+   * without this as a provider bug, not a bad episode.
+   */
+  audio?: {
+    url: string;
+    durationSeconds: number;
+  };
+  /**
+   * The publisher's transcript when the feed exposes one directly, or a
+   * URL to fetch it from. Resolved by the pipeline's Transcript
+   * Resolution stage into real segments — a provider is not expected to
+   * parse or verify it.
+   */
+  transcriptRef?:
+    | { kind: "inline"; text: string }
+    | { kind: "url"; url: string }
+    /**
+     * No transcript exists anywhere — generate one from the audio.
+     *
+     * The provider names the audio and stops there. It does NOT run the
+     * transcriber: transcription is IO, cost and a Python subprocess, and
+     * a provider that did it would be a second ingestion pipeline wearing
+     * a provider's clothes. The Transcript Resolution stage owns it, the
+     * same stage that already owns fetching a `url` ref.
+     */
+    | { kind: "asr"; audioUrl: string };
+  /**
+   * Licensing provenance, carried from the source's registration rather
+   * than guessed per item (docs/content-source-policy.md). Persisted so
+   * every published episode can answer "under what licence are we
+   * serving this, and who must we credit" without a lookup.
+   */
+  licence?: string;
+  attribution?: string;
+  /**
+   * How the transcript was obtained.
+   *
+   * `publisher` is a transcript the FEED carried. `publisher_episode_page`
+   * is one lifted from the publisher's own episode page because the feed
+   * carried none — same publisher, same authority, but a different and
+   * more fragile extraction path, since a page's body markup is not the
+   * contract a feed element is. Keeping them distinct means a later
+   * "which episodes came from page scraping" question is answerable
+   * without re-deriving it from source ids.
+   */
+  transcriptProvenance?: "publisher" | "publisher_episode_page" | "operator" | "generated_asr";
   /** The complete original source record (an RSS item, an API payload) — preserved as-is for content_raw_items.raw_payload, never interpreted by the pipeline. */
   raw?: unknown;
 }
@@ -126,6 +174,19 @@ export interface ContentItemDraft {
   contentType: ContentType;
   title: string;
   description: string;
+  /**
+   * Where `description` came from.
+   *
+   * `publisher` — the source wrote it, and it can be shown as the
+   * publisher's words.
+   * `generated` — the source published none, so it was written from
+   * this item's own verified content during enrichment.
+   *
+   * Recorded because the two are indistinguishable once rendered on a
+   * card, and "who wrote this sentence" is not a question the answer to
+   * which should have to be re-derived from which provider ingested it.
+   */
+  descriptionProvenance?: "publisher" | "generated";
   cefrLevelMin: CefrLevel;
   cefrLevelMax: CefrLevel;
   topics: string[];

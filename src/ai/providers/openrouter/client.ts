@@ -1,6 +1,7 @@
 import type {
   AIProvider,
   AIProviderCompletionInput,
+  AIProviderConfigurationStatus,
   AIProviderCompletionResult,
   AIProviderMessage,
   AIProviderResponseFormat,
@@ -9,6 +10,7 @@ import type {
   AIProviderToolSpec,
 } from "../types";
 import { AIProviderError } from "../errors";
+import { parseRetryAfter } from "@/ai/retry";
 import { recordUsage, estimateCostUsd } from "@/ai/telemetry";
 
 const OPENROUTER_ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
@@ -70,6 +72,14 @@ interface OpenRouterResponse {
   usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
 }
 
+/** The single place that names this provider's environment variables, so `getConfig` and `checkConfiguration` can never disagree about them. */
+const REQUIRED_ENV_VARS = ["OPENROUTER_API_KEY", "OPENROUTER_MODEL"] as const;
+
+function checkConfiguration(): AIProviderConfigurationStatus {
+  const missing = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
+  return { ok: missing.length === 0, missing: [...missing] };
+}
+
 function getConfig(): { apiKey: string; model: string } {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const model = process.env.OPENROUTER_MODEL;
@@ -96,6 +106,23 @@ async function readErrorBody(response: Response): Promise<string> {
 
 function isRetryableStatus(status: number): boolean {
   return status === 429 || status >= 500;
+}
+
+/**
+ * Retry-After, defensively.
+ *
+ * Reading an advisory header must never be able to turn a clean "429
+ * rate limited" into a TypeError — that would replace an actionable
+ * error with a meaningless one at precisely the moment things are going
+ * wrong. Absent or malformed headers simply mean "no hint", and the
+ * caller falls back to computed backoff.
+ */
+function readRetryAfter(response: Response): number | null {
+  try {
+    return parseRetryAfter(response.headers?.get("retry-after") ?? null);
+  } catch {
+    return null;
+  }
 }
 
 /** OpenAI-compatible wire format: a "tool" message needs `tool_call_id`; an assistant tool-call turn needs `tool_calls`. */
@@ -168,7 +195,12 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
     // on a mid-generation failure, real tokens. Dropping these rows would
     // make the telemetry systematically under-report cost.
     await emitUsage({ model, feature: input.feature, startedAt, ok: false, streamed: false });
-    throw new AIProviderError(`OpenRouter error ${response.status}: ${body}`, response.status, isRetryableStatus(response.status));
+    throw new AIProviderError(
+      `OpenRouter error ${response.status}: ${body}`,
+      response.status,
+      isRetryableStatus(response.status),
+      readRetryAfter(response),
+    );
   }
 
   const data: OpenRouterResponse = await response.json();
@@ -238,7 +270,12 @@ async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProvi
   if (!response.ok || !response.body) {
     const body = await readErrorBody(response);
     await emitUsage({ model, feature: input.feature, startedAt, ok: false, streamed: true });
-    throw new AIProviderError(`OpenRouter error ${response.status}: ${body}`, response.status, isRetryableStatus(response.status));
+    throw new AIProviderError(
+      `OpenRouter error ${response.status}: ${body}`,
+      response.status,
+      isRetryableStatus(response.status),
+      readRetryAfter(response),
+    );
   }
 
   const reader = response.body.getReader();
@@ -293,5 +330,5 @@ async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProvi
 }
 
 export function createOpenRouterProvider(): AIProvider {
-  return { id: "openrouter", complete, stream };
+  return { id: "openrouter", complete, stream, checkConfiguration };
 }
