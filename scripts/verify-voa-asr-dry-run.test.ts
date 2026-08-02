@@ -21,9 +21,20 @@ import { checkProviderConfiguration } from "@/ai/providers";
  *   Three As It Is episodes (the first proof):
  *     VOA_ASR_PROOF=1 npx vitest run scripts/verify-voa-asr-dry-run.test.ts
  *
- *   One episode from each of the other five programmes:
- *     VOA_ASR_PROOF=1 VOA_ASR_ZONES=986,1581,5535,4456,7468 VOA_ASR_PER_ZONE=1 \
+ *   ONE zone at a time — the practical way to run the cross-programme
+ *   spread on CPU hardware, where transcription costs roughly 2x the
+ *   audio's own duration:
+ *     VOA_ASR_PROOF=1 VOA_ASR_ZONES=986 VOA_ASR_PER_ZONE=1 \
  *       npx vitest run scripts/verify-voa-asr-dry-run.test.ts
+ *
+ *   Each zone is a separate test with its own timeout
+ *   (VOA_ASR_TIMEOUT_MINUTES, default 45), so listing several zones no
+ *   longer makes them share one budget. Results print as they happen, so
+ *   a run that is interrupted still tells you everything it finished.
+ *
+ *   RESUMABLE: transcription is cached content-addressed on the audio
+ *   bytes (.asr-cache), so any episode already transcribed comes back
+ *   instantly on a rerun and is never paid for twice.
  *
  * REQUIRES: python3 with faster-whisper installed, and ffmpeg on PATH.
  *     pip install faster-whisper
@@ -38,12 +49,38 @@ import { checkProviderConfiguration } from "@/ai/providers";
  * second run must not pay for transcription again.
  */
 
+/**
+ * Printed IMMEDIATELY, never buffered.
+ *
+ * The five-zone run hit the timeout and reported nothing at all — not
+ * because nothing happened, but because every line was collected into an
+ * array and only flushed after the loop. Hours of real ASR, verification
+ * and gating results were discarded by the one thing guaranteed to fire
+ * when a long run goes wrong. A proof that only reports on success is
+ * not a proof you can operate.
+ */
+function log(line = ""): void {
+  console.log(line);
+}
+
 const ENABLED = process.env.VOA_ASR_PROOF === "1";
 const ZONES = (process.env.VOA_ASR_ZONES ?? "3521").split(",").map((zone) => Number(zone.trim()));
 const PER_ZONE = Number(process.env.VOA_ASR_PER_ZONE ?? 3);
 const MODEL = process.env.VOA_ASR_MODEL ?? "medium.en";
 /** Real enrichment through the shared AI gateway, one call per episode. Off by default so the proof costs nothing. */
 const ENRICH = process.env.VOA_ASR_ENRICH === "1";
+/**
+ * Per ZONE, not per run. Five zones used to share one hour, so a slow
+ * programme could starve every zone after it and the whole run failed
+ * together. Each zone is now its own test with its own budget: one
+ * timing out reports as one failure and the rest still run.
+ *
+ * Raising this is not the fix for a slow machine — running one zone at a
+ * time is. It is tunable because episode lengths genuinely differ (a
+ * 15-minute American Stories reading is not a 4-minute As It Is bulletin)
+ * and CPU transcription runs at roughly 2x the audio's own duration.
+ */
+const TIMEOUT_MINUTES = Number(process.env.VOA_ASR_TIMEOUT_MINUTES ?? 45);
 
 interface EpisodeReport {
   programme: string;
@@ -72,16 +109,41 @@ function pct(value: number | undefined): string {
   return value === undefined ? "n/a" : `${Math.round(value * 100)}%`;
 }
 
+/**
+ * Printed the moment an episode finishes, not once the zone completes.
+ * A run interrupted after four of five episodes should still show four
+ * results; batching them to the end means an interruption shows none.
+ */
+function printEpisode(report: EpisodeReport): void {
+  log(`--- [${report.programme}] ${report.title}`);
+  log(`    audio:               ${report.audioUrl ?? "(none)"}`);
+  log(`    stated duration:     ${report.statedDurationSeconds ?? "?"}s`);
+  log(`    decoded duration:    ${report.decodedDurationSeconds ?? "?"}s`);
+  log(`    ASR:                 ${report.asrCompleted ? (report.cacheHit ? "cache hit" : "transcribed") : "FAILED"}`);
+  log(`    transcript words:    ${report.wordCount ?? 0}`);
+  log(`    timestamp coverage:  ${pct(report.timestampCoverage)}`);
+  log(`    verification:        ${report.transcriptVerified ? "accept" : `reject${report.verificationConfidence !== undefined ? ` (confidence ${report.verificationConfidence.toFixed(2)})` : ""}`}`);
+  log(`    <item> elements:     ${report.itemElements?.join(", ") ?? "(none captured)"}`);
+  log(`    description source:  ${report.descriptionProvenance ?? "n/a"}`);
+  log(`    description:         ${report.description ? `"${report.description.slice(0, 120)}"` : "(none)"}`);
+  log(`    quality gate:        ${report.gatePassed ? "pass" : "fail"}`);
+  log(`    processing time:     ${report.elapsedMs !== undefined ? `${(report.elapsedMs / 1000).toFixed(1)}s` : "n/a"}${report.cacheHit ? " (cached)" : ""}`);
+  log(`    outcome:             ${report.outcome}`);
+  if (report.reasons.length > 0) {
+    log(`    rejected because:`);
+    for (const reason of report.reasons) log(`      - ${reason}`);
+  }
+  log();
+}
+
 describe.skipIf(!ENABLED)("VOA ASR proof", () => {
-  it(
-    "fetches, transcribes, verifies and gates real episodes without writing to the catalog",
-    async () => {
-      const lines: string[] = [];
-      const log = (line = "") => lines.push(line);
-      const transcribe = createWhisperTranscriber({ model: MODEL });
+  it.each(ZONES)(
+    "zone %i: fetches, transcribes, verifies and gates real episodes without writing to the catalog",
+    async (zoneId) => {
+      const baseTranscriber = createWhisperTranscriber({ model: MODEL });
       const reports: EpisodeReport[] = [];
 
-      log(`MODEL ${MODEL}   ZONES ${ZONES.join(", ")}   ${PER_ZONE} episode(s) per zone`);
+      log(`MODEL ${MODEL}   ZONE ${zoneId}   ${PER_ZONE} episode(s)   timeout ${TIMEOUT_MINUTES}min`);
       log(
         `ENRICHMENT ${
           ENRICH
@@ -112,7 +174,7 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
         }
       }
 
-      for (const zoneId of ZONES) {
+      {
         const programme = findVoaProgramme(zoneId)?.name ?? `zone ${zoneId}`;
         const feedUrl = voaFeedUrl(zoneId);
 
@@ -151,6 +213,10 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
           };
           reports.push(report);
 
+          // try/finally so EVERY exit path reports, including the several
+          // `continue`s below. An episode rejected for unreachable audio
+          // is a result worth seeing immediately, not a silent skip.
+          try {
           // Every child element of the publisher's own <item>. This is
           // how we answer "does VOA publish a description under some
           // other name" from the feed itself rather than by guessing at
@@ -171,6 +237,17 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
           report.audioValidated = true;
 
           // ---------- ASR ----------
+          // resolveTranscript() calls the transcriber again below. The
+          // content-addressed cache already stopped that re-transcribing,
+          // but it still re-downloaded the MP3; memoizing per episode
+          // removes that without changing the path under test — the
+          // resolver still receives, and drives, a real Transcriber.
+          let memo: Awaited<ReturnType<typeof baseTranscriber>> | undefined;
+          const transcribe: typeof baseTranscriber = async (url, hint) => {
+            memo ??= await baseTranscriber(url, hint);
+            return memo;
+          };
+
           const startedAt = Date.now();
           const asr = await transcribe(raw.audio.url, raw.audio.durationSeconds);
           report.elapsedMs = Date.now() - startedAt;
@@ -255,32 +332,13 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
           expect(draft.detailsRow.transcript_provenance).toBe("generated_asr");
           expect(draft.detailsRow.licence).toBe(VOA_LICENCE);
           expect(draft.detailsRow.attribution).toBe(VOA_ATTRIBUTION);
+          } finally {
+            printEpisode(report);
+          }
         }
       }
 
-      // ---------- Per-episode ----------
-      for (const report of reports) {
-        log(`--- [${report.programme}] ${report.title}`);
-        log(`    audio:               ${report.audioUrl ?? "(none)"}`);
-        log(`    stated duration:     ${report.statedDurationSeconds ?? "?"}s`);
-        log(`    decoded duration:    ${report.decodedDurationSeconds ?? "?"}s`);
-        log(`    ASR:                 ${report.asrCompleted ? (report.cacheHit ? "cache hit" : "transcribed") : "FAILED"}`);
-        log(`    transcript words:    ${report.wordCount ?? 0}`);
-        log(`    timestamp coverage:  ${pct(report.timestampCoverage)}`);
-        log(`    verification:        ${report.transcriptVerified ? "accept" : `reject${report.verificationConfidence !== undefined ? ` (confidence ${report.verificationConfidence.toFixed(2)})` : ""}`}`);
-        log(`    <item> elements:     ${report.itemElements?.join(", ") ?? "(none captured)"}`);
-        log(`    description source:  ${report.descriptionProvenance ?? "n/a"}`);
-        log(`    description:         ${report.description ? `"${report.description.slice(0, 120)}"` : "(none)"}`);
-        log(`    quality gate:        ${report.gatePassed ? "pass" : "fail"}`);
-        log(`    processing time:     ${report.elapsedMs !== undefined ? `${(report.elapsedMs / 1000).toFixed(1)}s` : "n/a"}${report.cacheHit ? " (cached)" : ""}`);
-        log(`    outcome:             ${report.outcome}`);
-        if (report.reasons.length > 0) {
-          log(`    rejected because:`);
-          for (const reason of report.reasons) log(`      - ${reason}`);
-        }
-        log();
-      }
-
+      // Per-episode detail is printed as each episode finishes (see printEpisode).
       // ---------- Totals ----------
       const wouldPublish = reports.filter((report) => report.outcome === "would_publish");
       log("================ ASR DRY RUN REPORT ================");
@@ -295,14 +353,12 @@ describe.skipIf(!ENABLED)("VOA ASR proof", () => {
       log(`Rejected:             ${reports.length - wouldPublish.length}`);
       log("NOTHING WAS WRITTEN TO THE CATALOG — no database client was constructed.");
 
-      console.log(lines.join("\n"));
-
       // Deliberately weak: this run exists to REPORT. The only hard
       // failures are a feed we cannot read and a feed that is not a
       // podcast feed, both asserted above.
       expect(reports.length).toBeGreaterThan(0);
     },
-    60 * 60 * 1000,
+    TIMEOUT_MINUTES * 60 * 1000,
   );
 });
 

@@ -100,6 +100,31 @@ describe("the ASR proof's credential preflight", () => {
     expect(status).toEqual({ providerId: "some-other-provider", ok: false, missing: ["SOME_OTHER_KEY"] });
   });
 
+  it("prints results immediately instead of buffering them until the end", () => {
+    // The defect that made a timed-out five-zone run report NOTHING: every
+    // line went into an array flushed only after the loop, so the one
+    // event guaranteed to happen on a long slow run threw away hours of
+    // real results. A proof that only reports on success cannot be
+    // operated.
+    expect(harnessSource).not.toMatch(/console\.log\(lines\.join/);
+    expect(harnessSource).toContain("function log(line = \"\"): void {\n  console.log(line);");
+  });
+
+  it("reports each episode as it finishes, on every exit path", () => {
+    // Including the `continue`s — an episode rejected for unreachable
+    // audio is a result worth seeing now, not a silent skip.
+    expect(harnessSource).toContain("printEpisode(report);");
+    expect(harnessSource).toContain("} finally {");
+  });
+
+  it("gives each zone its own timeout rather than sharing one across the run", () => {
+    // Five zones sharing one hour meant a slow programme starved every
+    // zone after it and the whole run failed together.
+    expect(harnessSource).toContain("it.each(ZONES)");
+    expect(harnessSource).toContain("TIMEOUT_MINUTES * 60 * 1000");
+    expect(harnessSource).not.toContain("60 * 60 * 1000");
+  });
+
   it("treats a provider that declares no requirements as configured", () => {
     const configless: AIProvider = {
       id: "configless",
