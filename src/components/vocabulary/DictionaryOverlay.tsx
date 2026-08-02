@@ -30,6 +30,8 @@ export interface DictionaryOverlayProps {
   contentType: "podcast" | "article" | "story" | "video" | "news" | "conversation" | "challenge";
   /** The content's own CEFR level, used as a stand-in for the learner's level — PlayerStep/DictionaryStep don't currently thread the learner's own profile level down this far. */
   cefrLevel?: string;
+  /** When true, suppresses vocabulary_viewed/vocabulary_saved writes and hides the Save button — preview sessions must never write learner state. */
+  previewMode?: boolean;
   onClose: () => void;
 }
 
@@ -55,6 +57,7 @@ export function DictionaryOverlay({
   contentTitle,
   contentType,
   cefrLevel,
+  previewMode = false,
   onClose,
 }: DictionaryOverlayProps) {
   const [isPending, startTransition] = useTransition();
@@ -122,16 +125,10 @@ export function DictionaryOverlay({
     };
   }, [isLookingUp, word, context, normalizedWord]);
 
-  // Phase 3 signal: viewing intent is real the moment the overlay opens for
-  // a word, independent of whether a definition is found — fires once per
-  // distinct word, not on every re-render, and covers both the curated
-  // (no network) and live-lookup paths from one place. Best-effort by
-  // design (recordVocabularyViewed swallows its own errors) — never worth
-  // surfacing a failure to the learner over a missed signal.
   useEffect(() => {
-    if (!open || !word) return;
+    if (!open || !word || previewMode) return;
     void recordVocabularyViewed({ word, sourceContentId });
-  }, [open, word, sourceContentId]);
+  }, [open, word, sourceContentId, previewMode]);
 
   function retryLookup() {
     setCache((prev) => {
@@ -144,6 +141,7 @@ export function DictionaryOverlay({
   }
 
   function handleSave() {
+    if (previewMode) return;
     startTransition(async () => {
       const result = await saveVocabularyWord({
         word,
@@ -274,15 +272,17 @@ export function DictionaryOverlay({
           )}
 
           <div className="mt-6 flex flex-col gap-3">
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isPending || saved}
-              className="flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-text-on-primary transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
-            >
-              {saved ? <Check className="h-4 w-4" aria-hidden="true" /> : <BookMarked className="h-4 w-4" aria-hidden="true" />}
-              {saved ? "Saved to Vocabulary" : "Save to Vocabulary"}
-            </button>
+            {!previewMode && (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isPending || saved}
+                className="flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-bold text-text-on-primary transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+              >
+                {saved ? <Check className="h-4 w-4" aria-hidden="true" /> : <BookMarked className="h-4 w-4" aria-hidden="true" />}
+                {saved ? "Saved to Vocabulary" : "Save to Vocabulary"}
+              </button>
+            )}
             <button
               type="button"
               onClick={handleAskTuto}

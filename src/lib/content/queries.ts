@@ -88,6 +88,22 @@ export async function getPodcastById(supabase: Client, id: string): Promise<Podc
   return toPodcastContent(item, details);
 }
 
+/**
+ * Draft-or-published podcast fetch for operator preview — call ONLY with a
+ * service-role client that bypasses RLS. The anon/session client will always
+ * return null for draft rows, which is the correct behaviour for learner routes.
+ * Never call this from a client component or from any learner-facing code path.
+ */
+export async function getDraftPodcastByIdForPreview(supabase: Client, id: string): Promise<PodcastContent | null> {
+  const [{ data: item }, { data: details }] = await Promise.all([
+    supabase.from("content_items").select("*").eq("id", id).eq("content_type", "podcast").maybeSingle(),
+    supabase.from("podcast_details").select("*").eq("content_item_id", id).maybeSingle(),
+  ]);
+
+  if (!item || !details) return null;
+  return toPodcastContent(item, details);
+}
+
 function toArticleContent(item: ContentItemRow, details: ArticleDetailsRow): ArticleContent {
   return {
     id: item.id,

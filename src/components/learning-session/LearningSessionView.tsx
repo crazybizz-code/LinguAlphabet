@@ -23,15 +23,21 @@ export function LearningSessionView({
   content,
   displayName,
   isMission,
+  previewMode = false,
 }: {
   content: LearningSessionContent;
   displayName: string;
   /** Product Intelligence Sprint — whether this is one of today's two guided Daily Mission slots vs. a casual Explore pick, for lesson_started's slotType. */
   isMission: boolean;
+  /** Operator draft-preview mode — skips analytics, XP, streaks, and all progress writes. */
+  previewMode?: boolean;
 }) {
   const router = useRouter();
 
   useEffect(() => {
+    // Never fire analytics events for draft preview sessions — the content
+    // isn't published and the operator is not a learner.
+    if (previewMode) return;
     track({
       name: "lesson_started",
       properties: {
@@ -94,8 +100,15 @@ export function LearningSessionView({
    * the server uses; streak/level shown conservatively) -- losing one
    * progress write is recoverable, a learner stuck on a dead button in a
    * live demo is not. The failure is logged for follow-up either way.
+   *
+   * In preview mode the function returns immediately after advancing the
+   * step — completeMission is never called and no progress is written.
    */
   function handleFinishSession() {
+    if (previewMode) {
+      setStep("complete");
+      return;
+    }
     startTransition(async () => {
       const params = {
         contentId: content.contentId,
@@ -141,6 +154,13 @@ export function LearningSessionView({
 
   return (
     <div className="min-h-dvh bg-gradient-to-b from-bg-muted to-bg">
+      {previewMode && (
+        <div className="sticky top-0 z-40 flex items-center justify-center gap-2 bg-amber-400 px-4 py-1.5 text-xs font-semibold text-amber-950">
+          <span>DRAFT PREVIEW</span>
+          <span className="opacity-60">—</span>
+          <span className="font-normal opacity-80">No XP, streaks, or progress will be recorded</span>
+        </div>
+      )}
       <div className="flex items-center justify-between px-4 py-5 sm:px-8 sm:py-6">
         <button
           type="button"
@@ -157,7 +177,7 @@ export function LearningSessionView({
       </div>
 
       <AnimatePresence mode="wait">
-        {step === "player" && <PlayerStep key="player" content={content} onNext={() => setStep(nextAfter("player"))} />}
+        {step === "player" && <PlayerStep key="player" content={content} onNext={() => setStep(nextAfter("player"))} previewMode={previewMode} />}
         {step === "reading" && <ReadingStep key="reading" content={content} onNext={() => setStep(nextAfter("reading"))} />}
         {step === "dictionary" && (
           <DictionaryStep key="dictionary" content={content} onNext={() => setStep(nextAfter("dictionary"))} />
@@ -168,7 +188,7 @@ export function LearningSessionView({
         {step === "flashcards" && (
           <FlashcardsStep key="flashcards" content={content} onNext={() => setStep(nextAfter("flashcards"))} />
         )}
-        {step === "quiz" && <QuizStep key="quiz" content={content} onNext={handleQuizFinished} />}
+        {step === "quiz" && <QuizStep key="quiz" content={content} onNext={handleQuizFinished} previewMode={previewMode} />}
         {step === "summary" && (
           <SummaryStep
             key="summary"
@@ -180,7 +200,18 @@ export function LearningSessionView({
             onFinish={handleFinishSession}
           />
         )}
-        {step === "complete" && completionResult && (
+        {step === "complete" && previewMode && (
+          <div key="complete-preview" className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+            <span className="rounded-xl bg-amber-100 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+              Draft Preview Complete
+            </span>
+            <h2 className="text-2xl font-bold text-text">Preview finished</h2>
+            <p className="max-w-sm text-sm text-text-secondary">
+              No XP, streaks, or learner progress were recorded. This was a draft-only operator preview.
+            </p>
+          </div>
+        )}
+        {step === "complete" && !previewMode && completionResult && (
           <CompleteStep
             key="complete"
             displayName={displayName}

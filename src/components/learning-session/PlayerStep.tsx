@@ -282,7 +282,7 @@ function PlaybackSpeedControl({ rate, onChange }: { rate: number; onChange: (rat
  * SeekBar/TranscriptPanel pieces, so only the composition differs, not the
  * underlying sync logic.
  */
-export function PlayerStep({ content, onNext }: { content: LearningSessionContent; onNext: () => void }) {
+export function PlayerStep({ content, onNext, previewMode = false }: { content: LearningSessionContent; onNext: () => void; previewMode?: boolean }) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -586,6 +586,7 @@ export function PlayerStep({ content, onNext }: { content: LearningSessionConten
         contentTitle={content.title}
         contentType={content.contentType}
         cefrLevel={content.cefrLevel}
+        previewMode={previewMode}
         onClose={() => setSelectedWord(null)}
       />
     </motion.div>

@@ -11,9 +11,11 @@ import { recordQuizAnswer } from "@/lib/learning-session/record-quiz-answer";
 export function QuizStep({
   content,
   onNext,
+  previewMode = false,
 }: {
   content: LearningSessionContent;
   onNext: (correctAnswers: number) => void;
+  previewMode?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -32,17 +34,16 @@ export function QuizStep({
     setAnswered(true);
     if (optionIndex === question.correct) setScore((value) => value + 1);
 
-    // Phase 5: every answered question emits exactly one quiz_answer_recorded
-    // signal — raw evidence, never a conclusion (docs/learning-signal-specification.md).
-    // Best-effort by design; recordQuizAnswer never throws.
-    void recordQuizAnswer({
-      quizId: content.contentId,
-      contentId: content.contentId,
-      contentType: content.contentType === "podcast" ? "podcast" : "article",
-      question,
-      questionIndex: index,
-      chosenOptionIndex: optionIndex,
-    });
+    if (!previewMode) {
+      void recordQuizAnswer({
+        quizId: content.contentId,
+        contentId: content.contentId,
+        contentType: content.contentType === "podcast" ? "podcast" : "article",
+        question,
+        questionIndex: index,
+        chosenOptionIndex: optionIndex,
+      });
+    }
   }
 
   function handleContinue() {
