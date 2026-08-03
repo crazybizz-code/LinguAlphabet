@@ -205,7 +205,10 @@ export const voaProvider: ContentProvider = {
     }
 
     const items = parseVoaFeed(await response.text());
-    const maxItems = typeof sourceConfig.maxItemsPerRun === "number" ? sourceConfig.maxItemsPerRun : 2;
-    return items.slice(0, maxItems);
+    const feedScanWindow =
+      typeof sourceConfig.feedScanWindow === "number" && sourceConfig.feedScanWindow > 0
+        ? sourceConfig.feedScanWindow
+        : 10;
+    return items.slice(0, feedScanWindow);
   },
 };

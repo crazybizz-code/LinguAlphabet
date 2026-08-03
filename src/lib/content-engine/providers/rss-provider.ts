@@ -29,7 +29,7 @@ import { extractThumbnailFromFeedItem, extractThumbnailFromHtml } from "../thumb
 
 /** Feeds vary wildly; anything shorter than this is a teaser, not an article. Overridable per source via config. */
 const DEFAULT_MIN_BODY_LENGTH = 600;
-const DEFAULT_MAX_ITEMS_PER_RUN = 5;
+const DEFAULT_FEED_SCAN_WINDOW = 10;
 
 /**
  * rss-parser exposes non-standard fields only when they're declared up
@@ -92,10 +92,10 @@ export const rssProvider: ContentProvider = {
       throw new Error(`RSS provider: source has no real feedUrl configured (got ${JSON.stringify(sourceConfig.feedUrl ?? null)})`);
     }
 
-    const maxItemsPerRun =
-      typeof sourceConfig.maxItemsPerRun === "number" && sourceConfig.maxItemsPerRun > 0
-        ? sourceConfig.maxItemsPerRun
-        : DEFAULT_MAX_ITEMS_PER_RUN;
+    const feedScanWindow =
+      typeof sourceConfig.feedScanWindow === "number" && sourceConfig.feedScanWindow > 0
+        ? sourceConfig.feedScanWindow
+        : DEFAULT_FEED_SCAN_WINDOW;
     const minBodyLength =
       typeof sourceConfig.minBodyLength === "number" && sourceConfig.minBodyLength >= 0
         ? sourceConfig.minBodyLength
@@ -104,7 +104,7 @@ export const rssProvider: ContentProvider = {
     const feed = await FEED_PARSER.parseURL(feedUrl);
 
     const items: RawContentItem[] = [];
-    for (const rawItem of feed.items.slice(0, maxItemsPerRun)) {
+    for (const rawItem of feed.items.slice(0, feedScanWindow)) {
       const item = rawItem as unknown as Record<string, unknown>;
       const link = typeof item.link === "string" ? item.link : undefined;
       const externalId = (typeof item.guid === "string" ? item.guid : undefined) ?? link;

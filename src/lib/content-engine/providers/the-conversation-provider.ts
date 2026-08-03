@@ -231,19 +231,18 @@ export const theConversationProvider: ContentProvider = {
         ? sourceConfig.feedUrl
         : "https://theconversation.com/articles.atom";
 
-    // Caps BOTH the share-endpoint fetches below and the downstream
-    // Gemini enrichment volume, so one run fits inside the route's
-    // maxDuration. The feed is newest-first, so this takes the N newest;
-    // the pipeline's processed_at idempotency makes re-runs cheap.
-    // Tunable per source via content_sources.config -- a DB row edit,
-    // no deploy.
-    const maxItemsPerRun = typeof sourceConfig.maxItemsPerRun === "number" && sourceConfig.maxItemsPerRun > 0 ? sourceConfig.maxItemsPerRun : 5;
+    // Limits share-endpoint fetches per run. The pipeline's maxItemsPerRun
+    // caps how many of these are actually processed (after dedup); this cap
+    // controls the scan window — how many feed entries are even inspected.
+    // Feed is newest-first, so this takes the N newest. Tunable per source
+    // via content_sources.config — a DB row edit, no deploy.
+    const feedScanWindow = typeof sourceConfig.feedScanWindow === "number" && sourceConfig.feedScanWindow > 0 ? sourceConfig.feedScanWindow : 10;
 
     const parser = new Parser();
     const feed = await parser.parseURL(feedUrl);
 
     const items: RawContentItem[] = [];
-    for (const item of feed.items.slice(0, maxItemsPerRun)) {
+    for (const item of feed.items.slice(0, feedScanWindow)) {
       const externalId = item.guid ?? item.link;
       if (!externalId || !item.link) continue;
 

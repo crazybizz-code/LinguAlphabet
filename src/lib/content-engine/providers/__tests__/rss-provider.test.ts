@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import Parser from "rss-parser";
 import { pickLongestBody, rssProvider } from "../rss-provider";
 
 describe("pickLongestBody", () => {
@@ -43,5 +44,41 @@ describe("rssProvider config validation", () => {
   it("is registered under the id every multi-source content_sources row points at", () => {
     expect(rssProvider.id).toBe("rss");
     expect(rssProvider.contentType).toBe("article");
+  });
+});
+
+// ── rssProvider feedScanWindow ────────────────────────────────────────────
+
+const FULL_BODY = "full article text ".repeat(40); // well above DEFAULT_MIN_BODY_LENGTH
+
+function makeRssItems(count: number) {
+  return Array.from({ length: count }, (_, i) => ({
+    guid: `item-${i + 1}`,
+    link: `https://example.com/article-${i + 1}`,
+    title: `Article ${i + 1}`,
+    contentEncoded: `<p>${FULL_BODY}</p>`,
+    isoDate: new Date().toISOString(),
+  }));
+}
+
+describe("rssProvider feedScanWindow", () => {
+  afterEach(() => { vi.restoreAllMocks(); });
+
+  it("defaults to feedScanWindow=10 when none is configured", async () => {
+    vi.spyOn(Parser.prototype, "parseURL").mockResolvedValue({ items: makeRssItems(15) } as never);
+    const items = await rssProvider.fetchRawItems({ feedUrl: "https://example.com/feed.xml" });
+    expect(items).toHaveLength(10);
+  });
+
+  it("respects an explicit feedScanWindow", async () => {
+    vi.spyOn(Parser.prototype, "parseURL").mockResolvedValue({ items: makeRssItems(15) } as never);
+    const items = await rssProvider.fetchRawItems({ feedUrl: "https://example.com/feed.xml", feedScanWindow: 4 });
+    expect(items).toHaveLength(4);
+  });
+
+  it("maxItemsPerRun no longer limits the scan window — pipeline enforces it post-dedup", async () => {
+    vi.spyOn(Parser.prototype, "parseURL").mockResolvedValue({ items: makeRssItems(15) } as never);
+    const items = await rssProvider.fetchRawItems({ feedUrl: "https://example.com/feed.xml", maxItemsPerRun: 1 });
+    expect(items).toHaveLength(10); // default feedScanWindow=10, not maxItemsPerRun
   });
 });

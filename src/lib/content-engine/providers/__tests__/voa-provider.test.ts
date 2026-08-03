@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { parseVoaFeed, parseItunesDuration, VOA_ATTRIBUTION, VOA_LICENCE } from "../voa-provider";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { parseVoaFeed, parseItunesDuration, VOA_ATTRIBUTION, VOA_LICENCE, voaProvider } from "../voa-provider";
 import { getAdapter } from "../../adapters/registry";
 import { runQualityGate } from "../../publishing";
 import { resolveTranscript } from "../../transcripts/resolve";
@@ -285,6 +285,49 @@ describe("the real As It Is item", () => {
     });
     expect(gated.reasons).toEqual([]);
     expect(gated.passed).toBe(true);
+  });
+});
+
+// ── voaProvider.fetchRawItems feedScanWindow ──────────────────────────────
+
+const BASE_VOA_CONFIG = { feedUrl: "https://learningenglish.voanews.com/api/zis/3079/rss" };
+
+function makeVoaFeed(count: number): string {
+  const items = Array.from(
+    { length: count },
+    (_, i) => `
+    <item>
+      <title>Episode ${i + 1}</title>
+      <guid>ep-${i + 1}</guid>
+      <link>https://learningenglish.voanews.com/a/ep-${i + 1}.html</link>
+      <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
+      <itunes:duration>${600 + i}</itunes:duration>
+      <enclosure url="https://av.voanews.com/ep-${i + 1}.mp3" type="audio/mpeg" length="1000000"/>
+    </item>`,
+  ).join("");
+  return `<?xml version="1.0"?><rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"><channel>${items}</channel></rss>`;
+}
+
+describe("voaProvider.fetchRawItems feedScanWindow", () => {
+  afterEach(() => { vi.restoreAllMocks(); });
+
+  it("defaults to feedScanWindow=10 when none is configured", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, text: async () => makeVoaFeed(20) } as Response);
+    const items = await voaProvider.fetchRawItems(BASE_VOA_CONFIG);
+    expect(items).toHaveLength(10);
+  });
+
+  it("respects an explicit feedScanWindow", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, text: async () => makeVoaFeed(20) } as Response);
+    const items = await voaProvider.fetchRawItems({ ...BASE_VOA_CONFIG, feedScanWindow: 3 });
+    expect(items).toHaveLength(3);
+  });
+
+  it("maxItemsPerRun no longer limits the scan window — pipeline enforces it post-dedup", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({ ok: true, text: async () => makeVoaFeed(20) } as Response);
+    // maxItemsPerRun=1 in config must not shrink the provider scan window
+    const items = await voaProvider.fetchRawItems({ ...BASE_VOA_CONFIG, maxItemsPerRun: 1 });
+    expect(items).toHaveLength(10); // default feedScanWindow applies, not maxItemsPerRun
   });
 });
 

@@ -263,6 +263,15 @@ export async function runIngestionPipeline(
       ? Math.floor(configuredRetryLimit)
       : DEFAULT_MAX_RETRY_ITEMS_PER_RUN;
 
+  // Processing quota: how many NEW (unprocessed) items this run may handle.
+  // Applied after the processed_at dedup check so already-published items
+  // never consume the budget — the bug this fixes (lingualphabet/issues#N).
+  const maxItemsPerRun =
+    typeof options.sourceConfig.maxItemsPerRun === "number" && options.sourceConfig.maxItemsPerRun > 0
+      ? Math.floor(options.sourceConfig.maxItemsPerRun)
+      : undefined; // undefined = uncapped (sources without the config key)
+  let newItemsProcessed = 0;
+
   let itemsFetched = 0;
   let itemsRetried = 0;
   let itemsPublished = 0;
@@ -294,6 +303,8 @@ export async function runIngestionPipeline(
     const rawItems = mergePendingAndFetched(pendingItems, fetchedItems);
 
     for (let raw of rawItems) {
+      if (maxItemsPerRun !== undefined && newItemsProcessed >= maxItemsPerRun) break;
+
       const { data: existing } = await supabase
         .from("content_raw_items")
         .select("id, processed_at")
@@ -301,7 +312,9 @@ export async function runIngestionPipeline(
         .eq("external_id", raw.externalId)
         .maybeSingle();
 
-      if (existing?.processed_at) continue; // already published by a previous run
+      if (existing?.processed_at) continue; // already published — does NOT consume quota
+
+      newItemsProcessed++;
 
       // ---- Transcript Resolution (podcast only) ----
       // Before the hash, deliberately. A podcast's `body` is its
