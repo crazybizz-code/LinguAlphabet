@@ -3,116 +3,79 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { buildGoogleCallbackUrl } from "@/lib/auth/redirect";
+import { choosePostLoginDestination, buildGoogleCallbackUrl } from "@/lib/auth/redirect";
 import { Tuto } from "@/components/mascot/Tuto";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { recordSignupCompleted } from "@/lib/analytics/actions";
 
-export default function SignUpPage() {
+interface Props {
+  /** Desired post-auth destination from ?redirectTo. Sanitized server-side before passing here. */
+  redirectTo?: string;
+  /** Error message pre-populated from ?error query param (e.g. oauth_failed). */
+  initialError?: string;
+}
+
+export function LoginForm({ redirectTo, initialError }: Props) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(initialError ?? "");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
-    if (!email.trim() || !password || !confirmPassword) {
-      setError("Fill in all fields to continue.");
+    if (!email.trim() || !password) {
+      setError("Enter your email and password to continue.");
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError("Enter a valid email address.");
       return;
     }
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return;
-    }
 
     setLoading(true);
+
     const supabase = createClient();
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-    if (signUpError) {
-      setError(signUpError.message || "Registration failed");
+    if (signInError || !signInData.user) {
+      setError(signInError?.message || "Invalid email or password");
       setLoading(false);
       return;
     }
 
-    // The D1/D7 retention cohort anchor — fired here rather than through
-    // track()/the /api/analytics/track route because a real user id
-    // exists now even when data.session doesn't yet (see below); that
-    // route needs a session cookie and would silently drop this exact
-    // event for anyone requiring email confirmation.
-    if (data.user) {
-      recordSignupCompleted(data.user.id).catch(() => {});
-    }
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("user_id", signInData.user.id)
+      .single();
 
-    // If the Supabase project requires email confirmation, signUp()
-    // returns error: null but session: null — the account exists but
-    // isn't authenticated yet. Walking straight into onboarding here would
-    // run the entire wizard on no session at all: every write silently
-    // no-ops, and it dead-ends back at /login once it reaches /dashboard.
-    if (!data.session) {
-      setNeedsConfirmation(true);
-      setLoading(false);
-      return;
-    }
-
-    router.push("/welcome");
+    router.push(choosePostLoginDestination(profile?.onboarding_completed ?? false, redirectTo));
   }
 
   async function handleGoogleSignIn() {
     setError("");
     setGoogleLoading(true);
     const supabase = createClient();
-    // New users always go through onboarding — the callback route handles the
-    // onboarding gate, so no `next` param is needed here.
+    // Safely forward the intended post-auth destination through `next` so
+    // the callback route can apply the same onboarding gate and redirect logic.
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: buildGoogleCallbackUrl(window.location.origin),
+        redirectTo: buildGoogleCallbackUrl(window.location.origin, redirectTo),
       },
     });
     // signInWithOAuth navigates the browser away; if it somehow returns, clear loading.
     setGoogleLoading(false);
-  }
-
-  if (needsConfirmation) {
-    return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-white to-bg-muted px-5 py-12">
-        <div className="w-full max-w-sm text-center">
-          <Tuto pose="celebrating" size="md" animation="breathe" priority className="mx-auto mb-6" />
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-success-soft">
-            <CheckCircle2 className="h-7 w-7 text-success" />
-          </div>
-          <h1 className="font-heading text-h1 font-extrabold text-text-primary">Check your email</h1>
-          <p className="mt-2 mb-6 text-small text-text-secondary">
-            We&apos;ve sent a confirmation link to <span className="font-medium text-text-primary">{email}</span>.
-            Click it to activate your account, then sign in to get started.
-          </p>
-          <Link href="/login">
-            <Button variant="secondary" className="h-11 rounded-full px-6">
-              Back to Sign In
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -124,9 +87,11 @@ export default function SignUpPage() {
               <span className="text-xl font-bold text-text-on-primary">L</span>
             </div>
           </Link>
-          <Tuto pose="celebrating" size="md" animation="breathe" priority className="mx-auto mb-4" />
-          <h1 className="font-heading text-h1 font-extrabold text-text-primary">Create your account</h1>
-          <p className="mt-1 text-small text-text-secondary">Start your English journey today</p>
+          {/* `wave` is reserved for Welcome/first-time onboarding — a
+              returning learner signing back in gets Tuto's normal presence. */}
+          <Tuto pose="neutral" size="md" animation="float" glow priority className="mx-auto mb-4" />
+          <h1 className="font-heading text-h1 font-extrabold text-text-primary">Welcome back</h1>
+          <p className="mt-1 text-small text-text-secondary">Sign in to continue learning</p>
         </div>
 
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -148,10 +113,18 @@ export default function SignUpPage() {
             type={showPassword ? "text" : "password"}
             fieldSize="compact"
             icon={<Lock className="h-4 w-4" />}
-            placeholder="At least 6 characters"
+            placeholder="Enter your password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
+            labelExtra={
+              <Link
+                href="/forgot-password"
+                className="-my-3.5 inline-flex items-center py-3.5 text-badge font-medium text-primary hover:text-primary-dark"
+              >
+                Forgot password?
+              </Link>
+            }
             trailing={
               <button
                 type="button"
@@ -164,18 +137,6 @@ export default function SignUpPage() {
             }
           />
 
-          <Input
-            label="Confirm Password"
-            id="confirmPassword"
-            type={showPassword ? "text" : "password"}
-            fieldSize="compact"
-            icon={<Lock className="h-4 w-4" />}
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            required
-          />
-
           {error && (
             <div role="alert" className="rounded-2xl border border-danger/15 bg-danger/10 px-4 py-3 text-small text-danger">
               {error}
@@ -183,7 +144,7 @@ export default function SignUpPage() {
           )}
 
           <Button type="submit" variant="primary" className="h-12" block loading={loading} arrow>
-            Create Account
+            Sign In
           </Button>
         </form>
 
@@ -194,7 +155,7 @@ export default function SignUpPage() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        {/* Google sign-up */}
+        {/* Google sign-in */}
         <button
           type="button"
           onClick={handleGoogleSignIn}
@@ -210,9 +171,9 @@ export default function SignUpPage() {
         </button>
 
         <p className="mt-6 text-center text-small text-text-secondary">
-          Already have an account?{" "}
-          <Link href="/login" className="-my-3.5 inline-block py-3.5 font-semibold text-primary hover:text-primary-dark">
-            Sign In
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="-my-3.5 inline-block py-3.5 font-semibold text-primary hover:text-primary-dark">
+            Sign Up
           </Link>
         </p>
       </div>
