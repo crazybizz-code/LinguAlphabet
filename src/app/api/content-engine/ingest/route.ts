@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import "@/lib/content-engine/providers/bootstrap";
 import { contentEngine } from "@/lib/content-engine";
 import { requireAdapter } from "@/lib/content-engine/adapters/registry";
-import { resolveTranscript } from "@/lib/content-engine/transcripts/resolve";
 import { createServiceClient } from "@/lib/supabase/service-client";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +52,21 @@ export async function GET(request: Request) {
       continue;
     }
 
+    // Podcast ingestion requires local faster-whisper (ASR) — a Python
+    // subprocess Vercel's serverless runtime structurally cannot run.
+    // Podcast sources are handled by the GitHub Actions workflow
+    // (.github/workflows/ingest-podcasts.yml) which provisions a real
+    // Ubuntu runner with Python and the Whisper model weights cached.
+    if (provider.contentType === "podcast") {
+      runs.push({
+        sourceId: source.id,
+        sourceName: source.name,
+        status: "skipped",
+        reason: "podcast — handled by GitHub Actions ingest-podcasts workflow",
+      });
+      continue;
+    }
+
     // Per-source isolation. runIngestionPipeline catches its own fetch
     // and per-item failures, but it still throws outright if it can't
     // even open a content_ingestion_runs row — and an unhandled throw
@@ -81,18 +95,7 @@ export async function GET(request: Request) {
         sourceId: source.id,
         sourceConfig: source.config as Record<string, unknown>,
         autoPublish: true,
-        // Dispatched through the adapter registry on the PROVIDER's
-        // declared content type. This used to be a hardcoded
-        // `provider.contentType !== "article"` throw, which was the one
-        // line preventing a second content type from using the shared
-        // pipeline — everything else here (staging, dedup, retry,
-        // enrichment, quality gate, publishing) was already type-agnostic.
-        // A podcast provider now routes to the Podcast Adapter with no
-        // change to this route at all.
         normalize: (raw, context) => adapter(raw, context),
-        // Podcast-only stage. Absent for article providers, so their path
-        // through the pipeline is byte-for-byte what it was.
-        ...(provider.contentType === "podcast" ? { resolveTranscript } : {}),
       });
     } catch (error) {
       runs.push({
