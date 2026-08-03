@@ -1,8 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mergePendingAndFetched, runIngestionPipeline } from "./pipeline";
-import type { RawContentItem, ContentProvider } from "./types";
+import { generateEnrichment } from "./ai-processing";
+import type { RawContentItem, ContentProvider, ProviderDraft, EnrichmentResult } from "./types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+
+vi.mock("./ai-processing", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./ai-processing")>();
+  return { ...actual, generateEnrichment: vi.fn() };
+});
 
 function item(externalId: string, title = externalId): RawContentItem {
   return { externalId, title, body: "body text" };
@@ -175,5 +181,245 @@ describe("runIngestionPipeline: maxItemsPerRun quota enforcement", () => {
     );
     expect(result.status).toBe("completed");
     expect(result.itemsRejected).toBe(3); // all three attempted, all fail at upsert
+  });
+});
+
+// ── autoPublish behavior ─────────────────────────────────────────────────────
+
+/**
+ * Full-path mock — succeeds at every DB operation so the pipeline can run
+ * all the way through to upsertContentItem + publishContentItem. Captures
+ * what status was written to content_items so tests can assert on it.
+ */
+interface FullMockCaptures {
+  /** One entry per upsertContentItem call — contains the full row including `status`. */
+  contentItemUpserts: Array<Record<string, unknown>>;
+  /** One entry per publishContentItem call (content_items UPDATE). */
+  contentItemUpdates: Array<Record<string, unknown>>;
+}
+
+function makeFullPipelineMock(): { from: (table: string) => unknown; captures: FullMockCaptures } {
+  const captures: FullMockCaptures = { contentItemUpserts: [], contentItemUpdates: [] };
+
+  return {
+    captures,
+    from: (table: string) => {
+      let op = "";
+      let selectFields = "";
+      let rowData: unknown = null;
+
+      function resolve(): { data: unknown; error: unknown } {
+        if (table === "content_ingestion_runs") {
+          return op === "insert"
+            ? { data: { id: "run-1" }, error: null }
+            : { data: null, error: null };
+        }
+        if (table === "content_raw_items") {
+          if (selectFields.includes("normalized_item")) return { data: [], error: null };
+          if (selectFields.includes("processed_at")) return { data: null, error: null };
+          if (op === "upsert") return { data: { id: "raw-1", source_id: "src", external_id: "ep-1" }, error: null };
+          return { data: null, error: null };
+        }
+        if (table === "content_items") {
+          if (op === "upsert") {
+            captures.contentItemUpserts.push(rowData as Record<string, unknown>);
+            return { data: null, error: null };
+          }
+          if (op === "update") {
+            captures.contentItemUpdates.push(rowData as Record<string, unknown>);
+            return { data: null, error: null };
+          }
+          return { data: null, error: null };
+        }
+        // podcast_details and any other table
+        return { data: null, error: null };
+      }
+
+      const b: Record<string, (...args: unknown[]) => unknown> = {
+        select: (f: unknown = "*") => { selectFields = String(f); return b; },
+        insert: (d: unknown) => { op = "insert"; rowData = d; return b; },
+        upsert: (d: unknown) => { op = "upsert"; rowData = d; return b; },
+        update: (d: unknown) => { op = "update"; rowData = d; return b; },
+        eq: () => b,
+        neq: () => b,
+        not: () => b,
+        is: () => b,
+        gte: () => b,
+        lte: () => b,
+        order: () => b,
+        limit: () => b,
+        maybeSingle: () => Promise.resolve(resolve()),
+        single: () => Promise.resolve(resolve()),
+        then: (...args: unknown[]) =>
+          Promise.resolve(resolve()).then(
+            args[0] as (r: unknown) => unknown,
+            args[1] as ((e: unknown) => unknown) | undefined,
+          ),
+      };
+      return b;
+    },
+  };
+}
+
+const fakeEnrichment: EnrichmentResult = {
+  cefrLevelMin: "B1",
+  cefrLevelMax: "B2",
+  topics: [],
+  rawTopics: [],
+  summary: "A concise summary of the episode.",
+  vocabulary: [],
+  quiz: [],
+  takeaways: ["Key takeaway."],
+  reflection: "Reflect on this episode.",
+  keyExpressions: [],
+  discussionQuestions: [],
+  listeningNotes: ["Listen for pacing."],
+  grammarNotes: [],
+  readingDifficulty: null,
+};
+
+function makePodcastProvider(items: RawContentItem[]): ContentProvider {
+  return { id: "voa", contentType: "podcast", fetchRawItems: async () => items };
+}
+
+function fakePodcastItem(externalId = "ep-1"): RawContentItem {
+  return {
+    externalId,
+    title: "Test Episode",
+    body: "Hello world. This is the episode transcript.",
+    audio: { url: "https://voanews.com/audio.mp3", durationSeconds: 600 },
+  };
+}
+
+function makePodcastDraft(detailsOverride?: Record<string, unknown>): ProviderDraft {
+  return {
+    id: "pod-test-id",
+    contentType: "podcast",
+    title: "Test Episode",
+    description: "A test episode description.",
+    skills: ["Listening"],
+    goalAlignment: [],
+    tags: [],
+    thumbnailUrl: "",
+    detailsTable: "podcast_details",
+    detailsRow: {
+      audio_url: "https://voanews.com/audio.mp3",
+      duration_seconds: 600,
+      transcript: [{ speaker: "Host", text: "Hello world.", startMs: 0, endMs: 1000 }],
+      source_url: "",
+      licence: "",
+      attribution: "",
+      transcript_provenance: "operator",
+      transcript_hash: null,
+      ...detailsOverride,
+    },
+  };
+}
+
+describe("runIngestionPipeline: autoPublish behavior", () => {
+  beforeEach(() => {
+    process.env.AI_ENRICHMENT_PACING_MS = "0";
+    vi.resetAllMocks();
+  });
+
+  afterEach(() => {
+    delete process.env.AI_ENRICHMENT_PACING_MS;
+  });
+
+  it("autoPublish: true → content_items written as 'published', publishContentItem called", async () => {
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment);
+    const mock = makeFullPipelineMock();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      makePodcastProvider([fakePodcastItem()]),
+      { sourceId: "src", sourceConfig: {}, autoPublish: true, normalize: () => makePodcastDraft() },
+    );
+
+    expect(result.itemsPublished).toBe(1);
+    expect(result.itemsRejected).toBe(0);
+    // upsertContentItem wrote status: "published"
+    expect(mock.captures.contentItemUpserts).toHaveLength(1);
+    expect(mock.captures.contentItemUpserts[0]).toMatchObject({ status: "published" });
+    // publishContentItem fired the UPDATE
+    expect(mock.captures.contentItemUpdates).toHaveLength(1);
+    expect(mock.captures.contentItemUpdates[0]).toMatchObject({ status: "published" });
+  });
+
+  it("autoPublish: false → content_items written as 'draft', publishContentItem NOT called", async () => {
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment);
+    const mock = makeFullPipelineMock();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      makePodcastProvider([fakePodcastItem()]),
+      { sourceId: "src", sourceConfig: {}, autoPublish: false, normalize: () => makePodcastDraft() },
+    );
+
+    expect(result.itemsPublished).toBe(1);
+    expect(mock.captures.contentItemUpserts).toHaveLength(1);
+    expect(mock.captures.contentItemUpserts[0]).toMatchObject({ status: "draft" });
+    // publishContentItem must NOT have been called
+    expect(mock.captures.contentItemUpdates).toHaveLength(0);
+  });
+
+  it("quality gate failure → content_items not written regardless of autoPublish", async () => {
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment);
+    const mock = makeFullPipelineMock();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      makePodcastProvider([fakePodcastItem()]),
+      {
+        sourceId: "src",
+        sourceConfig: {},
+        autoPublish: true,
+        // empty transcript → quality gate rejects "Missing transcript"
+        normalize: () => makePodcastDraft({ transcript: [] }),
+      },
+    );
+
+    expect(result.itemsPublished).toBe(0);
+    expect(result.itemsRejected).toBe(1);
+    expect(mock.captures.contentItemUpserts).toHaveLength(0);
+    expect(mock.captures.contentItemUpdates).toHaveLength(0);
+  });
+
+  it("enrichment failure → content_items not written", async () => {
+    vi.mocked(generateEnrichment).mockRejectedValue(new Error("AI service unavailable"));
+    const mock = makeFullPipelineMock();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      makePodcastProvider([fakePodcastItem()]),
+      { sourceId: "src", sourceConfig: {}, autoPublish: true, normalize: () => makePodcastDraft() },
+    );
+
+    expect(result.itemsPublished).toBe(0);
+    expect(result.itemsRejected).toBe(1);
+    expect(mock.captures.contentItemUpserts).toHaveLength(0);
+    expect(mock.captures.contentItemUpdates).toHaveLength(0);
+  });
+
+  it("transcript resolution failure → content_items not written, enrichment never called", async () => {
+    const mock = makeFullPipelineMock();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      makePodcastProvider([fakePodcastItem()]),
+      {
+        sourceId: "src",
+        sourceConfig: {},
+        autoPublish: true,
+        normalize: () => makePodcastDraft(),
+        resolveTranscript: () => Promise.resolve(null),
+      },
+    );
+
+    expect(result.itemsPublished).toBe(0);
+    expect(result.itemsRejected).toBe(1);
+    expect(vi.mocked(generateEnrichment)).not.toHaveBeenCalled();
+    expect(mock.captures.contentItemUpserts).toHaveLength(0);
+    expect(mock.captures.contentItemUpdates).toHaveLength(0);
   });
 });

@@ -7,10 +7,12 @@
  * any source that reaches runIngestionPipeline terminates immediately as
  * "failed" — which is the assertion that proves the source was NOT skipped.
  */
-import { describe, it, expect } from "vitest";
+import { vi, describe, it, expect, afterEach } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { Transcriber } from "@/lib/content-engine/transcripts/asr";
+import type { IngestionRunResult } from "@/lib/content-engine";
+import { contentEngine } from "@/lib/content-engine";
 import { runPodcastIngestion } from "./ingest-podcasts";
 
 /** Never called — podcast sources fail before ASR in tests. */
@@ -215,5 +217,43 @@ describe("runPodcastIngestion — source filtering", () => {
     );
 
     expect(anyFailed).toBe(false);
+  });
+});
+
+describe("runPodcastIngestion — autoPublish", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("passes autoPublish: true to runIngestionPipeline for podcast sources", async () => {
+    const completedRun: IngestionRunResult = {
+      runId: "run-1",
+      itemsFetched: 0,
+      itemsRetried: 0,
+      itemsPublished: 0,
+      itemsRejected: 0,
+      status: "completed",
+    };
+    const spy = vi.spyOn(contentEngine, "runIngestionPipeline").mockResolvedValue(completedRun);
+
+    await runPodcastIngestion(
+      stubSupabase([
+        {
+          id: "src-voa",
+          name: "VOA",
+          provider_id: "voa",
+          config: { feedUrl: "https://learningenglish.voanews.com/podcast/2058.xml" },
+          enabled: true,
+        },
+      ]),
+      noOpTranscriber,
+    );
+
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ contentType: "podcast" }),
+      expect.objectContaining({ autoPublish: true }),
+    );
   });
 });

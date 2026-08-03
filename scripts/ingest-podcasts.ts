@@ -95,8 +95,8 @@ export async function runPodcastIngestion(
       result = await contentEngine.runIngestionPipeline(supabase, provider, {
         sourceId: source.id,
         sourceConfig: source.config as Record<string, unknown>,
-        // All items land as draft — operator reviews before publishing.
-        autoPublish: false,
+        // Episodes pass all quality gates before the pipeline reaches publish; go live immediately.
+        autoPublish: true,
         normalize: (raw, context) => adapter(raw, context),
         resolveTranscript: (raw) => resolveTranscript(raw, { transcribe: transcriber }),
       });
