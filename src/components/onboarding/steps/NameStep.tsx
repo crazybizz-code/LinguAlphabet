@@ -29,18 +29,26 @@ export function NameStep({
       onContinue={onNext}
       continueDisabled={!filled}
     >
-      <Input
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" && filled) onNext();
-        }}
-        placeholder="Enter your name"
-        aria-label="Your name"
-        autoFocus
-        autoComplete="given-name"
-        className="mx-auto h-14 max-w-xs rounded-choice bg-bg-muted text-center text-lg"
-      />
+      {/* Width is constrained at the WRAPPER level so the Input component
+          fills the full container and renders exactly one clean border.
+          Previously max-w-xs was passed via `className` which forwarded it
+          to the inner <input> element — the wrapper div (always full-width)
+          and the constrained inner element both showed their background and
+          rounded corners, creating the double-border appearance. */}
+      <div className="mx-auto max-w-xs">
+        <Input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && filled) onNext();
+          }}
+          placeholder="Enter your name"
+          aria-label="Your name"
+          autoFocus
+          autoComplete="given-name"
+          className="text-center text-lg"
+        />
+      </div>
 
       {/* Immediate, warm acknowledgement the moment a name exists — the
           first point in the flow where Tuto responds to the learner

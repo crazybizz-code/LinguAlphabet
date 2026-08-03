@@ -41,13 +41,16 @@ export function OnboardingStepShell({
 }: OnboardingStepShellProps) {
   return (
     <div className="text-center">
-      <Tuto pose={pose} size={tutoSize} animation={animation} className="mx-auto mb-6" alt="" />
+      {/* mb-4 (16px) vs previous mb-6 (24px) — tighter connection between
+          Tuto and the question below it makes Tuto feel like a guide asking
+          something rather than a decoration above a form. */}
+      <Tuto pose={pose} size={tutoSize} animation={animation} className="mx-auto mb-4" alt="" />
 
       <motion.h1
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5 }}
-        className="mb-2 font-heading text-2xl font-extrabold leading-tight text-text-primary sm:text-3xl"
+        className="mb-3 font-heading text-[26px] font-extrabold leading-tight tracking-tight text-text-primary sm:text-[30px]"
       >
         {title}
       </motion.h1>
@@ -57,7 +60,7 @@ export function OnboardingStepShell({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.5 }}
-          className="mx-auto mb-7 max-w-md text-sm leading-relaxed text-text-secondary sm:text-base"
+          className="mx-auto mb-7 max-w-[340px] text-sm leading-relaxed text-text-secondary sm:text-base"
         >
           {subtitle}
         </motion.p>
@@ -81,7 +84,13 @@ export function OnboardingStepShell({
  * geometry (48px tall, fully rounded) rather than reimplemented. The
  * project's Button is 56px and 24px-radius by default; tailwind-merge
  * lets the caller override those two properties while keeping its
- * hover/press physics, focus ring, disabled handling and arrow.
+ * hover/press physics, focus ring, and arrow.
+ *
+ * `disabled:opacity-40` is intentionally absent here. The Button's built-in
+ * `disabled:bg-primary/40` already communicates the disabled state with a
+ * muted translucent orange — stacking another `opacity-40` on top of that
+ * compounded to ~16% effective opacity, making the CTA nearly invisible and
+ * failing the design brief's "not almost invisible" requirement.
  */
 export function OnboardingContinue({
   onClick,
@@ -104,8 +113,8 @@ export function OnboardingContinue({
       arrow={!loading}
       className={
         size === "lg"
-          ? "h-14 rounded-full px-10 text-base disabled:opacity-40"
-          : "h-12 rounded-full px-8 text-base disabled:opacity-40"
+          ? "h-14 rounded-full px-10 text-base"
+          : "h-12 rounded-full px-8 text-base"
       }
     >
       {children}
