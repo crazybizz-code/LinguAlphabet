@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
-import { createLearnerRepository } from "@/ai/data";
+import { getCachedLearnerProfile } from "@/ai/data";
 import { ProfileView } from "@/components/profile/ProfileView";
 import { buildMetadata } from "@/lib/seo/metadata";
 
@@ -35,7 +35,7 @@ export default async function ProfilePage() {
     // frozen) — the same repository Tuto's system prompt and the
     // Dashboard/Progress/Explore pages all read, so Profile can never
     // independently drift on what these values mean.
-    createLearnerRepository(supabase, user.id).getProfile(),
+    getCachedLearnerProfile(supabase, user.id),
     supabase.from("progress").select("completed").eq("user_id", user.id),
   ]);
 
