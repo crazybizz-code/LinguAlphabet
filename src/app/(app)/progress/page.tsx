@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCachedPublishedPodcasts, getCachedPublishedArticles } from "@/lib/content/queries";
+import { getPublishedPodcasts, getPublishedArticles } from "@/lib/content/queries";
 import { buildLastWeekSummary, buildWeeklyMinutes, startOfWeek } from "@/lib/content/home";
 import { buildMonthActivity, buildRecentActivity, buildWeekActivity } from "@/lib/content/progress";
 import { buildDailyActivityIndex } from "@/lib/content/daily-activity";
@@ -36,8 +36,12 @@ export default async function ProgressPage() {
     // Progress can never independently drift on what these numbers mean.
     // getCachedLearnerProfile shares the React.cache result with the layout.
     getCachedLearnerProfile(supabase, user.id),
-    getCachedPublishedPodcasts(supabase),
-    getCachedPublishedArticles(supabase),
+    // Full catalog (not getCachedPublishedPodcasts/Articles): buildDailyActivityIndex
+    // reads podcast.vocabulary.length for the "flashcards completed" metric in the
+    // Daily Activity panel — the lean cached versions omit vocabulary and would
+    // always display 0.
+    getPublishedPodcasts(supabase),
+    getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
     supabase.from("vocabulary").select("*").eq("user_id", user.id),
     supabase.from("notes").select("*").eq("user_id", user.id),

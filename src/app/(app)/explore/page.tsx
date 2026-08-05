@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getCachedPublishedPodcasts, getCachedPublishedArticles } from "@/lib/content/queries";
+import { getPublishedPodcasts, getPublishedArticles } from "@/lib/content/queries";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
 import { getCachedLearnerProfile } from "@/ai/data";
@@ -32,8 +32,11 @@ export default async function ExplorePage() {
     // learner's current level" means. getCachedLearnerProfile shares the
     // React.cache result with the layout's getLearnerSidebarStats call.
     getCachedLearnerProfile(supabase, user.id),
-    getCachedPublishedPodcasts(supabase),
-    getCachedPublishedArticles(supabase),
+    // Full catalog (not getCachedPublishedPodcasts/Articles): ExploreView runs
+    // client-side search via searchService.rank(), which reads podcast.vocabulary,
+    // podcast.transcript, and article.body — fields the lean cached versions omit.
+    getPublishedPodcasts(supabase),
+    getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
   ]);
 

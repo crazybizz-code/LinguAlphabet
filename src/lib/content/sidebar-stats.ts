@@ -32,11 +32,19 @@ export interface LearnerSidebarStats {
  * — see that function's own doc comment.
  */
 export async function getLearnerSidebarStats(supabase: SupabaseClient<Database>, userId: string): Promise<LearnerSidebarStats> {
+  // Sidebar only needs today's completed progress rows to compute the daily-goal
+  // percentage (buildTodayMinutes). Filtering at the DB level avoids fetching the
+  // entire activity history on every authenticated page load — a query that grows
+  // O(n) with all learning ever recorded. The two predicates mirror what
+  // buildTodayMinutes already applies in JS, so the result is semantically identical.
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
   const [learnerProfile, podcasts, articles, { data: progressRows }] = await Promise.all([
     getCachedLearnerProfile(supabase, userId),
     getCachedPublishedPodcasts(supabase),
     getCachedPublishedArticles(supabase),
-    supabase.from("progress").select("*").eq("user_id", userId),
+    supabase.from("progress").select("*").eq("user_id", userId).eq("completed", true).gte("updated_at", todayStart.toISOString()),
   ]);
 
   // Already the same `profiles.daily_time_minutes` column
