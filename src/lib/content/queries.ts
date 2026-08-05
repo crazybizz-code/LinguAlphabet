@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { ArticleContent, CefrLevel, KeyExpression, PodcastContent, TranscriptSegment, TranscriptWord } from "@/types/content";
@@ -105,6 +106,87 @@ export async function getPublishedPodcasts(supabase: Client): Promise<PodcastCon
     })
     .filter((item): item is PodcastContent => item !== null);
 }
+
+/**
+ * Catalog-only podcast fetch — omits transcript and all enrichment fields
+ * (vocabulary, quiz, reflection, key_expressions, …) that are only needed
+ * in the Learning Session. Calling this instead of getPublishedPodcasts for
+ * card/feed views saves tens of KB of JSON per request.
+ *
+ * Missing detail fields fall back to their zero values inside toPodcastContent
+ * (empty arrays / empty strings via nullish coalescing) — cards never read them.
+ * The cast is deliberate: we intentionally omit columns the mapper handles safely.
+ */
+async function fetchPublishedPodcastSummaries(supabase: Client): Promise<PodcastContent[]> {
+  const { data: items } = await supabase
+    .from("content_items")
+    .select("*")
+    .eq("content_type", "podcast")
+    .eq("status", "published")
+    .order("featured", { ascending: false })
+    .order("published_at", { ascending: false });
+
+  if (!items || items.length === 0) return [];
+
+  const { data: details } = await supabase
+    .from("podcast_details")
+    .select("content_item_id, audio_url, duration_seconds")
+    .in("content_item_id", items.map((item) => item.id));
+
+  const detailsById = new Map((details ?? []).map((d) => [d.content_item_id, d]));
+
+  return items
+    .map((item) => {
+      const detail = detailsById.get(item.id);
+      if (!detail) return null;
+      return toPodcastContent(item, detail as unknown as PodcastDetailsRow);
+    })
+    .filter((item): item is PodcastContent => item !== null);
+}
+
+/**
+ * Catalog-only article fetch — omits body text and enrichment fields. Mirrors
+ * fetchPublishedPodcastSummaries: cards show title/description/thumbnail only.
+ */
+async function fetchPublishedArticleSummaries(supabase: Client): Promise<ArticleContent[]> {
+  const { data: items } = await supabase
+    .from("content_items")
+    .select("*")
+    .eq("content_type", "article")
+    .eq("status", "published")
+    .order("featured", { ascending: false })
+    .order("published_at", { ascending: false });
+
+  if (!items || items.length === 0) return [];
+
+  const { data: details } = await supabase
+    .from("article_details")
+    .select("content_item_id, source_url, author, reading_time_minutes")
+    .in("content_item_id", items.map((item) => item.id));
+
+  const detailsById = new Map((details ?? []).map((d) => [d.content_item_id, d]));
+
+  return items
+    .map((item) => {
+      const detail = detailsById.get(item.id);
+      if (!detail) return null;
+      return toArticleContent(item, detail as unknown as ArticleDetailsRow);
+    })
+    .filter((item): item is ArticleContent => item !== null);
+}
+
+/**
+ * Per-request cached podcast catalog — deduplicates the fetch when layout
+ * (sidebar stats) and the page itself both need the catalog on the same
+ * request. Uses lean SELECT (no transcript/enrichment). Learn pages use
+ * getPodcastById instead.
+ */
+export const getCachedPublishedPodcasts = cache(fetchPublishedPodcastSummaries);
+
+/**
+ * Per-request cached article catalog. Same pattern as getCachedPublishedPodcasts.
+ */
+export const getCachedPublishedArticles = cache(fetchPublishedArticleSummaries);
 
 /** A single published podcast by id — Podcast Detail/Player/Learning Session all need this. */
 export async function getPodcastById(supabase: Client, id: string): Promise<PodcastContent | null> {

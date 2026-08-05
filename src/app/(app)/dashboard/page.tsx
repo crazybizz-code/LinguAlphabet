@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
+import { getCachedPublishedPodcasts, getCachedPublishedArticles } from "@/lib/content/queries";
 import { buildWeeklyMinutes, buildTodayMinutes } from "@/lib/content/home";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
 import { continueLearningStrategy } from "@/lib/learning-brain/strategies/continue-learning";
-import { createLearnerRepository } from "@/ai/data";
+import { getCachedLearnerProfile } from "@/ai/data";
 import { buildTutoNote } from "@/lib/tuto/messages";
 import { fetchDueVocabulary } from "@/lib/vocabulary/review";
 import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
@@ -47,10 +47,11 @@ export default async function DashboardPage() {
     // Level/goal/streak come from LearnerRepository (src/ai/data, frozen) —
     // the same repository Tuto's own system prompt reads (ai-service.ts's
     // resolveMemory()) — so Dashboard and Tuto can never independently
-    // drift on what "the learner's current level" means.
-    createLearnerRepository(supabase, user.id).getProfile(),
-    getPublishedPodcasts(supabase),
-    getPublishedArticles(supabase),
+    // drift on what "the learner's current level" means. getCachedLearnerProfile
+    // shares the React.cache result with the layout's getLearnerSidebarStats call.
+    getCachedLearnerProfile(supabase, user.id),
+    getCachedPublishedPodcasts(supabase),
+    getCachedPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
     supabase
       .from("daily_missions")

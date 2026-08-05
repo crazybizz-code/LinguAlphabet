@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getPublishedArticles, getPublishedPodcasts } from "@/lib/content/queries";
+import { getCachedPublishedPodcasts, getCachedPublishedArticles } from "@/lib/content/queries";
 import { buildLastWeekSummary, buildWeeklyMinutes, startOfWeek } from "@/lib/content/home";
 import { buildMonthActivity, buildRecentActivity, buildWeekActivity } from "@/lib/content/progress";
 import { buildDailyActivityIndex } from "@/lib/content/daily-activity";
 import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
 import { buildTutoNote } from "@/lib/tuto/messages";
-import { createLearnerRepository } from "@/ai/data";
+import { getCachedLearnerProfile } from "@/ai/data";
 import { ProgressView } from "@/components/progress/ProgressView";
 import { buildMetadata } from "@/lib/seo/metadata";
 
@@ -34,9 +34,10 @@ export default async function ProgressPage() {
     // frozen) — the same repository Tuto's own system prompt reads
     // (ai-service.ts's resolveMemory()) and the Dashboard now reads too, so
     // Progress can never independently drift on what these numbers mean.
-    createLearnerRepository(supabase, user.id).getProfile(),
-    getPublishedPodcasts(supabase),
-    getPublishedArticles(supabase),
+    // getCachedLearnerProfile shares the React.cache result with the layout.
+    getCachedLearnerProfile(supabase, user.id),
+    getCachedPublishedPodcasts(supabase),
+    getCachedPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
     supabase.from("vocabulary").select("*").eq("user_id", user.id),
     supabase.from("notes").select("*").eq("user_id", user.id),

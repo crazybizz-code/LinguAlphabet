@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import { getCachedLearnerProfile } from "@/ai/data";
-import { getPublishedPodcasts, getPublishedArticles } from "@/lib/content/queries";
+import { getCachedPublishedPodcasts, getCachedPublishedArticles } from "@/lib/content/queries";
 import { buildTodayMinutes } from "@/lib/content/home";
 
 const DEFAULT_DAILY_MINUTES = 20;
@@ -34,8 +34,8 @@ export interface LearnerSidebarStats {
 export async function getLearnerSidebarStats(supabase: SupabaseClient<Database>, userId: string): Promise<LearnerSidebarStats> {
   const [learnerProfile, podcasts, articles, { data: progressRows }] = await Promise.all([
     getCachedLearnerProfile(supabase, userId),
-    getPublishedPodcasts(supabase),
-    getPublishedArticles(supabase),
+    getCachedPublishedPodcasts(supabase),
+    getCachedPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", userId),
   ]);
 
