@@ -154,6 +154,30 @@ describe("generateEnrichment", () => {
     installProvider(withoutQuiz);
     await expect(generateEnrichment("Title", "Body", "audio")).rejects.toThrow(/did not match/);
   });
+
+  it("rejects a reversed CEFR range (cefrLevelMin > cefrLevelMax) before the result is returned", async () => {
+    installProvider({ ...MODEL_OUTPUT, cefrLevelMin: "B2", cefrLevelMax: "A1" });
+    await expect(generateEnrichment("Title", "Body", "audio")).rejects.toThrow(/reversed CEFR range/);
+  });
+
+  it("rejects the widest possible reversed range (C2/A1)", async () => {
+    installProvider({ ...MODEL_OUTPUT, cefrLevelMin: "C2", cefrLevelMax: "A1" });
+    await expect(generateEnrichment("Title", "Body", "audio")).rejects.toThrow(/reversed CEFR range/);
+  });
+
+  it("accepts a same-level range (cefrLevelMin === cefrLevelMax)", async () => {
+    installProvider({ ...MODEL_OUTPUT, cefrLevelMin: "B1", cefrLevelMax: "B1" });
+    const result = await generateEnrichment("Title", "Body", "audio");
+    expect(result.cefrLevelMin).toBe("B1");
+    expect(result.cefrLevelMax).toBe("B1");
+  });
+
+  it("accepts a valid ordered range (cefrLevelMin < cefrLevelMax)", async () => {
+    installProvider({ ...MODEL_OUTPUT, cefrLevelMin: "A2", cefrLevelMax: "B2" });
+    const result = await generateEnrichment("Title", "Body", "audio");
+    expect(result.cefrLevelMin).toBe("A2");
+    expect(result.cefrLevelMax).toBe("B2");
+  });
 });
 
 describe("buildPrompt — CEFR classifier calibration", () => {

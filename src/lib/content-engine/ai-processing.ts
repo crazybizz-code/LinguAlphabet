@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { generateStructuredJson } from "@/ai/services/generate-structured-json";
+import { AIProviderError } from "@/ai/providers";
 import { BATCH_RETRY_POLICY } from "@/ai/retry";
 import { CONTROLLED_TOPICS } from "@/lib/constants/topics";
+import { cefrIndex } from "@/lib/learning-brain/cefr";
 import type { ContentModality, EnrichmentResult } from "./types";
 
 /**
@@ -166,6 +168,20 @@ export async function generateEnrichment(
     schemaName: "content_enrichment",
     retryPolicy: BATCH_RETRY_POLICY,
   });
+
+  // Ordering invariant: cefrLevelMin must be ≤ cefrLevelMax. The Zod enum
+  // already rejects values outside the six-level set; this catches the
+  // remaining case where both values are individually valid but their order
+  // is wrong (e.g. B2/A1). Same AIProviderError shape as generateStructuredJson's
+  // schema-mismatch path — non-retryable (a model that reversed the levels
+  // once will reverse them again).
+  if (cefrIndex(result.cefrLevelMin) > cefrIndex(result.cefrLevelMax)) {
+    throw new AIProviderError(
+      `The model returned a reversed CEFR range for "content_enrichment": cefrLevelMin "${result.cefrLevelMin}" is above cefrLevelMax "${result.cefrLevelMax}".`,
+      502,
+      false,
+    );
+  }
 
   // Only the modality's own note field is requested — the other is absent
   // by construction (buildEnrichmentSchema never asks for it).

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type { ContentItemDraft, ContentType, QualityGateResult } from "./types";
 import { isAllowedAudioHost } from "./audio";
+import { cefrIndex } from "@/lib/learning-brain/cefr";
 
 type Client = SupabaseClient<Database>;
 
@@ -103,7 +104,11 @@ function checkUniversalFields(draft: ContentItemDraft): string[] {
   const reasons: string[] = [];
   if (!draft.title.trim()) reasons.push("Missing title");
   if (!draft.description.trim()) reasons.push("Missing description");
-  if (!draft.cefrLevelMin || !draft.cefrLevelMax) reasons.push("Missing CEFR level range");
+  if (!draft.cefrLevelMin || !draft.cefrLevelMax) {
+    reasons.push("Missing CEFR level range");
+  } else if (cefrIndex(draft.cefrLevelMin) > cefrIndex(draft.cefrLevelMax)) {
+    reasons.push("CEFR level range is reversed (cefrLevelMin exceeds cefrLevelMax)");
+  }
   // Deliberately no "must have at least one topic/goalAlignment/tag" check
   // (docs/content-engine.md) — topics/tags are still generated and stored
   // whenever AI Processing/a provider produces them (see ai-processing.ts's
