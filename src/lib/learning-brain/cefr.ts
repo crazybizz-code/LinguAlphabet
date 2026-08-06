@@ -13,6 +13,10 @@ export function cefrDistance(a: string, b: string): number {
   return Math.abs(indexA - indexB);
 }
 
+export function formatCefrRange(min: string, max: string): string {
+  return min === max ? min : `${min}–${max}`;
+}
+
 export function nextCefrLevel(level: CefrLevel): CefrLevel {
   const index = cefrIndex(level);
   if (index === -1) return level;

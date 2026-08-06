@@ -7,6 +7,7 @@ import { Clock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { BrandedCoverFallback } from "@/components/content/BrandedCoverFallback";
 import { isAllowedImageHost } from "@/lib/content/allowedImageHosts";
+import { formatCefrRange } from "@/lib/learning-brain/cefr";
 import type { ArticleContent } from "@/types/content";
 
 export interface ArticleCardProps {
@@ -82,7 +83,7 @@ export function ArticleCard({ article, tutosPick = false, index = 0 }: ArticleCa
             </span>
           )}
           <span className="absolute right-3 top-3 rounded-full bg-text-primary/80 px-2.5 py-1 text-[10px] font-semibold text-text-on-primary">
-            {article.cefrLevelMin}
+            {formatCefrRange(article.cefrLevelMin, article.cefrLevelMax)}
           </span>
         </div>
         <div className="p-4">

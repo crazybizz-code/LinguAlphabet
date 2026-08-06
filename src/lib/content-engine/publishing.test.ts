@@ -89,6 +89,28 @@ describe("quality gate — article body", () => {
   });
 });
 
+describe("quality gate — CEFR level ordering", () => {
+  it("passes a same-level range (cefrLevelMin === cefrLevelMax)", () => {
+    expect(runQualityGate(articleDraft({ cefrLevelMin: "B1", cefrLevelMax: "B1" })).passed).toBe(true);
+  });
+
+  it("passes a valid ordered range (cefrLevelMin < cefrLevelMax)", () => {
+    expect(runQualityGate(articleDraft({ cefrLevelMin: "A2", cefrLevelMax: "B2" })).passed).toBe(true);
+  });
+
+  it("rejects a reversed range (cefrLevelMin > cefrLevelMax) with a clear reason", () => {
+    const result = runQualityGate(articleDraft({ cefrLevelMin: "B2", cefrLevelMax: "A1" }));
+    expect(result.passed).toBe(false);
+    expect(result.reasons.some((r) => r.includes("reversed"))).toBe(true);
+  });
+
+  it("rejects the widest possible reversed range (C2/A1)", () => {
+    const result = runQualityGate(articleDraft({ cefrLevelMin: "C2", cefrLevelMax: "A1" }));
+    expect(result.passed).toBe(false);
+    expect(result.reasons.join(" ")).toMatch(/reversed/i);
+  });
+});
+
 describe("article adapter — description source", () => {
   it("prefers the source's own summary over a mechanical body excerpt", () => {
     const draft = toArticleDraft(rawItem({ description: "The publisher's own summary." }));

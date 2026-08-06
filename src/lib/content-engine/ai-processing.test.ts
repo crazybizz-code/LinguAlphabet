@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { computeReadingDifficulty, estimateReadingTimeMinutes, generateEnrichment } from "./ai-processing";
+import { computeReadingDifficulty, estimateReadingTimeMinutes, generateEnrichment, buildPrompt } from "./ai-processing";
 import { getDefaultProvider, registerProvider } from "@/ai/providers";
 
 describe("computeReadingDifficulty", () => {
@@ -153,5 +153,61 @@ describe("generateEnrichment", () => {
     delete withoutQuiz.quiz;
     installProvider(withoutQuiz);
     await expect(generateEnrichment("Title", "Body", "audio")).rejects.toThrow(/did not match/);
+  });
+
+  it("rejects a reversed CEFR range (cefrLevelMin > cefrLevelMax) before the result is returned", async () => {
+    installProvider({ ...MODEL_OUTPUT, cefrLevelMin: "B2", cefrLevelMax: "A1" });
+    await expect(generateEnrichment("Title", "Body", "audio")).rejects.toThrow(/reversed CEFR range/);
+  });
+
+  it("rejects the widest possible reversed range (C2/A1)", async () => {
+    installProvider({ ...MODEL_OUTPUT, cefrLevelMin: "C2", cefrLevelMax: "A1" });
+    await expect(generateEnrichment("Title", "Body", "audio")).rejects.toThrow(/reversed CEFR range/);
+  });
+
+  it("accepts a same-level range (cefrLevelMin === cefrLevelMax)", async () => {
+    installProvider({ ...MODEL_OUTPUT, cefrLevelMin: "B1", cefrLevelMax: "B1" });
+    const result = await generateEnrichment("Title", "Body", "audio");
+    expect(result.cefrLevelMin).toBe("B1");
+    expect(result.cefrLevelMax).toBe("B1");
+  });
+
+  it("accepts a valid ordered range (cefrLevelMin < cefrLevelMax)", async () => {
+    installProvider({ ...MODEL_OUTPUT, cefrLevelMin: "A2", cefrLevelMax: "B2" });
+    const result = await generateEnrichment("Title", "Body", "audio");
+    expect(result.cefrLevelMin).toBe("A2");
+    expect(result.cefrLevelMax).toBe("B2");
+  });
+});
+
+describe("buildPrompt — CEFR classifier calibration", () => {
+  it("contains a 70% comprehension criterion for cefrLevelMin", () => {
+    const prompt = buildPrompt("Test title", "Test body", "audio");
+    expect(prompt).toContain("70%");
+  });
+
+  it("does not use the vague 'get value' framing for cefrLevelMin", () => {
+    const prompt = buildPrompt("Test title", "Test body", "audio");
+    expect(prompt).not.toContain("get value");
+  });
+
+  it("includes A1 through C2 level descriptions in the rubric", () => {
+    const prompt = buildPrompt("Test title", "Test body", "audio");
+    expect(prompt).toContain("A1");
+    expect(prompt).toContain("A2");
+    expect(prompt).toContain("B1");
+    expect(prompt).toContain("B2");
+    expect(prompt).toContain("C1");
+    expect(prompt).toContain("C2");
+  });
+
+  it("instructs the model to assess cefrLevelMax independently from cefrLevelMin", () => {
+    const prompt = buildPrompt("Test title", "Test body", "audio");
+    expect(prompt).toContain("INDEPENDENTLY");
+  });
+
+  it("does not instruct the model to default cefrLevelMax to equal cefrLevelMin", () => {
+    const prompt = buildPrompt("Test title", "Test body", "audio");
+    expect(prompt).not.toMatch(/equal to cefrLevelMin if.*narrowly aimed/);
   });
 });

@@ -7,6 +7,7 @@ import { Clock, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { BrandedCoverFallback } from "@/components/content/BrandedCoverFallback";
 import { isAllowedImageHost } from "@/lib/content/allowedImageHosts";
+import { formatCefrRange } from "@/lib/learning-brain/cefr";
 import type { PodcastContent } from "@/types/content";
 
 export interface PodcastCardProps {
@@ -82,7 +83,7 @@ export function PodcastCard({ podcast, tutosPick = false, index = 0 }: PodcastCa
             </span>
           )}
           <span className="absolute right-3 top-3 rounded-full bg-text-primary/80 px-2.5 py-1 text-[10px] font-semibold text-text-on-primary">
-            {podcast.cefrLevelMin}
+            {formatCefrRange(podcast.cefrLevelMin, podcast.cefrLevelMax)}
           </span>
         </div>
         <div className="p-4">
