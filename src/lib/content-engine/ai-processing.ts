@@ -106,7 +106,7 @@ function buildEnrichmentSchema(modality: ContentModality): z.ZodType<EnrichmentM
     : z.object({ ...BASE_ENRICHMENT_FIELDS, grammarNotes: z.array(z.string()) });
 }
 
-function buildPrompt(title: string, body: string, modality: ContentModality): string {
+export function buildPrompt(title: string, body: string, modality: ContentModality): string {
   const sourceLabel = modality === "audio" ? "transcript of an audio episode" : "written article";
   const modalityInstruction =
     modality === "audio"
@@ -122,8 +122,8 @@ Return a JSON object with:
 - keyExpressions: 3-5 multi-word expressions (idioms, collocations, phrasal verbs) from the content worth teaching as a unit, each with expression (as it appears), meaning (plain language), and example (a natural sentence using it, different from the source). These must be MULTI-WORD phrases — single words belong in vocabulary, not here.
 - discussionQuestions: 3-4 open-ended questions a teacher or study partner could use to discuss this content. Each should invite opinion or analysis, never have a single lookup-able right answer (that's what quiz is for).
 ${modalityInstruction}
-- cefrLevelMin: the easiest CEFR level (one of A1, A2, B1, B2, C1, C2) a learner could still get value from this content at.
-- cefrLevelMax: the hardest CEFR level (same six values) this content still meaningfully suits — equal to cefrLevelMin if it's narrowly aimed at one level.
+- cefrLevelMin: the LOWEST CEFR level at which a learner can independently understand approximately 70% of this content without extensive external help. Do NOT default to A1 out of generosity — if the content primarily requires B1 knowledge to follow, set cefrLevelMin to B1. Use this rubric: A1 = absolute beginner (very familiar basic words, present tense and 'be' verb only, zero unknown vocabulary); A2 = elementary (common everyday words, simple past, basic connectors like and/but/so, short sentences on familiar topics such as shopping or family); B1 = intermediate (everyday conversations and introduced abstract topics, some idioms and phrasal verbs, past/present/future used fluently); B2 = upper-intermediate (extended discussion of complex or abstract topics, conditional sentences, nuanced vocabulary, requires solid fluency); C1 = advanced (implicit meaning, irony, dense vocabulary, cultural references, spontaneous or technical language for near-fluent speakers); C2 = mastery (near-native level, highly abstract or technical or culturally embedded, essentially no simplification, only near-native speakers reach 70% independently).
+- cefrLevelMax: the HIGHEST CEFR level this content still meaningfully serves. Assess this INDEPENDENTLY from cefrLevelMin — do NOT default it to equal cefrLevelMin. Most English-learning content spans at least one level: a B1-calibrated piece often remains engaging and useful through B2, so cefrLevelMax should be B2 in that case. Only set cefrLevelMax equal to cefrLevelMin if the content is so precisely targeted that it genuinely offers nothing new to a learner above the minimum level.
 - topics: 1-3 topics that best describe this content, chosen ONLY from this exact list, verbatim: ${CONTROLLED_TOPICS.join(", ")}. Never invent a topic outside this list — if nothing fits well, return an empty array.
 - summary: a 2-3 sentence plain-English recap of what this content teaches or covers.
 - vocabulary: 5-8 key words or phrases from the content genuinely useful for an English learner, each with word, pos (part of speech), definition (simple, plain-language), example (a natural sentence using it, different from the source), translation (Uzbek translation), and phonetic (IPA, or an empty string if uncertain).

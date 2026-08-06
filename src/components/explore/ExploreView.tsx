@@ -22,7 +22,7 @@ import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { PodcastCard } from "@/components/content/PodcastCard";
 import { ArticleCard } from "@/components/content/ArticleCard";
 import { searchService } from "@/lib/content/search";
-import { CEFR_ORDER } from "@/lib/learning-brain/cefr";
+import { CEFR_ORDER, cefrIndex } from "@/lib/learning-brain/cefr";
 import type { ArticleContent, PodcastContent } from "@/types/content";
 
 interface KnowledgeHubTab {
@@ -94,7 +94,10 @@ export function ExploreView({ podcasts, podcastRecommends, articles, articleReco
 
   const filtered = useMemo(() => {
     let result = searchResults;
-    if (levelFilter) result = result.filter((item) => item.cefrLevelMin === levelFilter);
+    if (levelFilter) {
+      const filterIdx = cefrIndex(levelFilter);
+      result = result.filter((item) => cefrIndex(item.cefrLevelMin) <= filterIdx && filterIdx <= cefrIndex(item.cefrLevelMax));
+    }
     if (topicFilter) result = result.filter((item) => item.topics.includes(topicFilter));
     return result;
   }, [searchResults, levelFilter, topicFilter]);
