@@ -3,6 +3,7 @@ import { plosArticleProvider } from "./plos-provider";
 import { rssProvider } from "./rss-provider";
 import { theConversationProvider } from "./the-conversation-provider";
 import { voaProvider } from "./voa-provider";
+import { noaaOceanProvider } from "./noaa-ocean-provider";
 
 /**
  * Registers every real Content Provider once, at process startup.
@@ -17,3 +18,5 @@ registerProvider(theConversationProvider);
 // The first PODCAST provider — proves the adapter registry routes a
 // non-article content type through the same pipeline with no route change.
 registerProvider(voaProvider);
+// Second podcast provider — NOAA Ocean Podcast (public domain, B2-calibrated).
+registerProvider(noaaOceanProvider);

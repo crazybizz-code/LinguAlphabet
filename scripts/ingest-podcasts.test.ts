@@ -179,6 +179,30 @@ describe("runPodcastIngestion — source filtering", () => {
     expect(anyFailed).toBe(true);
   });
 
+  it("attempts the NOAA Ocean podcast source — status is 'failed' (not 'skipped') proving it entered the pipeline", async () => {
+    // Same pattern as the VOA test: the stub makes the pipeline's first DB
+    // write return an error, so the pipeline throws immediately. "failed"
+    // proves the source passed the podcast filter and entered the pipeline;
+    // "skipped" would mean the provider was not recognised or the content
+    // type was wrong.
+    const { runs, anyFailed } = await runPodcastIngestion(
+      stubSupabase([
+        {
+          id: "src-noaa",
+          name: "NOAA Ocean Podcast",
+          provider_id: "noaa-ocean",
+          config: { feedUrl: "https://oceanservice.noaa.gov/rss/noaa-ocean-podcast.xml" },
+          enabled: true,
+        },
+      ]),
+      noOpTranscriber,
+    );
+
+    expect(runs).toHaveLength(1);
+    expect(runs[0]).toMatchObject({ sourceId: "src-noaa", status: "failed" });
+    expect(anyFailed).toBe(true);
+  });
+
   it("handles a mix of article and podcast sources in one run", async () => {
     const { runs } = await runPodcastIngestion(
       stubSupabase([
