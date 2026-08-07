@@ -330,13 +330,12 @@ export async function runIngestionPipeline(
 
       if (existing?.processed_at) continue; // already published — does NOT consume quota
 
-      newItemsProcessed++;
-
       // ---- Duration cap (podcast only) ----
-      // Checked before transcript resolution — a 60-minute episode that
-      // exceeds the cap wastes the entire Whisper ASR budget before being
-      // dropped. Fires only on items that carry audio metadata; article
-      // items have no `raw.audio` field and pass straight through.
+      // Runs BEFORE newItemsProcessed++ — the cap is a cheap eligibility
+      // filter (no network, no DB write, no ASR). Consuming quota on an
+      // over-duration item would block the next eligible item from entering
+      // expensive processing in the same run. Same pattern as the dedup
+      // continue above: both are pre-processing screens, not real work.
       if (options.resolveTranscript && raw.audio && raw.audio.durationSeconds > maxDurationSeconds) {
         itemsRejected += 1;
         transcriptFailures.push({
@@ -345,6 +344,8 @@ export async function runIngestionPipeline(
         });
         continue;
       }
+
+      newItemsProcessed++;
 
       // ---- Transcript Resolution (podcast only) ----
       // Before the hash, deliberately. A podcast's `body` is its
