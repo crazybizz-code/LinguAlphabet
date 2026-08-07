@@ -39,6 +39,12 @@ export const ALLOWED_AUDIO_HOSTS: readonly string[] = [
   // ingested — there is no BBC podcast provider. Remove this entry once
   // those rows are either licensed or deleted.
   "bbc.co.uk",
+  // Libsyn CDN — covers traffic.libsyn.com, the audio delivery host for
+  // Astronomy Cast (CC BY 4.0, docs/content-source-policy.md). The feed
+  // itself is at astronomycast.libsyn.com; enclosures are served from the
+  // traffic.libsyn.com subdomain. Both are covered by the `.endsWith`
+  // subdomain rule.
+  "libsyn.com",
 ];
 
 /** Extracted so tests and callers can reason about the rule rather than the list. */

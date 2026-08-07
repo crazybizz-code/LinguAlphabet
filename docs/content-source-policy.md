@@ -78,7 +78,44 @@ from this source pending direct written permission from the site owner).
 
 ---
 
-## APPROVED (15)
+## APPROVED (16)
+
+### Astronomy Cast — Podcast (CC BY 4.0)
+- **Copyright:** Creative Commons Attribution 4.0 International — confirmed
+  directly from the show's own website: *"Astronomy Cast by Fraser Cain &
+  Dr. Pamela Gay is licensed under a Creative Commons Attribution 4.0
+  International License."* This is a self-executing, commercially permissive
+  licence with no NC or ND restriction.
+- **Content type:** Podcast (audio-first, ASR transcript via Whisper).
+- **RSS / Feed URL:** `https://astronomycast.libsyn.com/rss` — standard
+  podcast RSS with `<enclosure>` and `<itunes:duration>`.
+- **Audio delivery host:** `traffic.libsyn.com` — Libsyn CDN, covered by
+  the `"libsyn.com"` entry in `ALLOWED_AUDIO_HOSTS` via subdomain matching.
+- **Episode length:** 28–35 minutes typical. `maxDurationSeconds` not set
+  in the seed config — the pipeline's 2100-second (35-minute) default
+  applies. Source team should raise this if canonical episode length
+  increases; it is not a hard ceiling, just the ASR budget default.
+- **Commercial usage rights:** Permitted — CC BY has no non-commercial
+  restriction. Commercial use and redistribution are explicitly allowed.
+- **Educational reuse rights:** Explicitly permitted.
+- **Attribution requirements:** Required — "Astronomy Cast by Fraser Cain &
+  Dr. Pamela Gay" must be credited. Captured at ingest in
+  `ASTRONOMY_CAST_ATTRIBUTION` and stored with every episode so the credit
+  survives a future website change.
+- **Transcript availability:** Full episode transcripts published per episode
+  on astronomycast.com. The RSS feed does not embed them, so the pipeline
+  uses Whisper ASR (`transcriptProvenance: "generated_asr"`).
+- **CEFR profile:** B2–C1 expected — astronomy, physics, and space science
+  discussed at near-graduate level with technical vocabulary, conditional
+  constructions, and implicit references. CEFR NOT hardcoded; the AI
+  classifier runs on the real transcript after ASR.
+- **Provider ID:** `astronomy-cast` (registered in `bootstrap.ts`).
+- **Seed file:** `supabase/content-source-seed-astronomy-cast-disabled.sql`
+  (enabled = false; canary config: feedScanWindow:5, maxItemsPerRun:1).
+- **Risk level:** Low.
+- **Notes:** First CC-licensed podcast source. The CC BY 4.0 licence covers
+  re-use and redistribution; attribution is the only obligation. No AI-use
+  prohibition found in the licence text or show notes.
 
 ### NASA News
 - **Copyright:** Public domain — works of the U.S. federal government
@@ -683,7 +720,7 @@ resolved for the government-source cohort as a whole.
 
 | Classification | Count | Sources |
 |---|---|---|
-| APPROVED | 16 | NASA News, VOA Learning English, NOAA/NWS, CDC Newsroom, National Park Service, USGS, NIH, Library of Congress, Peace Corps, UK Government (GOV.UK), Wikinews, Global Voices, European Commission Press Corner (⚠️ disabled, see note), FEMA, EPA, TechCrunch |
+| APPROVED | 16 | Astronomy Cast (podcast, CC BY 4.0), NASA News, VOA Learning English, NOAA/NWS, CDC Newsroom, National Park Service, USGS, NIH, Library of Congress, Peace Corps, UK Government (GOV.UK), Wikinews, Global Voices, European Commission Press Corner (⚠️ disabled, see note), FEMA, EPA, TechCrunch |
 | REQUIRES_PERMISSION | 5 | Breaking News English (⚠️ already in production), UN Tourism, WHO, Smithsonian Magazine, British Council LearnEnglish |
 | NOT_ALLOWED | 3 | Reader's Digest, News in Levels, ProPublica |
 | Needs more research | 2 | ESL Fast, USA.gov |
