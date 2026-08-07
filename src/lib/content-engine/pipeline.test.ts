@@ -552,3 +552,190 @@ describe("runIngestionPipeline: autoPublish behavior", () => {
     expect(mock.captures.contentItemUpdates).toHaveLength(0);
   });
 });
+
+// ── maxDurationSeconds does NOT consume the maxItemsPerRun quota ─────────────
+//
+// The duration cap is a cheap eligibility filter — no network, no DB write,
+// no ASR. An over-duration item should be rejected and skipped, but it must
+// not consume a processing slot. The quota (newItemsProcessed) should only
+// increment once expensive processing actually begins (after the cap check).
+//
+// These six tests nail every case that was broken in production and the
+// boundary conditions that must stay stable.
+
+describe("runIngestionPipeline: maxDurationSeconds does not consume maxItemsPerRun quota", () => {
+  /** Podcast-shaped item with an explicit audio duration. */
+  function podcastItem(externalId: string, durationSeconds: number): RawContentItem {
+    return {
+      externalId,
+      title: externalId,
+      body: "",
+      audio: { url: `https://traffic.libsyn.com/ac/${externalId}.mp3`, durationSeconds },
+    };
+  }
+
+  /**
+   * Transcriber stub that records how many times it was called.
+   * Always returns null so the item is then rejected at the ASR stage —
+   * what matters for these tests is WHETHER it was called, not what it returns.
+   */
+  function makeTranscriber(): {
+    resolveTranscript: (raw: RawContentItem) => Promise<null>;
+    callCount: () => number;
+  } {
+    let count = 0;
+    return {
+      resolveTranscript: async () => { count++; return null; },
+      callCount: () => count,
+    };
+  }
+
+  it("1. over-duration item is rejected without consuming quota — next eligible item IS processed", async () => {
+    // ep-A (2347s) is the Astronomy Cast episode that blocked the real run.
+    // ep-B (1800s) is eligible. maxItemsPerRun=1.
+    // Before the fix, ep-A consumed the quota and ep-B was never reached.
+    const mock = makePipelineMock(new Set());
+    const { resolveTranscript, callCount } = makeTranscriber();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      { id: "ac", contentType: "podcast", fetchRawItems: async () => [podcastItem("ep-A", 2347), podcastItem("ep-B", 1800)] },
+      {
+        sourceId: "src",
+        sourceConfig: { maxItemsPerRun: 1, maxDurationSeconds: 2100 },
+        normalize: () => { throw new Error("must not normalize a duration-rejected item"); },
+        resolveTranscript,
+      },
+    );
+
+    // ep-B reached ASR (transcriber called once), proving the quota was not consumed by ep-A.
+    expect(callCount()).toBe(1);
+    // itemsRejected = 1 (ep-A duration cap) + 1 (ep-B ASR returned null) = 2
+    expect(result.itemsRejected).toBe(2);
+    expect(result.status).toBe("completed");
+  });
+
+  it("2. an eligible item within the cap does consume quota (break guard still works)", async () => {
+    // Positive case: with two eligible items and maxItemsPerRun=1, only the
+    // first reaches ASR and the second is stopped by the quota break.
+    const mock = makePipelineMock(new Set());
+    const { resolveTranscript, callCount } = makeTranscriber();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      { id: "ac", contentType: "podcast", fetchRawItems: async () => [podcastItem("ep-A", 1800), podcastItem("ep-B", 1800)] },
+      {
+        sourceId: "src",
+        sourceConfig: { maxItemsPerRun: 1, maxDurationSeconds: 2100 },
+        normalize: () => { throw new Error(""); },
+        resolveTranscript,
+      },
+    );
+
+    // ep-A consumed the quota; ep-B was not processed.
+    expect(callCount()).toBe(1);
+    expect(result.itemsRejected).toBe(1); // only ep-A (ASR null); ep-B never reached
+  });
+
+  it("3. multiple consecutive over-duration items can be skipped before one eligible item", async () => {
+    // ep-A and ep-B both over the cap; ep-C is eligible. maxItemsPerRun=1.
+    // ep-A and ep-B must not consume quota; ep-C must reach ASR.
+    const mock = makePipelineMock(new Set());
+    const { resolveTranscript, callCount } = makeTranscriber();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      {
+        id: "ac", contentType: "podcast",
+        fetchRawItems: async () => [podcastItem("ep-A", 2347), podcastItem("ep-B", 2200), podcastItem("ep-C", 1800)],
+      },
+      {
+        sourceId: "src",
+        sourceConfig: { maxItemsPerRun: 1, maxDurationSeconds: 2100 },
+        normalize: () => { throw new Error(""); },
+        resolveTranscript,
+      },
+    );
+
+    expect(callCount()).toBe(1);           // only ep-C reached ASR
+    expect(result.itemsRejected).toBe(3); // ep-A + ep-B (duration) + ep-C (ASR null)
+  });
+
+  it("4. if all items are over-duration, zero expensive processing occurs", async () => {
+    // All three items exceed the cap. The quota is never consumed — the loop
+    // iterates all items, rejects each on duration, and exits normally.
+    const mock = makePipelineMock(new Set());
+    const { resolveTranscript, callCount } = makeTranscriber();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      {
+        id: "ac", contentType: "podcast",
+        fetchRawItems: async () => [podcastItem("ep-A", 2347), podcastItem("ep-B", 2200), podcastItem("ep-C", 3600)],
+      },
+      {
+        sourceId: "src",
+        sourceConfig: { maxItemsPerRun: 1, maxDurationSeconds: 2100 },
+        normalize: () => { throw new Error(""); },
+        resolveTranscript,
+      },
+    );
+
+    expect(callCount()).toBe(0);           // no ASR, no enrichment, no upsert
+    expect(result.itemsRejected).toBe(3); // all three caught by duration cap
+    expect(result.itemsPublished).toBe(0);
+  });
+
+  it("5. the first eligible item after over-duration items exhausts the quota — the item after it is NOT processed", async () => {
+    // ep-A (over), ep-B (eligible), ep-C (eligible). maxItemsPerRun=1.
+    // ep-A: duration reject, no quota. ep-B: consumes quota. ep-C: quota break.
+    const mock = makePipelineMock(new Set());
+    const { resolveTranscript, callCount } = makeTranscriber();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      {
+        id: "ac", contentType: "podcast",
+        fetchRawItems: async () => [podcastItem("ep-A", 2347), podcastItem("ep-B", 1800), podcastItem("ep-C", 1800)],
+      },
+      {
+        sourceId: "src",
+        sourceConfig: { maxItemsPerRun: 1, maxDurationSeconds: 2100 },
+        normalize: () => { throw new Error(""); },
+        resolveTranscript,
+      },
+    );
+
+    expect(callCount()).toBe(1);           // only ep-B reached ASR; ep-C stopped by quota
+    expect(result.itemsRejected).toBe(2); // ep-A (duration) + ep-B (ASR null); ep-C never seen
+  });
+
+  it("6. dedup-skipped items and over-duration items both do not consume quota; the eligible item after them IS processed", async () => {
+    // ep-processed: already in DB (dedup continue — no quota, same as before the fix).
+    // ep-over: duration cap (no quota — what the fix addresses).
+    // ep-ok: eligible — must reach ASR despite maxItemsPerRun=1.
+    const mock = makePipelineMock(new Set(["ep-processed"]));
+    const { resolveTranscript, callCount } = makeTranscriber();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      {
+        id: "ac", contentType: "podcast",
+        fetchRawItems: async () => [
+          podcastItem("ep-processed", 1800), // dedup skips it
+          podcastItem("ep-over", 2347),      // duration cap rejects it
+          podcastItem("ep-ok", 1800),        // eligible — must reach ASR
+        ],
+      },
+      {
+        sourceId: "src",
+        sourceConfig: { maxItemsPerRun: 1, maxDurationSeconds: 2100 },
+        normalize: () => { throw new Error(""); },
+        resolveTranscript,
+      },
+    );
+
+    expect(callCount()).toBe(1);           // ep-ok reached ASR
+    expect(result.itemsRejected).toBe(2); // ep-over (duration) + ep-ok (ASR null)
+  });
+});
