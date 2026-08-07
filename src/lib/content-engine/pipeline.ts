@@ -44,6 +44,15 @@ const DEFAULT_ENRICHMENT_PACING_MS = 1500;
 /** Replay budget per run when a source's config does not set maxRetryItemsPerRun. Small on purpose: a backlog should drain over a few runs, not in one expensive burst. */
 const DEFAULT_MAX_RETRY_ITEMS_PER_RUN = 2;
 
+/**
+ * 35-minute ceiling — safe for the GitHub Actions Whisper medium.en CPU
+ * budget (60-minute job limit, ~0.5–1.5× real-time ASR). Sources that
+ * publish longer episodes can raise this per-source via maxDurationSeconds
+ * in their content_sources config, up to whatever their ASR runner can
+ * sustain. Sources with shorter episodes never need to touch it.
+ */
+const DEFAULT_MAX_DURATION_SECONDS = 2100;
+
 /** Consecutive rate-limited items before a source stops asking for this run. Three in a row is quota exhaustion, not a transient spike. */
 const MAX_CONSECUTIVE_RATE_LIMITS = 3;
 
@@ -270,6 +279,13 @@ export async function runIngestionPipeline(
     typeof options.sourceConfig.maxItemsPerRun === "number" && options.sourceConfig.maxItemsPerRun > 0
       ? Math.floor(options.sourceConfig.maxItemsPerRun)
       : undefined; // undefined = uncapped (sources without the config key)
+
+  // Maximum episode length for podcast sources. Checked before transcript
+  // resolution so ASR never runs for an episode that would be dropped anyway.
+  const maxDurationSeconds =
+    typeof options.sourceConfig.maxDurationSeconds === "number" && options.sourceConfig.maxDurationSeconds > 0
+      ? Math.floor(options.sourceConfig.maxDurationSeconds)
+      : DEFAULT_MAX_DURATION_SECONDS;
   let newItemsProcessed = 0;
 
   let itemsFetched = 0;
@@ -315,6 +331,20 @@ export async function runIngestionPipeline(
       if (existing?.processed_at) continue; // already published — does NOT consume quota
 
       newItemsProcessed++;
+
+      // ---- Duration cap (podcast only) ----
+      // Checked before transcript resolution — a 60-minute episode that
+      // exceeds the cap wastes the entire Whisper ASR budget before being
+      // dropped. Fires only on items that carry audio metadata; article
+      // items have no `raw.audio` field and pass straight through.
+      if (options.resolveTranscript && raw.audio && raw.audio.durationSeconds > maxDurationSeconds) {
+        itemsRejected += 1;
+        transcriptFailures.push({
+          externalId: raw.externalId,
+          message: `Episode duration ${raw.audio.durationSeconds}s exceeds maxDurationSeconds ${maxDurationSeconds}s — skipped to preserve ASR budget`,
+        });
+        continue;
+      }
 
       // ---- Transcript Resolution (podcast only) ----
       // Before the hash, deliberately. A podcast's `body` is its

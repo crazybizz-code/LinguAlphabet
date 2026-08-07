@@ -184,6 +184,135 @@ describe("runIngestionPipeline: maxItemsPerRun quota enforcement", () => {
   });
 });
 
+// ── maxDurationSeconds — pre-ASR duration cap ────────────────────────────────
+
+describe("runIngestionPipeline: maxDurationSeconds pre-ASR rejection", () => {
+  it("rejects podcast items whose duration exceeds maxDurationSeconds WITHOUT calling the transcriber", async () => {
+    let transcribeCalled = false;
+
+    const mock = makePipelineMock(new Set());
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      {
+        id: "ac",
+        contentType: "podcast",
+        fetchRawItems: async () => [
+          {
+            externalId: "ep-long",
+            title: "Very Long Episode",
+            body: "",
+            audio: { url: "https://traffic.libsyn.com/astronomycast/long.mp3", durationSeconds: 9999 },
+            transcriptRef: { kind: "asr" as const, audioUrl: "https://traffic.libsyn.com/astronomycast/long.mp3" },
+            transcriptProvenance: "generated_asr" as const,
+            licence: "cc-by-4.0",
+            attribution: "Astronomy Cast",
+          },
+        ],
+      },
+      {
+        sourceId: "src-ac",
+        sourceConfig: { maxDurationSeconds: 500 },
+        normalize: () => { throw new Error("normalize must not be called for a duration-rejected item"); },
+        resolveTranscript: async () => { transcribeCalled = true; return null; },
+      },
+    );
+
+    // The item is rejected by the duration cap — itemsRejected is incremented,
+    // itemsPublished stays zero, and the transcriber is never invoked.
+    expect(result.itemsRejected).toBe(1);
+    expect(result.itemsPublished).toBe(0);
+    expect(transcribeCalled).toBe(false);
+    expect(result.status).toBe("completed");
+  });
+
+  it("allows an episode exactly at the duration limit through to transcript resolution", async () => {
+    let transcribeCalled = false;
+
+    const mock = makePipelineMock(new Set());
+    await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      {
+        id: "ac",
+        contentType: "podcast",
+        fetchRawItems: async () => [
+          {
+            externalId: "ep-ok",
+            title: "Episode At Limit",
+            body: "",
+            audio: { url: "https://traffic.libsyn.com/astronomycast/ok.mp3", durationSeconds: 500 },
+            transcriptRef: { kind: "asr" as const, audioUrl: "https://traffic.libsyn.com/astronomycast/ok.mp3" },
+            transcriptProvenance: "generated_asr" as const,
+            licence: "cc-by-4.0",
+            attribution: "Astronomy Cast",
+          },
+        ],
+      },
+      {
+        sourceId: "src-ac",
+        sourceConfig: { maxDurationSeconds: 500 },
+        normalize: () => { throw new Error("normalize must not be called when upsert fails"); },
+        resolveTranscript: async () => { transcribeCalled = true; return null; },
+      },
+    );
+
+    // The item is at or under the limit — duration cap does not reject it,
+    // so transcript resolution IS called (returns null → rejected there).
+    expect(transcribeCalled).toBe(true);
+  });
+
+  it("applies the DEFAULT_MAX_DURATION_SECONDS (2100s) when maxDurationSeconds is absent from sourceConfig", async () => {
+    let transcribeCalled = false;
+
+    const mock = makePipelineMock(new Set());
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      {
+        id: "ac",
+        contentType: "podcast",
+        fetchRawItems: async () => [
+          {
+            externalId: "ep-over-default",
+            title: "Episode Over Default Limit",
+            body: "",
+            audio: { url: "https://traffic.libsyn.com/astronomycast/long.mp3", durationSeconds: 2101 },
+            transcriptRef: { kind: "asr" as const, audioUrl: "https://traffic.libsyn.com/astronomycast/long.mp3" },
+            transcriptProvenance: "generated_asr" as const,
+            licence: "cc-by-4.0",
+            attribution: "Astronomy Cast",
+          },
+        ],
+      },
+      {
+        sourceId: "src-ac",
+        sourceConfig: {}, // no maxDurationSeconds → default 2100 applies
+        normalize: () => { throw new Error("normalize must not be called for a duration-rejected item"); },
+        resolveTranscript: async () => { transcribeCalled = true; return null; },
+      },
+    );
+
+    expect(result.itemsRejected).toBe(1);
+    expect(transcribeCalled).toBe(false);
+  });
+
+  it("does NOT apply the duration cap to article items (no resolveTranscript, no audio)", async () => {
+    const mock = makePipelineMock(new Set());
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      makeProvider([testItem("article-1"), testItem("article-2")]),
+      {
+        sourceId: "src",
+        sourceConfig: { maxDurationSeconds: 1 }, // absurdly small — must NOT affect articles
+        normalize: () => { throw new Error("normalize should not be called in this path"); },
+        // resolveTranscript absent — article provider path
+      },
+    );
+
+    // Both items reach the raw upsert (fail there with the mock). The
+    // duration cap never fired because articles have no `raw.audio`.
+    expect(result.itemsRejected).toBe(2);
+  });
+});
+
 // ── autoPublish behavior ─────────────────────────────────────────────────────
 
 /**

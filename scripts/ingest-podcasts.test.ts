@@ -179,6 +179,30 @@ describe("runPodcastIngestion — source filtering", () => {
     expect(anyFailed).toBe(true);
   });
 
+  it("attempts the Astronomy Cast podcast source — status is 'failed' (not 'skipped') proving it entered the pipeline", async () => {
+    // Same pattern as VOA and NOAA: the stub makes the pipeline's first DB
+    // write return an error so the pipeline throws immediately. "failed"
+    // proves the source passed the podcast filter and entered the pipeline;
+    // "skipped" would mean the provider was not recognised or the content
+    // type was wrong.
+    const { runs, anyFailed } = await runPodcastIngestion(
+      stubSupabase([
+        {
+          id: "src-ac",
+          name: "Astronomy Cast",
+          provider_id: "astronomy-cast",
+          config: { feedUrl: "https://astronomycast.libsyn.com/rss" },
+          enabled: true,
+        },
+      ]),
+      noOpTranscriber,
+    );
+
+    expect(runs).toHaveLength(1);
+    expect(runs[0]).toMatchObject({ sourceId: "src-ac", status: "failed" });
+    expect(anyFailed).toBe(true);
+  });
+
   it("attempts the NOAA Ocean podcast source — status is 'failed' (not 'skipped') proving it entered the pipeline", async () => {
     // Same pattern as the VOA test: the stub makes the pipeline's first DB
     // write return an error, so the pipeline throws immediately. "failed"

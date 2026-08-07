@@ -27,6 +27,16 @@ describe("isAllowedAudioHost", () => {
     expect(isAllowedAudioHost("not a url")).toBe(false);
     expect(isAllowedAudioHost("")).toBe(false);
   });
+
+  it("accepts Libsyn CDN subdomains (Astronomy Cast audio host)", () => {
+    expect(isAllowedAudioHost("https://traffic.libsyn.com/astronomycast/ep727.mp3")).toBe(true);
+    expect(isAllowedAudioHost("https://libsyn.com/ep.mp3")).toBe(true);
+  });
+
+  it("rejects a lookalike that contains libsyn.com but is not a subdomain", () => {
+    expect(isAllowedAudioHost("https://evil-libsyn.com.attacker.net/ep.mp3")).toBe(false);
+    expect(isAllowedAudioHost("https://libsyn.com.attacker.net/ep.mp3")).toBe(false);
+  });
 });
 
 function response(init: { status?: number; contentType?: string | null }) {
