@@ -11,7 +11,7 @@ import type { LearnerSidebarStats } from "@/lib/content/sidebar-stats";
  * Workspace today; Article/Podcast Coach will join it once they migrate
  * onto the same component) — see the trailing spacer note below.
  */
-const FULL_BLEED_ROUTE_PREFIXES = ["/tuto"];
+const FULL_BLEED_ROUTE_PREFIXES = ["/tuto", "/mock"];
 
 /**
  * Shared shell for every post-onboarding screen. Renders the left rail on
