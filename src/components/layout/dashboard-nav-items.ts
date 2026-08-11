@@ -1,24 +1,23 @@
 import { Calendar, ClipboardList, Dumbbell, Home, TrendingUp, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { ComponentType } from "react";
 
 export interface DashboardNavItem {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: LucideIcon | ComponentType<{ className?: string }>;
   activeMatch: (pathname: string) => boolean;
+  isTuto?: boolean;
 }
 
 /**
- * Six primary nav destinations shared by DashboardSidebar (desktop) and
+ * Seven primary nav destinations shared by DashboardSidebar (desktop) and
  * DashboardBottomNav (mobile). Matches the Base44 navigation structure:
- * Home · Practice · Mock · Plan · Progress · Profile.
- *
- * /explore and /tuto remain accessible as routes; they're no longer
- * primary nav items now that Practice and Mock are dedicated destinations.
+ * Dashboard · Practice · Mock · Plan · Progress · Tuto · Profile.
  */
 export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   {
-    label: "Home",
+    label: "Dashboard",
     href: "/dashboard",
     icon: Home,
     activeMatch: (pathname) => pathname === "/dashboard",
@@ -46,6 +45,13 @@ export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
     href: "/progress",
     icon: TrendingUp,
     activeMatch: (pathname) => pathname === "/progress",
+  },
+  {
+    label: "Tuto",
+    href: "/tuto",
+    icon: User,
+    activeMatch: (pathname) => pathname === "/tuto" || pathname.startsWith("/tuto/"),
+    isTuto: true,
   },
   {
     label: "Profile",

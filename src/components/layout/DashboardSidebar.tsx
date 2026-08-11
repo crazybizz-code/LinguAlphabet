@@ -39,7 +39,7 @@ export function DashboardSidebar({ learnerStats = null }: { learnerStats?: Learn
       </div>
 
       <nav className="mt-10 flex flex-col gap-1">
-        {DASHBOARD_NAV_ITEMS.map(({ label, href, icon: Icon, activeMatch }) => {
+        {DASHBOARD_NAV_ITEMS.map(({ label, href, icon: Icon, activeMatch, isTuto }) => {
           const isActive = activeMatch(pathname);
           return (
             <Link
@@ -52,7 +52,11 @@ export function DashboardSidebar({ learnerStats = null }: { learnerStats?: Learn
                   : "text-text-secondary hover:bg-bg-muted hover:text-text-primary",
               )}
             >
-              <Icon className="h-5 w-5" strokeWidth={isActive ? 2.4 : 2} />
+              {isTuto ? (
+                <TutoOnlineAvatar />
+              ) : (
+                <Icon className="h-5 w-5" strokeWidth={isActive ? 2.4 : 2} />
+              )}
               {label}
             </Link>
           );
