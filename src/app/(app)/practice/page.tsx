@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Dumbbell, Headphones, Layers, Target, ArrowRight } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildMetadata({
@@ -66,10 +66,7 @@ const PRACTICE_TYPES = [
 ];
 
 export default async function PracticePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase

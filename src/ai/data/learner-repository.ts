@@ -32,15 +32,25 @@ function toCefrLevel(value: string | null | undefined): CefrLevel | null {
 }
 
 class SupabaseLearnerRepository implements LearnerRepository {
+  // Instance-level memo: within a single API request, resolveMemory() and
+  // resolveTeachingPlan() both call getLearnerState() in their own Promise.all.
+  // Without this, the same 200-row learning_signals query fires twice per turn.
+  private _statePromise: Promise<LearnerState> | null = null;
+
   constructor(
     private readonly supabase: SupabaseClient<Database>,
     private readonly userId: string,
   ) {}
 
-  async getLearnerState(): Promise<LearnerState> {
-    const signalRepository = createSignalRepository(this.supabase, this.userId);
-    const signals = await signalRepository.listRecent({ limit: SIGNAL_HISTORY_LIMIT });
-    return computeLearnerState(this.userId, signals);
+  getLearnerState(): Promise<LearnerState> {
+    if (!this._statePromise) {
+      this._statePromise = (async () => {
+        const signalRepository = createSignalRepository(this.supabase, this.userId);
+        const signals = await signalRepository.listRecent({ limit: SIGNAL_HISTORY_LIMIT });
+        return computeLearnerState(this.userId, signals);
+      })();
+    }
+    return this._statePromise;
   }
 
   /**

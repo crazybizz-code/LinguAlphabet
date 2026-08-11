@@ -31,7 +31,6 @@ export async function fetchTodayPlan(
   let planId: string | null | undefined = prefetchedPlanId;
 
   if (planId === undefined) {
-    // Find active plan (only when not pre-fetched)
     const { data: plan } = await supabase
       .from("learning_plans")
       .select("id")
@@ -45,29 +44,36 @@ export async function fetchTodayPlan(
 
   if (!planId) return null;
 
-  // Find today's day row
-  const { data: day } = await supabase
+  type RawDayWithTasks = {
+    id: string; day_number: number; theme: string | null;
+    plan_tasks: Array<{
+      id: string; task_type: string; title: string;
+      estimated_minutes: number | null; completed: boolean;
+      content_item_id: string | null; sequence_number: number;
+    }>;
+  };
+
+  // Fetch today's day + its tasks in a single nested query (was 2 serial round-trips).
+  const { data: dayRaw } = await supabase
     .from("plan_days")
-    .select("id, day_number, theme")
+    .select(`
+      id, day_number, theme,
+      plan_tasks(id, task_type, title, estimated_minutes, completed, content_item_id, sequence_number)
+    `)
     .eq("plan_id", planId)
     .eq("plan_date", today)
     .maybeSingle();
 
-  if (!day) return null;
+  if (!dayRaw) return null;
 
-  // Fetch tasks for today
-  const { data: tasks } = await supabase
-    .from("plan_tasks")
-    .select("id, task_type, title, estimated_minutes, completed, content_item_id")
-    .eq("day_id", day.id)
-    .order("sequence_number", { ascending: true });
+  const day = dayRaw as unknown as RawDayWithTasks;
+  const tasks = (day.plan_tasks ?? []).sort((a, b) => a.sequence_number - b.sequence_number);
 
-  if (!tasks || tasks.length === 0) return null;
+  if (tasks.length === 0) return null;
 
-  // Lazily assign content to eligible tasks (fire-and-forget on server)
   const unassignedIds = tasks
-    .filter((t: { content_item_id: string | null; completed: boolean }) => !t.content_item_id && !t.completed)
-    .map((t: { id: string }) => t.id);
+    .filter((t) => !t.content_item_id && !t.completed)
+    .map((t) => t.id);
 
   if (unassignedIds.length > 0) {
     await assignContentToTasks({ userId, taskIds: unassignedIds }).catch(() => {
@@ -78,10 +84,7 @@ export async function fetchTodayPlan(
   return {
     dayNumber: day.day_number,
     theme: day.theme ?? null,
-    tasks: tasks.map((t: {
-      id: string; task_type: string; title: string;
-      estimated_minutes: number | null; completed: boolean; content_item_id: string | null;
-    }) => ({
+    tasks: tasks.map((t) => ({
       id: t.id,
       taskType: t.task_type,
       title: t.title,

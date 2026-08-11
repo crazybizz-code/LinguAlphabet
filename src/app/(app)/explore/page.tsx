@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { getPublishedPodcasts, getPublishedArticles } from "@/lib/content/queries";
 import { learningBrain } from "@/lib/learning-brain";
 import type { LearnerContext, RecentCompletion } from "@/lib/learning-brain";
@@ -18,10 +18,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function ExplorePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
   const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }] = await Promise.all([

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { applyReviewResult, type LeitnerBox } from "./spaced-repetition";
 
 export interface DueVocabularyWord {
@@ -27,10 +27,7 @@ function firstTranslation(translations: unknown): string | null {
  * study session competing with the actual Learning Session.
  */
 export async function fetchDueVocabulary(limit = 8): Promise<DueVocabularyWord[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) return [];
 
   const today = new Date().toISOString().slice(0, 10);

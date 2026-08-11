@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { getCachedPublishedPodcasts, getCachedPublishedArticles } from "@/lib/content/queries";
 import { buildWeeklyMinutes, buildTodayMinutes } from "@/lib/content/home";
 import { learningBrain } from "@/lib/learning-brain";
@@ -27,10 +27,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
   const todayIso = new Date().toISOString().slice(0, 10);
