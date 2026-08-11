@@ -67,8 +67,6 @@ export function HomeView({
   cefrLevel,
   currentBand,
   targetBand,
-  examTimeline,
-  examDate,
   todayMinutes,
   dailyGoalMinutes,
   missions,
