@@ -100,7 +100,7 @@ export function TodaysPlanCard({ tasks, dayNumber, theme }: TodaysPlanCardProps)
 
         {/* Task list */}
         <ul className="mt-3 divide-y divide-border/40">
-          {tasks.map((task, idx) => {
+          {tasks.map((task) => {
             const Icon = TASK_ICONS[task.taskType] ?? ListChecks;
             const colorClass = TASK_COLORS[task.taskType] ?? "bg-primary/5 text-primary";
 

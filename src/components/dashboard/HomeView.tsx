@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Award, ChevronRight, Sparkles } from "lucide-react";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
@@ -72,15 +72,15 @@ export function HomeView({
   missions,
   allMissionsCompleted,
   resume,
-  tutoNote,
   recommendations,
-  dueVocabularyCount,
   placementCompleted,
   earnedAchievementIds,
   todayPlan,
   latestMockReading,
   latestMockListening,
   weakAreas,
+  tutoNote,
+  dueVocabularyCount,
 }: HomeViewProps) {
   return (
     <div className="mx-auto max-w-3xl">
@@ -165,10 +165,10 @@ export function HomeView({
         >
           <div className="mb-1 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-            <h2 className="text-sm font-semibold text-text-primary">Chosen by Tuto</h2>
+            <h2 className="text-sm font-semibold text-text-primary">Recommended for your target band</h2>
           </div>
           <p className="mb-3 text-xs text-text-secondary">
-            Extra practice — great for bonus XP, but Today&apos;s Mission is what keeps your streak going.
+            Extra practice — great for bonus XP, but Today&apos;s Plan is what keeps your streak going.
           </p>
           <div className="grid grid-cols-3 items-stretch gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
             {recommendations.map((rec) => (

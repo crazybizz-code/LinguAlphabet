@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { getPublishedPodcasts, getPublishedArticles } from "@/lib/content/queries";
 import { buildLastWeekSummary, buildWeeklyMinutes, startOfWeek } from "@/lib/content/home";
 import { buildMonthActivity, buildRecentActivity, buildWeekActivity } from "@/lib/content/progress";
@@ -22,10 +22,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function ProgressPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
   const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }] = await Promise.all([

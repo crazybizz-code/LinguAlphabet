@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { BookOpen, Clock, Headphones, ShieldCheck } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { buildMetadata } from "@/lib/seo/metadata";
 import { MockStartButton } from "@/components/mock/MockStartButton";
 
@@ -45,29 +45,27 @@ const FORMAT_DETAILS = [
 ];
 
 export default async function MockPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_completed, placement_completed")
-    .eq("user_id", user.id)
-    .single();
+  const [{ data: profile }, { data: plan }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("onboarding_completed, placement_completed")
+      .eq("user_id", user.id)
+      .single(),
+    // Use active plan's assessed level, fallback to B1
+    supabase
+      .from("learning_plans")
+      .select("assessed_cefr_level")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   if (!profile?.onboarding_completed) redirect("/welcome");
-
-  // Use active plan's assessed level, fallback to B1
-  const { data: plan } = await supabase
-    .from("learning_plans")
-    .select("assessed_cefr_level")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
 
   const targetCefrLevel = (plan?.assessed_cefr_level as string | null) ?? "B1";
 

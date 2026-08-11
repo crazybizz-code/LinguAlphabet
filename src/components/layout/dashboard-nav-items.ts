@@ -6,6 +6,7 @@ export interface DashboardNavItem {
   href: string;
   icon: LucideIcon;
   activeMatch: (pathname: string) => boolean;
+  isTuto?: boolean;
 }
 
 /**
@@ -18,7 +19,7 @@ export interface DashboardNavItem {
  */
 export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   {
-    label: "Home",
+    label: "Dashboard",
     href: "/dashboard",
     icon: Home,
     activeMatch: (pathname) => pathname === "/dashboard",
@@ -46,6 +47,13 @@ export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
     href: "/progress",
     icon: TrendingUp,
     activeMatch: (pathname) => pathname === "/progress",
+  },
+  {
+    label: "Tuto",
+    href: "/tuto",
+    icon: User,
+    activeMatch: (pathname) => pathname === "/tuto" || pathname.startsWith("/tuto/"),
+    isTuto: true,
   },
   {
     label: "Profile",
