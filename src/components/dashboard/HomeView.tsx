@@ -9,9 +9,12 @@ import { TodaysMissionCard } from "@/components/dashboard/TodaysMissionCard";
 import { TodaysPlanCard } from "@/components/dashboard/TodaysPlanCard";
 import { WordReviewCard } from "@/components/dashboard/WordReviewCard";
 import { ExamReadinessCard } from "@/components/dashboard/ExamReadinessCard";
-import { ExamSnapshotHeader } from "@/components/dashboard/ExamSnapshotHeader";
+import { HeroLevelCard } from "@/components/dashboard/HeroLevelCard";
+import { PracticeAssessGrid } from "@/components/dashboard/PracticeAssessGrid";
+import { WeakAreasCard } from "@/components/dashboard/WeakAreasCard";
 import { RecommendationCard } from "@/components/dashboard/RecommendationCard";
-import type { ArticleContent, PodcastContent } from "@/types/content";
+import type { SectionScore } from "@/components/dashboard/HeroLevelCard";
+import type { ArticleContent, CefrLevel, PodcastContent } from "@/types/content";
 import type { DailyMissionSlot } from "@/lib/learning-brain";
 import type { ResumeStrip } from "@/lib/dashboard/resume";
 import type { TutoNote } from "@/lib/tuto/messages";
@@ -19,56 +22,49 @@ import type { TodayPlanDay } from "@/lib/planning/today";
 
 export interface HomeRecommendation {
   item: PodcastContent | ArticleContent;
-  /** Precomputed on the server so the reason string and the ranking that produced it can never drift apart. */
   reason: string;
 }
 
 export interface HomeViewProps {
   displayName: string;
   streak: number;
-  /** Null until the placement assessment establishes one — never defaulted. */
+  cefrLevel: CefrLevel | null;
   currentBand: number | null;
   targetBand: number | null;
-  /** Onboarding's coarse timeline bucket — used only when no booked date exists. */
   examTimeline: string | null;
-  /** A booked exam date (`YYYY-MM-DD`), when the learner has one. */
   examDate: string | null;
-  /** Sprint Learning Polish 1 ("Daily Goal on Dashboard") — now rendered inside Today's Mission. */
   todayMinutes: number;
   dailyGoalMinutes: number;
-  /** Today's finite daily plan: one article slot, one podcast slot (docs/content-lifecycle.md §5). */
   missions: DailyMissionSlot[];
   allMissionsCompleted: boolean;
-  /** An unfinished lesson today's plan has moved past — null when it's already one of the slots. */
   resume: ResumeStrip | null;
   tutoNote: TutoNote | null;
   recommendations: HomeRecommendation[];
-  /** Execution Sprint P1 — words due for spaced-repetition review today. 0 renders nothing. */
   dueVocabularyCount: number;
-  /** True once the placement assessment has produced a plan; hides the first-mission card. */
   placementCompleted: boolean;
   earnedAchievementIds: Set<string>;
-  /** Today's plan tasks from the adaptive monthly plan — null if no active plan. */
   todayPlan: TodayPlanDay | null;
+  /** Reading section score from latest completed mock — null until first mock. */
+  latestMockReading: SectionScore | null;
+  /** Listening section score from latest completed mock — null until first mock. */
+  latestMockListening: SectionScore | null;
+  /** Weak areas from recent practice / mock signals — empty until first session. */
+  weakAreas: string[];
 }
 
-/**
- * Home, IELTS-first (Base44 dashboard redesign, Phase 1).
- *
- * The reordering is the product change: the screen now opens with the
- * band gap rather than with a lesson. Everything below it is the same
- * finite daily plan as before — this is a re-frame of what the learner is
- * working toward, not a new content model.
- *
- * The Learning Journey stat strip that used to close the page is gone.
- * Streak, level and the weekly goal all live on /progress, which the
- * redesign leaves untouched, and the streak now also has a tile in the
- * header; the daily goal moved into Today's Mission, next to the work
- * that actually earns the minutes.
- */
+const section = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (delay: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, delay },
+  }),
+};
+
 export function HomeView({
   displayName,
   streak,
+  cefrLevel,
   currentBand,
   targetBand,
   examTimeline,
@@ -84,110 +80,112 @@ export function HomeView({
   placementCompleted,
   earnedAchievementIds,
   todayPlan,
+  latestMockReading,
+  latestMockListening,
+  weakAreas,
 }: HomeViewProps) {
   return (
     <div className="mx-auto max-w-3xl">
-      <ExamSnapshotHeader
-        displayName={displayName}
-        currentBand={currentBand}
-        targetBand={targetBand}
-        examTimeline={examTimeline}
-        examDate={examDate}
-        streak={streak}
-      />
+      {/* 1 — Hero level card (dark gradient, Base44 §1) */}
+      <motion.div custom={0} variants={section} initial="hidden" animate="visible">
+        <HeroLevelCard
+          cefrLevel={cefrLevel}
+          currentBand={currentBand}
+          targetBand={targetBand}
+          placementCompleted={placementCompleted}
+          reading={latestMockReading}
+          listening={latestMockListening}
+        />
+      </motion.div>
 
-      {/* Above Today's Mission on purpose: until the placement is done,
-          every other recommendation is working from a self-reported band
-          rather than evidence. Renders nothing once it's done. */}
+      {/* Placement prompt — only before the learner has a real assessed level */}
       <ExamReadinessCard placementCompleted={placementCompleted} displayName={displayName} />
 
-      {/* Today's adaptive plan — shown only after placement is complete and an
-          active plan exists. Sits above Today's Mission to reflect that the
-          plan is now the primary workflow driver. */}
+      {/* 2 — Today's Plan (adaptive 28-day plan tasks, Base44 §2) */}
       {placementCompleted && todayPlan && (
-        <TodaysPlanCard
-          tasks={todayPlan.tasks}
-          dayNumber={todayPlan.dayNumber}
-          theme={todayPlan.theme}
-        />
+        <motion.div custom={0.08} variants={section} initial="hidden" animate="visible">
+          <TodaysPlanCard
+            tasks={todayPlan.tasks}
+            dayNumber={todayPlan.dayNumber}
+            theme={todayPlan.theme}
+          />
+        </motion.div>
       )}
 
-      {/* Today's Mission — a finite daily plan, not an endless recommendation
-          stream (docs/content-lifecycle.md §5): one article slot, one podcast
-          slot, tracked independently. Once both are completed the entire
-          card switches to a celebration state with a countdown to
-          tomorrow — no new mission is generated for the rest of the day. */}
-      {/* Stepped down to the secondary weight until placement is done, so
-          the page never shows two brand-filled cards with two competing
-          white CTAs — and so the one action that unlocks everything else
-          is unambiguously the primary one. */}
-      <TodaysMissionCard
-        missions={missions}
-        allMissionsCompleted={allMissionsCompleted}
-        tomorrowPreview={recommendations[0]?.item ?? null}
-        streak={streak}
-        resume={resume}
-        todayMinutes={todayMinutes}
-        dailyGoalMinutes={dailyGoalMinutes}
-        deemphasized={!placementCompleted}
-      />
+      {/* 3 — Continue Learning / Today's Mission (podcast + article slots, Base44 §3) */}
+      <motion.div custom={0.15} variants={section} initial="hidden" animate="visible">
+        <TodaysMissionCard
+          missions={missions}
+          allMissionsCompleted={allMissionsCompleted}
+          tomorrowPreview={recommendations[0]?.item ?? null}
+          streak={streak}
+          resume={resume}
+          todayMinutes={todayMinutes}
+          dailyGoalMinutes={dailyGoalMinutes}
+          deemphasized={!placementCompleted}
+        />
+      </motion.div>
 
+      {/* 4 — Practice & Assess (2-col grid, Base44 §4) */}
+      {placementCompleted && (
+        <motion.div custom={0.2} variants={section} initial="hidden" animate="visible">
+          <PracticeAssessGrid />
+        </motion.div>
+      )}
+
+      {/* 5 — Weak Areas (Base44 §5) */}
+      {weakAreas.length > 0 && (
+        <motion.div custom={0.25} variants={section} initial="hidden" animate="visible">
+          <WeakAreasCard weakAreas={weakAreas} />
+        </motion.div>
+      )}
+
+      {/* Vocabulary review pill */}
       <WordReviewCard dueCount={dueVocabularyCount} />
 
-      {/* Tuto's note — optional, contextual, generated from the learner's actual
-          state (docs/dashboard-architecture.md §4.3). Kept even though the
-          Base44 redesign drops it: without it Tuto never speaks on Home,
-          only appears, which is the wrong thing to cut from a product whose
-          differentiator is a coach. */}
+      {/* Tuto note — contextual coaching message */}
       {tutoNote && (
         <motion.section
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
+          custom={0.3}
+          variants={section}
+          initial="hidden"
+          animate="visible"
           className="mt-5 px-5 sm:px-8"
         >
           <TutoNoteCard note={tutoNote} />
         </motion.section>
       )}
 
+      {/* 7 — Recommended Resources (Base44 §7) */}
       {recommendations.length > 0 && (
         <motion.section
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
+          custom={0.35}
+          variants={section}
+          initial="hidden"
+          animate="visible"
           className="mt-8 px-5 sm:px-8"
         >
-          {/* "Chosen by Tuto", not Base44's "Recommended for your target
-              band": the ranking uses the learner's CURRENT level (level
-              match is the heaviest weight in scoring.ts) and never reads
-              target_band at all. A heading naming the target band would
-              promise a personalization the engine doesn't do — and each
-              card's reason line underneath says "matched to your level",
-              which would have contradicted it in the same breath. */}
           <div className="mb-1 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
             <h2 className="text-sm font-semibold text-text-primary">Chosen by Tuto</h2>
           </div>
-          {/* Sprint Learning Polish 1 ("Mission vs Extra Practice distinction"):
-              only Today's Mission above counts toward streak/mission XP. */}
           <p className="mb-3 text-xs text-text-secondary">
             Extra practice — great for bonus XP, but Today&apos;s Mission is what keeps your streak going.
           </p>
           <div className="grid grid-cols-3 items-stretch gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-            {recommendations.map((recommendation) => (
-              <RecommendationCard key={recommendation.item.id} item={recommendation.item} reason={recommendation.reason} />
+            {recommendations.map((rec) => (
+              <RecommendationCard key={rec.item.id} item={rec.item} reason={rec.reason} />
             ))}
           </div>
         </motion.section>
       )}
 
-      {/* Achievements — deliberately the last thing on the page and
-          visually quiet. They're recognition, not a next action, and the
-          full milestone view lives on Progress. */}
+      {/* Achievements — recognition, kept at the bottom */}
       <motion.section
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+        custom={0.4}
+        variants={section}
+        initial="hidden"
+        animate="visible"
         className="mb-10 mt-8 px-5 sm:px-8"
       >
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -203,7 +201,7 @@ export function HomeView({
             <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         </div>
-        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.55} />
+        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.45} />
       </motion.section>
     </div>
   );

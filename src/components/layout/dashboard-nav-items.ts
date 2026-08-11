@@ -1,20 +1,20 @@
-import { Compass, Home, MessageCircle, TrendingUp, User } from "lucide-react";
+import { Calendar, ClipboardList, Dumbbell, Home, TrendingUp, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface DashboardNavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  /** Extra route prefixes that should also highlight this tab (docs/dashboard-architecture.md §2/§3 — content one level under a tab counts as that tab). */
   activeMatch: (pathname: string) => boolean;
 }
 
 /**
- * The 5 flat top-level destinations (docs/dashboard-architecture.md §2/§3
- * — Tuto Workspace update: Tuto moved from a global floating popup to its
- * own primary nav destination, exactly one of exactly 5 tabs, still no
- * overflow menu). Shared by the desktop sidebar and the mobile bottom nav
- * so the two chrome treatments never drift apart.
+ * Six primary nav destinations shared by DashboardSidebar (desktop) and
+ * DashboardBottomNav (mobile). Matches the Base44 navigation structure:
+ * Home · Practice · Mock · Plan · Progress · Profile.
+ *
+ * /explore and /tuto remain accessible as routes; they're no longer
+ * primary nav items now that Practice and Mock are dedicated destinations.
  */
 export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   {
@@ -24,16 +24,22 @@ export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
     activeMatch: (pathname) => pathname === "/dashboard",
   },
   {
-    label: "Explore",
-    href: "/explore",
-    icon: Compass,
-    activeMatch: (pathname) => pathname === "/explore" || pathname.startsWith("/podcast"),
+    label: "Practice",
+    href: "/practice",
+    icon: Dumbbell,
+    activeMatch: (pathname) => pathname === "/practice" || pathname.startsWith("/practice/"),
   },
   {
-    label: "Tuto",
-    href: "/tuto",
-    icon: MessageCircle,
-    activeMatch: (pathname) => pathname === "/tuto",
+    label: "Mock",
+    href: "/mock",
+    icon: ClipboardList,
+    activeMatch: (pathname) => pathname === "/mock" || pathname.startsWith("/mock/"),
+  },
+  {
+    label: "Plan",
+    href: "/plan",
+    icon: Calendar,
+    activeMatch: (pathname) => pathname === "/plan",
   },
   {
     label: "Progress",
