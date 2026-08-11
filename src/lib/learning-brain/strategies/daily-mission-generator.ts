@@ -101,20 +101,21 @@ export const dailyMissionGenerator = {
     progressRows: ProgressRow[];
     context: LearnerContext;
     recommendCount?: number;
+    /** Pre-fetched today's daily_missions rows — skips an internal DB round trip when provided. */
+    prefetchedTodaysMissions?: DailyMissionRow[] | null;
   }): Promise<HomeRecommendations> {
-    const { supabase, userId, catalog, progressRows, context, recommendCount = 3 } = params;
+    const { supabase, userId, catalog, progressRows, context, recommendCount = 3, prefetchedTodaysMissions } = params;
     const byId = new Map(catalog.map((item) => [item.id, item]));
     const today = todayIsoDate();
 
     const ranked = await ruleBasedLearningBrain.rank(catalog, context);
 
-    const { data: existingRows } = await supabase
-      .from("daily_missions")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("mission_date", today);
+    const existingRows: DailyMissionRow[] | null =
+      prefetchedTodaysMissions !== undefined
+        ? prefetchedTodaysMissions
+        : (await supabase.from("daily_missions").select("*").eq("user_id", userId).eq("mission_date", today)).data;
 
-    const existingByType = new Map((existingRows ?? []).map((row) => [row.content_type, row]));
+    const existingByType = new Map((existingRows ?? []).map((row: DailyMissionRow) => [row.content_type, row]));
 
     const missions = await Promise.all(
       SLOT_TYPES.map((contentType) =>

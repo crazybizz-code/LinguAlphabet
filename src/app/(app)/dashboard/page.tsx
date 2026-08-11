@@ -13,6 +13,7 @@ import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
 import { buildResumeStrip } from "@/lib/dashboard/resume";
 import { buildRecommendationReason } from "@/lib/dashboard/recommendation-reason";
 import { HomeView } from "@/components/dashboard/HomeView";
+import { fetchTodayPlan } from "@/lib/planning/today";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 const DEFAULT_DAILY_MINUTES = 20;
@@ -32,23 +33,28 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: previousMission }, dueVocabulary] = await Promise.all([
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const [
+    { data: profile },
+    learnerProfile,
+    podcasts,
+    articles,
+    { data: progressRows },
+    { data: previousMission },
+    dueVocabulary,
+    todayPlan,
+    { data: todaysMissions },
+    { data: latestMock },
+    { data: weakAreaSignals },
+  ] = await Promise.all([
     supabase
       .from("profiles")
-      // current_band/target_band/exam_timeline are the IELTS onboarding
-      // fields (supabase/ielts-onboarding-fields.sql) the redesigned
-      // header reads. current_band is nullable on purpose: "Not sure"
-      // writes NULL rather than a fabricated starting band.
       .select(
         "username, level, last_study_date, daily_time_minutes, interests, onboarding_completed, placement_completed, current_band, target_band, exam_timeline, exam_date",
       )
       .eq("user_id", user.id)
       .single(),
-    // Level/goal/streak come from LearnerRepository (src/ai/data, frozen) —
-    // the same repository Tuto's own system prompt reads (ai-service.ts's
-    // resolveMemory()) — so Dashboard and Tuto can never independently
-    // drift on what "the learner's current level" means. getCachedLearnerProfile
-    // shares the React.cache result with the layout's getLearnerSidebarStats call.
     getCachedLearnerProfile(supabase, user.id),
     getCachedPublishedPodcasts(supabase),
     getCachedPublishedArticles(supabase),
@@ -57,19 +63,42 @@ export default async function DashboardPage() {
       .from("daily_missions")
       .select("*")
       .eq("user_id", user.id)
-      .lt("mission_date", new Date().toISOString().slice(0, 10))
+      .lt("mission_date", todayIso)
       .order("mission_date", { ascending: false })
       .limit(1)
       .maybeSingle(),
     fetchDueVocabulary(),
+    // Runs its own plan lookup internally; 3 serial queries but concurrent with all other items.
+    fetchTodayPlan(supabase, user.id),
+    // Pre-fetch today's daily_missions so getHomeRecommendations can skip its own query.
+    supabase
+      .from("daily_missions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("mission_date", todayIso),
+    // Latest submitted mock attempt — for reading/listening section scores in the hero card.
+    supabase
+      .from("full_mock_attempts")
+      .select("reading_correct, reading_total, reading_score_pct, listening_correct, listening_total, listening_score_pct")
+      .eq("user_id", user.id)
+      .eq("status", "submitted")
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    // Weak areas from recent practice/mock signals — last 5 entries, then de-duped.
+    supabase
+      .from("learning_signals")
+      .select("evidence")
+      .eq("user_id", user.id)
+      .in("type", ["practice_completed", "mock_completed"])
+      .order("created_at", { ascending: false })
+      .limit(5),
   ]);
 
   if (!profile?.onboarding_completed) redirect("/welcome");
 
   const rows = progressRows ?? [];
   const dailyMinutes = profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES;
-  // Articles are full mission citizens alongside podcasts -- one combined
-  // catalog feeds ranking, mission selection, and completion lookups.
   const catalog = [...podcasts, ...articles];
   const byId = new Map(catalog.map((item) => [item.id, item]));
 
@@ -99,6 +128,7 @@ export default async function DashboardPage() {
     catalog,
     progressRows: rows,
     context,
+    prefetchedTodaysMissions: todaysMissions,
   });
 
   const now = new Date().getTime();
@@ -120,16 +150,10 @@ export default async function DashboardPage() {
     streak: learnerProfile.streak ?? 0,
     weeklyMinutes,
     weeklyGoalMinutes,
-    // Today's Mission's own checklist/celebration already congratulates the
-    // learner by name for this exact completion — don't say it twice in
-    // Tuto's note.
     recentCompletionTitle: recentCompletionTitle && completedMissionTitles.has(recentCompletionTitle) ? null : recentCompletionTitle,
     daysSinceLastStudy,
   });
 
-  // The most recently touched unfinished lesson. buildResumeStrip drops it
-  // when it's already one of today's mission slots, so the strip only ever
-  // surfaces a genuine orphan rather than repeating a row on screen.
   const resume = buildResumeStrip({
     candidate: continueLearningStrategy.find(rows, catalog),
     missions,
@@ -142,17 +166,40 @@ export default async function DashboardPage() {
     level,
   });
 
-  // Built here rather than in the component so the reason string is
-  // derived from the same learner context that produced the ranking.
   const recommendations = tutoRecommends.map((item) => ({
     item,
     reason: buildRecommendationReason(item, { englishLevel: effectiveLevel, interests: context.interests }),
   }));
 
+  // Build section scores from latest mock (null = no mock taken yet)
+  const latestMockReading = latestMock
+    ? {
+        correct: latestMock.reading_correct ?? 0,
+        total: latestMock.reading_total ?? 0,
+        scorePct: latestMock.reading_score_pct ?? 0,
+      }
+    : null;
+  const latestMockListening = latestMock
+    ? {
+        correct: latestMock.listening_correct ?? 0,
+        total: latestMock.listening_total ?? 0,
+        scorePct: latestMock.listening_score_pct ?? 0,
+      }
+    : null;
+
+  // Extract weak areas from recent learning signals evidence
+  type SignalEvidence = { weakAreas?: string[] };
+  const allWeakAreas = (weakAreaSignals ?? []).flatMap((s) => {
+    const ev = s.evidence as SignalEvidence | null;
+    return ev?.weakAreas ?? [];
+  });
+  const weakAreas = [...new Set(allWeakAreas)].slice(0, 3);
+
   return (
     <HomeView
       displayName={profile?.username || "there"}
       streak={learnerProfile.streak ?? 0}
+      cefrLevel={learnerProfile.cefrLevel ?? null}
       currentBand={profile?.current_band ?? null}
       targetBand={profile?.target_band ?? null}
       examTimeline={profile?.exam_timeline ?? null}
@@ -167,6 +214,10 @@ export default async function DashboardPage() {
       placementCompleted={profile?.placement_completed ?? false}
       dueVocabularyCount={dueVocabulary.length}
       earnedAchievementIds={earnedAchievementIds}
+      todayPlan={todayPlan}
+      latestMockReading={latestMockReading}
+      latestMockListening={latestMockListening}
+      weakAreas={weakAreas}
     />
   );
 }

@@ -47,20 +47,13 @@ export function ExamReadinessCard({ placementCompleted, displayName }: ExamReadi
       className="mt-5 px-5 sm:px-8"
       aria-labelledby="exam-readiness-heading"
     >
-      {/* TEMPORARY, and a deliberate MVP decision rather than an
-          oversight: the Reading & Listening assessment engine is a
-          separate feature not yet built. /ai-plan already performs the AI
-          analysis and renders the plan, so it stands in as the end of the
-          chain. When the assessment ships, this href is the single place
-          that changes — point it at the assessment, and let the
-          assessment navigate on to /ai-plan when it finishes. */}
       {/* Gradient toward primary-dark, matching Today's Mission: white on
           #FF6B00 is 2.86:1, and darkening the far end lifts the small copy
           that sits there to 3.50:1. No fill in this brand's range can
           reach AA for body text, so the type is also solid (never
           translucent) and weighted up to compensate. */}
       <Link
-        href="/ai-plan"
+        href="/assessment/placement"
         className="group block rounded-[1.75rem] bg-gradient-to-br from-primary to-primary-dark p-5 text-text-on-primary shadow-glow transition-all hover:-translate-y-0.5 hover:shadow-lg sm:p-6"
       >
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-white">
