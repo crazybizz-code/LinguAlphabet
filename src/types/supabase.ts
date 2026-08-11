@@ -560,6 +560,12 @@ export interface Database {
           options: Json | null;
           correct_answer: string;
           explanation: string | null;
+          /** Shown before the section begins. Written by the authoring pipeline. */
+          section_instruction: string | null;
+          /** Shown above the question stem. Written by the authoring pipeline. */
+          question_instruction: string | null;
+          /** Shown with the audio player. Written by the authoring pipeline. */
+          audio_instruction: string | null;
           tags: string[];
           approved: boolean;
           deprecated: boolean;
@@ -578,6 +584,9 @@ export interface Database {
           options?: Json | null;
           correct_answer: string;
           explanation?: string | null;
+          section_instruction?: string | null;
+          question_instruction?: string | null;
+          audio_instruction?: string | null;
           tags?: string[];
           approved?: boolean;
           deprecated?: boolean;

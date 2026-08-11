@@ -200,7 +200,7 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
                       </p>
                     ) : (
                       <p className="text-xs text-text-secondary">
-                        Click to play. You can only play this once.
+                        {currentQuestion.audioInstruction ?? "Click to play. You can only play this once."}
                       </p>
                     )}
                   </div>
@@ -217,6 +217,11 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
                     {audioPlayed ? "Played" : "Play"}
                   </button>
                 </div>
+              )}
+
+              {/* Question-level instruction (content-driven, null until authored) */}
+              {currentQuestion.questionInstruction && (
+                <p className="mb-3 text-xs text-text-secondary">{currentQuestion.questionInstruction}</p>
               )}
 
               <QuestionRenderer

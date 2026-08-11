@@ -70,7 +70,7 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
   const supabase = createServiceClient();
   const { data } = await supabase
     .from("assessment_questions")
-    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation")
+    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation, section_instruction, question_instruction, audio_instruction")
     .in("id", ids);
 
   if (!data) return [];
@@ -79,6 +79,7 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
     id: string; skill: string; type: string; difficulty: string;
     passage: string | null; passage_title: string | null; audio_url: string | null;
     question: string; options: unknown; correct_answer: string; explanation: string | null;
+    section_instruction: string | null; question_instruction: string | null; audio_instruction: string | null;
   };
   const byId = new Map((data as QRow[]).map((q) => [q.id, q]));
 
@@ -98,6 +99,9 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
       options: Array.isArray(q.options) ? (q.options as string[]) : null,
       correctAnswer: "",          // never sent to client
       explanation: null,           // never sent to client
+      sectionInstruction: q.section_instruction ?? null,
+      questionInstruction: q.question_instruction ?? null,
+      audioInstruction: q.audio_instruction ?? null,
     }));
 }
 
@@ -164,7 +168,14 @@ export async function startMock(input: MockStartInput): Promise<MockSession> {
   return {
     attemptId: attempt.id,
     readingQuestions: readingQs.map((q, i) => ({ ...q, section: "reading" as const, sequenceNumber: i + 1 })),
-    listeningQuestions: listeningQs.map((q, i) => ({ ...q, section: "listening" as const, sequenceNumber: i + 1 })),
+    // Strip passage (transcript) from listening questions — never sent to client
+    listeningQuestions: listeningQs.map((q, i) => ({
+      ...q,
+      passage: null,
+      passageTitle: null,
+      section: "listening" as const,
+      sequenceNumber: i + 1,
+    })),
     readingTimeLimitSeconds: READING_TIME_LIMIT_SECONDS,
     listeningTimeLimitSeconds: LISTENING_TIME_LIMIT_SECONDS,
   };

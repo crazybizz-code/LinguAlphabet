@@ -10,4 +10,10 @@ export interface ClientQuestion {
   question: string;
   options: string[] | null;
   sequenceNumber: number;
+  /** Shown before the section begins — null until the authoring pipeline writes it. */
+  sectionInstruction: string | null;
+  /** Shown above the question stem — null until authored. */
+  questionInstruction: string | null;
+  /** Shown with the audio player — null until authored. */
+  audioInstruction: string | null;
 }

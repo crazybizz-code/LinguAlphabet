@@ -53,7 +53,7 @@ const fadeSlide = {
 
 // ── Audio player (single-play, volume control only) ──────────────────────────
 
-function ListeningAudioPlayer({ audioUrl, onEnded }: { audioUrl: string; onEnded: () => void }) {
+function ListeningAudioPlayer({ audioUrl, instruction, onEnded }: { audioUrl: string; instruction?: string; onEnded: () => void }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [played, setPlayed] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -114,7 +114,9 @@ function ListeningAudioPlayer({ audioUrl, onEnded }: { audioUrl: string; onEnded
             <p className="text-xs text-text-secondary">Audio complete. You cannot replay it.</p>
           )}
           {!played && (
-            <p className="text-xs text-text-secondary">Click to play. You can only listen once.</p>
+            <p className="text-xs text-text-secondary">
+              {instruction ?? "Click to play. You can only listen once."}
+            </p>
           )}
         </div>
         <button
@@ -358,13 +360,15 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
                 Listening Practice
               </p>
               <h2 className="text-xl font-bold text-text-primary">Listen carefully</h2>
+              {/* Content-driven section instruction — falls back to default copy when null */}
               <p className="mt-1 text-sm text-text-secondary">
-                Play the audio below. You can only listen once. Answer the questions after the audio ends.
+                {questions[0]?.sectionInstruction ?? "Play the audio below. You can only listen once. Answer the questions after the audio ends."}
               </p>
             </div>
 
             <ListeningAudioPlayer
               audioUrl={firstAudioUrl}
+              instruction={questions[0]?.audioInstruction ?? undefined}
               onEnded={() => setAudioEnded(true)}
             />
 
@@ -420,6 +424,11 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
                 )}
                 <p className="text-sm leading-relaxed text-text-primary">{currentQuestion.passage}</p>
               </div>
+            )}
+
+            {/* Question-level instruction (content-driven, null until authored) */}
+            {currentQuestion.questionInstruction && (
+              <p className="text-xs text-text-secondary">{currentQuestion.questionInstruction}</p>
             )}
 
             {/* Question card */}

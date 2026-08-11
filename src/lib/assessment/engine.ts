@@ -38,7 +38,7 @@ async function fetchQuestionById(id: string): Promise<AssessmentQuestion | null>
   const supabase = createServiceClient();
   const { data } = await supabase
     .from("assessment_questions")
-    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation")
+    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation, section_instruction, question_instruction, audio_instruction")
     .eq("id", id)
     .single();
 
@@ -56,6 +56,9 @@ async function fetchQuestionById(id: string): Promise<AssessmentQuestion | null>
     options: Array.isArray(data.options) ? (data.options as string[]) : null,
     correctAnswer: data.correct_answer,
     explanation: data.explanation ?? null,
+    sectionInstruction: data.section_instruction ?? null,
+    questionInstruction: data.question_instruction ?? null,
+    audioInstruction: data.audio_instruction ?? null,
   };
 }
 
@@ -67,7 +70,7 @@ async function fetchQuestionForSlot(
   const supabase = createServiceClient();
   const query = supabase
     .from("assessment_questions")
-    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation")
+    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation, section_instruction, question_instruction, audio_instruction")
     .eq("approved", true)
     .eq("deprecated", false)
     .eq("skill", skill)
@@ -93,6 +96,9 @@ async function fetchQuestionForSlot(
     options: Array.isArray(picked.options) ? (picked.options as string[]) : null,
     correctAnswer: picked.correct_answer,
     explanation: picked.explanation ?? null,
+    sectionInstruction: picked.section_instruction ?? null,
+    questionInstruction: picked.question_instruction ?? null,
+    audioInstruction: picked.audio_instruction ?? null,
   };
 }
 

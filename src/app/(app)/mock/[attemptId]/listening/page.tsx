@@ -31,7 +31,7 @@ export default async function MockListeningPage({ params }: Props) {
   const service = createServiceClient();
   const { data: rawQuestions } = await service
     .from("assessment_questions")
-    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options")
+    .select("id, skill, type, difficulty, audio_url, question, options, section_instruction, question_instruction, audio_instruction")
     .in("id", questionIds);
 
   const { data: responses } = await supabase
@@ -51,8 +51,8 @@ export default async function MockListeningPage({ params }: Props) {
 
   type RawQ = {
     id: string; skill: string; type: string; difficulty: string;
-    passage: string | null; passage_title: string | null; audio_url: string | null;
-    question: string; options: unknown;
+    audio_url: string | null; question: string; options: unknown;
+    section_instruction: string | null; question_instruction: string | null; audio_instruction: string | null;
   };
 
   const questions: ClientQuestion[] = questionIds
@@ -63,12 +63,16 @@ export default async function MockListeningPage({ params }: Props) {
       skill: q.skill as "reading" | "listening",
       type: q.type as "mc" | "tf" | "fill",
       difficulty: q.difficulty,
-      passage: q.passage ?? null,
-      passageTitle: q.passage_title ?? null,
+      // Listening: never send transcript to client
+      passage: null,
+      passageTitle: null,
       audioUrl: q.audio_url ?? null,
       question: q.question,
       options: Array.isArray(q.options) ? (q.options as string[]) : null,
       sequenceNumber: i + 1,
+      sectionInstruction: q.section_instruction ?? null,
+      questionInstruction: q.question_instruction ?? null,
+      audioInstruction: q.audio_instruction ?? null,
     }));
 
   return (

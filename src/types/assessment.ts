@@ -16,6 +16,12 @@ export interface AssessmentQuestion {
   options: string[] | null;
   correctAnswer: string;
   explanation: string | null;
+  /** Content-driven instruction shown before the section begins (e.g. "You will hear a conversation…"). Null until the authoring pipeline writes it. */
+  sectionInstruction: string | null;
+  /** Instruction shown directly above the question stem. Null until authored. */
+  questionInstruction: string | null;
+  /** Instruction shown with the audio player (e.g. "Listen and answer the questions below"). Null until authored. */
+  audioInstruction: string | null;
 }
 
 export interface QuestionResponse {
