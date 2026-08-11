@@ -386,7 +386,7 @@ export async function generateLearningPlan(input: GeneratePlanInput): Promise<st
   const taskRows: Array<{
     day_id: string;
     sequence_number: number;
-    task_type: string;
+    task_type: TaskType;
     title: string;
     description: string;
     estimated_minutes: number;

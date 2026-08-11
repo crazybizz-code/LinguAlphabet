@@ -13,6 +13,7 @@ import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
 import { buildResumeStrip } from "@/lib/dashboard/resume";
 import { buildRecommendationReason } from "@/lib/dashboard/recommendation-reason";
 import { HomeView } from "@/components/dashboard/HomeView";
+import { fetchTodayPlan } from "@/lib/planning/today";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 const DEFAULT_DAILY_MINUTES = 20;
@@ -32,7 +33,7 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: previousMission }, dueVocabulary] = await Promise.all([
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: previousMission }, dueVocabulary, todayPlan] = await Promise.all([
     supabase
       .from("profiles")
       // current_band/target_band/exam_timeline are the IELTS onboarding
@@ -62,6 +63,7 @@ export default async function DashboardPage() {
       .limit(1)
       .maybeSingle(),
     fetchDueVocabulary(),
+    fetchTodayPlan(supabase, user.id),
   ]);
 
   if (!profile?.onboarding_completed) redirect("/welcome");
@@ -167,6 +169,7 @@ export default async function DashboardPage() {
       placementCompleted={profile?.placement_completed ?? false}
       dueVocabularyCount={dueVocabulary.length}
       earnedAchievementIds={earnedAchievementIds}
+      todayPlan={todayPlan}
     />
   );
 }

@@ -3,7 +3,8 @@
  * supabase/content-schema.sql + supabase/ai-conversation-memory-schema.sql +
  * supabase/learning-signals-schema.sql + supabase/orchestrator-state-schema.sql +
  * supabase/profiles-assessed-level.sql + supabase/assessment-schema.sql +
- * supabase/learning-plans-schema.sql.
+ * supabase/learning-plans-schema.sql + supabase/practice-schema.sql +
+ * supabase/full-mock-schema.sql.
  * Regenerate this for real once the Supabase project is linked via the CLI:
  *
  *   npx supabase gen types typescript --project-id <ref> > src/types/supabase.ts
@@ -737,6 +738,165 @@ export interface Database {
           completed_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["plan_tasks"]["Insert"]>;
+        Relationships: [];
+      };
+      /** Section practice sessions — see supabase/practice-schema.sql. */
+      practice_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          plan_task_id: string | null;
+          practice_type: "reading" | "listening" | "vocabulary" | "grammar" | "weak_area";
+          status: "in_progress" | "completed" | "abandoned";
+          target_cefr_level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null;
+          question_count: number;
+          correct_count: number;
+          score_pct: number | null;
+          weak_areas: string[];
+          started_at: string;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          plan_task_id?: string | null;
+          practice_type: Database["public"]["Tables"]["practice_sessions"]["Row"]["practice_type"];
+          status?: Database["public"]["Tables"]["practice_sessions"]["Row"]["status"];
+          target_cefr_level?: Database["public"]["Tables"]["practice_sessions"]["Row"]["target_cefr_level"];
+          question_count?: number;
+          correct_count?: number;
+          score_pct?: number | null;
+          weak_areas?: string[];
+          started_at?: string;
+          completed_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["practice_sessions"]["Insert"]>;
+        Relationships: [];
+      };
+      /** Individual responses within a practice session. */
+      practice_responses: {
+        Row: {
+          id: string;
+          session_id: string;
+          question_id: string;
+          user_answer: string | null;
+          is_correct: boolean;
+          time_taken_seconds: number | null;
+          sequence_number: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          question_id: string;
+          user_answer?: string | null;
+          is_correct?: boolean;
+          time_taken_seconds?: number | null;
+          sequence_number: number;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      /** Full timed mock exam attempts — see supabase/full-mock-schema.sql. */
+      full_mock_attempts: {
+        Row: {
+          id: string;
+          user_id: string;
+          plan_task_id: string | null;
+          status: "in_progress" | "submitted" | "abandoned";
+          target_cefr_level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+          reading_question_ids: string[];
+          listening_question_ids: string[];
+          reading_time_limit_seconds: number;
+          listening_time_limit_seconds: number;
+          reading_started_at: string | null;
+          listening_started_at: string | null;
+          reading_correct: number | null;
+          reading_total: number | null;
+          listening_correct: number | null;
+          listening_total: number | null;
+          reading_score_pct: number | null;
+          listening_score_pct: number | null;
+          overall_score_pct: number | null;
+          estimated_band: number | null;
+          result_cefr_level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null;
+          submitted_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          plan_task_id?: string | null;
+          status?: Database["public"]["Tables"]["full_mock_attempts"]["Row"]["status"];
+          target_cefr_level: Database["public"]["Tables"]["full_mock_attempts"]["Row"]["target_cefr_level"];
+          reading_question_ids?: string[];
+          listening_question_ids?: string[];
+          reading_time_limit_seconds?: number;
+          listening_time_limit_seconds?: number;
+          reading_started_at?: string | null;
+          listening_started_at?: string | null;
+          reading_correct?: number | null;
+          reading_total?: number | null;
+          listening_correct?: number | null;
+          listening_total?: number | null;
+          reading_score_pct?: number | null;
+          listening_score_pct?: number | null;
+          overall_score_pct?: number | null;
+          estimated_band?: number | null;
+          result_cefr_level?: Database["public"]["Tables"]["full_mock_attempts"]["Row"]["result_cefr_level"];
+          submitted_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["full_mock_attempts"]["Insert"]>;
+        Relationships: [];
+      };
+      /** Per-question responses within a full mock attempt. */
+      full_mock_responses: {
+        Row: {
+          id: string;
+          attempt_id: string;
+          question_id: string;
+          section: "reading" | "listening";
+          user_answer: string | null;
+          is_correct: boolean | null;
+          sequence_number: number;
+          answered_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          attempt_id: string;
+          question_id: string;
+          section: Database["public"]["Tables"]["full_mock_responses"]["Row"]["section"];
+          user_answer?: string | null;
+          is_correct?: boolean | null;
+          sequence_number: number;
+          answered_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["full_mock_responses"]["Insert"]>;
+        Relationships: [];
+      };
+      /** Tracks how many times a user has been served each assessment question. */
+      question_exposure: {
+        Row: {
+          id: string;
+          user_id: string;
+          question_id: string;
+          context: "placement" | "practice" | "mock";
+          seen_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          question_id: string;
+          context: Database["public"]["Tables"]["question_exposure"]["Row"]["context"];
+          seen_at?: string;
+        };
+        Update: never;
         Relationships: [];
       };
       content_ingestion_runs: {

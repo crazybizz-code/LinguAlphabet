@@ -6,6 +6,7 @@ import { Award, ChevronRight, Sparkles } from "lucide-react";
 import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { TodaysMissionCard } from "@/components/dashboard/TodaysMissionCard";
+import { TodaysPlanCard } from "@/components/dashboard/TodaysPlanCard";
 import { WordReviewCard } from "@/components/dashboard/WordReviewCard";
 import { ExamReadinessCard } from "@/components/dashboard/ExamReadinessCard";
 import { ExamSnapshotHeader } from "@/components/dashboard/ExamSnapshotHeader";
@@ -14,6 +15,7 @@ import type { ArticleContent, PodcastContent } from "@/types/content";
 import type { DailyMissionSlot } from "@/lib/learning-brain";
 import type { ResumeStrip } from "@/lib/dashboard/resume";
 import type { TutoNote } from "@/lib/tuto/messages";
+import type { TodayPlanDay } from "@/lib/planning/today";
 
 export interface HomeRecommendation {
   item: PodcastContent | ArticleContent;
@@ -46,6 +48,8 @@ export interface HomeViewProps {
   /** True once the placement assessment has produced a plan; hides the first-mission card. */
   placementCompleted: boolean;
   earnedAchievementIds: Set<string>;
+  /** Today's plan tasks from the adaptive monthly plan — null if no active plan. */
+  todayPlan: TodayPlanDay | null;
 }
 
 /**
@@ -79,6 +83,7 @@ export function HomeView({
   dueVocabularyCount,
   placementCompleted,
   earnedAchievementIds,
+  todayPlan,
 }: HomeViewProps) {
   return (
     <div className="mx-auto max-w-3xl">
@@ -95,6 +100,17 @@ export function HomeView({
           every other recommendation is working from a self-reported band
           rather than evidence. Renders nothing once it's done. */}
       <ExamReadinessCard placementCompleted={placementCompleted} displayName={displayName} />
+
+      {/* Today's adaptive plan — shown only after placement is complete and an
+          active plan exists. Sits above Today's Mission to reflect that the
+          plan is now the primary workflow driver. */}
+      {placementCompleted && todayPlan && (
+        <TodaysPlanCard
+          tasks={todayPlan.tasks}
+          dayNumber={todayPlan.dayNumber}
+          theme={todayPlan.theme}
+        />
+      )}
 
       {/* Today's Mission — a finite daily plan, not an endless recommendation
           stream (docs/content-lifecycle.md §5): one article slot, one podcast
