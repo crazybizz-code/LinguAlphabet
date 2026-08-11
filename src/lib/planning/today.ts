@@ -31,6 +31,7 @@ export async function fetchTodayPlan(
   let planId: string | null | undefined = prefetchedPlanId;
 
   if (planId === undefined) {
+    // Find active plan (only when not pre-fetched)
     const { data: plan } = await supabase
       .from("learning_plans")
       .select("id")

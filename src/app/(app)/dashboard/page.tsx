@@ -44,7 +44,6 @@ export default async function DashboardPage() {
     { data: todaysMissions },
     { data: latestMock },
     { data: weakAreaSignals },
-    { data: placementHistory },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -91,14 +90,6 @@ export default async function DashboardPage() {
       .in("type", ["practice_completed", "mock_completed"])
       .order("created_at", { ascending: false })
       .limit(5),
-    // Band history from completed placement attempts — for the progress mini chart.
-    supabase
-      .from("placement_attempts")
-      .select("estimated_band, completed_at")
-      .eq("user_id", user.id)
-      .eq("status", "completed")
-      .order("completed_at", { ascending: true })
-      .limit(8),
   ]);
 
   if (!profile?.onboarding_completed) redirect("/welcome");
@@ -201,17 +192,6 @@ export default async function DashboardPage() {
   });
   const weakAreas = [...new Set(allWeakAreas)].slice(0, 3);
 
-  // Band history for progress mini chart
-  const bandHistory = (placementHistory ?? [])
-    .filter((row) => row.estimated_band !== null && row.completed_at !== null)
-    .map((row) => ({ band: row.estimated_band!, date: row.completed_at! }));
-
-  // Next assessment: 30 days after the latest placement, if any
-  const latestPlacement = placementHistory ? placementHistory[placementHistory.length - 1] : null;
-  const nextAssessmentInDays = latestPlacement?.completed_at
-    ? Math.max(0, Math.ceil((new Date(latestPlacement.completed_at).getTime() + 30 * 24 * 60 * 60 * 1000 - now) / (24 * 60 * 60 * 1000)))
-    : null;
-
   return (
     <HomeView
       displayName={profile?.username || "there"}
@@ -235,8 +215,6 @@ export default async function DashboardPage() {
       latestMockReading={latestMockReading}
       latestMockListening={latestMockListening}
       weakAreas={weakAreas}
-      bandHistory={bandHistory}
-      nextAssessmentInDays={nextAssessmentInDays}
     />
   );
 }
