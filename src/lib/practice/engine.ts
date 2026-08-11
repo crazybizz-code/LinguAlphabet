@@ -167,10 +167,17 @@ export async function startPracticeSession(input: PracticeStartInput): Promise<P
     })),
   );
 
-  // Return questions WITHOUT correct answers (client never sees them)
+  // Return questions without correct answers or listening transcripts
   return {
     sessionId: session.id,
-    questions: questions.map((q) => ({ ...q, correctAnswer: "", explanation: null })),
+    questions: questions.map((q) => ({
+      ...q,
+      correctAnswer: "",
+      explanation: null,
+      // Never expose the transcript to the client during a listening session
+      passage: q.skill === "listening" ? null : q.passage,
+      passageTitle: q.skill === "listening" ? null : q.passageTitle,
+    })),
   };
 }
 

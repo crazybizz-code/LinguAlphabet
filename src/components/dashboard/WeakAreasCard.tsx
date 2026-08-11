@@ -41,16 +41,12 @@ export function WeakAreasCard({ weakAreas }: { weakAreas: string[] }) {
         {weakAreas.slice(0, 3).map((area) => (
           <div
             key={area}
-            className="flex items-center justify-between rounded-xl p-3"
-            style={{ background: "rgba(255,107,0,0.06)" }}
+            className="flex items-center justify-between rounded-xl bg-[#FF6B00]/[.06] p-3"
           >
             <span className="text-sm font-medium text-text-primary">
               {AREA_LABELS[area] ?? area.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
             </span>
-            <span
-              className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-primary"
-              style={{ background: "rgba(255,107,0,0.12)" }}
-            >
+            <span className="rounded-full bg-[#FF6B00]/[.12] px-2.5 py-0.5 text-[11px] font-semibold text-primary">
               {AREA_PILL[area] ?? "Mixed"}
             </span>
           </div>

@@ -219,16 +219,6 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
                 </div>
               )}
 
-              {/* Passage as transcript (if present) */}
-              {currentQuestion.passage && (
-                <div className="mb-6 rounded-2xl border border-border bg-bg-card p-5">
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
-                    Transcript
-                  </p>
-                  <p className="text-sm leading-[1.8] text-text-primary">{currentQuestion.passage}</p>
-                </div>
-              )}
-
               <QuestionRenderer
                 question={currentQuestion}
                 selectedAnswer={answers[currentQuestion.id] ?? null}
