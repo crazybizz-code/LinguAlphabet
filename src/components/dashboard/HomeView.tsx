@@ -2,17 +2,10 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Award, ChevronRight, Sparkles } from "lucide-react";
-import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
-import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
-import { TodaysMissionCard } from "@/components/dashboard/TodaysMissionCard";
-import { TodaysPlanCard } from "@/components/dashboard/TodaysPlanCard";
-import { WordReviewCard } from "@/components/dashboard/WordReviewCard";
-import { ExamReadinessCard } from "@/components/dashboard/ExamReadinessCard";
-import { HeroLevelCard } from "@/components/dashboard/HeroLevelCard";
+import { ChevronRight } from "lucide-react";
+import { ContinueLearningCard } from "@/components/dashboard/ContinueLearningCard";
 import { PracticeAssessGrid } from "@/components/dashboard/PracticeAssessGrid";
 import { WeakAreasCard } from "@/components/dashboard/WeakAreasCard";
-import { RecommendationCard } from "@/components/dashboard/RecommendationCard";
 import type { SectionScore } from "@/components/dashboard/HeroLevelCard";
 import type { ArticleContent, CefrLevel, PodcastContent } from "@/types/content";
 import type { DailyMissionSlot } from "@/lib/learning-brain";
@@ -25,6 +18,8 @@ export interface HomeRecommendation {
   reason: string;
 }
 
+// Keep the full props interface so dashboard/page.tsx doesn't need changes.
+// Only a subset is rendered — the rest is preserved for backward compatibility.
 export interface HomeViewProps {
   displayName: string;
   streak: number;
@@ -44,163 +39,87 @@ export interface HomeViewProps {
   placementCompleted: boolean;
   earnedAchievementIds: Set<string>;
   todayPlan: TodayPlanDay | null;
-  /** Reading section score from latest completed mock — null until first mock. */
   latestMockReading: SectionScore | null;
-  /** Listening section score from latest completed mock — null until first mock. */
   latestMockListening: SectionScore | null;
-  /** Weak areas from recent practice / mock signals — empty until first session. */
   weakAreas: string[];
 }
 
-const section = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (delay: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, delay },
-  }),
-};
+function timeOfDayGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
 
 export function HomeView({
   displayName,
   streak,
-  cefrLevel,
-  currentBand,
-  targetBand,
-  todayMinutes,
-  dailyGoalMinutes,
-  missions,
-  allMissionsCompleted,
-  resume,
-  recommendations,
   placementCompleted,
-  earnedAchievementIds,
-  todayPlan,
-  latestMockReading,
-  latestMockListening,
+  resume,
   weakAreas,
-  tutoNote,
-  dueVocabularyCount,
 }: HomeViewProps) {
   return (
     <div className="mx-auto max-w-3xl">
-      {/* 1 — Hero level card (dark gradient, Base44 §1) */}
-      <motion.div custom={0} variants={section} initial="hidden" animate="visible">
-        <HeroLevelCard
-          cefrLevel={cefrLevel}
-          currentBand={currentBand}
-          targetBand={targetBand}
-          placementCompleted={placementCompleted}
-          reading={latestMockReading}
-          listening={latestMockListening}
-        />
+      {/* ── Greeting ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="px-5 pt-8 sm:px-8 md:pt-10"
+      >
+        <h1 className="text-2xl font-bold text-text-primary">
+          {timeOfDayGreeting()}, {displayName}
+        </h1>
+        <p className="mt-1 text-sm text-text-secondary">
+          {streak > 0
+            ? `${streak}-day streak — keep it going!`
+            : "Ready to make progress today?"}
+        </p>
       </motion.div>
 
-      {/* Placement prompt — only before the learner has a real assessed level */}
-      <ExamReadinessCard placementCompleted={placementCompleted} displayName={displayName} />
+      {/* ── Continue Learning ── */}
+      {resume && <ContinueLearningCard resume={resume} />}
 
-      {/* 2 — Today's Plan (adaptive 28-day plan tasks, Base44 §2) */}
-      {placementCompleted && todayPlan && (
-        <motion.div custom={0.08} variants={section} initial="hidden" animate="visible">
-          <TodaysPlanCard
-            tasks={todayPlan.tasks}
-            dayNumber={todayPlan.dayNumber}
-            theme={todayPlan.theme}
-          />
-        </motion.div>
-      )}
-
-      {/* 3 — Continue Learning / Today's Mission (podcast + article slots, Base44 §3) */}
-      <motion.div custom={0.15} variants={section} initial="hidden" animate="visible">
-        <TodaysMissionCard
-          missions={missions}
-          allMissionsCompleted={allMissionsCompleted}
-          tomorrowPreview={recommendations[0]?.item ?? null}
-          streak={streak}
-          resume={resume}
-          todayMinutes={todayMinutes}
-          dailyGoalMinutes={dailyGoalMinutes}
-          deemphasized={!placementCompleted}
-        />
+      {/* ── Practice & Assess ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
+      >
+        <PracticeAssessGrid />
       </motion.div>
 
-      {/* 4 — Practice & Assess (2-col grid, Base44 §4) */}
-      {placementCompleted && (
-        <motion.div custom={0.2} variants={section} initial="hidden" animate="visible">
-          <PracticeAssessGrid />
-        </motion.div>
-      )}
-
-      {/* 5 — Weak Areas (Base44 §5) */}
+      {/* ── Weak Areas ── */}
       {weakAreas.length > 0 && (
-        <motion.div custom={0.25} variants={section} initial="hidden" animate="visible">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           <WeakAreasCard weakAreas={weakAreas} />
         </motion.div>
       )}
 
-      {/* Vocabulary review pill */}
-      <WordReviewCard dueCount={dueVocabularyCount} />
-
-      {/* Tuto note — contextual coaching message */}
-      {tutoNote && (
-        <motion.section
-          custom={0.3}
-          variants={section}
-          initial="hidden"
-          animate="visible"
-          className="mt-5 px-5 sm:px-8"
+      {/* ── View Full Plan strip ── */}
+      {placementCompleted && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="mb-10 mt-4 px-5 sm:px-8"
         >
-          <TutoNoteCard note={tutoNote} />
-        </motion.section>
-      )}
-
-      {/* 7 — Recommended Resources (Base44 §7) */}
-      {recommendations.length > 0 && (
-        <motion.section
-          custom={0.35}
-          variants={section}
-          initial="hidden"
-          animate="visible"
-          className="mt-8 px-5 sm:px-8"
-        >
-          <div className="mb-1 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-            <h2 className="text-sm font-semibold text-text-primary">Recommended for your target band</h2>
-          </div>
-          <p className="mb-3 text-xs text-text-secondary">
-            Extra practice — great for bonus XP, but Today&apos;s Plan is what keeps your streak going.
-          </p>
-          <div className="grid grid-cols-3 items-stretch gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-            {recommendations.map((rec) => (
-              <RecommendationCard key={rec.item.id} item={rec.item} reason={rec.reason} />
-            ))}
-          </div>
-        </motion.section>
-      )}
-
-      {/* Achievements — recognition, kept at the bottom */}
-      <motion.section
-        custom={0.4}
-        variants={section}
-        initial="hidden"
-        animate="visible"
-        className="mb-10 mt-8 px-5 sm:px-8"
-      >
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Award className="h-4 w-4 text-text-secondary" aria-hidden="true" />
-            <h2 className="text-sm font-semibold text-text-primary">Achievements</h2>
-          </div>
           <Link
-            href="/progress"
-            className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-text-secondary transition-colors hover:text-primary-strong"
+            href="/plan"
+            className="flex items-center justify-between rounded-2xl border border-border bg-bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
           >
-            View progress
-            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+            <div>
+              <p className="text-sm font-bold text-text-primary">View Full Plan</p>
+              <p className="text-xs text-text-secondary">Your 28-day personalised path</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-text-tertiary" aria-hidden="true" />
           </Link>
-        </div>
-        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.45} />
-      </motion.section>
+        </motion.div>
+      )}
     </div>
   );
 }

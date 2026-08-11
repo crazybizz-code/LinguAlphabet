@@ -11,6 +11,11 @@ import type { DailyActivity } from "@/lib/content/daily-activity";
 import type { LastWeekSummary } from "@/lib/content/home";
 import type { TutoNote } from "@/lib/tuto/messages";
 
+export interface BandPoint {
+  band: number;
+  label: string;
+}
+
 export interface ProgressViewProps {
   streak: number;
   longestStreak: number;
@@ -27,8 +32,14 @@ export interface ProgressViewProps {
   recentActivity: RecentActivityItem[];
   earnedAchievementIds: Set<string>;
   tutoNote: TutoNote | null;
-  /** Execution Sprint P2 — null when there's nothing to recap yet (see buildLastWeekSummary). */
   lastWeekSummary: LastWeekSummary | null;
+  // Base44 additions
+  bandTrend: BandPoint[];
+  mocksCompleted: number;
+  totalReadingCorrect: number;
+  totalListeningCorrect: number;
+  assessedCefrLevel: string | null;
+  weakAreas: string[];
 }
 
 export function ProgressView({
@@ -48,6 +59,12 @@ export function ProgressView({
   earnedAchievementIds,
   tutoNote,
   lastWeekSummary,
+  bandTrend,
+  mocksCompleted,
+  totalReadingCorrect,
+  totalListeningCorrect,
+  assessedCefrLevel,
+  weakAreas,
 }: ProgressViewProps) {
   const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
   const xpPercentage = xpToNext > 0 ? Math.min(100, (xp / xpToNext) * 100) : 0;
@@ -61,11 +78,82 @@ export function ProgressView({
         </p>
       </motion.header>
 
+      {/* ── Band Trend (Base44 §1) — bar chart of mock bands over time ── */}
+      {bandTrend.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-6 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
+        >
+          <div className="mb-4 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-text-primary">Band Trend</h2>
+          </div>
+          <div className="flex items-end gap-3" style={{ height: 100 }}>
+            {bandTrend.map((pt, i) => (
+              <div key={i} className="flex flex-1 flex-col items-center gap-2">
+                <span className="text-xs font-bold text-text-primary">{pt.band.toFixed(1)}</span>
+                <div
+                  className="w-full rounded-t-md bg-gradient-to-t from-[#FF6B00] to-[#FF8C33] transition-all"
+                  style={{ height: `${(pt.band / 9) * 100}%` }}
+                />
+                <span className="text-[10px] font-medium text-text-tertiary">{pt.label}</span>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+      )}
+
+      {/* ── Mock stats (Base44 §2) ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.15 }}
+        className="mt-4 grid grid-cols-3 gap-3"
+      >
+        {[
+          { label: "Mock Tests", value: mocksCompleted },
+          { label: "Reading Q's", value: totalReadingCorrect },
+          { label: "Listening Q's", value: totalListeningCorrect },
+        ].map((stat) => (
+          <div key={stat.label} className="rounded-2xl border border-border bg-bg-card p-4 text-center shadow-sm">
+            <p className="text-xl font-bold text-text-primary">{stat.value}</p>
+            <p className="mt-0.5 text-[11px] text-text-secondary">{stat.label}</p>
+          </div>
+        ))}
+      </motion.section>
+
+      {/* ── Weak Areas from assessedLevel (Base44 §3) ── */}
+      {weakAreas.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-4"
+        >
+          <h2 className="mb-3 text-sm font-semibold text-text-primary">Weak Areas</h2>
+          <div className="rounded-2xl border border-border bg-bg-card p-5 shadow-sm">
+            <div className="space-y-2">
+              {weakAreas.map((area) => (
+                <div
+                  key={area}
+                  className="flex items-center gap-3 rounded-xl bg-[#FF6B00]/[.06] p-3"
+                >
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span className="flex-1 text-sm font-medium text-text-primary">{area}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+      )}
+
       {/* Streak hero — the single most important momentum signal (docs/domain-model.md §19). */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
+        transition={{ duration: 0.5, delay: 0.25 }}
         className="mt-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-[#FF8C33] p-6 shadow-glow sm:p-8"
       >
         <div className="flex items-center justify-between">

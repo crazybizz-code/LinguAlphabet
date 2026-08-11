@@ -25,8 +25,8 @@ export default async function ProgressPage() {
   const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
-  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }] = await Promise.all([
-    supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed").eq("user_id", user.id).single(),
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }] = await Promise.all([
+    supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed, assessed_cefr_level").eq("user_id", user.id).single(),
     // streak/xp/longestStreak come from LearnerRepository (src/ai/data,
     // frozen) — the same repository Tuto's own system prompt reads
     // (ai-service.ts's resolveMemory()) and the Dashboard now reads too, so
@@ -42,6 +42,13 @@ export default async function ProgressPage() {
     supabase.from("progress").select("*").eq("user_id", user.id),
     supabase.from("vocabulary").select("*").eq("user_id", user.id),
     supabase.from("notes").select("*").eq("user_id", user.id),
+    // All submitted mock attempts for band trend + aggregate stats.
+    supabase
+      .from("full_mock_attempts")
+      .select("estimated_band, result_cefr_level, reading_correct, reading_total, listening_correct, listening_total, submitted_at")
+      .eq("user_id", user.id)
+      .eq("status", "submitted")
+      .order("submitted_at", { ascending: true }),
   ]);
 
   if (!profile?.onboarding_completed) redirect("/welcome");
@@ -85,6 +92,19 @@ export default async function ProgressPage() {
     noteRows: noteRows ?? [],
   });
 
+  // Mock-derived stats for Base44 progress sections.
+  const attempts = mockAttempts ?? [];
+  const bandTrend = attempts
+    .filter((a) => a.estimated_band !== null)
+    .map((a, i) => ({
+      band: a.estimated_band as number,
+      label: `Mock ${i + 1}`,
+    }));
+  const totalReadingCorrect = attempts.reduce((s, a) => s + (a.reading_correct ?? 0), 0);
+  const totalListeningCorrect = attempts.reduce((s, a) => s + (a.listening_correct ?? 0), 0);
+  const mocksCompleted = attempts.length;
+  const assessedCefrLevel = (profile as { assessed_cefr_level?: string | null } | null)?.assessed_cefr_level ?? learnerProfile.cefrLevel ?? null;
+
   return (
     <ProgressView
       streak={streak}
@@ -103,6 +123,12 @@ export default async function ProgressPage() {
       earnedAchievementIds={computeEarnedAchievementIds({ completedCount: completedRows.length, longestStreak, level })}
       tutoNote={tutoNote}
       lastWeekSummary={buildLastWeekSummary(catalog, rows)}
+      bandTrend={bandTrend}
+      mocksCompleted={mocksCompleted}
+      totalReadingCorrect={totalReadingCorrect}
+      totalListeningCorrect={totalListeningCorrect}
+      assessedCefrLevel={assessedCefrLevel}
+      weakAreas={[]}
     />
   );
 }
