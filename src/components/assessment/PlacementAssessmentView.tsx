@@ -40,7 +40,7 @@ const fadeSlideIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -12 },
-  transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
+  transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
 };
 
 // ── Sub-components ───────────────────────────────────────────────────────────
