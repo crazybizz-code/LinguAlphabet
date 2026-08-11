@@ -23,26 +23,33 @@ export interface TodayPlanDay {
 export async function fetchTodayPlan(
   supabase: SupabaseClient<Database>,
   userId: string,
+  /** Pre-fetched active plan ID — skips an internal DB round trip when provided. */
+  prefetchedPlanId?: string | null,
 ): Promise<TodayPlanDay | null> {
   const today = new Date().toISOString().split("T")[0];
 
-  // Find active plan
-  const { data: plan } = await supabase
-    .from("learning_plans")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  let planId: string | null | undefined = prefetchedPlanId;
 
-  if (!plan) return null;
+  if (planId === undefined) {
+    // Find active plan (only when not pre-fetched)
+    const { data: plan } = await supabase
+      .from("learning_plans")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    planId = plan?.id ?? null;
+  }
+
+  if (!planId) return null;
 
   // Find today's day row
   const { data: day } = await supabase
     .from("plan_days")
     .select("id, day_number, theme")
-    .eq("plan_id", plan.id)
+    .eq("plan_id", planId)
     .eq("plan_date", today)
     .maybeSingle();
 

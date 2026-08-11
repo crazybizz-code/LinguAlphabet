@@ -33,6 +33,8 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+
   const [
     { data: profile },
     learnerProfile,
@@ -42,6 +44,7 @@ export default async function DashboardPage() {
     { data: previousMission },
     dueVocabulary,
     todayPlan,
+    { data: todaysMissions },
     { data: latestMock },
     { data: weakAreaSignals },
   ] = await Promise.all([
@@ -60,14 +63,20 @@ export default async function DashboardPage() {
       .from("daily_missions")
       .select("*")
       .eq("user_id", user.id)
-      .lt("mission_date", new Date().toISOString().slice(0, 10))
+      .lt("mission_date", todayIso)
       .order("mission_date", { ascending: false })
       .limit(1)
       .maybeSingle(),
     fetchDueVocabulary(),
+    // Runs its own plan lookup internally; 3 serial queries but concurrent with all other items.
     fetchTodayPlan(supabase, user.id),
+    // Pre-fetch today's daily_missions so getHomeRecommendations can skip its own query.
+    supabase
+      .from("daily_missions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("mission_date", todayIso),
     // Latest submitted mock attempt — for reading/listening section scores in the hero card.
-    // Returns null gracefully if the table doesn't yet exist in the live DB or no mocks taken.
     supabase
       .from("full_mock_attempts")
       .select("reading_correct, reading_total, reading_score_pct, listening_correct, listening_total, listening_score_pct")
@@ -119,6 +128,7 @@ export default async function DashboardPage() {
     catalog,
     progressRows: rows,
     context,
+    prefetchedTodaysMissions: todaysMissions,
   });
 
   const now = new Date().getTime();

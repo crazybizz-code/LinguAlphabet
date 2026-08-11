@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Monitor, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { BookOpen, Monitor, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { QuestionPalette } from "./QuestionPalette";
 import { QuestionRenderer } from "./QuestionRenderer";
