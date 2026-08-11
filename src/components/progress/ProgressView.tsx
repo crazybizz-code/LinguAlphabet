@@ -11,6 +11,15 @@ import type { DailyActivity } from "@/lib/content/daily-activity";
 import type { LastWeekSummary } from "@/lib/content/home";
 import type { TutoNote } from "@/lib/tuto/messages";
 
+const AREA_LABELS: Record<string, string> = {
+  reading_comprehension: "Reading Comprehension",
+  reading_detail: "Reading — Detail Questions",
+  listening_comprehension: "Listening Comprehension",
+  listening_detail: "Listening — Detail Questions",
+  grammar: "Grammar",
+  vocabulary: "Vocabulary",
+};
+
 export interface BandPoint {
   band: number;
   label: string;
@@ -141,7 +150,9 @@ export function ProgressView({
                   className="flex items-center gap-3 rounded-xl bg-[#FF6B00]/[.06] p-3"
                 >
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                  <span className="flex-1 text-sm font-medium text-text-primary">{area}</span>
+                  <span className="flex-1 text-sm font-medium text-text-primary">
+                    {AREA_LABELS[area] ?? area.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </span>
                 </div>
               ))}
             </div>

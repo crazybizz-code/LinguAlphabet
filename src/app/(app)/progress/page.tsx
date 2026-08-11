@@ -25,7 +25,7 @@ export default async function ProgressPage() {
   const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
-  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }] = await Promise.all([
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }, { data: weakAreaSignals }] = await Promise.all([
     supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed, assessed_cefr_level").eq("user_id", user.id).single(),
     // streak/xp/longestStreak come from LearnerRepository (src/ai/data,
     // frozen) — the same repository Tuto's own system prompt reads
@@ -49,6 +49,13 @@ export default async function ProgressPage() {
       .eq("user_id", user.id)
       .eq("status", "submitted")
       .order("submitted_at", { ascending: true }),
+    supabase
+      .from("learning_signals")
+      .select("evidence")
+      .eq("user_id", user.id)
+      .in("type", ["practice_completed", "mock_completed"])
+      .order("created_at", { ascending: false })
+      .limit(5),
   ]);
 
   if (!profile?.onboarding_completed) redirect("/welcome");
@@ -105,6 +112,13 @@ export default async function ProgressPage() {
   const mocksCompleted = attempts.length;
   const assessedCefrLevel = (profile as { assessed_cefr_level?: string | null } | null)?.assessed_cefr_level ?? learnerProfile.cefrLevel ?? null;
 
+  type SignalEvidence = { weakAreas?: string[] };
+  const allWeakAreas = (weakAreaSignals ?? []).flatMap((s) => {
+    const ev = s.evidence as SignalEvidence | null;
+    return ev?.weakAreas ?? [];
+  });
+  const weakAreas = [...new Set(allWeakAreas)].slice(0, 3);
+
   return (
     <ProgressView
       streak={streak}
@@ -128,7 +142,7 @@ export default async function ProgressPage() {
       totalReadingCorrect={totalReadingCorrect}
       totalListeningCorrect={totalListeningCorrect}
       assessedCefrLevel={assessedCefrLevel}
-      weakAreas={[]}
+      weakAreas={weakAreas}
     />
   );
 }
