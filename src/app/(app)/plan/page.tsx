@@ -20,6 +20,7 @@ interface PlanTaskRow {
   estimated_minutes: number | null;
   skill_focus: string | null;
   completed: boolean;
+  content_item_id: string | null;
 }
 
 interface PlanDayRow {
@@ -61,7 +62,7 @@ export default async function PlanPage() {
         id, assessed_cefr_level, target_cefr_level, starts_on, ends_on, weak_areas,
         plan_days(
           id, day_number, plan_date, focus, theme, estimated_minutes,
-          plan_tasks(id, day_id, sequence_number, task_type, title, estimated_minutes, skill_focus, completed)
+          plan_tasks(id, day_id, sequence_number, task_type, title, estimated_minutes, skill_focus, completed, content_item_id)
         )
       `)
       .eq("user_id", user.id)
@@ -96,6 +97,7 @@ export default async function PlanPage() {
         estimatedMinutes: t.estimated_minutes,
         skillFocus: t.skill_focus,
         completed: t.completed,
+        contentItemId: t.content_item_id,
       })),
   }));
 

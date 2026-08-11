@@ -15,6 +15,7 @@ export interface PlanTask {
   estimatedMinutes: number | null;
   skillFocus: string | null;
   completed: boolean;
+  contentItemId: string | null;
 }
 
 export interface PlanDay {
@@ -50,6 +51,16 @@ const TASK_ICONS: Record<string, typeof BookOpen> = {
   review: BookCheck,
   mock: Mic,
 };
+
+const PODCAST_TASK_TYPES = new Set(["podcast", "listening_practice"]);
+const ARTICLE_TASK_TYPES = new Set(["article", "reading_practice"]);
+
+function taskHref(task: PlanTask): string | null {
+  if (!task.contentItemId) return null;
+  if (PODCAST_TASK_TYPES.has(task.taskType)) return `/podcast/${task.contentItemId}/learn`;
+  if (ARTICLE_TASK_TYPES.has(task.taskType)) return `/article/${task.contentItemId}/learn`;
+  return null;
+}
 
 const SKILL_DOT: Record<string, string> = {
   listening: "bg-blue-400",
@@ -226,8 +237,9 @@ export function MonthlyPlanView({
             <ul className="divide-y divide-border/40">
               {selectedDay.tasks.map((task) => {
                 const Icon = TASK_ICONS[task.taskType] ?? ListChecks;
-                return (
-                  <li key={task.id} className="flex items-center gap-3 px-5 py-3.5 sm:px-6">
+                const href = taskHref(task);
+                const inner = (
+                  <>
                     <span className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${
                       task.completed ? "bg-success/10 text-success" : "bg-border/40 text-text-secondary"
                     }`}>
@@ -241,10 +253,28 @@ export function MonthlyPlanView({
                         <p className="text-xs text-text-secondary">{task.estimatedMinutes} min</p>
                       )}
                     </div>
-                    {task.completed && (
+                    {task.completed ? (
                       <svg viewBox="0 0 12 12" className="h-4 w-4 flex-shrink-0 text-success" aria-label="Done">
                         <path d="M10 3L5 9 2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                       </svg>
+                    ) : href ? (
+                      <ChevronRightIcon className="h-4 w-4 flex-shrink-0 text-text-tertiary" aria-hidden="true" />
+                    ) : null}
+                  </>
+                );
+                return (
+                  <li key={task.id}>
+                    {href && !task.completed ? (
+                      <Link
+                        href={href}
+                        className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-border/20 sm:px-6"
+                      >
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-3 px-5 py-3.5 sm:px-6">
+                        {inner}
+                      </div>
                     )}
                   </li>
                 );
