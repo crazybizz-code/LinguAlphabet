@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { BookOpen, ChevronRight, Headphones, Info, Lock, Mic, PenLine } from "lucide-react";
 
@@ -18,7 +19,7 @@ function LockedCard({
   title: string;
   description: string;
   accentClassName: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   return (
     <div className="relative flex min-h-[168px] flex-col gap-4 rounded-2xl border border-border bg-bg-card p-5 opacity-60 shadow-sm">
