@@ -22,21 +22,19 @@ export default async function ProfilePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, learnerProfile, { data: progressRows }] = await Promise.all([
+  const [{ data: profile }, learnerProfile, { data: progressRows }, { data: mockAttempts }] = await Promise.all([
     supabase
       .from("profiles")
-      // current_band is now the editable source of truth; english_level is
-      // derived from it on write (src/lib/profile/actions.ts) and so is
-      // never read here.
       .select("username, level, daily_time_minutes, interests, onboarding_completed, current_band, target_band, exam_timeline, exam_date")
       .eq("user_id", user.id)
       .single(),
-    // streak/longestStreak come from LearnerRepository (src/ai/data,
-    // frozen) — the same repository Tuto's system prompt and the
-    // Dashboard/Progress/Explore pages all read, so Profile can never
-    // independently drift on what these values mean.
     getCachedLearnerProfile(supabase, user.id),
     supabase.from("progress").select("completed").eq("user_id", user.id),
+    supabase
+      .from("full_mock_attempts")
+      .select("reading_correct, reading_total, listening_correct, listening_total, submitted_at")
+      .eq("user_id", user.id)
+      .eq("status", "submitted"),
   ]);
 
   if (!profile?.onboarding_completed) redirect("/welcome");
@@ -47,6 +45,13 @@ export default async function ProfilePage() {
   const level = profile?.level ?? 1;
 
   const earnedAchievementIds = computeEarnedAchievementIds({ completedCount, longestStreak, level });
+
+  const attempts = mockAttempts ?? [];
+  const mocksCompleted = attempts.length;
+  const totalReadingCorrect = attempts.reduce((s, a) => s + (a.reading_correct ?? 0), 0);
+  const totalListeningCorrect = attempts.reduce((s, a) => s + (a.listening_correct ?? 0), 0);
+  const totalReadingQuestions = attempts.reduce((s, a) => s + (a.reading_total ?? 0), 0);
+  const totalListeningQuestions = attempts.reduce((s, a) => s + (a.listening_total ?? 0), 0);
 
   return (
     <ProfileView
@@ -59,6 +64,12 @@ export default async function ProfilePage() {
       dailyTimeMinutes={profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES}
       interests={profile?.interests ?? []}
       earnedAchievementIds={earnedAchievementIds}
+      streak={streak}
+      mocksCompleted={mocksCompleted}
+      totalReadingCorrect={totalReadingCorrect}
+      totalListeningCorrect={totalListeningCorrect}
+      totalReadingQuestions={totalReadingQuestions}
+      totalListeningQuestions={totalListeningQuestions}
     />
   );
 }

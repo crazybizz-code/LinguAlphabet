@@ -1,63 +1,62 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Check, LogOut, Settings } from "lucide-react";
+import {
+  Bell,
+  BookOpen,
+  Calendar,
+  Check,
+  ChevronRight,
+  Clock,
+  Flame,
+  Headphones,
+  KeyRound,
+  LogOut,
+  Mail,
+  Target,
+  Trash2,
+  Trophy,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { SelectableCard } from "@/components/ui/SelectableCard";
-import { StatRow } from "@/components/ui/StatRow";
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
 import { updateLearningProfile, signOutAction } from "@/lib/profile/actions";
 import { bandToCefr } from "@/lib/onboarding/types";
 import { describeExamCountdown } from "@/lib/dashboard/exam-snapshot";
 import {
-  BAND_ICON,
   CURRENT_BAND_OPTIONS,
-  DAILY_TIME_ICON,
   DAILY_TIME_OPTIONS,
-  INTERESTS_ICON,
   INTEREST_OPTIONS,
-  TARGET_ICON,
-  TIMELINE_ICON,
   TIMELINE_OPTIONS,
   formatBand,
   selectableTargetBands,
 } from "@/lib/profile/options";
-import { ProfileIdentityCard } from "./ProfileIdentityCard";
 import { EditSheet } from "./EditSheet";
 
 export interface ProfileViewProps {
   displayName: string;
   email: string;
-  /** Null when the learner answered "Not sure" — never defaulted. */
   currentBand: number | null;
   targetBand: number | null;
   examTimeline: string | null;
-  /** A booked exam date (`YYYY-MM-DD`), when the learner has one. */
   examDate: string | null;
   dailyTimeMinutes: number;
   interests: string[];
   earnedAchievementIds: Set<string>;
+  streak: number;
+  mocksCompleted: number;
+  totalReadingCorrect: number;
+  totalListeningCorrect: number;
+  totalReadingQuestions: number;
+  totalListeningQuestions: number;
 }
 
 type EditingField = "currentBand" | "targetBand" | "examTimeline" | "dailyTime" | "interests" | null;
 
-/**
- * Profile, IELTS-first.
- *
- * The band replaces the CEFR level as the thing a learner edits. CEFR is
- * still written — the Learning Brain, content matching and Tuto's prompt
- * all speak it — but it is now derived from the band inside
- * updateLearningProfile rather than being a second editable field that
- * could disagree with it.
- *
- * Learning Goal is gone. The IELTS flow always writes "Exam Preparation",
- * so a picker offering General English / Travel / Work was offering to
- * contradict the product model, and it silently re-ranked their content
- * when used (goal alignment is weight 25 in the rule engine).
- */
 export function ProfileView({
   displayName,
   email,
@@ -68,13 +67,16 @@ export function ProfileView({
   dailyTimeMinutes,
   interests,
   earnedAchievementIds,
+  streak,
+  mocksCompleted,
+  totalReadingCorrect,
+  totalListeningCorrect,
+  totalReadingQuestions,
+  totalListeningQuestions,
 }: ProfileViewProps) {
   const [isPending, startTransition] = useTransition();
   const [editingField, setEditingField] = useState<EditingField>(null);
 
-  // Mirrored locally so a save reflects instantly, same optimistic pattern
-  // as the Learning Session's completion flow — the server action still
-  // persists + revalidates Home/Explore/Progress for their next load.
   const [band, setBand] = useState(currentBand);
   const [target, setTarget] = useState(targetBand);
   const [timeline, setTimeline] = useState(examTimeline);
@@ -83,7 +85,6 @@ export function ProfileView({
   const [currentInterests, setCurrentInterests] = useState(interests);
   const [pendingInterests, setPendingInterests] = useState(interests);
 
-  /** Non-fatal if the write fails (session hiccup, network blip) — the optimistic value shown here just won't survive the next full reload, and it must never crash the screen the way an unhandled rejection would. */
   function persist(update: Parameters<typeof updateLearningProfile>[0]) {
     setEditingField(null);
     startTransition(async () => {
@@ -91,177 +92,348 @@ export function ProfileView({
     });
   }
 
-  function saveCurrentBand(next: number | null) {
-    setBand(next);
-    persist({ currentBand: next });
-  }
-
-  function saveTargetBand(next: number) {
-    setTarget(next);
-    persist({ targetBand: next });
-  }
-
-  function saveTimeline(next: string) {
-    setTimeline(next);
-    persist({ examTimeline: next });
-  }
-
-  /** Kept in the same sheet as the bucket: they answer one question at two precisions, and a date always wins over a bucket. */
-  function saveExamDate(next: string) {
-    setBookedDate(next || null);
-    persist({ examDate: next || null });
-  }
-
-  function saveDailyTime(next: number) {
-    setDailyTime(next);
-    persist({ dailyTimeMinutes: next });
-  }
-
+  function saveCurrentBand(next: number | null) { setBand(next); persist({ currentBand: next }); }
+  function saveTargetBand(next: number) { setTarget(next); persist({ targetBand: next }); }
+  function saveTimeline(next: string) { setTimeline(next); persist({ examTimeline: next }); }
+  function saveExamDate(next: string) { setBookedDate(next || null); persist({ examDate: next || null }); }
+  function saveDailyTime(next: number) { setDailyTime(next); persist({ dailyTimeMinutes: next }); }
   function toggleInterest(id: string) {
-    setPendingInterests((current) => (current.includes(id) ? current.filter((i) => i !== id) : [...current, id]));
+    setPendingInterests((current) => current.includes(id) ? current.filter((i) => i !== id) : [...current, id]);
   }
+  function saveInterests() { setCurrentInterests(pendingInterests); persist({ interests: pendingInterests }); }
+  function openInterests() { setPendingInterests(currentInterests); setEditingField("interests"); }
 
-  function saveInterests() {
-    setCurrentInterests(pendingInterests);
-    persist({ interests: pendingInterests });
-  }
-
-  function openInterests() {
-    setPendingInterests(currentInterests);
-    setEditingField("interests");
-  }
-
-  const derivedCefr = bandToCefr(band);
   const countdown = describeExamCountdown({ examDate: bookedDate, examTimeline: timeline });
-  const dailyTimeLabel = DAILY_TIME_OPTIONS.find((option) => option.value === dailyTime)?.label ?? `${dailyTime} min`;
-  const interestsSummary = currentInterests.length > 0 ? currentInterests.join(", ") : "Add topics you enjoy";
-
+  const dailyTimeLabel = DAILY_TIME_OPTIONS.find((o) => o.value === dailyTime)?.label ?? `${dailyTime} min`;
   const selectableTargets = selectableTargetBands(band);
+  const hasNoMockData = mocksCompleted === 0;
+
+  const examDateFormatted = bookedDate
+    ? new Date(bookedDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })
+    : null;
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 md:py-10">
-      <motion.header
+
+      {/* ── Identity card ── */}
+      <motion.section
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex items-center justify-between"
+        className="flex items-center gap-5"
       >
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">Profile</h1>
-        <Link
-          href="/settings"
-          aria-label="Settings"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-bg-card transition-colors hover:bg-bg-muted"
-        >
-          <Settings className="h-5 w-5 text-text-secondary" aria-hidden="true" />
-        </Link>
-      </motion.header>
+        {/* Avatar with band badge */}
+        <div className="relative shrink-0">
+          <div className="h-20 w-20 overflow-hidden rounded-full bg-primary-lighter ring-2 ring-primary/20">
+            <Image
+              src="/assets/mascot/master-tuto.png"
+              alt={displayName}
+              width={80}
+              height={80}
+              className="object-cover"
+            />
+          </div>
+          {band !== null && (
+            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#0F172A] text-[11px] font-extrabold text-white ring-2 ring-bg-card">
+              {band.toFixed(1)}
+            </span>
+          )}
+        </div>
 
-      <ProfileIdentityCard displayName={displayName} email={email} currentBand={band} />
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-bold text-text-primary">{displayName}</h1>
+          <p className="mt-0.5 text-sm text-text-secondary truncate">{email}</p>
+          <button
+            onClick={() => setEditingField("currentBand")}
+            className="mt-2 rounded-xl border border-border px-3 py-1.5 text-xs font-semibold text-text-primary transition-colors hover:bg-bg-muted"
+          >
+            Edit Profile
+          </button>
+        </div>
+      </motion.section>
 
+      {/* ── 4-stat strip ── */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.15 }}
-        className="mt-8"
-        aria-labelledby="ielts-journey-heading"
+        transition={{ duration: 0.5, delay: 0.08 }}
+        className="mt-6 grid grid-cols-4 gap-2"
       >
-        <h2 id="ielts-journey-heading" className="mb-3 text-sm font-semibold text-text-primary">
-          IELTS Journey
-        </h2>
-        <div className="flex flex-col gap-3">
-          <StatRow
-            icon={<BAND_ICON className="h-5 w-5" aria-hidden="true" />}
-            label="Current Band"
-            value={band === null ? "Not set — take your placement test" : formatBand(band)}
-            onClick={() => setEditingField("currentBand")}
-          />
-          <StatRow
-            icon={<TARGET_ICON className="h-5 w-5" aria-hidden="true" />}
-            label="Target Band"
-            value={target === null ? "Not set" : formatBand(target)}
-            onClick={() => setEditingField("targetBand")}
-          />
-          {/* One row, labelled by what it actually knows: a booked date
-              shows a real countdown, otherwise the coarse bucket. */}
-          <StatRow
-            icon={<TIMELINE_ICON className="h-5 w-5" aria-hidden="true" />}
-            label={countdown.label}
-            value={bookedDate ? `${formatExamDate(bookedDate)} · ${countdown.value}` : countdown.value}
-            onClick={() => setEditingField("examTimeline")}
-          />
-        </div>
-        {/* Shown, not hidden, and explicitly labelled as derived. The rest
-            of the product still speaks CEFR — content ranges, the Learning
-            Brain, Tuto's prompt — so a learner who sees "B2" elsewhere
-            should be able to find out here where it came from. Read-only:
-            editing it independently is exactly the drift this redesign
-            removes. */}
-        <p className="mt-3 px-1 text-xs text-text-secondary">
-          {derivedCefr
-            ? `Your reading and listening level is set to ${derivedCefr}, calculated from your band.`
-            : "Your reading and listening level is calculated from your band once you have one."}
-        </p>
+        {[
+          { icon: Trophy, label: "Current Band", value: band !== null ? band.toFixed(1) : "—" },
+          { icon: Target, label: "Target Band", value: target !== null ? target.toFixed(1) : "—" },
+          { icon: Calendar, label: "Exam Date", value: examDateFormatted ?? countdown.value },
+          { icon: Flame, label: "Streak", value: `${streak} days` },
+        ].map(({ icon: Icon, label, value }) => (
+          <div
+            key={label}
+            className="flex flex-col items-center gap-1 rounded-2xl border border-border bg-bg-card p-3 text-center shadow-sm"
+          >
+            <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+            <p className="text-base font-bold text-text-primary leading-tight">{value}</p>
+            <p className="text-[10px] text-text-secondary leading-tight">{label}</p>
+          </div>
+        ))}
       </motion.section>
 
+      {/* ── IELTS Journey ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.12 }}
+        className="mt-8"
+      >
+        <h2 className="mb-3 text-sm font-semibold text-text-primary">IELTS Journey</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            {
+              icon: Trophy,
+              label: "Current Band",
+              value: band !== null ? band.toFixed(1) : "Not set",
+              sub: band !== null ? bandToCefr(band) ?? "" : "Take placement",
+              onClick: () => setEditingField("currentBand"),
+            },
+            {
+              icon: Target,
+              label: "Target Band",
+              value: target !== null ? target.toFixed(1) : "Not set",
+              sub: target !== null ? bandToCefr(target) ?? "" : "Set a goal",
+              onClick: () => setEditingField("targetBand"),
+            },
+            {
+              icon: BookOpen,
+              label: "Estimated AI Band",
+              value: band !== null ? band.toFixed(1) : "—",
+              sub: "LinguABC estimate",
+              onClick: undefined,
+            },
+            {
+              icon: Calendar,
+              label: "Days Until Exam",
+              value: countdown.value,
+              sub: countdown.label,
+              onClick: () => setEditingField("examTimeline"),
+            },
+          ].map(({ icon: Icon, label, value, sub, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              disabled={!onClick}
+              className={cn(
+                "flex flex-col gap-2 rounded-2xl border border-border bg-bg-card p-4 text-left shadow-sm",
+                onClick ? "transition-colors hover:bg-bg-muted" : "cursor-default",
+              )}
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-lighter">
+                <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold text-text-secondary">{label}</p>
+                <p className="text-base font-bold text-text-primary">{value}</p>
+                {sub && <p className="text-[10px] text-text-tertiary">{sub}</p>}
+              </div>
+            </button>
+          ))}
+        </div>
+      </motion.section>
+
+      {/* ── Study Statistics ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.16 }}
+        className="mt-8"
+      >
+        <h2 className="mb-3 text-sm font-semibold text-text-primary">Study Statistics</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            {
+              icon: Clock,
+              label: "Study Time",
+              value: hasNoMockData ? null : `${mocksCompleted * 55} min`,
+              sub: hasNoMockData ? "Complete your first mock to unlock insights." : "estimated",
+            },
+            {
+              icon: BookOpen,
+              label: "Mock Tests Completed",
+              value: hasNoMockData ? null : String(mocksCompleted),
+              sub: hasNoMockData ? "Complete your first mock to unlock insights." : "total attempts",
+            },
+            {
+              icon: BookOpen,
+              label: "Reading Questions Solved",
+              value: hasNoMockData ? null : String(totalReadingCorrect),
+              sub: hasNoMockData ? "Complete your first mock to unlock insights." : `of ${totalReadingQuestions} attempted`,
+            },
+            {
+              icon: Headphones,
+              label: "Listening Questions Solved",
+              value: hasNoMockData ? null : String(totalListeningCorrect),
+              sub: hasNoMockData ? "Complete your first mock to unlock insights." : `of ${totalListeningQuestions} attempted`,
+            },
+          ].map(({ icon: Icon, label, value, sub }) => (
+            <div key={label} className="flex flex-col gap-2 rounded-2xl border border-border bg-bg-card p-4 shadow-sm">
+              <Icon className="h-5 w-5 text-text-tertiary" aria-hidden="true" />
+              <div>
+                <p className="text-[10px] font-semibold text-text-secondary">{label}</p>
+                {value !== null ? (
+                  <p className="mt-0.5 text-base font-bold text-text-primary">{value}</p>
+                ) : (
+                  <p className="mt-0.5 text-sm font-semibold text-text-tertiary">No data yet</p>
+                )}
+                <p className="mt-0.5 text-[10px] text-text-tertiary">{sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.section>
+
+      {/* ── Achievements ── */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
         className="mt-8"
-        aria-labelledby="learning-preferences-heading"
       >
-        <h2 id="learning-preferences-heading" className="mb-3 text-sm font-semibold text-text-primary">
-          Learning Preferences
-        </h2>
-        <div className="flex flex-col gap-3">
-          <StatRow
-            icon={<DAILY_TIME_ICON className="h-5 w-5" aria-hidden="true" />}
-            label="Daily Study Time"
-            value={`${dailyTimeLabel} / day`}
-            onClick={() => setEditingField("dailyTime")}
-          />
-          <StatRow
-            icon={<INTERESTS_ICON className="h-5 w-5" aria-hidden="true" />}
-            label="Topics of Interest"
-            value={interestsSummary}
-            onClick={openInterests}
-          />
+        <h2 className="mb-3 text-sm font-semibold text-text-primary">Achievements</h2>
+        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.25} />
+      </motion.section>
+
+      {/* ── Learning Preferences ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.24 }}
+        className="mt-8"
+      >
+        <h2 className="mb-3 text-sm font-semibold text-text-primary">Learning Preferences</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {[
+            {
+              icon: Clock,
+              label: "Daily Study Time",
+              value: dailyTimeLabel,
+              onClick: () => setEditingField("dailyTime"),
+            },
+            {
+              icon: Target,
+              label: "Target Band",
+              value: target !== null ? `Band ${target.toFixed(1)}` : "Not set",
+              onClick: () => setEditingField("targetBand"),
+            },
+            {
+              icon: Calendar,
+              label: "Exam Date",
+              value: examDateFormatted ?? countdown.value,
+              onClick: () => setEditingField("examTimeline"),
+            },
+            {
+              icon: Bell,
+              label: "Daily Reminder",
+              value: "Set in device",
+              onClick: undefined,
+            },
+          ].map(({ icon: Icon, label, value, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              disabled={!onClick}
+              className={cn(
+                "flex items-center gap-3 rounded-2xl border border-border bg-bg-card px-4 py-3.5 text-left shadow-sm",
+                onClick ? "transition-colors hover:bg-bg-muted" : "cursor-default",
+              )}
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-lighter">
+                <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-text-secondary">{label}</p>
+                <p className="text-sm font-semibold text-text-primary truncate">{value}</p>
+              </div>
+              {onClick && <ChevronRight className="h-4 w-4 shrink-0 text-text-tertiary" aria-hidden="true" />}
+            </button>
+          ))}
         </div>
       </motion.section>
 
+      {/* ── Account ── */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.25 }}
+        transition={{ duration: 0.5, delay: 0.28 }}
         className="mt-8"
-        aria-labelledby="profile-achievements-heading"
       >
-        <h2 id="profile-achievements-heading" className="mb-3 text-sm font-semibold text-text-primary">
-          Achievements
-        </h2>
-        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.3} />
+        <h2 className="mb-3 text-sm font-semibold text-text-primary">Account</h2>
+        <div className="flex flex-col divide-y divide-border/40 rounded-2xl border border-border bg-bg-card shadow-sm overflow-hidden">
+          {[
+            { icon: Mail, label: "Email", value: email, href: undefined },
+            { icon: KeyRound, label: "Change Password", value: null, href: "/settings/password" },
+            { icon: Bell, label: "Notifications", value: null, href: "/settings/notifications" },
+          ].map(({ icon: Icon, label, value, href }) => (
+            <div key={label} className="flex items-center gap-3 px-4 py-3.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-lighter">
+                <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
+              </div>
+              <span className="flex-1 text-sm font-semibold text-text-primary">{label}</span>
+              {value && <span className="text-xs text-text-tertiary truncate max-w-[140px]">{value}</span>}
+              {href && (
+                <Link href={href} className="text-text-tertiary hover:text-text-primary">
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              )}
+              {!href && <ChevronRight className="h-4 w-4 text-text-tertiary" aria-hidden="true" />}
+            </div>
+          ))}
+
+          {/* Log out */}
+          <button
+            onClick={() => startTransition(() => signOutAction())}
+            disabled={isPending}
+            className="flex items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-bg-muted"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-lighter">
+              <LogOut className="h-4 w-4 text-primary" aria-hidden="true" />
+            </div>
+            <span className="flex-1 text-sm font-semibold text-text-primary">Log Out</span>
+            <ChevronRight className="h-4 w-4 text-text-tertiary" aria-hidden="true" />
+          </button>
+        </div>
       </motion.section>
 
+      {/* ── Danger Zone ── */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="mt-8"
+        transition={{ duration: 0.5, delay: 0.32 }}
+        className="mt-6 mb-10"
       >
-        <Button variant="secondary" block disabled={isPending} onClick={() => startTransition(() => signOutAction())}>
-          <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
-          Sign Out
-        </Button>
+        <h2 className="mb-3 text-sm font-semibold text-red-500">Danger Zone</h2>
+        <div className="flex items-center justify-between rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 dark:border-red-800/40 dark:bg-red-900/10">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 dark:bg-red-800/30">
+              <Trash2 className="h-4 w-4 text-red-500" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-text-primary">Delete Account</p>
+              <p className="text-xs text-text-secondary">Permanently remove your account and data</p>
+            </div>
+          </div>
+          <button
+            disabled
+            title="Contact support to delete your account"
+            className="rounded-xl bg-red-500 px-4 py-2 text-xs font-semibold text-white opacity-60 cursor-not-allowed"
+          >
+            Delete
+          </button>
+        </div>
       </motion.section>
 
+      {/* ── Edit Sheets ── */}
       <EditSheet open={editingField === "currentBand"} title="Current Band" onClose={() => setEditingField(null)}>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {CURRENT_BAND_OPTIONS.map((option) => (
             <BandOption key={option} label={formatBand(option)} selected={band === option} onClick={() => saveCurrentBand(option)} />
           ))}
-          {/* The same honest answer onboarding accepts — it writes NULL
-              rather than a guessed band, and the placement assessment is
-              what resolves it. */}
           <BandOption label="Not sure" selected={band === null} onClick={() => saveCurrentBand(null)} className="col-span-3 sm:col-span-4" />
         </div>
       </EditSheet>
@@ -280,11 +452,6 @@ export function ProfileView({
       </EditSheet>
 
       <EditSheet open={editingField === "examTimeline"} title="Exam Date" onClose={() => setEditingField(null)}>
-        {/* The precise answer first. Most learners haven't booked, so the
-            buckets below stay — but anyone who HAS booked should not have
-            to translate their date into "Within 2 weeks", and a real date
-            is what turns every countdown in the product from a range into
-            a number. */}
         <label className="mb-5 block">
           <span className="mb-2 block text-sm font-semibold text-text-primary">Booked your exam?</span>
           <input
@@ -297,7 +464,6 @@ export function ProfileView({
             {bookedDate ? "Clear the date to go back to a rough timeline." : "Leave empty if you haven't booked yet."}
           </span>
         </label>
-
         <p className="mb-3 text-sm font-semibold text-text-primary">Or choose a rough timeline</p>
         <div className="flex flex-col gap-3">
           {TIMELINE_OPTIONS.map((option) => {
@@ -323,11 +489,10 @@ export function ProfileView({
         <div className="flex flex-col gap-3">
           {DAILY_TIME_OPTIONS.map((option) => {
             const selected = dailyTime === option.value;
-            const Icon = DAILY_TIME_ICON;
             return (
               <SelectableCard key={option.value} selected={selected} onClick={() => saveDailyTime(option.value)} className="flex w-full items-center gap-4 px-5 py-4">
                 <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-md", selected ? "bg-primary text-text-on-primary" : "bg-bg-muted text-text-secondary")}>
-                  <Icon className="h-5 w-5" aria-hidden="true" />
+                  <Clock className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="text-left">
                   <p className="font-medium text-text-primary">{option.label}</p>
@@ -362,18 +527,6 @@ export function ProfileView({
   );
 }
 
-/** Long-form date for the row's value — "14 Aug 2026" rather than the raw ISO string a date input stores. */
-function formatExamDate(isoDate: string): string {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-/** Band tiles are numbers, not labelled options — the value IS the label, so they get a denser grid than the icon-and-description cards above. */
 function BandOption({
   label,
   selected,

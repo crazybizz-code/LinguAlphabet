@@ -2,15 +2,12 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowRight,
   BookOpen,
-  CheckCircle2,
-  Clock,
-  Dumbbell,
+  ChevronRight,
   Headphones,
-  HelpCircle,
-  Layers,
-  Target,
+  Info,
+  Lock,
+  Mic,
 } from "lucide-react";
 import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import { buildMetadata } from "@/lib/seo/metadata";
@@ -24,40 +21,6 @@ export const metadata: Metadata = buildMetadata({
 
 const READING_WEAK_AREAS = new Set(["reading_comprehension", "reading_detail"]);
 const LISTENING_WEAK_AREAS = new Set(["listening_comprehension", "listening_detail"]);
-
-const AREA_LABELS: Record<string, string> = {
-  reading_comprehension: "Reading Comprehension",
-  reading_detail: "Reading — Detail Questions",
-  listening_comprehension: "Listening Comprehension",
-  listening_detail: "Listening — Detail Questions",
-};
-
-const COMING_SOON = [
-  {
-    id: "grammar",
-    label: "Grammar",
-    description: "Structures, expressions, and usage rules",
-    icon: Layers,
-    color: "text-purple-500",
-    bg: "bg-purple-50",
-  },
-  {
-    id: "vocabulary",
-    label: "Vocabulary",
-    description: "Word meaning, context, and collocations",
-    icon: Target,
-    color: "text-green-500",
-    bg: "bg-green-50",
-  },
-  {
-    id: "weak_area",
-    label: "Weak Area Focus",
-    description: "Personalised sessions targeting your gaps",
-    icon: Dumbbell,
-    color: "text-primary",
-    bg: "bg-primary-lighter",
-  },
-];
 
 export default async function PracticePage() {
   const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
@@ -82,40 +45,53 @@ export default async function PracticePage() {
 
   const level = profile?.english_level ?? null;
   const band = profile?.current_band ?? null;
-  const levelLabel = level
-    ? band
-      ? `${level} · Band ${band}`
-      : level
-    : band
-      ? `Band ${band}`
-      : null;
 
-  // Extract weak areas from recent practice/mock signals
   type SignalEvidence = { weakAreas?: string[] };
   const allWeakAreas = (weakAreaSignals ?? []).flatMap((s) => {
     const ev = s.evidence as SignalEvidence | null;
     return ev?.weakAreas ?? [];
   });
   const weakAreaSet = new Set([...new Set(allWeakAreas)].slice(0, 6));
-
   const readingWeakAreas = [...weakAreaSet].filter((a) => READING_WEAK_AREAS.has(a));
   const listeningWeakAreas = [...weakAreaSet].filter((a) => LISTENING_WEAK_AREAS.has(a));
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 md:py-10">
       {/* Page header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
           Practice
         </h1>
-        <p className="mt-1.5 text-sm text-text-secondary">
-          Build the skills that move your score.
+        <p className="mt-1 text-sm text-text-secondary">
+          Short, focused, skill-specific sessions to build your skills.
         </p>
       </div>
 
+      {/* Assessment context row */}
+      {(level || band !== null) && (
+        <div className="mb-5 flex flex-wrap items-center gap-2">
+          <span className="text-xs text-text-secondary">Based on your assessment</span>
+          {level && band !== null && (
+            <span className="rounded-full bg-[#0F172A] px-3 py-1 text-xs font-bold text-white">
+              Level {level} · {band.toFixed(2)}
+            </span>
+          )}
+          {readingWeakAreas.length > 0 && (
+            <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">
+              Reading focus
+            </span>
+          )}
+          {listeningWeakAreas.length > 0 && (
+            <span className="rounded-full bg-blue-500 px-3 py-1 text-xs font-bold text-white">
+              Listening focus
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Placement nudge */}
       {!profile.placement_completed && (
-        <div className="mb-6 rounded-2xl border border-border bg-primary-lighter p-5">
+        <div className="mb-5 rounded-2xl border border-border bg-primary-lighter p-5">
           <p className="text-sm font-semibold text-text-primary">Complete your placement first</p>
           <p className="mt-1 text-xs text-text-secondary">
             Placement calibrates session difficulty to your level for accurate results.
@@ -129,183 +105,129 @@ export default async function PracticePage() {
         </div>
       )}
 
-      {/* ── Active skill sections ── */}
-      <div className="space-y-4">
-
+      {/* Active practice — 2-column grid */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Reading */}
-        <div className="overflow-hidden rounded-2xl border border-border bg-bg-card shadow-sm transition-shadow hover:shadow-md">
-          {/* Card header strip */}
-          <div className="flex items-start gap-4 p-6">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50">
-              <BookOpen className="h-6 w-6 text-amber-500" aria-hidden="true" />
+        <Link
+          href="/practice/reading"
+          className="group flex flex-col gap-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50">
+              <BookOpen className="h-5 w-5 text-amber-500" aria-hidden="true" />
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg font-bold text-text-primary">Reading</h2>
-                {levelLabel && (
-                  <span className="rounded-full bg-border/60 px-2.5 py-0.5 text-[11px] font-semibold text-text-secondary">
-                    {levelLabel}
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 text-sm text-text-secondary">
-                Inference, main ideas, and detail questions
-              </p>
-            </div>
+            <ChevronRight className="h-5 w-5 text-text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </div>
-
-          {/* Session specs */}
-          <div className="flex flex-wrap gap-5 border-t border-border/40 px-6 py-3 text-xs text-text-tertiary">
-            <span className="flex items-center gap-1.5">
-              <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
-              10 questions
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-              ~15 min
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Graded instantly
-            </span>
+          <div>
+            <p className="text-base font-bold text-text-primary">Reading Practice</p>
+            <p className="mt-0.5 text-xs text-text-secondary">
+              Inference, main ideas &amp; detail questions
+            </p>
           </div>
-
-          {/* Weak area chips — only when relevant */}
-          {readingWeakAreas.length > 0 && (
-            <div className="border-t border-border/40 px-6 py-3">
-              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-tertiary">
-                Targets your weak areas
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {readingWeakAreas.map((area) => (
-                  <span
-                    key={area}
-                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary"
-                  >
-                    {AREA_LABELS[area] ?? area.replace(/_/g, " ")}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* CTA */}
-          <div className="border-t border-border/40 px-6 py-4">
-            <Link
-              href="/practice/reading"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-dark hover:shadow-glow"
-            >
-              Start Reading Practice
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+          <div className="mt-auto flex flex-wrap gap-3 text-[11px] text-text-tertiary">
+            <span>10 questions</span>
+            <span>·</span>
+            <span>~15 min</span>
+            <span>·</span>
+            <span>Graded instantly</span>
           </div>
-        </div>
+        </Link>
 
         {/* Listening */}
-        <div className="overflow-hidden rounded-2xl border border-border bg-bg-card shadow-sm transition-shadow hover:shadow-md">
-          <div className="flex items-start gap-4 p-6">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50">
-              <Headphones className="h-6 w-6 text-blue-500" aria-hidden="true" />
+        <Link
+          href="/practice/listening"
+          className="group flex flex-col gap-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50">
+              <Headphones className="h-5 w-5 text-blue-500" aria-hidden="true" />
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-lg font-bold text-text-primary">Listening</h2>
-                {levelLabel && (
-                  <span className="rounded-full bg-border/60 px-2.5 py-0.5 text-[11px] font-semibold text-text-secondary">
-                    {levelLabel}
-                  </span>
-                )}
-              </div>
-              <p className="mt-0.5 text-sm text-text-secondary">
-                Gist, detail, and comprehension questions
-              </p>
-            </div>
+            <ChevronRight className="h-5 w-5 text-text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
           </div>
-
-          <div className="flex flex-wrap gap-5 border-t border-border/40 px-6 py-3 text-xs text-text-tertiary">
-            <span className="flex items-center gap-1.5">
-              <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
-              8 questions
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-              ~15 min
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-              Audio plays once only
-            </span>
+          <div>
+            <p className="text-base font-bold text-text-primary">Listening Practice</p>
+            <p className="mt-0.5 text-xs text-text-secondary">
+              Gist, detail &amp; comprehension questions
+            </p>
           </div>
-
-          {listeningWeakAreas.length > 0 && (
-            <div className="border-t border-border/40 px-6 py-3">
-              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-tertiary">
-                Targets your weak areas
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {listeningWeakAreas.map((area) => (
-                  <span
-                    key={area}
-                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary"
-                  >
-                    {AREA_LABELS[area] ?? area.replace(/_/g, " ")}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="border-t border-border/40 px-6 py-4">
-            <Link
-              href="/practice/listening"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-dark hover:shadow-glow"
-            >
-              Start Listening Practice
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
+          <div className="mt-auto flex flex-wrap gap-3 text-[11px] text-text-tertiary">
+            <span>8 questions</span>
+            <span>·</span>
+            <span>~15 min</span>
+            <span>·</span>
+            <span>Audio once only</span>
           </div>
+        </Link>
+
+        {/* Vocabulary — Coming Soon */}
+        <div className="relative flex flex-col gap-4 rounded-2xl border border-border bg-bg-card p-5 opacity-60">
+          <div className="absolute right-4 top-4">
+            <Lock className="h-4 w-4 text-text-tertiary" aria-hidden="true" />
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-50">
+            <span className="text-lg" aria-hidden="true">📖</span>
+          </div>
+          <div>
+            <p className="text-base font-bold text-text-primary">Vocabulary</p>
+            <p className="mt-0.5 text-xs text-text-secondary">Word meaning, context &amp; collocations</p>
+          </div>
+          <span className="mt-auto text-[11px] font-semibold text-text-tertiary">Coming soon</span>
+        </div>
+
+        {/* Grammar — Coming Soon */}
+        <div className="relative flex flex-col gap-4 rounded-2xl border border-border bg-bg-card p-5 opacity-60">
+          <div className="absolute right-4 top-4">
+            <Lock className="h-4 w-4 text-text-tertiary" aria-hidden="true" />
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-50">
+            <span className="text-lg" aria-hidden="true">✍️</span>
+          </div>
+          <div>
+            <p className="text-base font-bold text-text-primary">Grammar &amp; Expressions</p>
+            <p className="mt-0.5 text-xs text-text-secondary">Structures, collocations &amp; usage rules</p>
+          </div>
+          <span className="mt-auto text-[11px] font-semibold text-text-tertiary">Coming soon</span>
         </div>
       </div>
 
-      {/* Practice vs Mock callout */}
-      <div className="mt-6 flex items-start gap-3 rounded-2xl border border-border bg-bg-muted px-5 py-4">
-        <span className="mt-0.5 text-lg" aria-hidden="true">💡</span>
-        <p className="text-xs leading-relaxed text-text-secondary">
-          <span className="font-semibold text-text-primary">Practice</span> improves a specific skill in ~15 min.{" "}
-          <span className="font-semibold text-text-primary">Mock</span> measures your full performance under exam
-          conditions.{" "}
-          <Link href="/mock" className="font-semibold text-primary hover:underline">
-            Go to Mock →
-          </Link>
-        </p>
+      {/* Weak Area Focus — full width, Coming Soon */}
+      <div className="relative mt-4 flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-5 opacity-60">
+        <div className="absolute right-4 top-4">
+          <Lock className="h-4 w-4 text-text-tertiary" aria-hidden="true" />
+        </div>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter">
+          <Mic className="h-5 w-5 text-primary" aria-hidden="true" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-bold text-text-primary">Weak Area Practice</p>
+          <p className="mt-0.5 text-xs text-text-secondary">
+            Personalised sessions targeting your specific gaps
+          </p>
+        </div>
+        <span className="shrink-0 text-[11px] font-semibold text-text-tertiary">Coming soon</span>
       </div>
 
-      {/* Coming Soon */}
-      <div className="mt-8">
-        <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
-          Coming Soon
-        </p>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {COMING_SOON.map((type) => {
-            const Icon = type.icon;
-            return (
-              <div
-                key={type.id}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-bg-card p-4 opacity-50"
-              >
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${type.bg}`}
-                >
-                  <Icon className={`h-5 w-5 ${type.color}`} aria-hidden="true" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-text-primary">{type.label}</p>
-                  <p className="mt-0.5 text-[11px] text-text-secondary">{type.description}</p>
-                </div>
-              </div>
-            );
-          })}
+      {/* How it works */}
+      <div className="mt-6 rounded-2xl border border-border bg-bg-muted p-5">
+        <div className="mb-3 flex items-center gap-2">
+          <Info className="h-4 w-4 text-text-secondary" aria-hidden="true" />
+          <p className="text-sm font-semibold text-text-primary">How it works</p>
         </div>
+        <ol className="space-y-2">
+          {[
+            "Choose a skill area (Reading or Listening)",
+            "Complete a short, timed session of 8–10 questions",
+            "Get instant feedback and accuracy score",
+            "Your weak areas update to guide your next session",
+          ].map((step, i) => (
+            <li key={i} className="flex items-start gap-3 text-xs text-text-secondary">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-border/60 text-[10px] font-bold text-text-tertiary">
+                {i + 1}
+              </span>
+              {step}
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   );

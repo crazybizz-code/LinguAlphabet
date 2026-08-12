@@ -9,6 +9,8 @@ const DEFAULT_DAILY_MINUTES = 20;
 export interface LearnerSidebarStats {
   streak: number;
   xp: number;
+  /** Derived CEFR level — null until assessed. Shown as "Est. level" in sidebar. */
+  cefrLevel: string | null;
   /** Null until reported or assessed — the row is omitted rather than showing a placeholder. */
   currentBand: number | null;
   targetBand: number | null;
@@ -57,9 +59,7 @@ export async function getLearnerSidebarStats(supabase: SupabaseClient<Database>,
   return {
     streak: learnerProfile.streak ?? 0,
     xp: learnerProfile.xp ?? 0,
-    // Bands, not CEFR. CEFR is derived and used to pitch language
-    // complexity; it isn't what the learner is working toward, so it has
-    // no business being the one level they see on every screen.
+    cefrLevel: learnerProfile.cefrLevel ?? null,
     currentBand: learnerProfile.currentBand,
     targetBand: learnerProfile.targetBand,
     dailyGoalPercent,
