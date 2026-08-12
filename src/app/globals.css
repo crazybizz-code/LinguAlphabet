@@ -1,58 +1,26 @@
 @import "tailwindcss";
 
-/* ============================================================
-   LinguABC Design Tokens
-   Ported verbatim from the approved Design Handoff v1.1 token set
-   (docs/design-system.md is the philosophy doc; the exact values below
-   are what was actually approved and shipped in Phases 01-03 of the
-   prior implementation). Do not hand-tune a value here without a
-   reason documented in a commit message.
-
-   Breakpoints are intentionally desktop-first (see docs/coding-standards.md
-   for the full explanation): base/unprefixed styles target the 1440px
-   desktop canvas, and narrower tiers override via Tailwind's max-width
-   variants (max-xl:, max-lg:, max-md:) rather than the min-width
-   mobile-first convention Tailwind ships with by default.
-     Desktop: 1440px+   (base, no variant)
-     Laptop:  1024-1439px -> max-xl:
-     Tablet:  768-1023px  -> max-lg:
-     Mobile:  <768px      -> max-md:
-   ============================================================ */
 @theme {
-  /* ---- Breakpoints (desktop-first via max-*) ---- */
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1440px;
 
-  /* ---- Colors ----
-     Brand scale ported from the approved Base44 export (single source of
-     truth for the current implementation phase): 50/100/400/500/600. */
-  --color-primary-lighter: #FFF4EB;  /* 50 */
-  --color-primary-light: #FFE6D1;    /* 100 */
-  --color-primary-focus: #FF8A33;    /* 400 — input focus border/ring */
-  --color-primary: #FF6B00;          /* 500 */
-  --color-primary-dark: #E65F00;     /* 600 — hover */
-  /* 700 — the brand orange darkened just far enough to clear WCAG AA as
-     TEXT on a light surface (5.18:1 on white; --color-primary itself is
-     2.86:1 and cannot pass at any weight). Same hue family, so small
-     informational text reads as brand rather than as a second color.
-     For fills, borders and large display type keep --color-primary; this
-     token is for small text on white/muted surfaces only. */
-  --color-primary-strong: #C2410C;   /* 700 — AA-safe text on light */
+  --color-primary-lighter: #FFF4EB;
+  --color-primary-light: #FFE6D1;
+  --color-primary-focus: #FF8A33;
+  --color-primary: #FF6B00;
+  --color-primary-dark: #E65F00;
+  --color-primary-strong: #C2410C;
   --color-primary-soft: rgba(255, 107, 0, 0.15);
   --color-primary-soft-2: rgba(255, 107, 0, 0.06);
 
-  --color-bg: #FFFDFB;
+  --color-bg: #FFFFFF;
   --color-bg-card: #FFFFFF;
-  /** Muted surface — input fills, auth-screen gradient endpoint (Base44's slate-50). */
   --color-bg-muted: #F8FAFC;
-  --color-bg-dark: #1A1A2E;
-  --color-bg-dark-card: #252540;
-  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  --color-bg-dark: #0F172A;
+  --color-bg-dark-card: #1E293B;
+  --color-bg-overlay: rgba(15, 23, 42, 0.45);
 
-  /* text-primary/secondary/tertiary use Base44's exact slate values
-     (verified against its compiled CSS, not just class names) — a
-     cooler blue-gray than this token set's original plain-gray values. */
   --color-text-primary: #0F172A;
   --color-text-secondary: #64748B;
   --color-text-tertiary: #94A3B8;
@@ -60,8 +28,8 @@
   --color-text-on-dark: #FFFFFF;
   --color-text-on-dark-2: rgba(255, 255, 255, 0.7);
 
-  --color-border: #E5E7EB;
-  --color-border-light: #E5E7EB;
+  --color-border: #F1F5F9;
+  --color-border-light: #F1F5F9;
   --color-border-selected: #FF6B00;
 
   --color-success: #34C759;
@@ -69,10 +37,8 @@
   --color-warning: #FF9500;
   --color-danger: #FF3B30;
   --color-info: #007AFF;
-
   --color-focus-ring: rgba(255, 107, 0, 0.40);
 
-  /* CEFR level accents */
   --color-level-a1: #34C759;
   --color-level-a2: #30B0C7;
   --color-level-b1: #007AFF;
@@ -80,71 +46,39 @@
   --color-level-c1: #FF9500;
   --color-level-c2: #FFCC00;
 
-  /* Dashboard metric accents */
   --color-metric-level: #34C759;
   --color-metric-goal: #AF52DE;
   --color-metric-time: #FF6B00;
   --color-metric-progress: #30B0C7;
-
-  /* Category accents (not phase-specified; retained from prior scale) */
   --color-cat-1: #FFD166;
   --color-cat-2: #06D6A0;
   --color-cat-3: #118AB2;
   --color-cat-4: #EF476F;
   --color-cat-5: #8338EC;
 
-  /* ---- Border radius ----
-     lg/card updated to the exact pixel values rendered by the approved
-     Base44 export (verified against its compiled CSS, not just its class
-     names — Base44's own rounded-2xl/3xl aren't Tailwind's stock 2xl/3xl
-     either): rounded-xl -> 12px (icon-avatar chips), rounded-2xl -> 24px
-     (buttons, inputs, choice-cards, stat-tiles), rounded-3xl -> 32px
-     (large bordered sections). */
   --radius-xs: 6px;
   --radius-sm: 10px;
-  --radius-md: 12px;   /* icon-avatar chips */
-  --radius-lg: 24px;   /* button, input, choice-card */
+  --radius-md: 12px;
+  --radius-lg: 24px;
   --radius-xl: 28px;
   --radius-2xl: 36px;
   --radius-full: 9999px;
-  --radius-card: 32px; /* large bordered sections */
+  --radius-card: 32px;
   --radius-sheet: 32px;
-  /* IELTS onboarding choice cards + name input. Base44 uses Tailwind's
-     stock `rounded-2xl` (16px) there, but this project deliberately
-     overrides --radius-2xl to 36px, so writing `rounded-2xl` would render
-     more than twice the intended curve. A distinctly-named key avoids
-     both the collision and a scattering of arbitrary `rounded-[16px]`. */
   --radius-choice: 16px;
 
-  /* ---- Shadows ---- */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.10), 0 4px 8px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.08);
-  --shadow-player: 0 -4px 24px rgba(0, 0, 0, 0.12);
-  --shadow-card-ambient: 0 12px 32px rgba(0, 0, 0, 0.04);   /* auth, level, goal, time */
-  --shadow-card-hero: 0 16px 40px rgba(0, 0, 0, 0.05);        /* welcome, confidence, ai-plan, dashboard */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 20px 60px rgba(15, 23, 42, 0.15), 0 8px 16px rgba(15, 23, 42, 0.08);
+  --shadow-player: 0 -4px 24px rgba(15, 23, 42, 0.12);
+  --shadow-card-ambient: 0 12px 32px rgba(15, 23, 42, 0.04);
+  --shadow-card-hero: 0 16px 40px rgba(15, 23, 42, 0.05);
   --shadow-card-selected: 0 8px 24px rgba(255, 107, 0, 0.15);
   --shadow-button-hover: 0 8px 20px rgba(255, 107, 0, 0.25);
-  --shadow-glow: 0 8px 32px -8px rgba(255, 107, 0, 0.25);    /* primary CTA, always-on per Base44 */
-  --shadow-soft: 0 4px 24px -8px rgba(15, 23, 42, 0.08), 0 2px 8px -2px rgba(15, 23, 42, 0.04);
+  --shadow-glow: 0 8px 32px -8px rgba(255, 107, 0, 0.25);
+  --shadow-soft: 0 8px 40px -8px rgba(15, 23, 42, 0.12);
 
-  /* ---- Spacing (8pt baseline grid) ----
-     No custom --spacing-* keys here on purpose: Tailwind v4 resolves
-     named max-width, width, and height utilities against the
-     --spacing-* namespace, so overriding it with letter-named keys
-     (xs/sm/md/lg/xl/2xl/3xl) silently hijacks those defaults (e.g.
-     max-w-md would resolve to 16px instead of ~448px). The approved
-     8pt-grid values are exact multiples of Tailwind's default 4px base
-     unit, so use the native numeric scale instead: xs=1 (4px),
-     sm=2 (8px), md=4 (16px), lg=6 (24px), xl=9 (36px), 2xl=12 (48px),
-     3xl=16 (64px). See docs/coding-standards.md for the full mapping. */
-
-  /* ---- Typography ----
-     --font-sans-loaded (Inter, body) and --font-heading-loaded (Plus
-     Jakarta Sans, headings) are set by next/font/google in layout.tsx —
-     self-hosted at build time, not a runtime Google Fonts request. Both
-     fall back to the system stack if the variable isn't present. */
   --font-sans: var(--font-sans-loaded), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-heading: var(--font-heading-loaded), var(--font-sans-loaded), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
@@ -154,13 +88,13 @@
   --text-heading--line-height: 1.25;
   --text-display: 32px;
   --text-display--line-height: 1.2;
-  --text-display--letter-spacing: -0.02em;
+  --text-display--letter-spacing: 0;
   --text-h1: 24px;
   --text-h1--line-height: 1.25;
-  --text-h1--letter-spacing: -0.01em;
+  --text-h1--letter-spacing: 0;
   --text-h2: 20px;
   --text-h2--line-height: 1.25;
-  --text-h2--letter-spacing: -0.01em;
+  --text-h2--letter-spacing: 0;
   --text-h3: 16px;
   --text-h3--line-height: 1.25;
   --text-body: 16px;
@@ -177,19 +111,16 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
-  /* ---- Motion ---- */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-push: cubic-bezier(0.32, 0.72, 0, 1);
-
   --duration-fast: 150ms;
   --duration-normal: 250ms;
   --duration-slow: 400ms;
   --duration-push: 450ms;
 }
 
-/* ======================== BASE RESET ======================== */
 *,
 *::before,
 *::after {
@@ -217,16 +148,11 @@ img {
   max-width: 100%;
 }
 
-/* accessibility.md: "Focus Indicators: 3px outer ring
-   (rgba(255, 107, 0, 0.40)) on all interactive controls." Global, not
-   per-component, since it applies to every focusable element. */
 :focus-visible {
   outline: 3px solid var(--color-focus-ring);
   outline-offset: 2px;
 }
 
-/* Horizontal chip rows (Knowledge Hub selector, ...) scroll on overflow
-   without a visible scrollbar cluttering the premium visual language. */
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
