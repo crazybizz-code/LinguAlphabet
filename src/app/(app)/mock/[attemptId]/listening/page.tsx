@@ -31,7 +31,7 @@ export default async function MockListeningPage({ params }: Props) {
   const service = createServiceClient();
   const { data: rawQuestions } = await service
     .from("assessment_questions")
-    .select("id, skill, type, difficulty, audio_url, question, options, section_instruction, question_instruction, audio_instruction")
+    .select("id, skill, type, difficulty, audio_url, question, options")
     .in("id", questionIds);
 
   const { data: responses } = await supabase
@@ -52,7 +52,6 @@ export default async function MockListeningPage({ params }: Props) {
   type RawQ = {
     id: string; skill: string; type: string; difficulty: string;
     audio_url: string | null; question: string; options: unknown;
-    section_instruction: string | null; question_instruction: string | null; audio_instruction: string | null;
   };
 
   const questions: ClientQuestion[] = questionIds
@@ -70,9 +69,11 @@ export default async function MockListeningPage({ params }: Props) {
       question: q.question,
       options: Array.isArray(q.options) ? (q.options as string[]) : null,
       sequenceNumber: i + 1,
-      sectionInstruction: q.section_instruction ?? null,
-      questionInstruction: q.question_instruction ?? null,
-      audioInstruction: q.audio_instruction ?? null,
+      // section_instruction/question_instruction/audio_instruction don't
+      // exist in the live DB — see src/lib/assessment/engine.ts.
+      sectionInstruction: null,
+      questionInstruction: null,
+      audioInstruction: null,
     }));
 
   return (

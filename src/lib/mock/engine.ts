@@ -70,7 +70,7 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
   const supabase = createServiceClient();
   const { data } = await supabase
     .from("assessment_questions")
-    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation, section_instruction, question_instruction, audio_instruction")
+    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation")
     .in("id", ids);
 
   if (!data) return [];
@@ -79,7 +79,6 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
     id: string; skill: string; type: string; difficulty: string;
     passage: string | null; passage_title: string | null; audio_url: string | null;
     question: string; options: unknown; correct_answer: string; explanation: string | null;
-    section_instruction: string | null; question_instruction: string | null; audio_instruction: string | null;
   };
   const byId = new Map((data as QRow[]).map((q) => [q.id, q]));
 
@@ -99,9 +98,11 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
       options: Array.isArray(q.options) ? (q.options as string[]) : null,
       correctAnswer: "",          // never sent to client
       explanation: null,           // never sent to client
-      sectionInstruction: q.section_instruction ?? null,
-      questionInstruction: q.question_instruction ?? null,
-      audioInstruction: q.audio_instruction ?? null,
+      // section_instruction/question_instruction/audio_instruction don't
+      // exist in the live DB — see src/lib/assessment/engine.ts.
+      sectionInstruction: null,
+      questionInstruction: null,
+      audioInstruction: null,
     }));
 }
 
