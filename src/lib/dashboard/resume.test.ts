@@ -34,6 +34,7 @@ describe("buildResumeStrip", () => {
       href: "/podcast/orphan/learn",
       percentage: 25,
       minutesLeft: 15,
+      secondsLeft: 900,
     });
   });
 
@@ -65,6 +66,7 @@ describe("buildResumeStrip", () => {
       href: "/article/read-me/learn",
       percentage: null,
       minutesLeft: null,
+      secondsLeft: null,
     });
   });
 

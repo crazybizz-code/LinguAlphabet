@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 
 const AREA_LABELS: Record<string, string> = {
@@ -25,10 +25,7 @@ export function WeakAreasCard({ weakAreas }: { weakAreas: string[] }) {
   return (
     <section className="mt-5 px-5 sm:px-8">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-primary" aria-hidden="true" />
-          <h2 className="text-sm font-semibold text-text-primary">Weak Areas</h2>
-        </div>
+        <h2 className="text-sm font-semibold text-text-primary">Weak Areas</h2>
         <Link
           href="/practice"
           className="text-xs font-semibold text-primary hover:underline"
@@ -37,20 +34,23 @@ export function WeakAreasCard({ weakAreas }: { weakAreas: string[] }) {
         </Link>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {weakAreas.slice(0, 3).map((area) => (
-          <div
-            key={area}
-            className="flex items-center justify-between rounded-xl bg-[#FF6B00]/[.06] p-3"
-          >
-            <span className="text-sm font-medium text-text-primary">
-              {AREA_LABELS[area] ?? area.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-            </span>
-            <span className="rounded-full bg-[#FF6B00]/[.12] px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-              {AREA_PILL[area] ?? "Mixed"}
-            </span>
-          </div>
-        ))}
+      <div className="rounded-2xl border border-border bg-bg-card p-5 shadow-sm">
+        <div className="flex flex-col gap-2">
+          {weakAreas.slice(0, 3).map((area) => (
+            <div
+              key={area}
+              className="flex items-center justify-between rounded-xl bg-[#FF6B00]/[.06] p-3"
+            >
+              <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
+                <CircleAlert className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                {AREA_LABELS[area] ?? area.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              </span>
+              <span className="rounded-full bg-[#FF6B00]/[.12] px-2.5 py-0.5 text-[11px] font-semibold uppercase text-primary">
+                {AREA_PILL[area] ?? "Mixed"}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -16,6 +16,8 @@ export interface ResumeStrip {
   percentage: number | null;
   /** Whole minutes remaining, podcasts only. */
   minutesLeft: number | null;
+  /** Whole seconds remaining, podcasts only — for mm:ss display. */
+  secondsLeft: number | null;
 }
 
 /**
@@ -59,5 +61,6 @@ export function buildResumeStrip(params: {
     href: missionHref(content),
     percentage: hasDuration ? Math.min(100, (positionSeconds / durationSeconds) * 100) : null,
     minutesLeft: hasDuration ? Math.max(0, Math.round((durationSeconds - positionSeconds) / 60)) : null,
+    secondsLeft: hasDuration ? Math.max(0, Math.round(durationSeconds - positionSeconds)) : null,
   };
 }

@@ -12,7 +12,9 @@ import {
   BookCheck,
   ListChecks,
   CheckCircle2,
-  FileText,
+  Clock,
+  ArrowRight,
+  Target,
 } from "lucide-react";
 import { ContinueLearningCard } from "@/components/dashboard/ContinueLearningCard";
 import { HeroLevelCard } from "@/components/dashboard/HeroLevelCard";
@@ -113,6 +115,13 @@ function firstIncompleteLink(tasks: TodayPlanDay["tasks"]): string | null {
       if (PODCAST_TASK_TYPES.has(task.taskType)) return `/podcast/${task.contentItemId}/learn`;
       if (ARTICLE_TASK_TYPES.has(task.taskType)) return `/article/${task.contentItemId}/learn`;
     }
+    // No specific content item yet -- the Learning Brain assigns one when
+    // the learner opens the day (see planning/generator.ts), so a fresh
+    // plan's tasks are content-less at generation time. Route to the real
+    // existing destination for the task's purpose instead of a dead end;
+    // "/practice" mirrors the same fallback MonthlyPlanView already uses.
+    if (task.taskType === "vocabulary" || task.taskType === "review") return "/review";
+    if (ARTICLE_TASK_TYPES.has(task.taskType)) return "/practice";
     return null;
   }
   return null;
@@ -158,8 +167,11 @@ export function HomeView({
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className={`truncate text-sm font-semibold ${task.completed ? "line-through text-text-secondary" : "text-text-primary"}`}>{task.title}</p>
-                      <p className="text-xs text-text-tertiary">{task.estimatedMinutes ?? 0} min</p>
                     </div>
+                    <span className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                      {task.estimatedMinutes ?? 0}m
+                    </span>
                   </li>
                 );
               })}
@@ -191,19 +203,28 @@ export function HomeView({
 
       {recommendations.length > 0 && (
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.35 }} className="mt-4 px-5 sm:px-8">
-          <h2 className="mb-3 text-sm font-semibold text-text-primary">Recommendations</h2>
-          <div className="space-y-3">
+          <div className="mb-3 flex items-center gap-2">
+            <Target className="h-4 w-4 text-primary" aria-hidden="true" />
+            <h2 className="text-sm font-semibold text-text-primary">Recommended for your target band</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {recommendations.slice(0, 3).map((rec) => {
               const isPodcast = rec.item.contentType === "podcast";
               const href = isPodcast ? `/podcast/${rec.item.id}/learn` : `/article/${rec.item.id}/learn`;
-              const Icon = isPodcast ? Headphones : FileText;
+              const emoji = isPodcast ? "🎧" : "📄";
+              const typeLabel = isPodcast ? "PODCAST" : "ARTICLE";
               return (
-                <div key={rec.item.id} className="rounded-2xl border border-border bg-bg-card p-4 shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-primary"><Icon className="h-5 w-5" aria-hidden="true" /></span>
-                    <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-text-primary">{rec.item.title}</p><p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">{rec.reason}</p></div>
-                    <Link href={href} className="shrink-0 text-xs font-semibold text-primary hover:underline">Start</Link>
-                  </div>
+                <div key={rec.item.id} className="flex flex-col gap-2 rounded-2xl border border-border bg-bg-card p-4 shadow-sm">
+                  <span className="inline-flex w-fit items-center gap-1 rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                    <span aria-hidden="true">{emoji}</span>
+                    {typeLabel}
+                  </span>
+                  <p className="text-sm font-semibold text-text-primary">{rec.item.title}</p>
+                  <p className="line-clamp-2 text-xs text-text-secondary">{rec.reason}</p>
+                  <Link href={href} className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                    Start
+                    <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                  </Link>
                 </div>
               );
             })}
