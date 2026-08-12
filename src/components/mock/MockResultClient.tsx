@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { CheckCircle, BookOpen, Headphones, TrendingUp, RotateCcw } from "lucide-react";
+import {
+  BookOpen,
+  CalendarClock,
+  CheckCircle,
+  Headphones,
+  RotateCcw,
+  TrendingUp,
+} from "lucide-react";
 
 const LEVEL_COLORS: Record<string, string> = {
   A1: "#34C759",
@@ -12,6 +19,18 @@ const LEVEL_COLORS: Record<string, string> = {
   C1: "#FF9500",
   C2: "#FFCC00",
 };
+
+const AREA_LABELS: Record<string, string> = {
+  reading_comprehension: "Reading Comprehension",
+  reading_detail: "Reading — Detail Questions",
+  listening_comprehension: "Listening Comprehension",
+  listening_detail: "Listening — Detail Questions",
+  grammar: "Grammar",
+  vocabulary: "Vocabulary",
+};
+
+const READING_WEAK_AREAS = new Set(["reading_comprehension", "reading_detail"]);
+const LISTENING_WEAK_AREAS = new Set(["listening_comprehension", "listening_detail"]);
 
 interface Props {
   attemptId: string;
@@ -25,6 +44,8 @@ interface Props {
   estimatedBand: number;
   resultCefrLevel: string;
   targetCefrLevel: string;
+  weakAreas: string[];
+  nextMockDate: string | null;
 }
 
 function ScoreBar({ pct, color }: { pct: number; color: string }) {
@@ -48,6 +69,13 @@ function feedbackMessage(pct: number): string {
   return "Keep going — every mock reveals exactly what to work on next.";
 }
 
+function areaLabel(area: string): string {
+  return (
+    AREA_LABELS[area] ??
+    area.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
+
 export function MockResultClient({
   readingCorrect,
   readingTotal,
@@ -59,9 +87,22 @@ export function MockResultClient({
   estimatedBand,
   resultCefrLevel,
   targetCefrLevel,
+  weakAreas,
+  nextMockDate,
 }: Props) {
   const levelColor = LEVEL_COLORS[resultCefrLevel] ?? "#FF6B00";
   const roundedBand = estimatedBand.toFixed(1);
+
+  const readingWeakAreas = weakAreas.filter((a) => READING_WEAK_AREAS.has(a));
+  const listeningWeakAreas = weakAreas.filter((a) => LISTENING_WEAK_AREAS.has(a));
+  const weaker =
+    readingWeakAreas.length > 0 && listeningWeakAreas.length === 0
+      ? "reading"
+      : listeningWeakAreas.length > 0 && readingWeakAreas.length === 0
+        ? "listening"
+        : readingScorePct < listeningScorePct
+          ? "reading"
+          : "listening";
 
   return (
     <div className="mx-auto max-w-2xl px-5 py-10 sm:px-8">
@@ -104,7 +145,10 @@ export function MockResultClient({
               <span>Overall score</span>
               <span className="font-bold text-white">{Math.round(overallScorePct)}%</span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.1)" }}>
+            <div
+              className="h-2 w-full overflow-hidden rounded-full"
+              style={{ background: "rgba(255,255,255,0.1)" }}
+            >
               <motion.div
                 className="h-full rounded-full bg-primary"
                 initial={{ width: 0 }}
@@ -170,12 +214,75 @@ export function MockResultClient({
         </div>
       </motion.div>
 
+      {/* Weak areas */}
+      {weakAreas.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="mb-6 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
+        >
+          <h2 className="mb-3 text-sm font-semibold text-text-primary">Focus areas</h2>
+          <div className="flex flex-wrap gap-2">
+            {weakAreas.map((area) => (
+              <span
+                key={area}
+                className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+              >
+                {areaLabel(area)}
+              </span>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-text-secondary">
+            Based on your recent practice and this mock.{" "}
+            <Link href="/practice" className="font-semibold text-primary hover:underline">
+              Practice these areas →
+            </Link>
+          </p>
+        </motion.div>
+      )}
+
+      {/* What to practice next */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.18 }}
+        className="mb-6 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
+      >
+        <h2 className="mb-3 text-sm font-semibold text-text-primary">What to practice next</h2>
+        <div className="space-y-2">
+          <Link
+            href={`/practice/${weaker}`}
+            className="flex items-center gap-3 rounded-xl bg-primary/[.07] px-4 py-3 transition-colors hover:bg-primary/[.12]"
+          >
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              {weaker === "listening" ? (
+                <Headphones className="h-4 w-4 text-primary" aria-hidden="true" />
+              ) : (
+                <BookOpen className="h-4 w-4 text-primary" aria-hidden="true" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-text-primary capitalize">
+                {weaker} Practice
+              </p>
+              <p className="text-[11px] text-text-secondary">
+                {weaker === "reading"
+                  ? `Reading scored ${Math.round(readingScorePct)}% — targeted practice will close the gap`
+                  : `Listening scored ${Math.round(listeningScorePct)}% — targeted practice will close the gap`}
+              </p>
+            </div>
+            <span className="shrink-0 text-xs font-semibold text-primary">Start →</span>
+          </Link>
+        </div>
+      </motion.div>
+
       {/* Target comparison */}
       {targetCefrLevel && resultCefrLevel !== targetCefrLevel && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.15 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
           className="mb-6 rounded-2xl border border-primary/20 bg-primary-lighter px-6 py-4"
         >
           <p className="text-sm text-text-secondary">
@@ -186,11 +293,27 @@ export function MockResultClient({
         </motion.div>
       )}
 
+      {/* Next mock timing */}
+      {nextMockDate && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.22 }}
+          className="mb-6 flex items-center gap-3 rounded-2xl border border-border bg-bg-card px-5 py-4 shadow-sm"
+        >
+          <CalendarClock className="h-5 w-5 shrink-0 text-text-secondary" aria-hidden="true" />
+          <p className="text-sm text-text-secondary">
+            <span className="font-semibold text-text-primary">Next recommended mock: </span>
+            {nextMockDate}
+          </p>
+        </motion.div>
+      )}
+
       {/* Actions */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
+        transition={{ duration: 0.4, delay: 0.25 }}
         className="flex flex-col gap-3 sm:flex-row"
       >
         <Link
