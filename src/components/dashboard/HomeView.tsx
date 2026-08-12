@@ -11,6 +11,7 @@ import {
   BookCheck,
   ListChecks,
   CheckCircle2,
+  FileText,
 } from "lucide-react";
 import { ContinueLearningCard } from "@/components/dashboard/ContinueLearningCard";
 import { HeroLevelCard } from "@/components/dashboard/HeroLevelCard";
@@ -28,8 +29,6 @@ export interface HomeRecommendation {
   reason: string;
 }
 
-// Keep the full props interface so dashboard/page.tsx doesn't need changes.
-// Only a subset is rendered — the rest is preserved for backward compatibility.
 export interface HomeViewProps {
   displayName: string;
   streak: number;
@@ -55,9 +54,9 @@ export interface HomeViewProps {
 }
 
 function timeOfDayGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
   return "Good evening";
 }
 
@@ -91,7 +90,6 @@ function firstIncompleteLink(tasks: TodayPlanDay["tasks"]): string | null {
 
 export function HomeView({
   displayName,
-  streak,
   cefrLevel,
   currentBand,
   targetBand,
@@ -104,253 +102,88 @@ export function HomeView({
   latestMockListening,
 }: HomeViewProps) {
   return (
-    <div className="mx-auto max-w-3xl">
-      {/* ── Hero level card ── */}
-      <HeroLevelCard
-        cefrLevel={cefrLevel}
-        currentBand={currentBand}
-        targetBand={targetBand}
-        placementCompleted={placementCompleted}
-        reading={latestMockReading}
-        listening={latestMockListening}
-      />
+    <div className="mx-auto max-w-3xl py-8 md:py-10">
+      <header className="mb-5 px-5 sm:px-8">
+        <p className="text-sm font-semibold text-text-secondary">{timeOfDayGreeting()}, {displayName}</p>
+        <h1 className="mt-1 text-2xl font-bold text-text-primary sm:text-3xl">Ready for today's English?</h1>
+      </header>
 
-      {/* ── Today's Plan ── */}
+      <HeroLevelCard cefrLevel={cefrLevel} currentBand={currentBand} targetBand={targetBand} placementCompleted={placementCompleted} reading={latestMockReading} listening={latestMockListening} />
+
       {todayPlan && todayPlan.tasks.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-4 px-5 sm:px-8"
-        >
+        <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mt-4 px-5 sm:px-8">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-primary">{"Today’s Plan"}</h2>
-            <Link href="/plan" className="text-xs font-medium text-primary hover:underline">
-              View Full Plan
-            </Link>
+            <h2 className="text-sm font-semibold text-text-primary">Today's Plan</h2>
+            <Link href="/plan" className="text-xs font-semibold text-primary hover:underline">View Full Plan</Link>
           </div>
-          <div className="rounded-2xl border border-border bg-bg-card p-4 shadow-sm">
+          <div className="rounded-[2rem] border border-border bg-bg-card p-5 shadow-sm sm:p-6">
             <ul className="space-y-2">
               {todayPlan.tasks.map((task) => {
                 const Icon = TASK_ICONS[task.taskType] ?? ListChecks;
                 return (
-                  <li key={task.id} className="flex items-center gap-3">
-                    <span
-                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
-                        task.completed
-                          ? "bg-success/10 text-success"
-                          : "bg-border/40 text-text-secondary"
-                      }`}
-                    >
-                      {task.completed ? (
-                        <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                      ) : (
-                        <Icon className="h-4 w-4" aria-hidden="true" />
-                      )}
+                  <li key={task.id} className="flex items-center gap-3 rounded-xl border border-border bg-bg-muted p-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-primary">
+                      {task.completed ? <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> : <Icon className="h-5 w-5" aria-hidden="true" />}
                     </span>
-                    <span
-                      className={`flex-1 text-sm ${
-                        task.completed
-                          ? "line-through text-text-secondary"
-                          : "text-text-primary"
-                      }`}
-                    >
-                      {task.title}
-                    </span>
-                    {task.estimatedMinutes !== null && (
-                      <span className="shrink-0 rounded-full bg-border/60 px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
-                        {task.estimatedMinutes}m
-                      </span>
-                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className={`truncate text-sm font-semibold ${task.completed ? "line-through text-text-secondary" : "text-text-primary"}`}>{task.title}</p>
+                      <p className="text-xs text-text-tertiary">{task.estimatedMinutes ?? 0} min</p>
+                    </div>
                   </li>
                 );
               })}
             </ul>
-            <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-3">
-              <span className="text-xs text-text-secondary">
-                {todayPlan.tasks.reduce((s, t) => s + (t.estimatedMinutes ?? 0), 0)} min total
-              </span>
+            <div className="mt-5 flex items-center justify-between">
+              <p className="text-xs font-medium text-text-tertiary">Total: {todayPlan.tasks.reduce((sum, task) => sum + (task.estimatedMinutes ?? 0), 0)} min</p>
               {(() => {
                 const link = firstIncompleteLink(todayPlan.tasks);
-                return link ? (
-                  <Link
-                    href={link}
-                    className="rounded-full bg-[#0F172A] px-4 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-80"
-                  >
-                    Continue
-                  </Link>
-                ) : (
-                  <span className="rounded-full bg-border px-4 py-1.5 text-xs font-semibold text-text-tertiary cursor-not-allowed">
-                    Continue
-                  </span>
-                );
+                return link ? <Link href={link} className="rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-glow">Continue</Link> : <span className="rounded-2xl bg-border px-6 py-3 text-sm font-bold text-text-tertiary">Continue</span>;
               })()}
             </div>
           </div>
-        </motion.div>
+        </motion.section>
       )}
 
-      {/* ── Continue Learning ── */}
       {resume && <ContinueLearningCard resume={resume} />}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }}><PracticeAssessGrid /></motion.div>
+      {weakAreas.length > 0 && <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}><WeakAreasCard weakAreas={weakAreas} /></motion.div>}
 
-      {/* ── Practice & Assess ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.15 }}
-      >
-        <PracticeAssessGrid />
-      </motion.div>
-
-      {/* ── Weak Areas ── */}
-      {weakAreas.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <WeakAreasCard weakAreas={weakAreas} />
-        </motion.div>
-      )}
-
-      {/* ── Progress mini ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="mt-4 px-5 sm:px-8"
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-text-primary">Progress</h2>
-          <Link href="/progress" className="text-xs font-medium text-primary hover:underline">
-            View all →
-          </Link>
-        </div>
+      <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3 }} className="mt-4 px-5 sm:px-8">
+        <div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold text-text-primary">Progress</h2><Link href="/progress" className="text-xs font-semibold text-primary hover:underline">View all</Link></div>
         <div className="space-y-3 rounded-2xl border border-border bg-bg-card p-4 shadow-sm">
-          {latestMockReading && latestMockListening && (
-            <div className="space-y-2">
-              {(
-                [
-                  { label: "Reading", pct: latestMockReading.scorePct },
-                  { label: "Listening", pct: latestMockListening.scorePct },
-                ] as const
-              ).map(({ label, pct }) => (
-                <div key={label}>
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-xs text-text-secondary">{label}</span>
-                    <span className="text-xs font-semibold text-text-primary">
-                      {Math.round(pct)}%
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-border">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${Math.min(100, Math.round(pct))}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          {(cefrLevel || currentBand !== null) && (
-            <div className="flex flex-wrap items-center gap-2">
-              {cefrLevel && (
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                  {cefrLevel}
-                </span>
-              )}
-              {currentBand !== null && (
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                  Band {currentBand}
-                </span>
-              )}
-            </div>
-          )}
-          {!latestMockReading && !latestMockListening && cefrLevel === null && currentBand === null && (
-            <p className="text-xs text-text-secondary">
-              Complete your first mock to see score results here.
-            </p>
-          )}
-          <div className="pt-0.5">
-            <Link href="/mock" className="text-xs font-medium text-primary hover:underline">
-              Next assessment →
-            </Link>
-          </div>
+          {latestMockReading && latestMockListening ? ([{ label: "Reading", pct: latestMockReading.scorePct }, { label: "Listening", pct: latestMockListening.scorePct }] as const).map(({ label, pct }) => (
+            <div key={label}><div className="mb-1 flex items-center justify-between"><span className="text-xs text-text-secondary">{label}</span><span className="text-xs font-semibold text-text-primary">{Math.round(pct)}%</span></div><div className="h-1.5 w-full rounded-full bg-border"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Math.round(pct))}%` }} /></div></div>
+          )) : <p className="text-xs text-text-secondary">Complete your first mock to see score results here.</p>}
+          <Link href="/mock" className="text-xs font-semibold text-primary hover:underline">Next assessment</Link>
         </div>
-      </motion.div>
+      </motion.section>
 
-      {/* ── Recommendations ── */}
       {recommendations.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-          className="mt-4 px-5 sm:px-8"
-        >
-          <h2 className="mb-3 text-sm font-semibold text-text-primary">
-            Recommended for your level
-          </h2>
+        <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.35 }} className="mt-4 px-5 sm:px-8">
+          <h2 className="mb-3 text-sm font-semibold text-text-primary">Recommendations</h2>
           <div className="space-y-3">
             {recommendations.slice(0, 3).map((rec) => {
               const isPodcast = rec.item.contentType === "podcast";
-              const href = isPodcast
-                ? `/podcast/${rec.item.id}/learn`
-                : `/article/${rec.item.id}/learn`;
+              const href = isPodcast ? `/podcast/${rec.item.id}/learn` : `/article/${rec.item.id}/learn`;
+              const Icon = isPodcast ? Headphones : FileText;
               return (
-                <div
-                  key={rec.item.id}
-                  className="rounded-2xl border border-border bg-bg-card p-4 shadow-sm"
-                >
+                <div key={rec.item.id} className="rounded-2xl border border-border bg-bg-card p-4 shadow-sm">
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 text-xl" aria-hidden="true">
-                      {isPodcast ? "🎙️" : "📄"}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="rounded-full bg-border/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
-                          {rec.item.contentType}
-                        </span>
-                      </div>
-                      <p className="truncate text-sm font-semibold text-text-primary">
-                        {rec.item.title}
-                      </p>
-                      <p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">
-                        {rec.reason}
-                      </p>
-                    </div>
-                    <Link
-                      href={href}
-                      className="mt-0.5 shrink-0 text-xs font-semibold text-primary hover:underline"
-                    >
-                      Start →
-                    </Link>
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-primary"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                    <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-text-primary">{rec.item.title}</p><p className="mt-0.5 line-clamp-2 text-xs text-text-secondary">{rec.reason}</p></div>
+                    <Link href={href} className="shrink-0 text-xs font-semibold text-primary hover:underline">Start</Link>
                   </div>
                 </div>
               );
             })}
           </div>
-        </motion.div>
+        </motion.section>
       )}
 
-      {/* ── View Full Plan strip ── */}
       {placementCompleted && (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="mb-10 mt-4 px-5 sm:px-8"
-        >
-          <Link
-            href="/plan"
-            className="flex items-center justify-between rounded-2xl border border-border bg-bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
-          >
-            <div>
-              <p className="text-sm font-bold text-text-primary">View Full Plan</p>
-              <p className="text-xs text-text-secondary">Your 28-day personalised path</p>
-            </div>
-            <ChevronRight className="h-5 w-5 text-text-tertiary" aria-hidden="true" />
-          </Link>
-        </motion.div>
+        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.25 }} className="mb-10 mt-4 px-5 sm:px-8">
+          <Link href="/plan" className="flex items-center justify-between rounded-2xl border border-border bg-bg-card p-4 shadow-sm transition-shadow hover:shadow-md"><div><p className="text-sm font-bold text-text-primary">View Full Plan</p><p className="text-xs text-text-secondary">Your 28-day personalised path</p></div><ChevronRight className="h-5 w-5 text-text-tertiary" aria-hidden="true" /></Link>
+        </motion.section>
       )}
     </div>
   );
