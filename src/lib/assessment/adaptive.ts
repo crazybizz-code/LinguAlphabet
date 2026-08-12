@@ -75,13 +75,62 @@ export type QuestionPool = {
   difficulty: CefrLevel;
 };
 
+function hasAvailable(
+  skill: AssessmentSkill,
+  pool: QuestionPool[],
+  answeredIds: Set<string>,
+): boolean {
+  return pool.some((q) => q.skill === skill && !answeredIds.has(q.id));
+}
+
+/**
+ * Find the closest available difficulty level to targetIdx for the given
+ * skill, expanding outward one level at a time until the full 0–5 range is
+ * covered. Unlike a fixed set of offsets, this can never miss an available
+ * question just because it sits further from the target than the offsets
+ * happened to check — the caller only invokes this after confirming (via
+ * hasAvailable) that the skill has at least one unanswered question left,
+ * so a match here is guaranteed.
+ */
+function pickLevelForSkill(
+  skill: AssessmentSkill,
+  targetIdx: number,
+  pool: QuestionPool[],
+  answeredIds: Set<string>,
+): CefrLevel | null {
+  const seen = new Set<number>();
+  for (let offset = 0; offset <= 5; offset += 1) {
+    for (const idx of offset === 0 ? [targetIdx] : [targetIdx - offset, targetIdx + offset]) {
+      if (idx < 0 || idx > 5 || seen.has(idx)) continue;
+      seen.add(idx);
+      const level = CEFR_LEVELS[idx];
+      const match = pool.some(
+        (q) => q.skill === skill && q.difficulty === level && !answeredIds.has(q.id),
+      );
+      if (match) return level;
+    }
+  }
+  return null;
+}
+
 /**
  * Select the next skill to ask about and the target difficulty level.
  *
  * Strategy:
- *   1. If one skill is maxed out, continue the other.
- *   2. Alternate skills where possible (better UX, more diverse signal).
- *   3. Target ability level or +1 for a mild stretch.
+ *   1. A skill is only a candidate once it's both under MAX_PER_SKILL and
+ *      still has an unanswered question somewhere in the pool — response
+ *      count alone isn't enough, since a skill's pool can be exhausted
+ *      long before its per-skill count budget is used up (the 4-question
+ *      listening seed pool vs. MAX_PER_SKILL=7, for example).
+ *   2. Between two eligible skills, alternate toward whichever has fewer
+ *      questions so far (better UX, more diverse signal); reading wins ties.
+ *   3. Target the current ability level (occasionally +1 for a mild
+ *      stretch), expanding outward to find the closest level that still has
+ *      an available question.
+ *
+ * Returns null once neither skill has anything left to ask — the caller
+ * (engine.ts's recordAnswer) treats that as "no more questions available,
+ * force completion," which is the correct outcome for an exhausted pool.
  */
 export function selectNext(
   reading: SkillState,
@@ -89,17 +138,20 @@ export function selectNext(
   pool: QuestionPool[],
   answeredIds: Set<string>,
 ): { skill: AssessmentSkill; targetLevel: CefrLevel } | null {
-  const readingDone = reading.responses.length >= MAX_PER_SKILL;
-  const listeningDone = listening.responses.length >= MAX_PER_SKILL;
+  const readingCapped = reading.responses.length >= MAX_PER_SKILL;
+  const listeningCapped = listening.responses.length >= MAX_PER_SKILL;
 
-  if (readingDone && listeningDone) return null;
+  const readingEligible = !readingCapped && hasAvailable("reading", pool, answeredIds);
+  const listeningEligible = !listeningCapped && hasAvailable("listening", pool, answeredIds);
+
+  if (!readingEligible && !listeningEligible) return null;
 
   // Choose which skill to target next
   let skill: AssessmentSkill;
-  if (readingDone) {
-    skill = "listening";
-  } else if (listeningDone) {
+  if (!listeningEligible) {
     skill = "reading";
+  } else if (!readingEligible) {
+    skill = "listening";
   } else {
     // Alternate: go for whichever has fewer questions, with reading first on tie
     skill = listening.responses.length < reading.responses.length ? "listening" : "reading";
@@ -109,30 +161,13 @@ export function selectNext(
 
   // Target: current ability level, occasionally +1 for a mild stretch
   const targetIdx = Math.min(5, Math.round(state.abilityIndex + 0.5));
-  const targetLevel = CEFR_LEVELS[targetIdx];
+  const targetLevel = pickLevelForSkill(skill, targetIdx, pool, answeredIds);
 
-  // Check that there's an available question at this level
-  const available = pool.filter(
-    (q) => q.skill === skill && q.difficulty === targetLevel && !answeredIds.has(q.id),
-  );
+  // Can't be null: skill was only chosen because hasAvailable() confirmed at
+  // least one unanswered question exists for it somewhere in the pool.
+  if (!targetLevel) return null;
 
-  if (available.length > 0) return { skill, targetLevel };
-
-  // Fall back: try adjacent levels
-  for (const offset of [1, -1, 2, -2]) {
-    const fallbackIdx = Math.min(5, Math.max(0, targetIdx + offset));
-    const fallbackLevel = CEFR_LEVELS[fallbackIdx];
-    const fallback = pool.filter(
-      (q) => q.skill === skill && q.difficulty === fallbackLevel && !answeredIds.has(q.id),
-    );
-    if (fallback.length > 0) return { skill, targetLevel: fallbackLevel };
-  }
-
-  // No more questions for this skill — try the other
-  if (skill === "reading" && !listeningDone) return selectNext(listening, reading, pool, answeredIds);
-  if (skill === "listening" && !readingDone) return selectNext(reading, listening, pool, answeredIds);
-
-  return null;
+  return { skill, targetLevel };
 }
 
 // ─── Completion check ──────────────────────────────────────────────────────
