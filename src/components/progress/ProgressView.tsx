@@ -2,21 +2,13 @@
 
 import { motion } from "framer-motion";
 import {
-  Award,
+  AlertCircle,
   BookOpen,
-  CalendarDays,
-  CheckCircle2,
   ChevronRight,
   ClipboardList,
-  Flame,
   Headphones,
-  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
-import { TutoNoteCard } from "@/components/mascot/TutoNoteCard";
-import { LearningCalendar } from "./LearningCalendar";
-import { WeeklyRecapCard } from "./WeeklyRecapCard";
 import type { WeekDay, MonthActivity, RecentActivityItem } from "@/lib/content/progress";
 import type { DailyActivity } from "@/lib/content/daily-activity";
 import type { LastWeekSummary } from "@/lib/content/home";
@@ -38,8 +30,8 @@ export interface BandPoint {
 
 export interface RecentPracticeItem {
   type: "reading" | "listening" | "mock";
-  label: string; // "Reading Practice", "Listening Practice", "Mock Test"
-  date: string;  // formatted e.g. "9 Aug"
+  label: string;
+  date: string;
   correct: number;
   total: number;
   scorePct: number;
@@ -62,14 +54,12 @@ export interface ProgressViewProps {
   earnedAchievementIds: Set<string>;
   tutoNote: TutoNote | null;
   lastWeekSummary: LastWeekSummary | null;
-  // Base44 additions
   bandTrend: BandPoint[];
   mocksCompleted: number;
   totalReadingCorrect: number;
   totalListeningCorrect: number;
   assessedCefrLevel: string | null;
   weakAreas: string[];
-  // New Base44 parity props
   latestBand: number | null;
   latestReadingPct: number | null;
   latestListeningPct: number | null;
@@ -81,22 +71,6 @@ export interface ProgressViewProps {
 
 export function ProgressView({
   streak,
-  longestStreak,
-  level,
-  xp,
-  xpToNext,
-  weeklyMinutes,
-  weeklyGoalMinutes,
-  weekActivity,
-  totalCompleted,
-  completedThisWeek,
-  monthActivity,
-  dailyActivityIndex,
-  recentActivity,
-  earnedAchievementIds,
-  tutoNote,
-  lastWeekSummary,
-  bandTrend,
   assessedCefrLevel,
   weakAreas,
   latestBand,
@@ -106,10 +80,27 @@ export function ProgressView({
   totalStudiedHours,
   recentPractice,
   nextAssessmentDate,
+  bandTrend,
+  // retained in props but not rendered — keep for backwards compat
+  longestStreak: _longestStreak,
+  level: _level,
+  xp: _xp,
+  xpToNext: _xpToNext,
+  weeklyMinutes: _weeklyMinutes,
+  weeklyGoalMinutes: _weeklyGoalMinutes,
+  weekActivity: _weekActivity,
+  totalCompleted: _totalCompleted,
+  completedThisWeek: _completedThisWeek,
+  monthActivity: _monthActivity,
+  dailyActivityIndex: _dailyActivityIndex,
+  recentActivity: _recentActivity,
+  earnedAchievementIds: _earnedAchievementIds,
+  tutoNote: _tutoNote,
+  lastWeekSummary: _lastWeekSummary,
+  mocksCompleted: _mocksCompleted,
+  totalReadingCorrect: _totalReadingCorrect,
+  totalListeningCorrect: _totalListeningCorrect,
 }: ProgressViewProps) {
-  const weeklyPercentage = weeklyGoalMinutes > 0 ? Math.min(100, (weeklyMinutes / weeklyGoalMinutes) * 100) : 0;
-  const xpPercentage = xpToNext > 0 ? Math.min(100, (xp / xpToNext) * 100) : 0;
-
   const daysUntilAssessment = nextAssessmentDate
     ? Math.ceil(
         (new Date(nextAssessmentDate).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) /
@@ -117,106 +108,119 @@ export function ProgressView({
       )
     : null;
 
+  const hasMockData = latestBand !== null || assessedCefrLevel !== null;
+
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 md:py-10">
       {/* ── Heading ── */}
       <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
-          Your Progress
-        </h1>
-        <p className="mt-1.5 text-sm text-text-secondary sm:text-[15px]">
-          Based on your placement and mock assessments — not your onboarding self-report.
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">Progress</h1>
+        <p className="mt-1 text-sm text-text-secondary">
+          Track your learning journey and mock assessment results.
         </p>
       </motion.header>
 
-      {/* ── Section 1: Estimated Level card ── */}
-      {(assessedCefrLevel || latestBand !== null) && (
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-6 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
-        >
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-            LinguABC Estimated Level
-          </p>
-          <p className="mt-0.5 text-[11px] text-text-tertiary">
-            Not an official IELTS score
-          </p>
-          <div className="mt-3 flex items-center gap-4">
-            {assessedCefrLevel && (
-              <span className="rounded-xl bg-primary px-3 py-1.5 text-lg font-bold text-white">
-                {assessedCefrLevel}
-              </span>
-            )}
-            {latestBand !== null && (
-              <span className="text-3xl font-bold text-text-primary">
-                Band {latestBand.toFixed(2)}
-              </span>
+      {/* ── Section 1: Hero level card ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.05 }}
+        className="mt-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#0F172A] to-[#1E293B] p-6 shadow-lg"
+      >
+        {/* Top row */}
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
+              English Level
+            </p>
+            <p className="mt-1 text-5xl font-black leading-none text-white">
+              {assessedCefrLevel ?? "—"}
+            </p>
+            {!hasMockData && (
+              <p className="mt-1 text-[11px] text-white/40">Take a mock to get assessed</p>
             )}
           </div>
-          {(latestReadingPct !== null || latestListeningPct !== null) && (
-            <div className="mt-4 space-y-2">
-              {latestReadingPct !== null && (
-                <div>
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-xs text-text-secondary">Reading</span>
-                    <span className="text-xs font-semibold text-text-primary">
-                      {Math.round(latestReadingPct)}%
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-border">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${Math.min(100, Math.round(latestReadingPct))}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-              {latestListeningPct !== null && (
-                <div>
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-xs text-text-secondary">Listening</span>
-                    <span className="text-xs font-semibold text-text-primary">
-                      {Math.round(latestListeningPct)}%
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full rounded-full bg-border">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${Math.min(100, Math.round(latestListeningPct))}%` }}
-                    />
-                  </div>
-                </div>
-              )}
+          <div className="text-right">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
+              Est. Band
+            </p>
+            <p className="mt-1 text-3xl font-black text-white">
+              {latestBand !== null ? latestBand.toFixed(2) : "—"}
+            </p>
+            <p className="mt-0.5 text-[11px] text-white/40">LinguABC estimate</p>
+          </div>
+        </div>
+
+        {/* Section sub-cards */}
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ background: "rgba(255,107,0,0.18)" }}>
+                <BookOpen className="h-3.5 w-3.5 text-[#FF6B00]" />
+              </div>
+              <p className="text-xs font-semibold text-white/70">Reading</p>
             </div>
-          )}
-        </motion.section>
-      )}
+            {latestReadingPct !== null ? (
+              <>
+                <p className="mt-2 text-xl font-black text-white">{Math.round(latestReadingPct)}%</p>
+                <p className="text-[10px] text-white/40">Last mock score</p>
+              </>
+            ) : (
+              <p className="mt-2 text-xs text-white/30">Take a mock</p>
+            )}
+          </div>
+
+          <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg" style={{ background: "rgba(59,130,246,0.18)" }}>
+                <Headphones className="h-3.5 w-3.5 text-blue-400" />
+              </div>
+              <p className="text-xs font-semibold text-white/70">Listening</p>
+            </div>
+            {latestListeningPct !== null ? (
+              <>
+                <p className="mt-2 text-xl font-black text-white">{Math.round(latestListeningPct)}%</p>
+                <p className="text-[10px] text-white/40">Last mock score</p>
+              </>
+            ) : (
+              <p className="mt-2 text-xs text-white/30">Take a mock</p>
+            )}
+          </div>
+        </div>
+      </motion.section>
 
       {/* ── Section 2: Band Trend ── */}
       {bandTrend.length > 0 && (
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
           className="mt-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
         >
-          <div className="mb-4 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-            <h2 className="text-sm font-semibold text-text-primary">Band Trend</h2>
-          </div>
-          <div className="flex items-end gap-3" style={{ height: 100 }}>
-            {bandTrend.map((pt, i) => (
-              <div key={i} className="flex flex-1 flex-col items-center gap-2">
-                <span className="text-xs font-bold text-text-primary">{pt.band.toFixed(1)}</span>
-                <div
-                  className="w-full rounded-t-md bg-gradient-to-t from-[#FF6B00] to-[#FF8C33] transition-all"
-                  style={{ height: `${(pt.band / 9) * 100}%` }}
-                />
-                <span className="text-[10px] font-medium text-text-tertiary">{pt.label}</span>
-              </div>
-            ))}
+          <h2 className="mb-4 text-sm font-semibold text-text-primary">Band Trend</h2>
+          {/* Sparkline-style chart */}
+          <div className="relative">
+            <div className="flex items-end gap-2" style={{ height: 80 }}>
+              {bandTrend.map((pt, i) => {
+                const barH = Math.max(8, (pt.band / 9) * 100);
+                return (
+                  <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                    <span className="text-[11px] font-bold text-text-primary">{pt.band.toFixed(1)}</span>
+                    <div
+                      className="w-full rounded-t-lg bg-gradient-to-t from-primary to-[#FF8C33]"
+                      style={{ height: `${barH}%` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex gap-2">
+              {bandTrend.map((pt, i) => (
+                <div key={i} className="flex flex-1 justify-center">
+                  <span className="text-[10px] text-text-tertiary">{pt.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.section>
       )}
@@ -226,21 +230,24 @@ export function ProgressView({
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-4"
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="mt-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
         >
-          <h2 className="mb-3 text-sm font-semibold text-text-primary">Weak Areas</h2>
-          <div className="rounded-2xl border border-border bg-bg-card p-5 shadow-sm">
-            <div className="space-y-2">
-              {weakAreas.map((area) => (
-                <div key={area} className="flex items-center gap-3 rounded-xl bg-[#FF6B00]/[.06] p-3">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                  <span className="flex-1 text-sm font-medium text-text-primary">
-                    {AREA_LABELS[area] ?? area.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-text-primary">Weak Areas</h2>
+            <Link href="/practice" className="text-xs font-semibold text-primary hover:underline">
+              Practice weak areas →
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {weakAreas.map((area) => (
+              <div key={area} className="flex items-center gap-3 rounded-xl bg-[#FF6B00]/[.06] p-3">
+                <AlertCircle className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <span className="flex-1 text-sm font-medium text-text-primary">
+                  {AREA_LABELS[area] ?? area.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </span>
+              </div>
+            ))}
           </div>
         </motion.section>
       )}
@@ -250,7 +257,7 @@ export function ProgressView({
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
         >
           <h2 className="mb-3 text-sm font-semibold text-text-primary">Recent Practice</h2>
@@ -262,30 +269,23 @@ export function ProgressView({
                   : item.type === "mock"
                     ? ClipboardList
                     : BookOpen;
-              const badgeClass =
-                item.scorePct >= 70
-                  ? "bg-success/10 text-success"
-                  : item.scorePct >= 50
-                    ? "bg-warning/10 text-warning"
-                    : "bg-danger/10 text-danger";
               return (
-                <li
-                  key={i}
-                  className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
-                >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-border/40 text-text-secondary">
+                <li key={i} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-border/40 text-text-secondary">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-text-primary">{item.label}</p>
                     <p className="text-xs text-text-tertiary">{item.date}</p>
                   </div>
-                  <span className="shrink-0 text-xs text-text-secondary">
-                    {item.correct}/{item.total}
-                  </span>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${badgeClass}`}>
-                    {Math.round(item.scorePct)}%
-                  </span>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-bold text-text-primary">
+                      {item.correct}/{item.total}
+                    </p>
+                    <p className="text-[11px] text-text-secondary">
+                      {Math.round(item.scorePct)}% accuracy
+                    </p>
+                  </div>
                 </li>
               );
             })}
@@ -297,7 +297,7 @@ export function ProgressView({
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
+        transition={{ duration: 0.5, delay: 0.25 }}
         className="mt-4 grid grid-cols-3 gap-3"
       >
         {[
@@ -315,12 +315,12 @@ export function ProgressView({
         ))}
       </motion.section>
 
-      {/* ── Section 6: Next Assessment CTA ── */}
+      {/* ── Section 6: Next Assessment ── */}
       {nextAssessmentDate && (
         <motion.section
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
           className="mt-4 rounded-2xl border border-border bg-[#FF6B00]/[.06] p-4 shadow-sm"
         >
           <div className="flex items-center justify-between gap-4">
@@ -335,7 +335,7 @@ export function ProgressView({
             </div>
             <Link
               href="/mock"
-              className="shrink-0 text-xs font-semibold text-primary hover:underline"
+              className="shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-dark"
             >
               Start now →
             </Link>
@@ -347,8 +347,8 @@ export function ProgressView({
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-        className="mt-4"
+        transition={{ duration: 0.5, delay: 0.35 }}
+        className="mt-4 mb-6"
       >
         <Link
           href="/plan"
@@ -361,171 +361,6 @@ export function ProgressView({
           <ChevronRight className="h-5 w-5 text-text-tertiary" aria-hidden="true" />
         </Link>
       </motion.section>
-
-      {/* ── Streak hero ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.45 }}
-        className="mt-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary to-[#FF8C33] p-6 shadow-glow sm:p-8"
-      >
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-white/70">Current Streak</p>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-4xl font-bold text-white">{streak}</span>
-              <span className="text-lg font-semibold text-white/80">{streak === 1 ? "day" : "days"}</span>
-            </div>
-            <p className="mt-1 text-sm text-white/70">
-              {longestStreak > streak ? `Your longest streak was ${longestStreak} days` : "Your longest streak yet!"}
-            </p>
-          </div>
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-white/20">
-            <Flame className="h-8 w-8 text-white" aria-hidden="true" />
-          </div>
-        </div>
-      </motion.section>
-
-      {/* ── Weekly Goal + Completed Lessons ── */}
-      <div className="mt-6 grid grid-cols-2 gap-4 max-md:grid-cols-1">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="rounded-[1.5rem] border border-border bg-bg-muted p-6"
-        >
-          <div className="mb-3.5 flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-primary" aria-hidden="true" />
-            <h3 className="text-sm font-semibold text-text-primary">Weekly Goal</h3>
-          </div>
-          <p className="text-2xl font-bold text-text-primary">
-            {Math.round(weeklyMinutes)} / {Math.round(weeklyGoalMinutes)}
-          </p>
-          <p className="mt-1 text-xs text-text-tertiary">minutes this week</p>
-          <div
-            className="mt-4 h-2 w-full overflow-hidden rounded-full bg-border"
-            role="progressbar"
-            aria-label="Weekly goal progress"
-            aria-valuenow={Math.round(weeklyPercentage)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-          >
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-500"
-              style={{ width: `${weeklyPercentage}%` }}
-            />
-          </div>
-          <div className="mt-4 flex gap-2">
-            {weekActivity.map((day) => (
-              <div key={day.label} className="flex flex-1 flex-col items-center gap-1.5">
-                <div
-                  className={`h-2 w-full rounded-full ${day.active ? "bg-primary" : "bg-border"} ${day.isToday ? "ring-2 ring-primary/40 ring-offset-1 ring-offset-bg-muted" : ""}`}
-                />
-                <span className="text-[10px] font-medium text-text-tertiary">{day.label}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="rounded-[1.5rem] border border-border bg-bg-muted p-6"
-        >
-          <div className="mb-3.5 flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-primary" aria-hidden="true" />
-            <h3 className="text-sm font-semibold text-text-primary">Completed Lessons</h3>
-          </div>
-          <p className="text-2xl font-bold text-text-primary">{totalCompleted}</p>
-          <p className="mt-1 text-xs text-text-tertiary">all-time lessons</p>
-          {completedThisWeek > 0 && (
-            <p className="mt-4 text-xs font-semibold text-success">+{completedThisWeek} this week</p>
-          )}
-        </motion.div>
-      </div>
-
-      {/* ── Level & XP ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.55 }}
-        className="mt-6 rounded-[1.5rem] border border-border bg-bg-card p-6"
-      >
-        <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-lighter text-sm font-bold text-primary">
-            Lv{level}
-          </span>
-          <div>
-            <p className="text-sm font-bold text-text-primary">Level {level}</p>
-            <p className="text-xs text-text-tertiary">{xp} XP earned</p>
-          </div>
-          <Award className="ml-auto h-5 w-5 text-primary" aria-hidden="true" />
-        </div>
-        <div
-          className="mt-5 h-2 w-full overflow-hidden rounded-full bg-border"
-          role="progressbar"
-          aria-label={`Progress toward level ${level + 1}`}
-          aria-valuenow={Math.round(xpPercentage)}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        >
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-500"
-            style={{ width: `${xpPercentage}%` }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-text-tertiary">
-          {Math.max(0, xpToNext - xp)} XP to Level {level + 1}
-        </p>
-      </motion.section>
-
-      {/* ── Weekly Recap ── */}
-      {lastWeekSummary && <WeeklyRecapCard summary={lastWeekSummary} />}
-
-      {/* ── Learning Calendar ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-6 rounded-[1.5rem] border border-border bg-bg-card p-6"
-      >
-        <LearningCalendar
-          monthActivity={monthActivity}
-          dailyActivityIndex={dailyActivityIndex}
-          streak={streak}
-          longestStreak={longestStreak}
-        />
-      </motion.section>
-
-      {/* Recent Activity section removed — covered by "Recent Practice" above */}
-      {/* Keep recentActivity available to avoid breaking callers; not rendered */}
-      {false && recentActivity.length > 0 && null}
-
-      {/* ── Milestones ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.65 }}
-        className="mt-8"
-      >
-        <div className="mb-4 flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-          <h3 className="text-sm font-semibold text-text-primary">Milestones</h3>
-        </div>
-        <AchievementsGrid earnedAchievementIds={earnedAchievementIds} baseDelay={0.7} />
-      </motion.section>
-
-      {tutoNote && (
-        <motion.section
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.75 }}
-          className="mb-4 mt-8"
-        >
-          <TutoNoteCard note={tutoNote} />
-        </motion.section>
-      )}
     </div>
   );
 }

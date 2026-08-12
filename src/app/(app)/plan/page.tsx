@@ -43,26 +43,6 @@ interface PlanWithDays {
   plan_days: PlanDayRow[];
 }
 
-interface PlanDayRow {
-  id: string;
-  day_number: number;
-  plan_date: string;
-  focus: string | null;
-  theme: string | null;
-  estimated_minutes: number | null;
-  plan_tasks: PlanTaskRow[];
-}
-
-interface PlanWithDays {
-  id: string;
-  assessed_cefr_level: string | null;
-  target_cefr_level: string | null;
-  starts_on: string | null;
-  ends_on: string | null;
-  weak_areas: unknown;
-  plan_days: PlanDayRow[];
-}
-
 export default async function PlanPage() {
   const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");

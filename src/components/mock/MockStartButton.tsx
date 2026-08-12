@@ -7,9 +7,10 @@ import { ClipboardList } from "lucide-react";
 interface Props {
   targetCefrLevel: string;
   disabled?: boolean;
+  fullWidth?: boolean;
 }
 
-export function MockStartButton({ targetCefrLevel, disabled }: Props) {
+export function MockStartButton({ targetCefrLevel, disabled, fullWidth }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export function MockStartButton({ targetCefrLevel, disabled }: Props) {
       <button
         onClick={handleStart}
         disabled={disabled || loading}
-        className="inline-flex items-center gap-2.5 rounded-2xl bg-primary px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:bg-primary-dark hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
+        className={`inline-flex items-center justify-center gap-2.5 rounded-2xl bg-primary px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition-all hover:bg-primary-dark hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60 ${fullWidth ? "w-full" : ""}`}
       >
         <ClipboardList className="h-4.5 w-4.5" aria-hidden="true" />
         {loading ? "Preparing exam…" : "Start Full Mock"}
