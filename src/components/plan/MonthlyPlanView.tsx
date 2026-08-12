@@ -2,18 +2,12 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  BookOpen,
-  Headphones,
-  BookCheck,
-  Mic,
-  PenLine,
-  BarChart2,
-  ListChecks,
   CheckCircle2,
   ChevronLeft,
+  Clock,
   X,
 } from "lucide-react";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 export interface PlanTask {
@@ -47,19 +41,6 @@ export interface MonthlyPlanViewProps {
   today: string;
 }
 
-const TASK_ICONS: Record<string, typeof BookOpen> = {
-  podcast: Headphones,
-  listening_practice: Headphones,
-  article: BookOpen,
-  reading_practice: BookOpen,
-  vocabulary: PenLine,
-  grammar: BookCheck,
-  weak_area: BarChart2,
-  quiz: ListChecks,
-  review: BookCheck,
-  mock: Mic,
-};
-
 const TASK_DOT_COLOR: Record<string, string> = {
   podcast: "bg-blue-400",
   listening_practice: "bg-blue-400",
@@ -71,6 +52,19 @@ const TASK_DOT_COLOR: Record<string, string> = {
   review: "bg-slate-400",
   quiz: "bg-slate-400",
   weak_area: "bg-rose-400",
+};
+
+const TASK_PILL_COLOR: Record<string, string> = {
+  podcast: "bg-blue-100 text-blue-700",
+  listening_practice: "bg-blue-100 text-blue-700",
+  article: "bg-amber-100 text-amber-700",
+  reading_practice: "bg-amber-100 text-amber-700",
+  vocabulary: "bg-violet-100 text-violet-700",
+  grammar: "bg-green-100 text-green-700",
+  mock: "bg-primary/10 text-primary",
+  review: "bg-slate-100 text-slate-600",
+  quiz: "bg-slate-100 text-slate-600",
+  weak_area: "bg-rose-100 text-rose-600",
 };
 
 const TASK_LABELS: Record<string, string> = {
@@ -169,31 +163,28 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
           return (
             <motion.section key={weekNum} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 * weekIndex }} className="mb-6">
               <div className="mb-2 flex items-baseline gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-wide text-text-primary">Week {weekNum}</h2>
+                <h2 className="text-xs font-bold text-text-primary">Week {weekNum}</h2>
                 <span className="text-xs text-text-secondary">{weekLabel(weekNum)}</span>
                 {weekTotalMins > 0 && <span className="ml-auto text-[10px] text-text-tertiary">{weekTotalMins} min</span>}
               </div>
               {/*
-                Base44 reference has no day-of-week header row and no
-                fixed weekday-column alignment at any breakpoint -- days
-                simply reflow through a responsive 2/4/7-column grid. This
-                app's existing Mon-Sun header row + gridColumnStart
-                alignment is preserved, but ONLY at the lg (7-column)
-                breakpoint where it's visually meaningful; below that,
-                where the grid no longer has 7 columns, days fall back to
-                normal sequential grid flow (Base44's actual behavior at
-                every breakpoint) via the lg:-scoped arbitrary property
-                below instead of an always-on inline style.
+                Base44 has no outer card wrapping the week's days and no
+                day-of-week header row -- each day is its own card, and the
+                weekday label lives inside every card at every breakpoint
+                (days simply reflow through the responsive 2/4/7-column
+                grid, with no fixed weekday-column alignment).
               */}
-              <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-bg-card p-3 shadow-sm sm:grid-cols-4 lg:grid-cols-7">
-                {DOW_LABELS.map((label) => (
-                  <div key={label} className="pb-1 text-center max-lg:hidden"><span className="text-[10px] font-semibold uppercase tracking-wide text-text-tertiary">{label}</span></div>
-                ))}
+              <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-7">
                 {weekDays.map((day) => {
                   const isToday = day.planDate === today;
                   const isSelected = day.id === selectedDayId;
                   const allDone = day.tasks.length > 0 && day.tasks.every((task) => task.completed);
                   const totalMins = day.tasks.reduce((sum, task) => sum + (task.estimatedMinutes ?? 0), 0);
+                  const stateClass = allDone
+                    ? "border-green-100 bg-green-50/30"
+                    : isSelected
+                      ? "border-primary bg-orange-50/30 shadow-sm"
+                      : "border-border bg-bg-card hover:shadow-md";
                   return (
                     <button
                       key={day.id}
@@ -202,28 +193,33 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
                       // completed/selected do) -- kept here ONLY as a
                       // screen-reader affordance, never as styling.
                       aria-label={`Day ${day.dayNumber}${isToday ? " (today)" : ""}`}
-                      style={{ "--dow-col": String(isoToDow(day.planDate) + 1) } as CSSProperties}
-                      className={[
-                        "flex min-h-16 flex-col items-center gap-1 rounded-xl p-2 text-center transition-all lg:[grid-column-start:var(--dow-col)]",
-                        isSelected ? "bg-primary/10 ring-1 ring-primary" : "hover:bg-border/20",
-                      ].join(" ")}
+                      className={`flex min-h-24 flex-col gap-1 rounded-2xl border p-3 text-left transition-all ${stateClass}`}
                     >
-                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${allDone ? "text-success" : "text-text-primary"}`}>
-                        {allDone ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : shortDayNum(day.planDate)}
-                      </span>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-bold text-text-primary">{DOW_LABELS[isoToDow(day.planDate)]}</span>
+                        {allDone && <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />}
+                      </div>
+                      <span className="text-[10px] text-text-tertiary">{shortDayNum(day.planDate)}</span>
                       {day.tasks.length > 0 && (
-                        <span className="flex flex-wrap justify-center gap-0.5">
-                          {day.tasks.slice(0, 3).map((task) => <span key={task.id} className={`h-1.5 w-1.5 rounded-full ${task.completed ? "bg-success" : (TASK_DOT_COLOR[task.taskType] ?? "bg-border")}`} />)}
-                          {day.tasks.length > 3 && <span className="h-1.5 w-1.5 rounded-full bg-border" />}
+                        <div className="mt-0.5 space-y-1">
+                          {day.tasks.slice(0, 3).map((task) => (
+                            <div key={task.id} className="flex items-center gap-1.5">
+                              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${task.completed ? "bg-success" : (TASK_DOT_COLOR[task.taskType] ?? "bg-border")}`} />
+                              <span className="truncate text-[10px] font-medium text-text-tertiary">{TASK_LABELS[task.taskType] ?? task.taskType}</span>
+                            </div>
+                          ))}
+                          {day.tasks.length > 3 && <p className="text-[10px] font-medium text-text-tertiary">+{day.tasks.length - 3} more</p>}
+                        </div>
+                      )}
+                      {totalMins > 0 && (
+                        <span className="mt-auto flex items-center gap-1 pt-1 text-[10px] font-medium text-text-tertiary">
+                          <Clock className="h-3 w-3" aria-hidden="true" />
+                          {totalMins}m
                         </span>
                       )}
-                      {totalMins > 0 && <span className="text-[9px] font-medium text-text-tertiary">{totalMins}m</span>}
                     </button>
                   );
                 })}
-                {weekNum === 1 && weekDays[0] && isoToDow(weekDays[0].planDate) > 0 && (
-                  <div className="max-lg:hidden" style={{ gridColumnStart: 1, gridColumnEnd: isoToDow(weekDays[0].planDate) + 1 }} />
-                )}
               </div>
             </motion.section>
           );
@@ -235,34 +231,35 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
           <>
             <motion.div key="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="fixed inset-0 z-40 bg-slate-950/35 backdrop-blur-[2px]" onClick={() => setSelectedDayId(null)} />
             <motion.aside key="drawer" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", stiffness: 320, damping: 32 }} className="fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-sm flex-col bg-bg-card shadow-2xl">
-              <div className="flex items-start justify-between border-b border-border px-5 py-5">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-text-tertiary">Week {Math.ceil(selectedDay.dayNumber / 7)} · Day {selectedDay.dayNumber}</p>
-                  <p className="mt-0.5 text-base font-bold text-text-primary">{formatDrawerDate(selectedDay.planDate)}</p>
-                  {selectedDay.theme && <p className="mt-0.5 text-xs text-text-secondary">{selectedDay.theme}</p>}
+              <div className="border-b border-border px-5 py-5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-text-tertiary">Week {Math.ceil(selectedDay.dayNumber / 7)} · Day {selectedDay.dayNumber}</p>
+                    <p className="mt-0.5 text-base font-bold text-text-primary">{formatDrawerDate(selectedDay.planDate)}</p>
+                    {selectedDay.theme && <p className="mt-0.5 text-xs text-text-secondary">{selectedDay.theme}</p>}
+                  </div>
+                  <button onClick={() => setSelectedDayId(null)} aria-label="Close" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-tertiary hover:bg-border/40"><X className="h-4 w-4" aria-hidden="true" /></button>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <button onClick={() => setSelectedDayId(null)} aria-label="Close" className="flex h-8 w-8 items-center justify-center rounded-full text-text-tertiary hover:bg-border/40"><X className="h-4 w-4" aria-hidden="true" /></button>
-                  {selectedTotalMinutes > 0 && <span className="text-xs font-semibold text-primary">{selectedTotalMinutes} min total</span>}
-                </div>
+                {selectedTotalMinutes > 0 && (
+                  <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-primary">
+                    <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                    {selectedTotalMinutes} min total
+                  </div>
+                )}
               </div>
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 {selectedDay.tasks.length === 0 ? <p className="text-sm text-text-secondary">Rest day. No tasks scheduled.</p> : (
                   <ol className="space-y-3">
                     {selectedDay.tasks.map((task, index) => {
-                      const Icon = TASK_ICONS[task.taskType] ?? ListChecks;
                       const href = taskHref(task);
                       const item = (
                         <>
-                          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${task.completed ? "bg-success/10 text-success" : "bg-border/40 text-text-secondary"}`}>{task.completed ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <Icon className="h-4 w-4" aria-hidden="true" />}</span>
+                          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${task.completed ? "bg-success/10 text-success" : "bg-border/40 text-text-secondary"}`}>{task.completed ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : index + 1}</span>
                           <div className="min-w-0 flex-1">
-                            <div className="mb-1 flex flex-wrap items-center gap-2">
-                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">{TASK_LABELS[task.taskType] ?? task.taskType}</span>
-                              {task.estimatedMinutes && <span className="text-[10px] font-semibold text-text-tertiary">{task.estimatedMinutes} min</span>}
-                            </div>
-                            <p className={`text-sm font-medium ${task.completed ? "text-text-secondary line-through" : "text-text-primary"}`}>{index + 1}. {task.title}</p>
+                            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${TASK_PILL_COLOR[task.taskType] ?? "bg-primary/10 text-primary"}`}>{TASK_LABELS[task.taskType] ?? task.taskType}</span>
+                            <p className={`mt-1 text-sm font-medium ${task.completed ? "text-text-secondary line-through" : "text-text-primary"}`}>{task.title}</p>
                           </div>
-                          {!task.completed && href && <Icon className="h-4 w-4 shrink-0 text-text-tertiary" aria-hidden="true" />}
+                          {task.estimatedMinutes && <span className="ml-auto shrink-0 text-xs font-semibold text-text-tertiary">{task.estimatedMinutes} min</span>}
                         </>
                       );
                       return <li key={task.id}>{href && !task.completed ? <Link href={href} className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-border/20">{item}</Link> : <div className="flex items-center gap-3 px-3 py-2.5">{item}</div>}</li>;
