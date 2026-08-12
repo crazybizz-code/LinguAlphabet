@@ -45,6 +45,16 @@ export const ALLOWED_AUDIO_HOSTS: readonly string[] = [
   // traffic.libsyn.com subdomain. Both are covered by the `.endsWith`
   // subdomain rule.
   "libsyn.com",
+  // LinguABC's own Supabase Storage project — for ORIGINAL LinguABC
+  // podcast episodes we author and host ourselves (not syndicated),
+  // first used for Episode 001. No licence-review question applies the
+  // way it does for the external sources above: this is our own content
+  // on our own storage, not a third-party feed. Required by
+  // podcast-pipeline/ (the LinguABC AI-generation pipeline), which does
+  // not exist on origin/main and so was missing this entry after the
+  // origin/main sync — every LinguABC-generated episode's own audio_url
+  // lives on this host.
+  "jwwhmzrisrauayyadwxb.supabase.co",
 ];
 
 /** Extracted so tests and callers can reason about the rule rather than the list. */
