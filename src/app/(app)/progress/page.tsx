@@ -62,16 +62,17 @@ export default async function ProgressPage() {
 
   const rows = progressRows ?? [];
   const attempts = mockAttempts ?? [];
-  const hasCompletedLearnerEvidence = Boolean(
-    profile?.onboarding_completed ||
-      profile?.placement_completed ||
-      profile?.english_level ||
-      profile?.current_band !== null ||
-      profile?.target_band !== null ||
-      profile?.username ||
-      rows.some((row) => row.completed) ||
-      attempts.length > 0,
-  );
+  const hasProfileCompletionEvidence = profile
+    ? Boolean(
+        profile.onboarding_completed ||
+          profile.placement_completed ||
+          profile.english_level ||
+          profile.current_band !== null ||
+          profile.target_band !== null ||
+          profile.username,
+      )
+    : false;
+  const hasCompletedLearnerEvidence = hasProfileCompletionEvidence || rows.some((row) => row.completed) || attempts.length > 0;
 
   if (!hasCompletedLearnerEvidence) redirect("/welcome");
 
@@ -79,13 +80,11 @@ export default async function ProgressPage() {
   const catalog = [...podcasts, ...articles];
   const byId = new Map(catalog.map((item) => [item.id, item]));
   const completedRows = rows.filter((row) => row.completed);
-
   const weekStart = startOfWeek(new Date());
   const completedThisWeek = completedRows.filter((row) => new Date(row.updated_at) >= weekStart).length;
   const streak = learnerProfile.streak ?? 0;
   const longestStreak = Math.max(streak, learnerProfile.studyConsistency?.longestStreak ?? 0);
   const level = profile?.level ?? 1;
-
   const now = new Date().getTime();
   const recentCompletionRow = completedRows
     .filter((row) => now - new Date(row.updated_at).getTime() <= RECENT_COMPLETION_WINDOW_MS)
@@ -93,7 +92,6 @@ export default async function ProgressPage() {
   const daysSinceLastStudy = profile?.last_study_date
     ? Math.floor((now - new Date(profile.last_study_date).getTime()) / (24 * 60 * 60 * 1000))
     : null;
-
   const weeklyMinutes = buildWeeklyMinutes(catalog, rows);
   const weeklyGoalMinutes = dailyGoalMinutes * 7;
   const tutoNote = buildTutoNote({
@@ -103,28 +101,17 @@ export default async function ProgressPage() {
     recentCompletionTitle: recentCompletionRow ? (byId.get(recentCompletionRow.content_item_id)?.title ?? null) : null,
     daysSinceLastStudy,
   });
-
-  const dailyActivityIndex = buildDailyActivityIndex({
-    progressRows: rows,
-    podcasts: catalog,
-    vocabularyRows: vocabularyRows ?? [],
-    noteRows: noteRows ?? [],
-  });
-
-  const bandTrend = attempts
-    .filter((attempt) => attempt.estimated_band !== null)
-    .map((attempt, index) => ({ band: attempt.estimated_band as number, label: `Mock ${index + 1}` }));
+  const dailyActivityIndex = buildDailyActivityIndex({ progressRows: rows, podcasts: catalog, vocabularyRows: vocabularyRows ?? [], noteRows: noteRows ?? [] });
+  const bandTrend = attempts.filter((attempt) => attempt.estimated_band !== null).map((attempt, index) => ({ band: attempt.estimated_band as number, label: `Mock ${index + 1}` }));
   const totalReadingCorrect = attempts.reduce((sum, attempt) => sum + (attempt.reading_correct ?? 0), 0);
   const totalListeningCorrect = attempts.reduce((sum, attempt) => sum + (attempt.listening_correct ?? 0), 0);
   const assessedCefrLevel = learnerProfile.cefrLevel ?? null;
-
   type SignalEvidence = { weakAreas?: string[] };
   const allWeakAreas = (weakAreaSignals ?? []).flatMap((signal) => {
     const evidence = signal.evidence as SignalEvidence | null;
     return evidence?.weakAreas ?? [];
   });
   const weakAreas = [...new Set(allWeakAreas)].slice(0, 3);
-
   const latestAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
   const latestBand = latestAttempt?.estimated_band ?? null;
   const latestReadingPct = latestAttempt?.reading_score_pct ?? null;
@@ -143,50 +130,26 @@ export default async function ProgressPage() {
     return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   }
 
-  type RawPractice = {
-    date: Date;
-    type: "reading" | "listening" | "mock";
-    label: string;
-    correct: number;
-    total: number;
-    scorePct: number;
-  };
-
+  type RawPractice = { date: Date; type: "reading" | "listening" | "mock"; label: string; correct: number; total: number; scorePct: number };
   const rawPractice: RawPractice[] = [
-    ...(practiceSessions ?? [])
-      .filter((session) => session.completed_at)
-      .map((session) => ({
-        date: new Date(session.completed_at!),
-        type: (session.practice_type === "listening" ? "listening" : "reading") as "reading" | "listening",
-        label: session.practice_type === "listening" ? "Listening Practice" : "Reading Practice",
-        correct: session.correct_count,
-        total: session.question_count,
-        scorePct: session.score_pct ?? 0,
-      })),
-    ...attempts
-      .filter((attempt) => attempt.submitted_at)
-      .slice(-3)
-      .map((attempt) => ({
-        date: new Date(attempt.submitted_at!),
-        type: "mock" as const,
-        label: "Mock Test",
-        correct: (attempt.reading_correct ?? 0) + (attempt.listening_correct ?? 0),
-        total: (attempt.reading_total ?? 0) + (attempt.listening_total ?? 0),
-        scorePct: ((attempt.reading_score_pct ?? 0) + (attempt.listening_score_pct ?? 0)) / 2,
-      })),
+    ...(practiceSessions ?? []).filter((session) => session.completed_at).map((session) => ({
+      date: new Date(session.completed_at!),
+      type: (session.practice_type === "listening" ? "listening" : "reading") as "reading" | "listening",
+      label: session.practice_type === "listening" ? "Listening Practice" : "Reading Practice",
+      correct: session.correct_count,
+      total: session.question_count,
+      scorePct: session.score_pct ?? 0,
+    })),
+    ...attempts.filter((attempt) => attempt.submitted_at).slice(-3).map((attempt) => ({
+      date: new Date(attempt.submitted_at!),
+      type: "mock" as const,
+      label: "Mock Test",
+      correct: (attempt.reading_correct ?? 0) + (attempt.listening_correct ?? 0),
+      total: (attempt.reading_total ?? 0) + (attempt.listening_total ?? 0),
+      scorePct: ((attempt.reading_score_pct ?? 0) + (attempt.listening_score_pct ?? 0)) / 2,
+    })),
   ];
-
-  const recentPractice = rawPractice
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 5)
-    .map((item) => ({
-      type: item.type,
-      label: item.label,
-      date: fmtDate(item.date.toISOString()),
-      correct: item.correct,
-      total: item.total,
-      scorePct: item.scorePct,
-    }));
+  const recentPractice = rawPractice.sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5).map((item) => ({ type: item.type, label: item.label, date: fmtDate(item.date.toISOString()), correct: item.correct, total: item.total, scorePct: item.scorePct }));
 
   return (
     <ProgressView
