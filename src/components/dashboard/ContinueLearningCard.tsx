@@ -13,12 +13,13 @@ export function ContinueLearningCard({ resume }: { resume: ResumeStrip }) {
     <motion.section
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.25 }}
+      transition={{ duration: 0.5, delay: 0.1 }}
       className="mt-5 px-5 sm:px-8"
     >
+      <h2 className="mb-3 text-sm font-semibold text-text-primary">Continue Learning</h2>
       <Link
         href={resume.href}
-        className="group flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+        className="group flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
       >
         {/* Circular progress ring */}
         <div className="relative h-14 w-14 shrink-0">

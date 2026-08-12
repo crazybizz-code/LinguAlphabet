@@ -33,7 +33,7 @@ export function WeakAreasCard({ weakAreas }: { weakAreas: string[] }) {
           href="/practice"
           className="text-xs font-semibold text-primary hover:underline"
         >
-          Practice now
+          Practice these →
         </Link>
       </div>
 
