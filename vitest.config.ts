@@ -63,5 +63,16 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    // scripts/*.test.ts includes real-IO operator scripts invoked
+    // deliberately by exact filename (e.g. the daily podcast worker,
+    // scripts/run-daily-episode.ts, is a plain tsx entrypoint, not a
+    // vitest test, for exactly this reason). Vitest's default include
+    // glob matches any **/*.test.ts, so a bare `npx vitest run` with no
+    // path filter would otherwise sweep these up alongside real unit
+    // tests. scripts/ingest-podcasts.test.ts is safe on its own (fully
+    // mocked, no real IO) but is excluded here too for consistency --
+    // its real worker also runs via `npm run ingest-podcasts` (tsx), not
+    // vitest, so nothing depends on it being discoverable by a bare run.
+    exclude: ["**/node_modules/**", "**/dist/**", "scripts/**"],
   },
 });

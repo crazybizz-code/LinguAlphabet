@@ -1,0 +1,99 @@
+name: LinguABC Daily Podcast Generation
+
+# DAILY SCHEDULE ENABLED. Approved after episodes #001/#002 v2/#005 were
+# manually reviewed and published, and after the pre-cron security audit
+# findings (episode-number/voice-governance/publish-integrity/auth
+# hardening, orphan-draft detection, alignment overlap validation, the
+# dedicated non-Vitest worker entrypoint) were fixed and verified.
+# CRON_SECRET is configured in this repo's GitHub Actions secrets.
+# 06:00 UTC is a placeholder pick, not a stated requirement -- change the
+# cron expression below if a different time is wanted.
+# workflow_dispatch stays available alongside the schedule for manual runs.
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+# Least-privilege GITHUB_TOKEN scope -- security-audit hardening. This
+# workflow never uses GITHUB_TOKEN (no git push, no PR/issue creation),
+# so it needs nothing beyond the default checkout read. Explicit rather
+# than relying on the repo/org default, which may be broader.
+permissions:
+  contents: read
+
+# Why GitHub Actions and not a Vercel-triggered external worker: this job
+# needs Python + faster-whisper for forced alignment and can run well
+# past Vercel's serverless time limits (~15-20 min observed for a 5-6 min
+# episode). GitHub Actions runners have Node + Python preinstalled,
+# support a job ceiling of hours (not seconds), support `schedule:` AND
+# `workflow_dispatch` natively, and need zero new hosting account -- the
+# repo is already on GitHub. See the Phase 1 architecture report in the
+# task history for the fuller cost/complexity comparison against
+# Railway/Render/a VPS.
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up the ASR environment (faster-whisper)
+        run: |
+          python3 -m venv .venv-asr
+          .venv-asr/bin/pip install --upgrade pip
+          .venv-asr/bin/pip install faster-whisper
+
+      - name: Ensure ffmpeg is present
+        run: ffmpeg -version || sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Run the daily generation pipeline
+        env:
+          # Same env vars the app already reads locally -- see
+          # src/lib/podcast-pipeline and src/ai/providers/openrouter.
+          # Every one of these must be configured as a GitHub Actions
+          # repo secret before this workflow is ever run; none are
+          # printed or logged.
+          # NEXT_PUBLIC_SUPABASE_ANON_KEY intentionally NOT listed here --
+          # security-audit finding: it had no consumer anywhere in this
+          # script's actual code path (generateDailyEpisode() only ever
+          # uses createServiceClient(), never the anon-key browser client).
+          # Removed rather than kept "just in case" per the unused-secret
+          # cleanup requirement; it's a NEXT_PUBLIC_ value used elsewhere
+          # in the app, not removed from anything else.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          FISH_API_KEY: ${{ secrets.FISH_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          # Points the pipeline's ASR subprocess at the venv created above
+          # instead of its Windows-only default (.venv-asr/Scripts/python.exe)
+          # -- the existing, documented escape hatch
+          # (src/lib/podcast-pipeline/pipeline.ts), no code change needed.
+          WHISPERX_PYTHON: ${{ github.workspace }}/.venv-asr/bin/python
+        # Security-audit finding (HIGH): this used to be
+        # `npx vitest run scripts/generate-daily-episode.test.ts` -- a
+        # Vitest "test" whose only job was real production work. Once
+        # scripts/** was excluded from Vitest's default glob (the fix for
+        # the ORIGINAL incident: a bare `npx vitest run` sweeping up
+        # every real-IO operator script), that same exclude silently
+        # broke THIS invocation too -- Vitest applies `exclude` during
+        # file discovery before any CLI filename filter runs, so the
+        # explicit path here matched zero test files. Running the
+        # dedicated, non-test entrypoint (scripts/run-daily-episode.ts)
+        # via tsx sidesteps Vitest's test discovery entirely -- this
+        # command can never be affected by vitest.config.ts's exclude
+        # list in either direction, and a bare `npx vitest run` can never
+        # pick this file up either, since it isn't a test file at all.
+        run: npx tsx scripts/run-daily-episode.ts
