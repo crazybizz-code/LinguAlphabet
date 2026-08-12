@@ -13,6 +13,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { ContinueLearningCard } from "@/components/dashboard/ContinueLearningCard";
+import { HeroLevelCard } from "@/components/dashboard/HeroLevelCard";
 import { PracticeAssessGrid } from "@/components/dashboard/PracticeAssessGrid";
 import { WeakAreasCard } from "@/components/dashboard/WeakAreasCard";
 import type { SectionScore } from "@/components/dashboard/HeroLevelCard";
@@ -93,6 +94,7 @@ export function HomeView({
   streak,
   cefrLevel,
   currentBand,
+  targetBand,
   placementCompleted,
   resume,
   weakAreas,
@@ -103,25 +105,15 @@ export function HomeView({
 }: HomeViewProps) {
   return (
     <div className="mx-auto max-w-3xl">
-      {/* ── Greeting ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="px-5 pt-8 sm:px-8 md:pt-10"
-      >
-        <h1 className="text-2xl font-bold text-text-primary">
-          {timeOfDayGreeting()}, {displayName}
-        </h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          {streak > 0
-            ? `${streak}-day streak — keep it going!`
-            : "Ready to make progress today?"}
-        </p>
-      </motion.div>
-
-      {/* ── Continue Learning ── */}
-      {resume && <ContinueLearningCard resume={resume} />}
+      {/* ── Hero level card ── */}
+      <HeroLevelCard
+        cefrLevel={cefrLevel}
+        currentBand={currentBand}
+        targetBand={targetBand}
+        placementCompleted={placementCompleted}
+        reading={latestMockReading}
+        listening={latestMockListening}
+      />
 
       {/* ── Today's Plan ── */}
       {todayPlan && todayPlan.tasks.length > 0 && (
@@ -197,6 +189,9 @@ export function HomeView({
           </div>
         </motion.div>
       )}
+
+      {/* ── Continue Learning ── */}
+      {resume && <ContinueLearningCard resume={resume} />}
 
       {/* ── Practice & Assess ── */}
       <motion.div

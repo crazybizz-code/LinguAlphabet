@@ -26,7 +26,7 @@ export default async function ProgressPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }, { data: weakAreaSignals }, { data: practiceSessions }] = await Promise.all([
-    supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed, assessed_cefr_level, total_minutes").eq("user_id", user.id).single(),
+    supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed").eq("user_id", user.id).single(),
     // streak/xp/longestStreak come from LearnerRepository (src/ai/data,
     // frozen) — the same repository Tuto's own system prompt reads
     // (ai-service.ts's resolveMemory()) and the Dashboard now reads too, so
@@ -119,7 +119,7 @@ export default async function ProgressPage() {
   const totalReadingCorrect = attempts.reduce((s, a) => s + (a.reading_correct ?? 0), 0);
   const totalListeningCorrect = attempts.reduce((s, a) => s + (a.listening_correct ?? 0), 0);
   const mocksCompleted = attempts.length;
-  const assessedCefrLevel = (profile as { assessed_cefr_level?: string | null } | null)?.assessed_cefr_level ?? learnerProfile.cefrLevel ?? null;
+  const assessedCefrLevel = learnerProfile.cefrLevel ?? null;
 
   type SignalEvidence = { weakAreas?: string[] };
   const allWeakAreas = (weakAreaSignals ?? []).flatMap((s) => {
@@ -139,10 +139,8 @@ export default async function ProgressPage() {
     (latestAttempt as { listening_score_pct?: number | null } | null)?.listening_score_pct ?? null;
   const latestCefrLevel = latestAttempt?.result_cefr_level ?? null;
 
-  // Total studied hours (from profile.total_minutes).
-  const totalStudiedHours = Math.round(
-    ((profile as { total_minutes?: number } | null)?.total_minutes ?? 0) / 60,
-  );
+  // Total studied hours — approximated from weekly minutes data.
+  const totalStudiedHours = Math.round(weeklyMinutes / 60);
 
   // Next assessment date = last mock submitted_at + 14 days.
   const nextAssessmentDate = latestAttempt?.submitted_at
