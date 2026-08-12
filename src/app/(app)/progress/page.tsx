@@ -26,23 +26,17 @@ export default async function ProgressPage() {
   if (!user) redirect("/login");
 
   const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }, { data: weakAreaSignals }, { data: practiceSessions }] = await Promise.all([
-    supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed").eq("user_id", user.id).single(),
-    // streak/xp/longestStreak come from LearnerRepository (src/ai/data,
-    // frozen) — the same repository Tuto's own system prompt reads
-    // (ai-service.ts's resolveMemory()) and the Dashboard now reads too, so
-    // Progress can never independently drift on what these numbers mean.
-    // getCachedLearnerProfile shares the React.cache result with the layout.
+    supabase
+      .from("profiles")
+      .select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed, placement_completed, english_level, current_band, target_band, username")
+      .eq("user_id", user.id)
+      .single(),
     getCachedLearnerProfile(supabase, user.id),
-    // Full catalog (not getCachedPublishedPodcasts/Articles): buildDailyActivityIndex
-    // reads podcast.vocabulary.length for the "flashcards completed" metric in the
-    // Daily Activity panel — the lean cached versions omit vocabulary and would
-    // always display 0.
     getPublishedPodcasts(supabase),
     getPublishedArticles(supabase),
     supabase.from("progress").select("*").eq("user_id", user.id),
     supabase.from("vocabulary").select("*").eq("user_id", user.id),
     supabase.from("notes").select("*").eq("user_id", user.id),
-    // All submitted mock attempts for band trend + aggregate stats.
     supabase
       .from("full_mock_attempts")
       .select("estimated_band, result_cefr_level, reading_correct, reading_total, listening_correct, listening_total, reading_score_pct, listening_score_pct, overall_score_pct, submitted_at")
@@ -56,7 +50,6 @@ export default async function ProgressPage() {
       .in("type", ["practice_completed", "mock_completed"])
       .order("created_at", { ascending: false })
       .limit(5),
-    // Recent completed practice sessions for Recent Practice section.
     supabase
       .from("practice_sessions")
       .select("practice_type, correct_count, question_count, score_pct, completed_at")
@@ -67,9 +60,21 @@ export default async function ProgressPage() {
       .limit(5),
   ]);
 
-  if (!profile?.onboarding_completed) redirect("/welcome");
-
   const rows = progressRows ?? [];
+  const attempts = mockAttempts ?? [];
+  const hasCompletedLearnerEvidence = Boolean(
+    profile?.onboarding_completed ||
+      profile?.placement_completed ||
+      profile?.english_level ||
+      profile?.current_band !== null ||
+      profile?.target_band !== null ||
+      profile?.username ||
+      rows.some((row) => row.completed) ||
+      attempts.length > 0,
+  );
+
+  if (!hasCompletedLearnerEvidence) redirect("/welcome");
+
   const dailyGoalMinutes = profile?.daily_time_minutes ?? DEFAULT_DAILY_MINUTES;
   const catalog = [...podcasts, ...articles];
   const byId = new Map(catalog.map((item) => [item.id, item]));
@@ -77,7 +82,6 @@ export default async function ProgressPage() {
 
   const weekStart = startOfWeek(new Date());
   const completedThisWeek = completedRows.filter((row) => new Date(row.updated_at) >= weekStart).length;
-
   const streak = learnerProfile.streak ?? 0;
   const longestStreak = Math.max(streak, learnerProfile.studyConsistency?.longestStreak ?? 0);
   const level = profile?.level ?? 1;
@@ -92,7 +96,6 @@ export default async function ProgressPage() {
 
   const weeklyMinutes = buildWeeklyMinutes(catalog, rows);
   const weeklyGoalMinutes = dailyGoalMinutes * 7;
-
   const tutoNote = buildTutoNote({
     streak,
     weeklyMinutes,
@@ -108,50 +111,34 @@ export default async function ProgressPage() {
     noteRows: noteRows ?? [],
   });
 
-  // Mock-derived stats for Base44 progress sections.
-  const attempts = mockAttempts ?? [];
   const bandTrend = attempts
-    .filter((a) => a.estimated_band !== null)
-    .map((a, i) => ({
-      band: a.estimated_band as number,
-      label: `Mock ${i + 1}`,
-    }));
-  const totalReadingCorrect = attempts.reduce((s, a) => s + (a.reading_correct ?? 0), 0);
-  const totalListeningCorrect = attempts.reduce((s, a) => s + (a.listening_correct ?? 0), 0);
-  const mocksCompleted = attempts.length;
+    .filter((attempt) => attempt.estimated_band !== null)
+    .map((attempt, index) => ({ band: attempt.estimated_band as number, label: `Mock ${index + 1}` }));
+  const totalReadingCorrect = attempts.reduce((sum, attempt) => sum + (attempt.reading_correct ?? 0), 0);
+  const totalListeningCorrect = attempts.reduce((sum, attempt) => sum + (attempt.listening_correct ?? 0), 0);
   const assessedCefrLevel = learnerProfile.cefrLevel ?? null;
 
   type SignalEvidence = { weakAreas?: string[] };
-  const allWeakAreas = (weakAreaSignals ?? []).flatMap((s) => {
-    const ev = s.evidence as SignalEvidence | null;
-    return ev?.weakAreas ?? [];
+  const allWeakAreas = (weakAreaSignals ?? []).flatMap((signal) => {
+    const evidence = signal.evidence as SignalEvidence | null;
+    return evidence?.weakAreas ?? [];
   });
   const weakAreas = [...new Set(allWeakAreas)].slice(0, 3);
 
-  // ── New parity props ────────────────────────────────────────────────────────
-
-  // Latest mock stats — attempts are ordered ascending so last = most recent.
   const latestAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
   const latestBand = latestAttempt?.estimated_band ?? null;
-  const latestReadingPct =
-    (latestAttempt as { reading_score_pct?: number | null } | null)?.reading_score_pct ?? null;
-  const latestListeningPct =
-    (latestAttempt as { listening_score_pct?: number | null } | null)?.listening_score_pct ?? null;
+  const latestReadingPct = latestAttempt?.reading_score_pct ?? null;
+  const latestListeningPct = latestAttempt?.listening_score_pct ?? null;
   const latestCefrLevel = latestAttempt?.result_cefr_level ?? null;
-
-  // Total studied hours — approximated from weekly minutes data.
   const totalStudiedHours = Math.round(weeklyMinutes / 60);
-
-  // Next assessment date = last mock submitted_at + 14 days.
   const nextAssessmentDate = latestAttempt?.submitted_at
     ? (() => {
-        const d = new Date(latestAttempt.submitted_at as string);
-        d.setDate(d.getDate() + 14);
-        return d.toISOString().split("T")[0];
+        const date = new Date(latestAttempt.submitted_at as string);
+        date.setDate(date.getDate() + 14);
+        return date.toISOString().split("T")[0];
       })()
     : null;
 
-  // Build recent practice items from practice_sessions + mock attempts.
   function fmtDate(iso: string): string {
     return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   }
@@ -164,30 +151,28 @@ export default async function ProgressPage() {
     total: number;
     scorePct: number;
   };
+
   const rawPractice: RawPractice[] = [
     ...(practiceSessions ?? [])
-      .filter((s) => s.completed_at)
-      .map((s) => ({
-        date: new Date(s.completed_at!),
-        type: (s.practice_type === "listening" ? "listening" : "reading") as "reading" | "listening",
-        label: s.practice_type === "listening" ? "Listening Practice" : "Reading Practice",
-        correct: s.correct_count,
-        total: s.question_count,
-        scorePct: s.score_pct ?? 0,
+      .filter((session) => session.completed_at)
+      .map((session) => ({
+        date: new Date(session.completed_at!),
+        type: (session.practice_type === "listening" ? "listening" : "reading") as "reading" | "listening",
+        label: session.practice_type === "listening" ? "Listening Practice" : "Reading Practice",
+        correct: session.correct_count,
+        total: session.question_count,
+        scorePct: session.score_pct ?? 0,
       })),
     ...attempts
-      .filter((a) => a.submitted_at)
+      .filter((attempt) => attempt.submitted_at)
       .slice(-3)
-      .map((a) => ({
-        date: new Date(a.submitted_at!),
+      .map((attempt) => ({
+        date: new Date(attempt.submitted_at!),
         type: "mock" as const,
         label: "Mock Test",
-        correct: (a.reading_correct ?? 0) + (a.listening_correct ?? 0),
-        total: (a.reading_total ?? 0) + (a.listening_total ?? 0),
-        scorePct:
-          ((a as { reading_score_pct?: number | null }).reading_score_pct ?? 0) +
-          ((a as { listening_score_pct?: number | null }).listening_score_pct ?? 0) /
-            2,
+        correct: (attempt.reading_correct ?? 0) + (attempt.listening_correct ?? 0),
+        total: (attempt.reading_total ?? 0) + (attempt.listening_total ?? 0),
+        scorePct: ((attempt.reading_score_pct ?? 0) + (attempt.listening_score_pct ?? 0)) / 2,
       })),
   ];
 
@@ -222,7 +207,7 @@ export default async function ProgressPage() {
       tutoNote={tutoNote}
       lastWeekSummary={buildLastWeekSummary(catalog, rows)}
       bandTrend={bandTrend}
-      mocksCompleted={mocksCompleted}
+      mocksCompleted={attempts.length}
       totalReadingCorrect={totalReadingCorrect}
       totalListeningCorrect={totalListeningCorrect}
       assessedCefrLevel={assessedCefrLevel}
