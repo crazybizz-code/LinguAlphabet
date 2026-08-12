@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import Link from "next/link";
 
 export interface PlanTask {
@@ -173,9 +173,21 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
                 <span className="text-xs text-text-secondary">{weekLabel(weekNum)}</span>
                 {weekTotalMins > 0 && <span className="ml-auto text-[10px] text-text-tertiary">{weekTotalMins} min</span>}
               </div>
-              <div className="grid grid-cols-7 gap-1.5 rounded-2xl border border-border bg-bg-card p-3 shadow-sm">
+              {/*
+                Base44 reference has no day-of-week header row and no
+                fixed weekday-column alignment at any breakpoint -- days
+                simply reflow through a responsive 2/4/7-column grid. This
+                app's existing Mon-Sun header row + gridColumnStart
+                alignment is preserved, but ONLY at the lg (7-column)
+                breakpoint where it's visually meaningful; below that,
+                where the grid no longer has 7 columns, days fall back to
+                normal sequential grid flow (Base44's actual behavior at
+                every breakpoint) via the lg:-scoped arbitrary property
+                below instead of an always-on inline style.
+              */}
+              <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-bg-card p-3 shadow-sm sm:grid-cols-4 lg:grid-cols-7">
                 {DOW_LABELS.map((label) => (
-                  <div key={label} className="pb-1 text-center"><span className="text-[10px] font-semibold uppercase tracking-wide text-text-tertiary">{label}</span></div>
+                  <div key={label} className="pb-1 text-center max-lg:hidden"><span className="text-[10px] font-semibold uppercase tracking-wide text-text-tertiary">{label}</span></div>
                 ))}
                 {weekDays.map((day) => {
                   const isToday = day.planDate === today;
@@ -183,9 +195,21 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
                   const allDone = day.tasks.length > 0 && day.tasks.every((task) => task.completed);
                   const totalMins = day.tasks.reduce((sum, task) => sum + (task.estimatedMinutes ?? 0), 0);
                   return (
-                    <button key={day.id} onClick={() => setSelectedDayId(isSelected ? null : day.id)} aria-label={`Day ${day.dayNumber}${isToday ? " (today)" : ""}`} style={{ gridColumnStart: isoToDow(day.planDate) + 1 }} className={["flex min-h-16 flex-col items-center gap-1 rounded-xl p-2 text-center transition-all", isSelected ? "bg-primary/10 ring-1 ring-primary" : isToday ? "bg-primary/5 ring-1 ring-primary/40" : "hover:bg-border/20"].join(" ")}>
-                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${isToday ? "bg-primary text-white" : allDone ? "text-success" : "text-text-primary"}`}>
-                        {allDone && !isToday ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : shortDayNum(day.planDate)}
+                    <button
+                      key={day.id}
+                      onClick={() => setSelectedDayId(isSelected ? null : day.id)}
+                      // "Today" has no distinct Base44 visual state (only
+                      // completed/selected do) -- kept here ONLY as a
+                      // screen-reader affordance, never as styling.
+                      aria-label={`Day ${day.dayNumber}${isToday ? " (today)" : ""}`}
+                      style={{ "--dow-col": String(isoToDow(day.planDate) + 1) } as CSSProperties}
+                      className={[
+                        "flex min-h-16 flex-col items-center gap-1 rounded-xl p-2 text-center transition-all lg:[grid-column-start:var(--dow-col)]",
+                        isSelected ? "bg-primary/10 ring-1 ring-primary" : "hover:bg-border/20",
+                      ].join(" ")}
+                    >
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${allDone ? "text-success" : "text-text-primary"}`}>
+                        {allDone ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : shortDayNum(day.planDate)}
                       </span>
                       {day.tasks.length > 0 && (
                         <span className="flex flex-wrap justify-center gap-0.5">
@@ -197,7 +221,9 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
                     </button>
                   );
                 })}
-                {weekNum === 1 && weekDays[0] && isoToDow(weekDays[0].planDate) > 0 && <div style={{ gridColumnStart: 1, gridColumnEnd: isoToDow(weekDays[0].planDate) + 1 }} />}
+                {weekNum === 1 && weekDays[0] && isoToDow(weekDays[0].planDate) > 0 && (
+                  <div className="max-lg:hidden" style={{ gridColumnStart: 1, gridColumnEnd: isoToDow(weekDays[0].planDate) + 1 }} />
+                )}
               </div>
             </motion.section>
           );
@@ -246,7 +272,7 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
               </div>
               {selectedDay.tasks.some((task) => !task.completed) && (
                 <div className="border-t border-border px-5 py-4">
-                  <Link href={firstIncompleteHref(selectedDay.tasks) ?? "/practice"} className="flex w-full items-center justify-center rounded-2xl bg-primary py-3.5 text-sm font-semibold text-white shadow-glow transition-all hover:bg-primary-dark">Start Today's Tasks</Link>
+                  <Link href={firstIncompleteHref(selectedDay.tasks) ?? "/practice"} className="flex w-full items-center justify-center rounded-2xl bg-primary py-3.5 text-sm font-semibold text-white shadow-glow transition-all hover:bg-primary-dark">Start Today&apos;s Tasks</Link>
                 </div>
               )}
             </motion.aside>
