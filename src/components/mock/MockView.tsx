@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, BookOpen, CalendarDays, ChevronRight, Clock, FileText, Headphones } from "lucide-react";
+import { AlertTriangle, BookOpen, CalendarDays, ChevronRight, Clock, Headphones } from "lucide-react";
 import { MockStartButton } from "@/components/mock/MockStartButton";
 
 export interface MockViewProps {
