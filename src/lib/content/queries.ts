@@ -9,6 +9,30 @@ type PodcastDetailsRow = Database["public"]["Tables"]["podcast_details"]["Row"];
 type ArticleDetailsRow = Database["public"]["Tables"]["article_details"]["Row"];
 
 /**
+ * LinguABC learning-catalog product rule: every podcast the website
+ * exposes (LinguABC-original or external) must be a 5-6 minute episode.
+ * Mirrors podcast-pipeline/config.ts's MIN/MAX_DURATION_SECONDS and
+ * content-engine/publishing.ts's MAX_PODCAST_CATALOG_DURATION_SECONDS by
+ * value, not by import (three separate module trees that each need this
+ * same product fact) -- if one changes, check the others.
+ *
+ * Catalog-cleanup finding: episodes like the NOAA "Coastal Conversation"
+ * (962s/16min) and "The USS Monitor, Part 1" (3149s/52.5min) predate this
+ * rule and predate publishing.ts's own duration gate (which only blocks
+ * NEW publications, not existing rows). This is the enforcement point
+ * that keeps them out of the LEARNING CATALOG specifically -- their
+ * content_items/podcast_details rows are untouched, still published,
+ * still fully intact for whatever other pipeline owns them; they are
+ * excluded from what these functions return, nothing more. Deliberately
+ * NOT applied to getDraftPodcastByIdForPreview -- that's operator preview
+ * tooling for reviewing a draft before publishing, not the learner
+ * catalog, and an operator needs to be able to see a too-long draft to
+ * decide what to do with it.
+ */
+const MIN_CATALOG_DURATION_SECONDS = 300;
+const MAX_CATALOG_DURATION_SECONDS = 360;
+
+/**
  * Normalizes a raw transcript from DB into typed TranscriptSegment[].
  * Handles both camelCase keys (BBC seed data) and snake_case keys (VOA
  * pipeline adapter) that may coexist in the same table. The fix belongs
@@ -67,6 +91,9 @@ function toPodcastContent(item: ContentItemRow, details: PodcastDetailsRow): Pod
     keyExpressions: (details.key_expressions ?? []) as unknown as KeyExpression[],
     listeningNotes: (details.listening_notes ?? []) as unknown as string[],
     discussionQuestions: (details.discussion_questions ?? []) as unknown as string[],
+    // Passed through as-is -- never defaulted to "LinguABC". See
+    // PodcastContent.attribution's doc comment.
+    attribution: details.attribution,
   };
 }
 
@@ -95,10 +122,18 @@ export async function getPublishedPodcasts(supabase: Client): Promise<PodcastCon
     .in(
       "content_item_id",
       items.map((item) => item.id),
-    );
+    )
+    // Catalog duration rule, enforced in the query itself (not just
+    // filtered in memory afterward) -- see MIN/MAX_CATALOG_DURATION_SECONDS's
+    // doc comment above.
+    .gte("duration_seconds", MIN_CATALOG_DURATION_SECONDS)
+    .lte("duration_seconds", MAX_CATALOG_DURATION_SECONDS);
 
   const detailsById = new Map((details ?? []).map((detail) => [detail.content_item_id, detail]));
 
+  // An item whose podcast_details row didn't pass the duration filter
+  // above simply has no entry in detailsById -- already excluded here,
+  // exactly the same way a genuinely-missing details row always was.
   return items
     .map((item) => {
       const detail = detailsById.get(item.id);
@@ -130,8 +165,13 @@ async function fetchPublishedPodcastSummaries(supabase: Client): Promise<Podcast
 
   const { data: details } = await supabase
     .from("podcast_details")
-    .select("content_item_id, audio_url, duration_seconds")
-    .in("content_item_id", items.map((item) => item.id));
+    .select("content_item_id, audio_url, duration_seconds, attribution")
+    .in("content_item_id", items.map((item) => item.id))
+    // Same catalog duration rule as getPublishedPodcasts -- this lean,
+    // cached summary fetch is exactly what feeds the sidebar/Dashboard
+    // catalog, so it needs the same exclusion.
+    .gte("duration_seconds", MIN_CATALOG_DURATION_SECONDS)
+    .lte("duration_seconds", MAX_CATALOG_DURATION_SECONDS);
 
   const detailsById = new Map((details ?? []).map((d) => [d.content_item_id, d]));
 
@@ -192,7 +232,17 @@ export const getCachedPublishedArticles = cache(fetchPublishedArticleSummaries);
 export async function getPodcastById(supabase: Client, id: string): Promise<PodcastContent | null> {
   const [{ data: item }, { data: details }] = await Promise.all([
     supabase.from("content_items").select("*").eq("id", id).eq("content_type", "podcast").eq("status", "published").maybeSingle(),
-    supabase.from("podcast_details").select("*").eq("content_item_id", id).maybeSingle(),
+    supabase
+      .from("podcast_details")
+      .select("*")
+      .eq("content_item_id", id)
+      // Same catalog duration rule as getPublishedPodcasts -- a direct
+      // link/id lookup for an out-of-range episode (e.g. the 16-minute or
+      // 52.5-minute NOAA episodes) must be excluded exactly like the
+      // listing is, not just hidden from it.
+      .gte("duration_seconds", MIN_CATALOG_DURATION_SECONDS)
+      .lte("duration_seconds", MAX_CATALOG_DURATION_SECONDS)
+      .maybeSingle(),
   ]);
 
   if (!item || !details) return null;

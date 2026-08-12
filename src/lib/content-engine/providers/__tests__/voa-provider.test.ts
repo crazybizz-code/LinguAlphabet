@@ -282,6 +282,11 @@ describe("the real As It Is item", () => {
       cefrLevelMax: "B2",
       topics: ["Environment"],
       estimatedTimeMinutes: 4,
+      detailsRow: {
+        ...draft.detailsRow,
+        vocabulary: [{ word: "coral", phonetic: "", pos: "noun", translation: "", definition: "A marine organism.", example: "The coral is colorful." }],
+        quiz: [{ type: "mc", question: "What is coral?", options: ["A marine organism", "A fish", "A plant", "A rock"], correct: 0, explanation: "It's in the text.", grammarTopic: null, vocabularyWord: null }],
+      },
     });
     expect(gated.reasons).toEqual([]);
     expect(gated.passed).toBe(true);
@@ -352,7 +357,18 @@ describe("VOA episode through the unified engine", () => {
     expect(draft.detailsRow.transcript_hash).toMatch(/^[a-f0-9]{64}$/);
 
     // The pipeline fills these post-enrichment; the gate needs them present.
-    const gated = runQualityGate({ ...draft, cefrLevelMin: "B1", cefrLevelMax: "B2", topics: ["Science"], estimatedTimeMinutes: 6 });
+    const gated = runQualityGate({
+      ...draft,
+      cefrLevelMin: "B1",
+      cefrLevelMax: "B2",
+      topics: ["Science"],
+      estimatedTimeMinutes: 6,
+      detailsRow: {
+        ...draft.detailsRow,
+        vocabulary: [{ word: "coral", phonetic: "", pos: "noun", translation: "", definition: "A marine organism.", example: "The coral is colorful." }],
+        quiz: [{ type: "mc", question: "What is coral?", options: ["A marine organism", "A fish", "A plant", "A rock"], correct: 0, explanation: "It's in the text.", grammarTopic: null, vocabularyWord: null }],
+      },
+    });
     expect(gated.reasons).toEqual([]);
     expect(gated.passed).toBe(true);
   });

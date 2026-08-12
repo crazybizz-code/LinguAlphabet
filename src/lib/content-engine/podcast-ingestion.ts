@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import type { EnrichmentResult } from "./types";
 import { generateEnrichment, enrichmentToDetailsColumns } from "./ai-processing";
 import { runQualityGate, publishContentItem } from "./publishing";
 import { upsertContentItem, upsertContentDetails } from "./storage";
@@ -24,6 +25,19 @@ export interface IngestPodcastOptions {
   transcriptInput: unknown;
   /** Write as `draft` instead of publishing immediately — lets an operator eyeball the AI output before learners see it. */
   autoPublish?: boolean;
+  /**
+   * Skip the generateEnrichment() Gemini call and use this pre-built,
+   * already-validated result instead. For the LinguABC AI-generation
+   * pipeline (podcast-pipeline/pipeline.ts), which already validated its
+   * own enrichment against buildEnrichmentSchema() before ever calling
+   * here — spending a second Gemini call to re-derive the same enrichment
+   * would be wasted spend. Every other step (transcript verification,
+   * audio reachability, duplicate check, quality gate, storage) runs
+   * exactly as it does for a Gemini-enriched episode; only this one
+   * network call is bypassed. Absent for every other caller, so existing
+   * behaviour is unchanged when this is omitted.
+   */
+  enrichmentOverride?: EnrichmentResult;
 }
 
 function errorMessage(error: unknown): string {
@@ -113,11 +127,17 @@ export async function ingestPodcastEpisode(
   }
 
   // --- 3. Enrich, via the SAME processor articles use (audio modality) ---
-  let enrichment;
-  try {
-    enrichment = await generateEnrichment(input.title, candidate.text, "audio");
-  } catch (error) {
-    return { status: "rejected", stage: "enrichment", reasons: [`AI enrichment failed: ${errorMessage(error)}`] };
+  // (skipped entirely when the caller supplies enrichmentOverride — see
+  // IngestPodcastOptions' doc comment)
+  let enrichment: EnrichmentResult;
+  if (options.enrichmentOverride) {
+    enrichment = options.enrichmentOverride;
+  } else {
+    try {
+      enrichment = await generateEnrichment(input.title, candidate.text, "audio");
+    } catch (error) {
+      return { status: "rejected", stage: "enrichment", reasons: [`AI enrichment failed: ${errorMessage(error)}`] };
+    }
   }
 
   // --- 4. Assemble the draft ---
@@ -154,8 +174,20 @@ export async function ingestPodcastEpisode(
   }
 
   // --- 5. Store + publish, through the shared storage layer ---
+  // ALWAYS write content_items as "draft" first, regardless of autoPublish.
+  // publishContentItem() (the ONLY thing that ever sets status='published')
+  // runs last, and only after podcast_details has ALSO been written
+  // successfully. These are two separate, non-atomic Supabase calls -- if
+  // upsertContentDetails throws, a row that was written straight to
+  // 'published' would stay published with no audio_url/transcript/
+  // vocabulary/quiz at all (a live, broken episode). Writing 'draft' first
+  // means that exact failure leaves a draft row instead -- correctly
+  // hidden by the existing RLS policy (`status in ('published',
+  // 'coming_soon')`), not a public, broken lesson. A caller that passed
+  // autoPublish:false already only ever got 'draft' here; this changes
+  // nothing for that path.
   try {
-    await upsertContentItem(supabase, draft, options.autoPublish === false ? "draft" : "published");
+    await upsertContentItem(supabase, draft, "draft");
     await upsertContentDetails(supabase, draft.detailsTable, draft.detailsRow as Record<string, unknown> & { content_item_id: string });
     if (options.autoPublish !== false) await publishContentItem(supabase, draft.id);
   } catch (error) {

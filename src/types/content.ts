@@ -100,6 +100,17 @@ export interface PodcastContent extends ContentItem {
   listeningNotes?: string[];
   /** Populated by the Content Engine for pipeline-ingested content; absent on seed/legacy rows. */
   discussionQuestions?: string[];
+  /**
+   * Real source attribution (e.g. "LinguABC", "Voice of America", "NOAA
+   * National Ocean Service"), passed through UNCHANGED from
+   * podcast_details.attribution — never defaulted to "LinguABC" for a
+   * null/missing value, since that would misattribute an unknown source
+   * as our own original content. Lets the UI distinguish LinguABC
+   * original episodes from external ones. Optional (not just nullable)
+   * so pre-existing static/seed data that predates this field doesn't
+   * need updating.
+   */
+  attribution?: string | null;
 }
 
 /** content_items + article_details joined — mirrors PodcastContent exactly. */

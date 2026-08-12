@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service-client";
 import { ingestPodcastEpisode } from "@/lib/content-engine/podcast-ingestion";
+import { podcastContentId } from "@/lib/content-engine/adapters/podcast";
 
 export const dynamic = "force-dynamic";
 // One episode = one Gemini enrichment call over a full transcript, which
@@ -32,10 +33,30 @@ const PodcastSubmissionSchema = z.object({
  * the same shared engine (enrichment -> quality gate -> storage ->
  * publish) the scheduled article pipeline uses.
  *
- * Auth mirrors /api/content-engine/ingest exactly: a bearer CRON_SECRET,
- * because the caller is a machine/operator tool with no user session. As
- * there, an unset CRON_SECRET leaves this open — acceptable locally,
- * required in production.
+ * SECURITY-AUDIT REWRITE (CRITICAL). This route used to check CRON_SECRET
+ * only `if (cronSecret)` — an unset secret left it wide open, not just
+ * "acceptable locally": with CRON_SECRET unset, anyone could call this
+ * with no credential at all. It also accepted a fully caller-controlled
+ * `externalId`/`audioUrl` which — via podcastContentId()'s deterministic
+ * hash and `audioUrl` validation that allows LinguABC's own storage host —
+ * let a caller who guessed the small, documented `linguabc-episode-{NNN}`
+ * externalId space upsert straight over an existing published LinguABC
+ * episode's transcript/vocabulary/quiz, silently blanking its
+ * `attribution` in the process (this schema has no attribution field, so
+ * the upsert always writes attribution:"" over whatever was there).
+ *
+ * Auth now mirrors /api/content-engine/podcasts/generate exactly:
+ * CRON_SECRET is REQUIRED, fails closed (503) if unset, never logged,
+ * never echoed.
+ *
+ * Defense-in-depth: before any upsert, this looks up whether a
+ * podcast_details row already exists for the exact content_item_id this
+ * submission would target, and refuses (409) if that row's CURRENT
+ * attribution is "LinguABC" — this manual path must never be able to
+ * touch an episode belonging to the automated pipeline, regardless of
+ * what the caller supplies. Every other submission (a genuinely new
+ * episode, or a re-submission of a manual-intake episode this route
+ * itself created) is unaffected.
  *
  * A rejected transcript returns HTTP 422 with the full per-check
  * verification report, not a bare failure: the operator needs to know
@@ -43,10 +64,14 @@ const PodcastSubmissionSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (!cronSecret) {
+    return NextResponse.json(
+      { error: "CRON_SECRET is not configured on the server. Refusing all requests until it is set." },
+      { status: 503 },
+    );
+  }
+  if (request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   let body: unknown;
@@ -62,8 +87,27 @@ export async function POST(request: NextRequest) {
   }
 
   const { transcript, autoPublish, ...episode } = parsed.data;
+  const supabase = createServiceClient();
 
-  const outcome = await ingestPodcastEpisode(createServiceClient(), episode, {
+  const contentItemId = podcastContentId(episode.externalId ?? episode.audioUrl);
+  const { data: existingDetails, error: existingError } = await supabase
+    .from("podcast_details")
+    .select("attribution")
+    .eq("content_item_id", contentItemId)
+    .maybeSingle();
+  if (existingError) {
+    return NextResponse.json({ error: `Could not verify existing episode identity: ${existingError.message}` }, { status: 500 });
+  }
+  if (existingDetails?.attribution === "LinguABC") {
+    return NextResponse.json(
+      {
+        error: `content_item_id '${contentItemId}' belongs to the automated LinguABC pipeline (attribution=LinguABC). This manual intake endpoint must not overwrite it.`,
+      },
+      { status: 409 },
+    );
+  }
+
+  const outcome = await ingestPodcastEpisode(supabase, episode, {
     transcriptInput: transcript,
     autoPublish,
   });

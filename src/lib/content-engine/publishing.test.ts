@@ -83,7 +83,13 @@ describe("quality gate — article body", () => {
     const podcast = articleDraft({
       contentType: "podcast",
       detailsTable: "podcast_details",
-      detailsRow: { audio_url: "https://av.voanews.com/a.mp3", duration_seconds: 600, transcript: [{ text: "hi" }] },
+      detailsRow: {
+        audio_url: "https://av.voanews.com/a.mp3",
+        duration_seconds: 330,
+        transcript: [{ text: "hi" }],
+        vocabulary: [{ word: "hi", phonetic: "", pos: "interjection", translation: "", definition: "A greeting.", example: "Hi there." }],
+        quiz: [{ type: "mc", question: "?", options: ["a", "b", "c", "d"], correct: 0, explanation: "", grammarTopic: null, vocabularyWord: null }],
+      },
     });
     expect(runQualityGate(podcast).passed).toBe(true);
   });

@@ -102,7 +102,11 @@ type EnrichmentModelOutput = z.infer<z.ZodObject<typeof BASE_ENRICHMENT_FIELDS>>
   grammarNotes?: string[];
 };
 
-function buildEnrichmentSchema(modality: ContentModality): z.ZodType<EnrichmentModelOutput> {
+// Exported (not just internal) so podcast-pipeline/pipeline.ts can
+// validate an operator-supplied enrichment object against the REAL
+// schema this module's own generateEnrichment() call is constrained by
+// -- never a second, parallel schema that could drift from this one.
+export function buildEnrichmentSchema(modality: ContentModality): z.ZodType<EnrichmentModelOutput> {
   return modality === "audio"
     ? z.object({ ...BASE_ENRICHMENT_FIELDS, listeningNotes: z.array(z.string()) })
     : z.object({ ...BASE_ENRICHMENT_FIELDS, grammarNotes: z.array(z.string()) });

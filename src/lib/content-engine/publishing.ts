@@ -28,6 +28,25 @@ type Client = SupabaseClient<Database>;
  */
 const MIN_ARTICLE_BODY_LENGTH = 200;
 
+/** Product policy: the LinguABC podcast experience targets ~5-6 minute
+ * episodes. Mirrors podcast-pipeline/config.ts's MAX_DURATION_SECONDS by
+ * value (not by import -- content-engine and podcast-pipeline are
+ * separate module trees, and this constant is a product-catalog fact
+ * both happen to need, not a podcast-pipeline implementation detail). If
+ * one changes, check the other. */
+const MAX_PODCAST_CATALOG_DURATION_SECONDS = 360;
+
+/** LinguABC's own AI-generated podcasts may only ever be B2, C1, or C2 --
+ * B1 is reserved for external content (NOAA English / the existing
+ * external pipeline), never the AI generator. This is the authoritative
+ * enforcement point: podcast-pipeline/scriptGeneration.ts TARGETS one of
+ * these levels, but the level actually stored here comes from
+ * generateEnrichment()'s independent assessment of the produced text
+ * (ai-processing.ts) -- checking it here, not trusting the script
+ * generator's self-report, is what prevents "merely labeling" a script
+ * that reads as B1 as if it were B2. */
+const LINGUABC_ALLOWED_CEFR_LEVELS = new Set(["B2", "C1", "C2"]);
+
 const TYPE_SPECIFIC_CHECKS: Partial<Record<ContentType, (draft: ContentItemDraft) => string[]>> = {
   /**
    * Guards the one thing an article cannot be published without: actual
@@ -87,6 +106,12 @@ const TYPE_SPECIFIC_CHECKS: Partial<Record<ContentType, (draft: ContentItemDraft
     const duration = draft.detailsRow.duration_seconds;
     if (typeof duration !== "number" || !Number.isFinite(duration) || duration <= 0) {
       reasons.push("Missing or invalid audio duration");
+    } else if (duration > MAX_PODCAST_CATALOG_DURATION_SECONDS) {
+      // LinguABC's own generator already hard-gates 300-360s before this
+      // point (podcast-pipeline/pipeline.ts), so this branch can never
+      // fire for an AI-generated episode -- it exists to close the gap
+      // for externally-ingested audio, which has no upper bound otherwise.
+      reasons.push(`Audio duration ${Math.round(duration)}s exceeds the ${MAX_PODCAST_CATALOG_DURATION_SECONDS}s catalog limit for the LinguABC podcast experience`);
     }
 
     // An empty array is the schema default, so "absent" and "empty" are
@@ -94,6 +119,35 @@ const TYPE_SPECIFIC_CHECKS: Partial<Record<ContentType, (draft: ContentItemDraft
     const transcript = draft.detailsRow.transcript;
     if (!Array.isArray(transcript) || transcript.length === 0) {
       reasons.push("Missing transcript");
+    }
+
+    // Security/correctness-audit finding: a schema-valid-but-empty
+    // enrichment (vocabulary: [], quiz: []) previously passed this gate
+    // and got published, breaking Flashcards/Quiz for that episode. The
+    // ONLY check that caught it was pipeline.ts's post-publish read-back
+    // verification -- which runs AFTER publishContentItem() already ran,
+    // too late to prevent it. This is the actual fix: block it here,
+    // before any write happens, not just detect it afterward.
+    const vocabulary = draft.detailsRow.vocabulary;
+    if (!Array.isArray(vocabulary) || vocabulary.length === 0) {
+      reasons.push("Missing vocabulary");
+    }
+
+    const quiz = draft.detailsRow.quiz;
+    if (!Array.isArray(quiz) || quiz.length === 0) {
+      reasons.push("Missing quiz");
+    }
+
+    // LinguABC AI-generated podcast level policy -- see
+    // LINGUABC_ALLOWED_CEFR_LEVELS's doc comment above. External podcast
+    // content (any other attribution, e.g. NOAA/VOA/BBC) is unaffected --
+    // B1 is exactly where that content is supposed to live.
+    if (draft.detailsRow.attribution === "LinguABC") {
+      const min = draft.cefrLevelMin;
+      const max = draft.cefrLevelMax;
+      if (!LINGUABC_ALLOWED_CEFR_LEVELS.has(min) || !LINGUABC_ALLOWED_CEFR_LEVELS.has(max)) {
+        reasons.push(`LinguABC AI-generated podcast must be B2, C1, or C2 (got cefrLevelMin=${min}, cefrLevelMax=${max}) -- B1 and below are reserved for external content`);
+      }
     }
 
     return reasons;
