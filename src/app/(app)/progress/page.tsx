@@ -25,8 +25,8 @@ export default async function ProgressPage() {
   const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
-  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }, { data: weakAreaSignals }] = await Promise.all([
-    supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed, assessed_cefr_level").eq("user_id", user.id).single(),
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }, { data: weakAreaSignals }, { data: practiceSessions }] = await Promise.all([
+    supabase.from("profiles").select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed, assessed_cefr_level, total_minutes").eq("user_id", user.id).single(),
     // streak/xp/longestStreak come from LearnerRepository (src/ai/data,
     // frozen) — the same repository Tuto's own system prompt reads
     // (ai-service.ts's resolveMemory()) and the Dashboard now reads too, so
@@ -45,7 +45,7 @@ export default async function ProgressPage() {
     // All submitted mock attempts for band trend + aggregate stats.
     supabase
       .from("full_mock_attempts")
-      .select("estimated_band, result_cefr_level, reading_correct, reading_total, listening_correct, listening_total, submitted_at")
+      .select("estimated_band, result_cefr_level, reading_correct, reading_total, listening_correct, listening_total, reading_score_pct, listening_score_pct, overall_score_pct, submitted_at")
       .eq("user_id", user.id)
       .eq("status", "submitted")
       .order("submitted_at", { ascending: true }),
@@ -55,6 +55,15 @@ export default async function ProgressPage() {
       .eq("user_id", user.id)
       .in("type", ["practice_completed", "mock_completed"])
       .order("created_at", { ascending: false })
+      .limit(5),
+    // Recent completed practice sessions for Recent Practice section.
+    supabase
+      .from("practice_sessions")
+      .select("practice_type, correct_count, question_count, score_pct, completed_at")
+      .eq("user_id", user.id)
+      .eq("status", "completed")
+      .not("completed_at", "is", null)
+      .order("completed_at", { ascending: false })
       .limit(5),
   ]);
 
@@ -119,6 +128,83 @@ export default async function ProgressPage() {
   });
   const weakAreas = [...new Set(allWeakAreas)].slice(0, 3);
 
+  // ── New parity props ────────────────────────────────────────────────────────
+
+  // Latest mock stats — attempts are ordered ascending so last = most recent.
+  const latestAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
+  const latestBand = latestAttempt?.estimated_band ?? null;
+  const latestReadingPct =
+    (latestAttempt as { reading_score_pct?: number | null } | null)?.reading_score_pct ?? null;
+  const latestListeningPct =
+    (latestAttempt as { listening_score_pct?: number | null } | null)?.listening_score_pct ?? null;
+  const latestCefrLevel = latestAttempt?.result_cefr_level ?? null;
+
+  // Total studied hours (from profile.total_minutes).
+  const totalStudiedHours = Math.round(
+    ((profile as { total_minutes?: number } | null)?.total_minutes ?? 0) / 60,
+  );
+
+  // Next assessment date = last mock submitted_at + 14 days.
+  const nextAssessmentDate = latestAttempt?.submitted_at
+    ? (() => {
+        const d = new Date(latestAttempt.submitted_at as string);
+        d.setDate(d.getDate() + 14);
+        return d.toISOString().split("T")[0];
+      })()
+    : null;
+
+  // Build recent practice items from practice_sessions + mock attempts.
+  function fmtDate(iso: string): string {
+    return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  }
+
+  type RawPractice = {
+    date: Date;
+    type: "reading" | "listening" | "mock";
+    label: string;
+    correct: number;
+    total: number;
+    scorePct: number;
+  };
+  const rawPractice: RawPractice[] = [
+    ...(practiceSessions ?? [])
+      .filter((s) => s.completed_at)
+      .map((s) => ({
+        date: new Date(s.completed_at!),
+        type: (s.practice_type === "listening" ? "listening" : "reading") as "reading" | "listening",
+        label: s.practice_type === "listening" ? "Listening Practice" : "Reading Practice",
+        correct: s.correct_count,
+        total: s.question_count,
+        scorePct: s.score_pct ?? 0,
+      })),
+    ...attempts
+      .filter((a) => a.submitted_at)
+      .slice(-3)
+      .map((a) => ({
+        date: new Date(a.submitted_at!),
+        type: "mock" as const,
+        label: "Mock Test",
+        correct: (a.reading_correct ?? 0) + (a.listening_correct ?? 0),
+        total: (a.reading_total ?? 0) + (a.listening_total ?? 0),
+        scorePct:
+          ((a as { reading_score_pct?: number | null }).reading_score_pct ?? 0) +
+          ((a as { listening_score_pct?: number | null }).listening_score_pct ?? 0) /
+            2,
+      })),
+  ];
+
+  const recentPractice = rawPractice
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
+    .slice(0, 5)
+    .map((item) => ({
+      type: item.type,
+      label: item.label,
+      date: fmtDate(item.date.toISOString()),
+      correct: item.correct,
+      total: item.total,
+      scorePct: item.scorePct,
+    }));
+
   return (
     <ProgressView
       streak={streak}
@@ -143,6 +229,13 @@ export default async function ProgressPage() {
       totalListeningCorrect={totalListeningCorrect}
       assessedCefrLevel={assessedCefrLevel}
       weakAreas={weakAreas}
+      latestBand={latestBand}
+      latestReadingPct={latestReadingPct}
+      latestListeningPct={latestListeningPct}
+      latestCefrLevel={latestCefrLevel}
+      totalStudiedHours={totalStudiedHours}
+      recentPractice={recentPractice}
+      nextAssessmentDate={nextAssessmentDate}
     />
   );
 }
