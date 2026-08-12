@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -60,6 +61,35 @@ function timeOfDayGreeting(): string {
   return "Good evening";
 }
 
+/**
+ * React error #418 fix. `new Date().getHours()` reads whichever clock
+ * executes the code -- the server's (Vercel's Node runtime, UTC) for the
+ * initial HTML, the browser's local clock for the client's first
+ * hydration pass. For most timezones that's two different hour buckets
+ * for the same real moment, so the server-rendered greeting text and the
+ * client-hydrated greeting text are literally different strings --
+ * exactly the "server rendered didn't match the client" hydration
+ * mismatch class.
+ *
+ * useSyncExternalStore, not useState + useEffect (src/hooks/useMediaQuery.ts's
+ * established pattern for this exact class of problem, restated here
+ * rather than imported since there's no query/media-list to subscribe
+ * to): getServerSnapshot returns `null` for BOTH the server render and
+ * the client's first hydration pass, so there's nothing for hydration to
+ * mismatch on. The real, time-dependent value only appears via
+ * getSnapshot on the client, after hydration has already committed.
+ * There's no external event to subscribe to (the greeting doesn't need
+ * to react to anything while the page stays open), so subscribe is a
+ * genuine no-op.
+ */
+function useTimeOfDayGreeting(): string | null {
+  return useSyncExternalStore(
+    () => () => {},
+    timeOfDayGreeting,
+    () => null,
+  );
+}
+
 const PODCAST_TASK_TYPES = new Set(["podcast", "listening_practice"]);
 const ARTICLE_TASK_TYPES = new Set(["article", "reading_practice"]);
 
@@ -101,11 +131,12 @@ export function HomeView({
   latestMockReading,
   latestMockListening,
 }: HomeViewProps) {
+  const greeting = useTimeOfDayGreeting();
   return (
     <div className="mx-auto max-w-3xl py-8 md:py-10">
       <header className="mb-5 px-5 sm:px-8">
-        <p className="text-sm font-semibold text-text-secondary">{timeOfDayGreeting()}, {displayName}</p>
-        <h1 className="mt-1 text-2xl font-bold text-text-primary sm:text-3xl">Ready for today's English?</h1>
+        <p className="text-sm font-semibold text-text-secondary">{greeting ?? "Welcome"}, {displayName}</p>
+        <h1 className="mt-1 text-2xl font-bold text-text-primary sm:text-3xl">Ready for today&apos;s English?</h1>
       </header>
 
       <HeroLevelCard cefrLevel={cefrLevel} currentBand={currentBand} targetBand={targetBand} placementCompleted={placementCompleted} reading={latestMockReading} listening={latestMockListening} />
@@ -113,7 +144,7 @@ export function HomeView({
       {todayPlan && todayPlan.tasks.length > 0 && (
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mt-4 px-5 sm:px-8">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-primary">Today's Plan</h2>
+            <h2 className="text-sm font-semibold text-text-primary">Today&apos;s Plan</h2>
             <Link href="/plan" className="text-xs font-semibold text-primary hover:underline">View Full Plan</Link>
           </div>
           <div className="rounded-[2rem] border border-border bg-bg-card p-5 shadow-sm sm:p-6">
