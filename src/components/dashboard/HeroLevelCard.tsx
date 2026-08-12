@@ -18,112 +18,32 @@ export interface HeroLevelCardProps {
   listening?: SectionScore | null;
 }
 
-const LEVEL_COLORS: Record<string, string> = {
-  A1: "#34C759",
-  A2: "#30B0C7",
-  B1: "#007AFF",
-  B2: "#AF52DE",
-  C1: "#FF9500",
-  C2: "#FFCC00",
-};
-
-export function HeroLevelCard({
-  cefrLevel,
-  currentBand,
-  targetBand,
-  placementCompleted,
-  reading,
-  listening,
-}: HeroLevelCardProps) {
-  const levelColor = cefrLevel ? (LEVEL_COLORS[cefrLevel] ?? "#FFFFFF") : "#FFFFFF";
-
+export function HeroLevelCard({ cefrLevel, currentBand, targetBand, placementCompleted, reading, listening }: HeroLevelCardProps) {
   return (
-    <section className="px-5 pt-8 sm:px-8 md:pt-10">
-      <div className="rounded-[2rem] bg-gradient-to-br from-[#0F172A] to-[#1E293B] p-6 shadow-lg">
-        {/* Top row: level + band */}
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
-              English Level
-            </p>
-            <p
-              className="mt-1 text-5xl font-black leading-none"
-              style={{ color: levelColor }}
-            >
-              {cefrLevel ?? "—"}
-            </p>
-            {!placementCompleted && (
-              <p className="mt-1 text-[11px] text-white/40">Self-reported</p>
-            )}
+    <section className="px-5 pt-2 sm:px-8">
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#0F172A] to-[#1E293B] p-6 shadow-lg sm:p-8">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#FF6B00]/20 blur-2xl" />
+        <div className="relative">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-white/60">LinguABC Estimated Level</p>
+            <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold text-white/60">
+              {placementCompleted ? "Not an official IELTS score" : "Self-reported"}
+            </span>
           </div>
-
-          <div className="text-right">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
-              Est. Band
-            </p>
-            <p className="mt-1 text-3xl font-black text-white">
-              {currentBand !== null ? currentBand.toFixed(1) : "—"}
-            </p>
-            {targetBand !== null && (
-              <p className="mt-0.5 text-[11px] text-white/40">
-                Target {targetBand.toFixed(1)}
-              </p>
-            )}
+          <div className="mt-3 flex items-end gap-3">
+            <span className="text-5xl font-bold tracking-tight text-white">{cefrLevel ?? "-"}</span>
+            <span className="mb-1.5 text-2xl font-bold text-white/80">{currentBand !== null ? currentBand.toFixed(2) : "-"}</span>
+            {targetBand !== null && <span className="mb-2 rounded-full bg-[#FF6B00]/20 px-2.5 py-1 text-[10px] font-bold text-[#FFB27A]">Target {targetBand.toFixed(1)}</span>}
           </div>
-        </div>
-
-        {/* Section sub-cards */}
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.07)" }}>
-            <div className="flex items-center gap-2">
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-lg"
-                style={{ background: "rgba(255,107,0,0.18)" }}
-              >
-                <BookOpen className="h-3.5 w-3.5 text-[#FF6B00]" />
-              </div>
-              <p className="text-xs font-semibold text-white/70">Reading</p>
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-white/60" aria-hidden="true" /><p className="text-xs text-white/60">Reading</p></div>
+              <p className="mt-1 text-2xl font-bold text-white">{reading ? Math.round(reading.scorePct) : "-"}{reading ? "%" : ""}</p>
             </div>
-            {reading ? (
-              <>
-                <p className="mt-2 text-xl font-black text-white">
-                  {Math.round(reading.scorePct)}%
-                </p>
-                <p className="text-[10px] text-white/40">
-                  {reading.correct}/{reading.total} correct
-                </p>
-              </>
-            ) : (
-              <p className="mt-2 text-xs text-white/30">
-                {placementCompleted ? "Take a mock" : "After placement"}
-              </p>
-            )}
-          </div>
-
-          <div className="rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.07)" }}>
-            <div className="flex items-center gap-2">
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-lg"
-                style={{ background: "rgba(59,130,246,0.18)" }}
-              >
-                <Headphones className="h-3.5 w-3.5 text-blue-400" />
-              </div>
-              <p className="text-xs font-semibold text-white/70">Listening</p>
+            <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+              <div className="flex items-center gap-2"><Headphones className="h-4 w-4 text-white/60" aria-hidden="true" /><p className="text-xs text-white/60">Listening</p></div>
+              <p className="mt-1 text-2xl font-bold text-white">{listening ? Math.round(listening.scorePct) : "-"}{listening ? "%" : ""}</p>
             </div>
-            {listening ? (
-              <>
-                <p className="mt-2 text-xl font-black text-white">
-                  {Math.round(listening.scorePct)}%
-                </p>
-                <p className="text-[10px] text-white/40">
-                  {listening.correct}/{listening.total} correct
-                </p>
-              </>
-            ) : (
-              <p className="mt-2 text-xs text-white/30">
-                {placementCompleted ? "Take a mock" : "After placement"}
-              </p>
-            )}
           </div>
         </div>
       </div>
