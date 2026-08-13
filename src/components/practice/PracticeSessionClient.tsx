@@ -7,8 +7,12 @@ import {
   BookOpen,
   Headphones,
   ArrowRight,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Circle,
+  Info,
+  Play,
   Volume2,
   XCircle,
   RotateCcw,
@@ -21,12 +25,22 @@ export type PracticeType = "reading" | "listening";
 
 type Phase = "intro" | "audio" | "questions" | "submitting" | "result" | "no_questions" | "error";
 
+interface PracticeQuestionResult {
+  questionId: string;
+  question: string;
+  userAnswer: string | null;
+  correctAnswer: string;
+  isCorrect: boolean;
+  explanation: string | null;
+}
+
 interface PracticeResult {
   sessionId: string;
   questionCount: number;
   correctCount: number;
   scorePct: number;
   weakAreas: string[];
+  results: PracticeQuestionResult[];
 }
 
 const TYPE_META: Record<PracticeType, { title: string; description: string; color: string; bg: string }> = {
@@ -97,40 +111,57 @@ function ListeningAudioPlayer({ audioUrl, instruction, onEnded }: { audioUrl: st
     return `${m}:${sec.toString().padStart(2, "0")}`;
   }
 
+  const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+
   return (
     <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-5">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500">
-          <Headphones className="h-6 w-6 text-white" aria-hidden="true" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-text-primary">Audio Recording</p>
-          {playing && duration > 0 && (
-            <p className="mt-0.5 font-mono text-[11px] text-blue-600">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </p>
-          )}
-          {played && !playing && (
-            <p className="text-xs text-text-secondary">Audio complete. You cannot replay it.</p>
-          )}
-          {!played && (
-            <p className="text-xs text-text-secondary">
-              {instruction ?? "Click to play. You can only listen once."}
-            </p>
-          )}
-        </div>
+      <div className="flex items-center gap-2">
+        <p className="text-sm font-bold text-text-primary">Audio Recording</p>
+        {playing ? (
+          <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" aria-hidden="true" />
+            Playing…
+          </span>
+        ) : played ? (
+          <span className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-600">
+            <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+            Played
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-600">
+            <Info className="h-3 w-3" aria-hidden="true" />
+            One play only
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 flex items-center gap-4">
         <button
           onClick={handlePlay}
           disabled={played}
+          aria-label={played ? "Already played" : "Play audio"}
           className={[
-            "shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all",
+            "flex h-14 w-14 shrink-0 items-center justify-center rounded-full shadow-lg transition-all",
             played
               ? "cursor-not-allowed bg-bg-muted text-text-tertiary"
-              : "bg-blue-500 text-white hover:bg-blue-600",
+              : "bg-blue-500 text-white shadow-blue-500/30 hover:scale-105 active:scale-95",
           ].join(" ")}
         >
-          {played ? "Played" : "▶ Play"}
+          <Play className="h-6 w-6 fill-current" aria-hidden="true" />
         </button>
+
+        <div className="flex-1">
+          <div className="relative h-2 overflow-hidden rounded-full bg-blue-100">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-500 to-blue-400"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+          <div className="mt-1.5 flex items-center justify-between text-[10px] font-medium tabular-nums text-text-tertiary">
+            <span>{formatTime(currentTime)}</span>
+            <span>{duration > 0 ? formatTime(duration) : "--:--"}</span>
+          </div>
+        </div>
       </div>
 
       {/* Volume control */}
@@ -150,6 +181,44 @@ function ListeningAudioPlayer({ audioUrl, instruction, onEnded }: { audioUrl: st
           {Math.round(volume * 100)}%
         </span>
       </div>
+
+      {!played && (
+        <p className="mt-3 text-[11px] text-text-tertiary">
+          {instruction ?? "Press play to begin. The recording can only be played once — there is no pause, rewind, or seek."}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Listening instructions card ────────────────────────────────────────────────
+
+function ListeningInstructions({
+  sectionInstruction,
+  audioInstruction,
+}: {
+  sectionInstruction?: string | null;
+  audioInstruction?: string | null;
+}) {
+  const instruction =
+    sectionInstruction ?? "Play the audio below. You can only listen once. Answer the questions after the audio ends.";
+  const caption =
+    audioInstruction ?? "The recording can only be played once. There is no pause, rewind, or replay.";
+  return (
+    <div className="rounded-2xl border border-border bg-bg-card p-4">
+      <div className="flex items-start gap-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+          <Headphones className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <div className="flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-text-tertiary">Listening instructions</p>
+          <p className="mt-1 text-sm font-medium leading-relaxed text-text-primary">{instruction}</p>
+          <p className="mt-2 flex items-start gap-1.5 text-xs leading-relaxed text-text-secondary">
+            <Info className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" aria-hidden="true" />
+            {caption}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -157,19 +226,22 @@ function ListeningAudioPlayer({ audioUrl, instruction, onEnded }: { audioUrl: st
 // ── Option button ─────────────────────────────────────────────────────────────
 
 function OptionButton({
+  index,
   label,
   selected,
   onSelect,
 }: {
+  index: number;
   label: string;
   selected: boolean;
   onSelect: () => void;
 }) {
+  const letter = String.fromCharCode(65 + index);
   return (
     <button
       onClick={onSelect}
       className={[
-        "w-full rounded-2xl border px-5 py-4 text-left text-sm font-medium transition-all",
+        "flex w-full items-center gap-3 rounded-2xl border px-5 py-4 text-left text-sm font-medium transition-all",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
         selected
           ? "border-primary bg-primary-soft text-primary-strong shadow-sm"
@@ -178,6 +250,15 @@ function OptionButton({
         .filter(Boolean)
         .join(" ")}
     >
+      <span
+        className={[
+          "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold",
+          selected ? "border-primary bg-primary text-white" : "border-border text-text-tertiary",
+        ].join(" ")}
+        aria-hidden="true"
+      >
+        {letter}
+      </span>
       {label}
     </button>
   );
@@ -304,24 +385,43 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
 
   const Icon = practiceType === "listening" ? Headphones : BookOpen;
 
+  function handleBack() {
+    if (phase === "result" || phase === "no_questions" || phase === "error" || phase === "intro") {
+      router.push("/practice");
+    } else {
+      router.back();
+    }
+  }
+
+  const showSessionHeader = phase === "audio" || phase === "questions" || phase === "submitting";
+
   return (
-    <div className="mx-auto max-w-2xl px-5 py-8 sm:px-8 md:py-10">
-      {/* Back link */}
-      <button
-        onClick={() => {
-          if (phase === "result" || phase === "no_questions" || phase === "error") {
-            router.push("/practice");
-          } else if (phase === "intro") {
-            router.push("/practice");
-          } else {
-            router.back();
-          }
-        }}
-        className="mb-6 flex items-center gap-1.5 text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-      >
-        <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
-        Practice
-      </button>
+    <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 md:py-10">
+      {/* Session header — back button + title/subtitle + progress counter */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleBack}
+            aria-label="Back to Practice"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-bg-card shadow-sm transition-all hover:shadow-md"
+          >
+            <ChevronLeft className="h-4 w-4 text-text-secondary" aria-hidden="true" />
+          </button>
+          {showSessionHeader && (
+            <div>
+              <p className="text-sm font-bold text-text-primary">{meta.title}</p>
+              {questions.length > 0 && (
+                <p className="text-xs text-text-tertiary">{questions.length} questions · level {cefrLevel}</p>
+              )}
+            </div>
+          )}
+        </div>
+        {phase === "questions" && questions.length > 0 && (
+          <span className="text-[11px] font-semibold tabular-nums text-text-tertiary">
+            {currentIndex + 1} / {questions.length}
+          </span>
+        )}
+      </div>
 
       <AnimatePresence mode="wait">
         {/* ── Intro ──────────────────────────────────────────────────────────── */}
@@ -360,11 +460,12 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
                 Listening Practice
               </p>
               <h2 className="text-xl font-bold text-text-primary">Listen carefully</h2>
-              {/* Content-driven section instruction — falls back to default copy when null */}
-              <p className="mt-1 text-sm text-text-secondary">
-                {questions[0]?.sectionInstruction ?? "Play the audio below. You can only listen once. Answer the questions after the audio ends."}
-              </p>
             </div>
+
+            <ListeningInstructions
+              sectionInstruction={questions[0]?.sectionInstruction}
+              audioInstruction={questions[0]?.audioInstruction}
+            />
 
             <ListeningAudioPlayer
               audioUrl={firstAudioUrl}
@@ -400,19 +501,8 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
         {/* ── Questions ────────────────────────────────────────────────────────── */}
         {phase === "questions" && currentQuestion && (
           <motion.div key={`q-${currentQuestion.id}`} {...fadeSlide} className="space-y-5">
-            {/* Header */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold ${meta.bg} ${meta.color}`}>
-                  <Icon className="h-3 w-3" aria-hidden="true" />
-                  {meta.title}
-                </span>
-                <span className="text-[11px] text-text-tertiary tabular-nums">
-                  {currentIndex + 1} of {questions.length}
-                </span>
-              </div>
-              <ProgressBar answered={answeredCount} total={questions.length} />
-            </div>
+            {/* Progress */}
+            <ProgressBar answered={answeredCount} total={questions.length} />
 
             {/* Passage (reading only) */}
             {currentQuestion.passage && (
@@ -440,9 +530,10 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
 
             {/* Options */}
             <div className="space-y-2.5">
-              {(currentQuestion.options ?? []).map((opt) => (
+              {(currentQuestion.options ?? []).map((opt, optIndex) => (
                 <OptionButton
                   key={opt}
+                  index={optIndex}
                   label={opt}
                   selected={answers[currentQuestion.id] === opt}
                   onSelect={() => setAnswers((prev) => ({ ...prev, [currentQuestion.id]: opt }))}
@@ -566,9 +657,62 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
               </div>
             )}
 
+            {result.results.length > 0 && (
+              <div className="rounded-2xl border border-border bg-bg-card p-5 shadow-sm">
+                <p className="mb-3 text-sm font-semibold text-text-primary">Review</p>
+                <div className="space-y-3">
+                  {result.results.map((r, idx) => (
+                    <div
+                      key={r.questionId}
+                      className={[
+                        "rounded-2xl border p-4",
+                        r.isCorrect
+                          ? "border-green-100 bg-green-50/30"
+                          : r.userAnswer
+                          ? "border-red-100 bg-red-50/30"
+                          : "border-border bg-bg-card",
+                      ].join(" ")}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={[
+                            "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+                            r.isCorrect ? "bg-green-100" : r.userAnswer ? "bg-red-100" : "bg-bg-muted",
+                          ].join(" ")}
+                        >
+                          {r.isCorrect ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" aria-hidden="true" />
+                          ) : r.userAnswer ? (
+                            <XCircle className="h-4 w-4 text-red-400" aria-hidden="true" />
+                          ) : (
+                            <Circle className="h-4 w-4 text-text-tertiary" aria-hidden="true" />
+                          )}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-text-primary">
+                            {idx + 1}. {r.question}
+                          </p>
+                          <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+                            <span className="font-semibold text-text-primary">Answer: </span>
+                            {r.isCorrect ? "Correct" : r.userAnswer ? "Incorrect" : "Not answered"}
+                          </p>
+                          {r.explanation && (
+                            <p className="mt-1 text-xs leading-relaxed text-text-tertiary">
+                              <span className="font-semibold text-text-secondary">Explanation: </span>
+                              {r.explanation}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <Button
-                variant="primary"
+                variant="secondary"
                 className="h-12 rounded-xl px-8"
                 onClick={handleStart}
               >
@@ -576,7 +720,7 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
                 Practice Again
               </Button>
               <Button
-                variant="secondary"
+                variant="primary"
                 className="h-12 rounded-xl px-8"
                 onClick={() => router.push("/dashboard")}
               >

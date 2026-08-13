@@ -37,12 +37,22 @@ export interface PracticeCompleteInput {
   responses: PracticeResponseInput[];
 }
 
+export interface PracticeQuestionResult {
+  questionId: string;
+  question: string;
+  userAnswer: string | null;
+  correctAnswer: string;
+  isCorrect: boolean;
+  explanation: string | null;
+}
+
 export interface PracticeResult {
   sessionId: string;
   questionCount: number;
   correctCount: number;
   scorePct: number;
   weakAreas: string[];
+  results: PracticeQuestionResult[];
 }
 
 // ── Question selection ────────────────────────────────────────────────────────
@@ -203,14 +213,16 @@ export async function completePracticeSession(input: PracticeCompleteInput): Pro
   if (!session || session.user_id !== input.userId) throw new Error("Session not found");
   if (session.status !== "in_progress") throw new Error("Session already completed");
 
-  // Fetch correct answers for all questions in this session's exposure log
+  // Fetch question text, correct answers, and explanations for this session's questions
   const questionIds = input.responses.map((r) => r.questionId);
   const { data: questions } = await supabase
     .from("assessment_questions")
-    .select("id, correct_answer")
+    .select("id, question, correct_answer, explanation")
     .in("id", questionIds);
 
-  const answerMap = new Map((questions ?? []).map((q: { id: string; correct_answer: string }) => [q.id, q.correct_answer]));
+  const questionMap = new Map(
+    (questions ?? []).map((q: { id: string; question: string; correct_answer: string; explanation: string | null }) => [q.id, q]),
+  );
 
   // Grade responses
   let correctCount = 0;
@@ -222,9 +234,11 @@ export async function completePracticeSession(input: PracticeCompleteInput): Pro
     time_taken_seconds: number | null;
     sequence_number: number;
   }> = [];
+  const results: PracticeQuestionResult[] = [];
 
   input.responses.forEach((r, idx) => {
-    const correctAnswer = answerMap.get(r.questionId);
+    const q = questionMap.get(r.questionId);
+    const correctAnswer = q?.correct_answer;
     const isCorrect = correctAnswer != null && r.userAnswer != null
       ? r.userAnswer.trim().toLowerCase() === correctAnswer.trim().toLowerCase()
       : false;
@@ -236,6 +250,14 @@ export async function completePracticeSession(input: PracticeCompleteInput): Pro
       is_correct: isCorrect,
       time_taken_seconds: r.timeTakenSeconds,
       sequence_number: idx + 1,
+    });
+    results.push({
+      questionId: r.questionId,
+      question: q?.question ?? "",
+      userAnswer: r.userAnswer,
+      correctAnswer: correctAnswer ?? "",
+      isCorrect,
+      explanation: q?.explanation ?? null,
     });
   });
 
@@ -303,5 +325,5 @@ export async function completePracticeSession(input: PracticeCompleteInput): Pro
       });
   }
 
-  return { sessionId: input.sessionId, questionCount, correctCount, scorePct, weakAreas };
+  return { sessionId: input.sessionId, questionCount, correctCount, scorePct, weakAreas, results };
 }

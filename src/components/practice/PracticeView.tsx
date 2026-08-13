@@ -22,14 +22,16 @@ function LockedCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="relative flex min-h-[168px] flex-col gap-4 rounded-2xl border border-border bg-bg-card p-5 opacity-60 shadow-sm">
-      <Lock className="absolute right-4 top-4 h-4 w-4 text-text-tertiary" aria-hidden="true" />
-      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${accentClassName}`}>{icon}</div>
-      <div>
+    <div className="flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-5 opacity-60 shadow-sm">
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${accentClassName}`}>{icon}</span>
+      <div className="min-w-0 flex-1">
         <p className="text-base font-bold text-text-primary">{title}</p>
         <p className="mt-1 text-xs leading-relaxed text-text-secondary">{description}</p>
       </div>
-      <span className="mt-auto text-[11px] font-semibold text-text-tertiary">Coming soon</span>
+      <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-text-tertiary">
+        <Lock className="h-3 w-3" aria-hidden="true" />
+        Coming soon
+      </span>
     </div>
   );
 }
@@ -72,32 +74,28 @@ export function PracticeView({
       </section>
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Link href="/practice/reading" className="group flex min-h-[168px] flex-col gap-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-start justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-50">
-              <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
-            </span>
-            <ChevronRight className="h-5 w-5 text-text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-          </div>
-          <div>
+        <Link href="/practice/reading" className="group flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm transition-all hover:shadow-md">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-orange-50">
+            <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
             <p className="text-base font-bold text-text-primary">Reading</p>
             <p className="mt-1 text-xs leading-relaxed text-text-secondary">Inference, main ideas, detail questions.</p>
+            <p className="mt-1 text-[11px] text-text-tertiary">10 questions · ~15 min · Graded instantly</p>
           </div>
-          <p className="mt-auto text-[11px] text-text-tertiary">10 questions · ~15 min · Graded instantly</p>
+          <ChevronRight className="h-5 w-5 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
         </Link>
 
-        <Link href="/practice/listening" className="group flex min-h-[168px] flex-col gap-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-start justify-between">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50">
-              <Headphones className="h-5 w-5 text-blue-500" aria-hidden="true" />
-            </span>
-            <ChevronRight className="h-5 w-5 text-text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-          </div>
-          <div>
+        <Link href="/practice/listening" className="group flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm transition-all hover:shadow-md">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50">
+            <Headphones className="h-5 w-5 text-blue-500" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
             <p className="text-base font-bold text-text-primary">Listening</p>
             <p className="mt-1 text-xs leading-relaxed text-text-secondary">Gist, detail, and comprehension questions.</p>
+            <p className="mt-1 text-[11px] text-text-tertiary">8 questions · ~15 min · Audio once only</p>
           </div>
-          <p className="mt-auto text-[11px] text-text-tertiary">8 questions · ~15 min · Audio once only</p>
+          <ChevronRight className="h-5 w-5 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
         </Link>
 
         <LockedCard title="Vocabulary" description="Word meaning, context, and collocations." accentClassName="bg-violet-50" icon={<PenLine className="h-5 w-5 text-violet-500" aria-hidden="true" />} />
