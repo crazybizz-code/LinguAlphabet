@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -24,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { SelectableCard } from "@/components/ui/SelectableCard";
 import { AchievementsGrid } from "@/components/achievements/AchievementsGrid";
+import { ProfileIdentityCard } from "./ProfileIdentityCard";
 import { updateLearningProfile, signOutAction } from "@/lib/profile/actions";
 import { bandToCefr } from "@/lib/onboarding/types";
 import { describeExamCountdown } from "@/lib/dashboard/exam-snapshot";
@@ -41,6 +41,8 @@ export interface ProfileViewProps {
   displayName: string;
   email: string;
   currentBand: number | null;
+  /** Real placement-assessed band — deliberately separate from currentBand (self-reported). Null until a real placement is completed; never falls back to currentBand. */
+  assessedBand: number | null;
   targetBand: number | null;
   examTimeline: string | null;
   examDate: string | null;
@@ -61,6 +63,7 @@ export function ProfileView({
   displayName,
   email,
   currentBand,
+  assessedBand,
   targetBand,
   examTimeline,
   examDate,
@@ -116,41 +119,20 @@ export function ProfileView({
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 md:py-10">
 
       {/* ── Identity card ── */}
-      <motion.section
+      <ProfileIdentityCard displayName={displayName} email={email} currentBand={band} />
+      <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex items-center gap-5"
+        transition={{ duration: 0.4, delay: 0.05 }}
+        className="mt-3 flex justify-end"
       >
-        {/* Avatar with band badge */}
-        <div className="relative shrink-0">
-          <div className="h-20 w-20 overflow-hidden rounded-full bg-primary-lighter ring-2 ring-primary/20">
-            <Image
-              src="/assets/mascot/master-tuto.png"
-              alt={displayName}
-              width={80}
-              height={80}
-              className="object-cover"
-            />
-          </div>
-          {band !== null && (
-            <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#0F172A] text-[11px] font-extrabold text-white ring-2 ring-bg-card">
-              {band.toFixed(1)}
-            </span>
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold text-text-primary">{displayName}</h1>
-          <p className="mt-0.5 text-sm text-text-secondary truncate">{email}</p>
-          <button
-            onClick={() => setEditingField("currentBand")}
-            className="mt-2 rounded-xl border border-border px-3 py-1.5 text-xs font-semibold text-text-primary transition-colors hover:bg-bg-muted"
-          >
-            Edit Profile
-          </button>
-        </div>
-      </motion.section>
+        <button
+          onClick={() => setEditingField("currentBand")}
+          className="rounded-xl border border-border px-3 py-1.5 text-xs font-semibold text-text-primary transition-colors hover:bg-bg-muted"
+        >
+          Edit Profile
+        </button>
+      </motion.div>
 
       {/* ── 4-stat strip ── */}
       <motion.section
@@ -184,7 +166,7 @@ export function ProfileView({
         className="mt-8"
       >
         <h2 className="mb-3 text-sm font-semibold text-text-primary">IELTS Journey</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
             {
               icon: Trophy,
@@ -203,8 +185,8 @@ export function ProfileView({
             {
               icon: BookOpen,
               label: "Estimated AI Band",
-              value: band !== null ? band.toFixed(1) : "—",
-              sub: "LinguABC estimate",
+              value: assessedBand !== null ? assessedBand.toFixed(1) : "—",
+              sub: assessedBand !== null ? "LinguABC estimate" : "Take placement",
               onClick: undefined,
             },
             {
@@ -224,7 +206,7 @@ export function ProfileView({
                 onClick ? "transition-colors hover:bg-bg-muted" : "cursor-default",
               )}
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary-lighter">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-lighter">
                 <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
               </div>
               <div>
@@ -245,7 +227,7 @@ export function ProfileView({
         className="mt-8"
       >
         <h2 className="mb-3 text-sm font-semibold text-text-primary">Study Statistics</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
             {
               icon: Clock,
@@ -273,7 +255,9 @@ export function ProfileView({
             },
           ].map(({ icon: Icon, label, value, sub }) => (
             <div key={label} className="flex flex-col gap-2 rounded-2xl border border-border bg-bg-card p-4 shadow-sm">
-              <Icon className="h-5 w-5 text-text-tertiary" aria-hidden="true" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-bg-muted">
+                <Icon className="h-5 w-5 text-text-tertiary" aria-hidden="true" />
+              </div>
               <div>
                 <p className="text-[10px] font-semibold text-text-secondary">{label}</p>
                 {value !== null ? (
@@ -343,7 +327,7 @@ export function ProfileView({
                 onClick ? "transition-colors hover:bg-bg-muted" : "cursor-default",
               )}
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-lighter">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter">
                 <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
@@ -371,7 +355,7 @@ export function ProfileView({
             { icon: Bell, label: "Notifications", value: null, href: "/settings/notifications" },
           ].map(({ icon: Icon, label, value, href }) => (
             <div key={label} className="flex items-center gap-3 px-4 py-3.5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-lighter">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter">
                 <Icon className="h-4 w-4 text-primary" aria-hidden="true" />
               </div>
               <span className="flex-1 text-sm font-semibold text-text-primary">{label}</span>
@@ -391,7 +375,7 @@ export function ProfileView({
             disabled={isPending}
             className="flex items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-bg-muted"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-lighter">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter">
               <LogOut className="h-4 w-4 text-primary" aria-hidden="true" />
             </div>
             <span className="flex-1 text-sm font-semibold text-text-primary">Log Out</span>

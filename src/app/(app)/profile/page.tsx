@@ -25,7 +25,7 @@ export default async function ProfilePage() {
   const [{ data: profile }, learnerProfile, { data: progressRows }, { data: mockAttempts }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username, level, daily_time_minutes, interests, onboarding_completed, current_band, target_band, exam_timeline, exam_date")
+      .select("username, level, daily_time_minutes, interests, onboarding_completed, current_band, target_band, exam_timeline, exam_date, assessed_band, assessed_cefr_level")
       .eq("user_id", user.id)
       .single(),
     getCachedLearnerProfile(supabase, user.id),
@@ -58,6 +58,11 @@ export default async function ProfilePage() {
       displayName={profile?.username || "there"}
       email={user.email ?? ""}
       currentBand={profile?.current_band ?? null}
+      /* Real placement-assessed band — deliberately NOT current_band (the
+         self-reported field). Same source-of-truth principle already fixed
+         on Progress: never fall back to the self-report, since that would
+         recreate the exact bug this fixes. Null stays null. */
+      assessedBand={profile?.assessed_band ?? null}
       targetBand={profile?.target_band ?? null}
       examTimeline={profile?.exam_timeline ?? null}
       examDate={profile?.exam_date ?? null}
