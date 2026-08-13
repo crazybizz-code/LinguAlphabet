@@ -7,7 +7,7 @@ import { ChatBubble } from "@/components/tuto-chat/ChatBubble";
 import { ActionChips } from "./ActionChips";
 import { AIStatusIndicator } from "./AIStatusIndicator";
 import { MessageActions } from "./MessageActions";
-import { TutoOnlineAvatar } from "@/components/mascot/TutoOnlineAvatar";
+import { TutoOnlineAvatar, type TutoOnlineStatus } from "@/components/mascot/TutoOnlineAvatar";
 import { useTutoChat } from "@/hooks/useTutoChat";
 import { useThinkingPhase } from "@/hooks/useThinkingPhase";
 import { prefersReducedMotion } from "@/hooks/useProgressiveReveal";
@@ -90,12 +90,12 @@ function WorkspaceContextBanner({ banner }: { banner: TutoWorkspaceContextBanner
  * the same TutoOnlineAvatar), and the learner's streak instead of a level
  * pill (level now lives in the sidebar's Learning Status panel).
  */
-function WorkspaceHeader({ streak }: { streak: number | null | undefined }) {
+function WorkspaceHeader({ streak, status }: { streak: number | null | undefined; status: TutoOnlineStatus }) {
   return (
     <div className="shrink-0 border-b border-border bg-bg-card/95 px-5 py-4 backdrop-blur-sm sm:px-8">
       <div className="mx-auto flex w-full max-w-2xl items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <TutoOnlineAvatar />
+          <TutoOnlineAvatar status={status} />
           <div className="min-w-0">
             <h1 className="text-sm font-bold leading-snug text-text-primary sm:text-lg">English Coaching Session</h1>
             <p className="flex items-center gap-1.5 text-xs text-text-tertiary">
@@ -160,6 +160,8 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
   const visibleMessages = chat.messages.filter((message) => !message.hidden);
   const lastMessage = visibleMessages[visibleMessages.length - 1];
   const isThinking = chat.status === "streaming" && (!lastMessage || lastMessage.role !== "assistant" || lastMessage.content.length === 0);
+  /** Base44 reference: the header avatar's status dot — amber while nothing has arrived yet, orange once real content is streaming in, green otherwise. Purely a color derivation; AIStatusIndicator's own thinking/typing copy is untouched. */
+  const avatarStatus: TutoOnlineStatus = isThinking ? "thinking" : chat.status === "streaming" ? "typing" : "ready";
   const showEmptyState = emptyState && visibleMessages.length === 0 && chat.status === "idle";
   const canRegenerate = chat.status === "idle" && lastMessage?.role === "assistant" && lastMessage.content.length > 0;
 
@@ -245,7 +247,7 @@ export function TutoWorkspace({ mode, context, streak, contextBanner, emptyState
       style={viewport ? { height: `${viewport.height}px`, top: `${viewport.offsetTop}px` } : undefined}
       data-tuto-workspace-mode={mode}
     >
-      {contextBanner ? <WorkspaceContextBanner banner={contextBanner} /> : <WorkspaceHeader streak={streak} />}
+      {contextBanner ? <WorkspaceContextBanner banner={contextBanner} /> : <WorkspaceHeader streak={streak} status={avatarStatus} />}
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
         {/* mt-auto anchors a short conversation to the bottom (Claude/ChatGPT
