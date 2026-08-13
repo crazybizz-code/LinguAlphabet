@@ -8,11 +8,19 @@ import { buildDailyActivityIndex } from "@/lib/content/daily-activity";
 import { computeEarnedAchievementIds } from "@/lib/achievements/catalog";
 import { buildTutoNote } from "@/lib/tuto/messages";
 import { getCachedLearnerProfile } from "@/ai/data";
+import { pctToBand } from "@/lib/mock/scoring";
 import { ProgressView } from "@/components/progress/ProgressView";
 import { buildMetadata } from "@/lib/seo/metadata";
 
 const DEFAULT_DAILY_MINUTES = 20;
 const RECENT_COMPLETION_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+// Mirrors mock/page.tsx's mockCooldownDays() — the same policy Mock uses to
+// compute its own "next mock available" date, so the two screens agree.
+function mockCooldownDays(cefrLevel: string | null): number {
+  if (cefrLevel === "C1" || cefrLevel === "C2") return 3;
+  return 7;
+}
 
 export const metadata: Metadata = buildMetadata({
   title: "Progress",
@@ -25,10 +33,10 @@ export default async function ProgressPage() {
   const [supabase, user] = await Promise.all([createClient(), getAuthenticatedUser()]);
   if (!user) redirect("/login");
 
-  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }, { data: weakAreaSignals }, { data: practiceSessions }] = await Promise.all([
+  const [{ data: profile }, learnerProfile, podcasts, articles, { data: progressRows }, { data: vocabularyRows }, { data: noteRows }, { data: mockAttempts }, { data: weakAreaSignals }, { data: practiceSessions }, { data: earliestPlacement }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed, placement_completed, english_level, current_band, target_band, username")
+      .select("level, xp_to_next, last_study_date, daily_time_minutes, onboarding_completed, placement_completed, english_level, current_band, target_band, username, assessed_cefr_level, assessed_band")
       .eq("user_id", user.id)
       .single(),
     getCachedLearnerProfile(supabase, user.id),
@@ -58,6 +66,17 @@ export default async function ProgressPage() {
       .not("completed_at", "is", null)
       .order("completed_at", { ascending: false })
       .limit(5),
+    // Earliest completed placement — the real, dated source for the trend's
+    // "Placement" point. Not profiles.assessed_band, which has no timestamp
+    // and is just the latest cached value.
+    supabase
+      .from("placement_attempts")
+      .select("estimated_band, completed_at")
+      .eq("user_id", user.id)
+      .eq("status", "completed")
+      .order("completed_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const rows = progressRows ?? [];
@@ -102,10 +121,24 @@ export default async function ProgressPage() {
     daysSinceLastStudy,
   });
   const dailyActivityIndex = buildDailyActivityIndex({ progressRows: rows, podcasts: catalog, vocabularyRows: vocabularyRows ?? [], noteRows: noteRows ?? [] });
-  const bandTrend = attempts.filter((attempt) => attempt.estimated_band !== null).map((attempt, index) => ({ band: attempt.estimated_band as number, label: `Mock ${index + 1}` }));
+  const mockTrendPoints = attempts.filter((attempt) => attempt.estimated_band !== null).map((attempt, index) => ({ band: attempt.estimated_band as number, label: `Mock ${index + 1}` }));
+  // Placement only appears when a real completed placement attempt exists —
+  // never fabricated. placement_attempts.estimated_band is on the same 0–9
+  // band scale as full_mock_attempts.estimated_band (both derived from the
+  // same CEFR→band-centre anchor table), so it's honest to chart alongside
+  // the mock trend, chronologically first.
+  const bandTrend = earliestPlacement?.estimated_band != null
+    ? [{ band: earliestPlacement.estimated_band as number, label: "Placement" }, ...mockTrendPoints]
+    : mockTrendPoints;
   const totalReadingCorrect = attempts.reduce((sum, attempt) => sum + (attempt.reading_correct ?? 0), 0);
   const totalListeningCorrect = attempts.reduce((sum, attempt) => sum + (attempt.listening_correct ?? 0), 0);
-  const assessedCefrLevel = learnerProfile.cefrLevel ?? null;
+  // Real placement/mock-assessed level — deliberately NOT profile.english_level
+  // (onboarding self-report) or learnerProfile.cefrLevel (same self-report,
+  // projected). lib/assessment/engine.ts writes assessed_cefr_level on
+  // placement completion and never overwrites the self-reported field, by
+  // design — Progress must read the assessed one to match its own copy
+  // ("not your onboarding self-report").
+  const assessedCefrLevel = profile?.assessed_cefr_level ?? null;
   type SignalEvidence = { weakAreas?: string[] };
   const allWeakAreas = (weakAreaSignals ?? []).flatMap((signal) => {
     const evidence = signal.evidence as SignalEvidence | null;
@@ -113,15 +146,20 @@ export default async function ProgressPage() {
   });
   const weakAreas = [...new Set(allWeakAreas)].slice(0, 3);
   const latestAttempt = attempts.length > 0 ? attempts[attempts.length - 1] : null;
+  // Overall band — unchanged: still the latest Mock's own estimated_band.
   const latestBand = latestAttempt?.estimated_band ?? null;
-  const latestReadingPct = latestAttempt?.reading_score_pct ?? null;
-  const latestListeningPct = latestAttempt?.listening_score_pct ?? null;
+  // Per-skill bands — derived from the same latest attempt's already-persisted
+  // percentages via the existing Mock scoring mapping (pctToBand), not a new
+  // scoring model. Null when there's no mock attempt yet, same as before.
+  const latestReadingBand = latestAttempt?.reading_score_pct != null ? pctToBand(latestAttempt.reading_score_pct) : null;
+  const latestListeningBand = latestAttempt?.listening_score_pct != null ? pctToBand(latestAttempt.listening_score_pct) : null;
   const latestCefrLevel = latestAttempt?.result_cefr_level ?? null;
   const totalStudiedHours = Math.round(weeklyMinutes / 60);
+  const cooldownDays = mockCooldownDays(assessedCefrLevel);
   const nextAssessmentDate = latestAttempt?.submitted_at
     ? (() => {
         const date = new Date(latestAttempt.submitted_at as string);
-        date.setDate(date.getDate() + 14);
+        date.setDate(date.getDate() + cooldownDays);
         return date.toISOString().split("T")[0];
       })()
     : null;
@@ -176,8 +214,8 @@ export default async function ProgressPage() {
       assessedCefrLevel={assessedCefrLevel}
       weakAreas={weakAreas}
       latestBand={latestBand}
-      latestReadingPct={latestReadingPct}
-      latestListeningPct={latestListeningPct}
+      latestReadingBand={latestReadingBand}
+      latestListeningBand={latestListeningBand}
       latestCefrLevel={latestCefrLevel}
       totalStudiedHours={totalStudiedHours}
       recentPractice={recentPractice}

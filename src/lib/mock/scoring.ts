@@ -66,6 +66,16 @@ function levelToBand(level: CefrLevel, pct: number): number {
   return Math.round((base + fraction * 0.5) * 2) / 2;
 }
 
+/**
+ * Percentage → CEFR level → band, exposed for callers that need a per-skill
+ * band from an already-computed percentage (e.g. Progress deriving Reading/
+ * Listening bands from a mock attempt's stored reading_score_pct/
+ * listening_score_pct) without duplicating this mapping.
+ */
+export function pctToBand(pct: number): number {
+  return levelToBand(scoreToLevel(pct), pct);
+}
+
 export function scoreMock(
   readingCorrect: number,
   readingTotal: number,

@@ -3,9 +3,13 @@
 import { motion } from "framer-motion";
 import {
   AlertCircle,
+  Award,
   BookOpen,
+  CalendarClock,
   ChevronRight,
   ClipboardList,
+  Clock,
+  Flame,
   Headphones,
 } from "lucide-react";
 import Link from "next/link";
@@ -61,8 +65,8 @@ export interface ProgressViewProps {
   assessedCefrLevel: string | null;
   weakAreas: string[];
   latestBand: number | null;
-  latestReadingPct: number | null;
-  latestListeningPct: number | null;
+  latestReadingBand: number | null;
+  latestListeningBand: number | null;
   latestCefrLevel: string | null;
   totalStudiedHours: number;
   recentPractice: RecentPracticeItem[];
@@ -74,8 +78,8 @@ export function ProgressView({
   assessedCefrLevel,
   weakAreas,
   latestBand,
-  latestReadingPct,
-  latestListeningPct,
+  latestReadingBand,
+  latestListeningBand,
   latestCefrLevel,
   totalStudiedHours,
   recentPractice,
@@ -114,9 +118,9 @@ export function ProgressView({
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 md:py-10">
       {/* ── Heading ── */}
       <motion.header initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">Progress</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">Your Progress</h1>
         <p className="mt-1 text-sm text-text-secondary">
-          Track your learning journey and mock assessment results.
+          Based on your placement and mock assessments — not your onboarding self-report.
         </p>
       </motion.header>
 
@@ -127,13 +131,20 @@ export function ProgressView({
         transition={{ duration: 0.5, delay: 0.05 }}
         className="mt-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#0F172A] to-[#1E293B] p-6 shadow-lg"
       >
+        {/* Eyebrow + disclaimer */}
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
+            English Level
+          </p>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-semibold text-white/50">
+            Not an official IELTS score
+          </span>
+        </div>
+
         {/* Top row */}
-        <div className="flex items-start justify-between">
+        <div className="mt-1 flex items-start justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50">
-              English Level
-            </p>
-            <p className="mt-1 text-5xl font-black leading-none text-white">
+            <p className="text-5xl font-black leading-none text-white">
               {assessedCefrLevel ?? "—"}
             </p>
             {!hasMockData && (
@@ -160,10 +171,10 @@ export function ProgressView({
               </div>
               <p className="text-xs font-semibold text-white/70">Reading</p>
             </div>
-            {latestReadingPct !== null ? (
+            {latestReadingBand !== null ? (
               <>
-                <p className="mt-2 text-xl font-black text-white">{Math.round(latestReadingPct)}%</p>
-                <p className="text-[10px] text-white/40">Last mock score</p>
+                <p className="mt-2 text-xl font-black text-white">{latestReadingBand.toFixed(1)}</p>
+                <p className="text-[10px] text-white/40">Last mock band</p>
               </>
             ) : (
               <p className="mt-2 text-xs text-white/30">Take a mock</p>
@@ -177,10 +188,10 @@ export function ProgressView({
               </div>
               <p className="text-xs font-semibold text-white/70">Listening</p>
             </div>
-            {latestListeningPct !== null ? (
+            {latestListeningBand !== null ? (
               <>
-                <p className="mt-2 text-xl font-black text-white">{Math.round(latestListeningPct)}%</p>
-                <p className="text-[10px] text-white/40">Last mock score</p>
+                <p className="mt-2 text-xl font-black text-white">{latestListeningBand.toFixed(1)}</p>
+                <p className="text-[10px] text-white/40">Last mock band</p>
               </>
             ) : (
               <p className="mt-2 text-xs text-white/30">Take a mock</p>
@@ -269,9 +280,15 @@ export function ProgressView({
                   : item.type === "mock"
                     ? ClipboardList
                     : BookOpen;
+              const iconStyle =
+                item.type === "listening"
+                  ? "bg-green-50 text-green-600"
+                  : item.type === "mock"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-amber-50 text-amber-600";
               return (
                 <li key={i} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-border/40 text-text-secondary">
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconStyle}`}>
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -301,15 +318,16 @@ export function ProgressView({
         className="mt-4 grid grid-cols-3 gap-3"
       >
         {[
-          { label: "Day streak", value: streak },
-          { label: "Hours studied", value: totalStudiedHours },
-          { label: "Last mock", value: latestCefrLevel ?? "—" },
+          { label: "Day streak", value: streak, icon: Flame },
+          { label: "Hours studied", value: totalStudiedHours, icon: Clock },
+          { label: "Last mock", value: latestCefrLevel ?? "—", icon: Award },
         ].map((stat) => (
           <div
             key={stat.label}
             className="rounded-2xl border border-border bg-bg-card p-4 text-center shadow-sm"
           >
-            <p className="text-xl font-bold text-text-primary">{stat.value}</p>
+            <stat.icon className="mx-auto h-5 w-5 text-primary" aria-hidden="true" />
+            <p className="mt-2 text-xl font-bold text-text-primary">{stat.value}</p>
             <p className="mt-0.5 text-[11px] text-text-secondary">{stat.label}</p>
           </div>
         ))}
@@ -324,14 +342,17 @@ export function ProgressView({
           className="mt-4 rounded-2xl border border-border bg-[#FF6B00]/[.06] p-4 shadow-sm"
         >
           <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-text-primary">Next assessment</p>
-              <p className="mt-0.5 text-xs text-text-secondary">{nextAssessmentDate}</p>
-              {daysUntilAssessment !== null && (
-                <p className="mt-1 text-xs font-medium text-primary">
-                  {daysUntilAssessment > 0 ? `in ${daysUntilAssessment} days` : "Due now"}
-                </p>
-              )}
+            <div className="flex items-center gap-3">
+              <CalendarClock className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-semibold text-text-primary">Next assessment</p>
+                <p className="mt-0.5 text-xs text-text-secondary">{nextAssessmentDate}</p>
+                {daysUntilAssessment !== null && (
+                  <p className="mt-1 text-xs font-medium text-primary">
+                    {daysUntilAssessment > 0 ? `in ${daysUntilAssessment} days` : "Due now"}
+                  </p>
+                )}
+              </div>
             </div>
             <Link
               href="/mock"
