@@ -122,7 +122,9 @@ function firstIncompleteLink(tasks: TodayPlanDay["tasks"]): string | null {
     // "/practice" mirrors the same fallback MonthlyPlanView already uses.
     if (task.taskType === "vocabulary" || task.taskType === "review") return "/review";
     if (ARTICLE_TASK_TYPES.has(task.taskType)) return "/practice";
-    return null;
+    // No resolvable route for this task (e.g. a podcast task whose content
+    // isn't assigned yet) — don't give up on the whole plan, check the rest.
+    continue;
   }
   return null;
 }

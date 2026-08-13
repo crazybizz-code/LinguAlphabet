@@ -68,7 +68,7 @@ export async function fetchTodayPlan(
   if (!dayRaw) return null;
 
   const day = dayRaw as unknown as RawDayWithTasks;
-  const tasks = (day.plan_tasks ?? []).sort((a, b) => a.sequence_number - b.sequence_number);
+  let tasks = (day.plan_tasks ?? []).sort((a, b) => a.sequence_number - b.sequence_number);
 
   if (tasks.length === 0) return null;
 
@@ -77,9 +77,18 @@ export async function fetchTodayPlan(
     .map((t) => t.id);
 
   if (unassignedIds.length > 0) {
-    await assignContentToTasks({ userId, taskIds: unassignedIds }).catch(() => {
-      // Content assignment is best-effort — never block page render
-    });
+    const { assigned } = await assignContentToTasks({ userId, taskIds: unassignedIds }).catch(() => ({ assigned: 0 }));
+    if (assigned > 0) {
+      // assignContentToTasks() persisted new content_item_id values in the DB,
+      // but `tasks` above was read before that ran — re-read so the returned
+      // TodayPlanDay reflects the real, current state instead of the stale one.
+      const { data: refreshed } = await supabase
+        .from("plan_tasks")
+        .select("id, task_type, title, estimated_minutes, completed, content_item_id, sequence_number")
+        .eq("day_id", day.id)
+        .order("sequence_number", { ascending: true });
+      if (refreshed) tasks = refreshed as RawDayWithTasks["plan_tasks"];
+    }
   }
 
   return {
