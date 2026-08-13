@@ -105,7 +105,7 @@ export function MockResultClient({
           : "listening";
 
   return (
-    <div className="mx-auto max-w-2xl px-5 py-10 sm:px-8">
+    <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
       {/* Hero result card */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}

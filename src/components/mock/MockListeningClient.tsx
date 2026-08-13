@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Headphones, Monitor, ChevronLeft, ChevronRight, Volume2 } from "lucide-react";
+import { Flag, Headphones, Monitor, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { ListeningAudioPlayer } from "@/components/assessment/ListeningAudioPlayer";
+import { ListeningInstructions } from "@/components/assessment/ListeningInstructions";
 import { QuestionPalette } from "./QuestionPalette";
 import { QuestionRenderer } from "./QuestionRenderer";
 import type { ClientQuestion } from "./types";
@@ -28,11 +30,21 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
   const [timeLeft, setTimeLeft] = useState(timeLimitSeconds);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // Track which audioUrls have already been played (one-play-only)
+  // Track which questions' audio has already been played (one-play-only per question)
   const [playedAudioIds, setPlayedAudioIds] = useState<Set<string>>(new Set());
+  // Mark-for-review flags — session-only (sessionStorage), no schema change; mirrors the
+  // existing timer-anchor persistence pattern below.
+  const [flagged, setFlagged] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = sessionStorage.getItem(`mock_listening_flags_${attemptId}`);
+      return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+    } catch {
+      return {};
+    }
+  });
   const startTimeRef = useRef<number | null>(null);
   const timedOutRef = useRef(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Timer
   useEffect(() => {
@@ -91,6 +103,7 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
     setSubmitting(true);
     setSubmitError(null);
     sessionStorage.removeItem(`mock_listening_start_${attemptId}`);
+    sessionStorage.removeItem(`mock_listening_flags_${attemptId}`);
     try {
       const res = await fetch("/api/mock/submit", {
         method: "POST",
@@ -108,22 +121,18 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
     }
   }
 
-  function handlePlayAudio(questionId: string, audioUrl: string) {
-    if (playedAudioIds.has(questionId)) return;
-    setPlayedAudioIds((prev) => new Set([...prev, questionId]));
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    const audio = new Audio(audioUrl);
-    audioRef.current = audio;
-    audio.play().catch(console.error);
+  function toggleFlag(questionId: string) {
+    setFlagged((prev) => {
+      const next = { ...prev, [questionId]: !prev[questionId] };
+      sessionStorage.setItem(`mock_listening_flags_${attemptId}`, JSON.stringify(next));
+      return next;
+    });
   }
 
   const currentQuestion = questions[currentIndex];
   const answeredCount = questions.filter((q) => Boolean(answers[q.id])).length;
   const isLowTime = timeLeft <= 300;
   const hasAudio = Boolean(currentQuestion?.audioUrl);
-  const audioPlayed = hasAudio && currentQuestion ? playedAudioIds.has(currentQuestion.id) : false;
 
   return (
     <>
@@ -182,40 +191,42 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
         {currentQuestion && (
           <div className="flex min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto w-full max-w-2xl px-8 py-6">
-              <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
-                Question {currentQuestion.sequenceNumber} of {questions.length}
-              </p>
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+                  Question {currentQuestion.sequenceNumber} of {questions.length}
+                </p>
+                <button
+                  onClick={() => toggleFlag(currentQuestion.id)}
+                  className={[
+                    "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all",
+                    flagged[currentQuestion.id]
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-text-secondary hover:bg-bg-muted",
+                  ].join(" ")}
+                >
+                  <Flag
+                    className="h-3.5 w-3.5"
+                    aria-hidden="true"
+                    fill={flagged[currentQuestion.id] ? "currentColor" : "none"}
+                  />
+                  {flagged[currentQuestion.id] ? "Flagged" : "Flag"}
+                </button>
+              </div>
 
-              {/* Audio player */}
+              {/* Listening instructions + audio player — real audio, no fake timer */}
               {hasAudio && (
-                <div className="mb-6 flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
-                    <Volume2 className="h-5 w-5 text-blue-500" aria-hidden="true" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-text-primary">Audio Clip</p>
-                    {audioPlayed ? (
-                      <p className="text-xs text-text-secondary">
-                        Already played — one play only per question.
-                      </p>
-                    ) : (
-                      <p className="text-xs text-text-secondary">
-                        {currentQuestion.audioInstruction ?? "Click to play. You can only play this once."}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handlePlayAudio(currentQuestion.id, currentQuestion.audioUrl!)}
-                    disabled={audioPlayed}
-                    className={[
-                      "shrink-0 rounded-xl px-4 py-2 text-xs font-semibold transition-all",
-                      audioPlayed
-                        ? "cursor-not-allowed bg-bg-muted text-text-tertiary"
-                        : "bg-blue-500 text-white hover:bg-blue-600",
-                    ].join(" ")}
-                  >
-                    {audioPlayed ? "Played" : "Play"}
-                  </button>
+                <div className="mb-6 space-y-4">
+                  <ListeningInstructions
+                    sectionInstruction={currentQuestion.sectionInstruction}
+                    audioInstruction={currentQuestion.audioInstruction}
+                  />
+                  <ListeningAudioPlayer
+                    key={currentQuestion.id}
+                    audioUrl={currentQuestion.audioUrl!}
+                    instruction={currentQuestion.audioInstruction}
+                    initiallyPlayed={playedAudioIds.has(currentQuestion.id)}
+                    onPlay={() => setPlayedAudioIds((prev) => new Set([...prev, currentQuestion.id]))}
+                  />
                 </div>
               )}
 
@@ -259,6 +270,7 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
             questions={questions}
             currentIndex={currentIndex}
             answers={answers}
+            flags={flagged}
             onNavigate={setCurrentIndex}
           />
         </footer>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Monitor, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookOpen, Flag, Monitor, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { QuestionPalette } from "./QuestionPalette";
 import { QuestionRenderer } from "./QuestionRenderer";
@@ -27,6 +27,17 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
   const [answers, setAnswers] = useState<Record<string, string | null>>(savedAnswers);
   const [timeLeft, setTimeLeft] = useState(timeLimitSeconds);
   const [finishing, setFinishing] = useState(false);
+  // Mark-for-review flags — session-only (sessionStorage), no schema change; mirrors the
+  // existing timer-anchor persistence pattern below.
+  const [flagged, setFlagged] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = sessionStorage.getItem(`mock_reading_flags_${attemptId}`);
+      return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
+    } catch {
+      return {};
+    }
+  });
   const startTimeRef = useRef<number | null>(null);
   const timedOutRef = useRef(false);
 
@@ -86,6 +97,14 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
     setFinishing(true);
     sessionStorage.removeItem(`mock_reading_start_${attemptId}`);
     router.push(`/mock/${attemptId}/listening`);
+  }
+
+  function toggleFlag(questionId: string) {
+    setFlagged((prev) => {
+      const next = { ...prev, [questionId]: !prev[questionId] };
+      sessionStorage.setItem(`mock_reading_flags_${attemptId}`, JSON.stringify(next));
+      return next;
+    });
   }
 
   const currentQuestion = questions[currentIndex];
@@ -168,9 +187,27 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
 
             {/* Right — question */}
             <div className="w-1/2 overflow-y-auto p-6">
-              <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
-                Question {currentQuestion.sequenceNumber} of {questions.length}
-              </p>
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+                  Question {currentQuestion.sequenceNumber} of {questions.length}
+                </p>
+                <button
+                  onClick={() => toggleFlag(currentQuestion.id)}
+                  className={[
+                    "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all",
+                    flagged[currentQuestion.id]
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-text-secondary hover:bg-bg-muted",
+                  ].join(" ")}
+                >
+                  <Flag
+                    className="h-3.5 w-3.5"
+                    aria-hidden="true"
+                    fill={flagged[currentQuestion.id] ? "currentColor" : "none"}
+                  />
+                  {flagged[currentQuestion.id] ? "Flagged" : "Flag"}
+                </button>
+              </div>
               <QuestionRenderer
                 question={currentQuestion}
                 selectedAnswer={answers[currentQuestion.id] ?? null}
@@ -206,6 +243,7 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
             questions={questions}
             currentIndex={currentIndex}
             answers={answers}
+            flags={flagged}
             onNavigate={setCurrentIndex}
           />
         </footer>
