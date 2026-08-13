@@ -202,13 +202,12 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
                       <span className="text-[10px] text-text-tertiary">{shortDayNum(day.planDate)}</span>
                       {day.tasks.length > 0 && (
                         <div className="mt-0.5 space-y-1">
-                          {day.tasks.slice(0, 3).map((task) => (
+                          {day.tasks.map((task) => (
                             <div key={task.id} className="flex items-center gap-1.5">
                               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${task.completed ? "bg-success" : (TASK_DOT_COLOR[task.taskType] ?? "bg-border")}`} />
-                              <span className="truncate text-[10px] font-medium text-text-tertiary">{TASK_LABELS[task.taskType] ?? task.taskType}</span>
+                              <span className={`truncate text-[10px] font-medium text-text-tertiary ${task.completed ? "line-through" : ""}`}>{TASK_LABELS[task.taskType] ?? task.taskType}</span>
                             </div>
                           ))}
-                          {day.tasks.length > 3 && <p className="text-[10px] font-medium text-text-tertiary">+{day.tasks.length - 3} more</p>}
                         </div>
                       )}
                       {totalMins > 0 && (
@@ -249,20 +248,32 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
               </div>
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 {selectedDay.tasks.length === 0 ? <p className="text-sm text-text-secondary">Rest day. No tasks scheduled.</p> : (
-                  <ol className="space-y-3">
+                  <ol className="space-y-2.5">
                     {selectedDay.tasks.map((task, index) => {
                       const href = taskHref(task);
+                      const cardClass = task.completed
+                        ? "border-success/30 bg-success/5"
+                        : "border-border bg-bg-card";
                       const item = (
                         <>
                           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${task.completed ? "bg-success/10 text-success" : "bg-border/40 text-text-secondary"}`}>{task.completed ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : index + 1}</span>
                           <div className="min-w-0 flex-1">
                             <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${TASK_PILL_COLOR[task.taskType] ?? "bg-primary/10 text-primary"}`}>{TASK_LABELS[task.taskType] ?? task.taskType}</span>
                             <p className={`mt-1 text-sm font-medium ${task.completed ? "text-text-secondary line-through" : "text-text-primary"}`}>{task.title}</p>
+                            {task.skillFocus && <p className="mt-0.5 text-[11px] text-text-tertiary">{task.skillFocus}</p>}
                           </div>
                           {task.estimatedMinutes && <span className="ml-auto shrink-0 text-xs font-semibold text-text-tertiary">{task.estimatedMinutes} min</span>}
                         </>
                       );
-                      return <li key={task.id}>{href && !task.completed ? <Link href={href} className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-border/20">{item}</Link> : <div className="flex items-center gap-3 px-3 py-2.5">{item}</div>}</li>;
+                      return (
+                        <li key={task.id} className={`rounded-xl border ${cardClass}`}>
+                          {href && !task.completed ? (
+                            <Link href={href} className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-border/20">{item}</Link>
+                          ) : (
+                            <div className="flex items-center gap-3 px-3 py-2.5">{item}</div>
+                          )}
+                        </li>
+                      );
                     })}
                   </ol>
                 )}

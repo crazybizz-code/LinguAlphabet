@@ -153,11 +153,13 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
       {/* Desktop exam shell */}
       <div className="fixed inset-0 z-50 hidden flex-col bg-bg lg:flex">
         {/* Header — 60 px */}
-        <header className="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-border bg-[#1E293B] px-6">
+        <header className="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-border bg-white px-6">
           <div className="flex items-center gap-3">
-            <Headphones className="h-4.5 w-4.5 text-blue-400" aria-hidden="true" />
-            <span className="text-sm font-semibold text-white">Listening Section</span>
-            <span className="text-xs text-white/50">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0F172A]">
+              <Headphones className="h-4 w-4 text-white" aria-hidden="true" />
+            </div>
+            <span className="text-sm font-semibold text-text-primary">Full Mock · Listening</span>
+            <span className="text-xs text-text-tertiary">
               {answeredCount}/{questions.length} answered
             </span>
           </div>
@@ -165,7 +167,7 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
           <span
             className={[
               "font-mono text-lg font-bold tabular-nums",
-              isLowTime ? "text-red-400" : "text-white",
+              isLowTime ? "text-red-500" : "text-text-primary",
             ].join(" ")}
             aria-live="polite"
           >
@@ -174,7 +176,7 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
 
           <div className="flex items-center gap-2">
             {submitError && (
-              <span className="text-xs text-red-400">{submitError}</span>
+              <span className="text-xs text-red-500">{submitError}</span>
             )}
             <button
               onClick={handleSubmit}

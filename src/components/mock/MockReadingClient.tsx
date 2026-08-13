@@ -133,11 +133,13 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
       {/* Desktop — full exam shell */}
       <div className="fixed inset-0 z-50 hidden flex-col bg-bg lg:flex">
         {/* Header — 60 px */}
-        <header className="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-border bg-[#1E293B] px-6">
+        <header className="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-border bg-white px-6">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-4.5 w-4.5 text-blue-400" aria-hidden="true" />
-            <span className="text-sm font-semibold text-white">Reading Section</span>
-            <span className="text-xs text-white/50">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0F172A]">
+              <BookOpen className="h-4 w-4 text-white" aria-hidden="true" />
+            </div>
+            <span className="text-sm font-semibold text-text-primary">Full Mock · Reading</span>
+            <span className="text-xs text-text-tertiary">
               {answeredCount}/{questions.length} answered
             </span>
           </div>
@@ -146,7 +148,7 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
           <span
             className={[
               "font-mono text-lg font-bold tabular-nums",
-              isLowTime ? "text-red-400" : "text-white",
+              isLowTime ? "text-red-500" : "text-text-primary",
             ].join(" ")}
             aria-live="polite"
             aria-label={`Time remaining: ${formatTime(timeLeft)}`}

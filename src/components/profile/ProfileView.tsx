@@ -211,7 +211,7 @@ export function ProfileView({
               </div>
               <div>
                 <p className="text-[10px] font-semibold text-text-secondary">{label}</p>
-                <p className="text-base font-bold text-text-primary">{value}</p>
+                <p className="text-2xl font-bold text-text-primary">{value}</p>
                 {sub && <p className="text-[10px] text-text-tertiary">{sub}</p>}
               </div>
             </button>
@@ -261,7 +261,7 @@ export function ProfileView({
               <div>
                 <p className="text-[10px] font-semibold text-text-secondary">{label}</p>
                 {value !== null ? (
-                  <p className="mt-0.5 text-base font-bold text-text-primary">{value}</p>
+                  <p className="mt-0.5 text-2xl font-bold text-text-primary">{value}</p>
                 ) : (
                   <p className="mt-0.5 text-sm font-semibold text-text-tertiary">No data yet</p>
                 )}

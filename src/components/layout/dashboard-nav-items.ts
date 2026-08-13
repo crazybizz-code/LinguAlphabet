@@ -44,7 +44,11 @@ export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
     label: "Tuto",
     href: "/tuto",
     icon: User,
-    activeMatch: (pathname) => pathname === "/tuto" || pathname.startsWith("/tuto/"),
+    activeMatch: (pathname) =>
+      pathname === "/tuto" ||
+      pathname.startsWith("/tuto/") ||
+      pathname === "/tuto-coaching" ||
+      pathname === "/tutos-insights",
     isTuto: true,
   },
   {

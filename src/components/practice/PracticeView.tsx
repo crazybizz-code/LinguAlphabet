@@ -100,18 +100,7 @@ export function PracticeView({
 
         <LockedCard title="Vocabulary" description="Word meaning, context, and collocations." accentClassName="bg-violet-50" icon={<PenLine className="h-5 w-5 text-violet-500" aria-hidden="true" />} />
         <LockedCard title="Grammar & Expressions" description="Structures, collocations, and usage rules." accentClassName="bg-green-50" icon={<PenLine className="h-5 w-5 text-green-500" aria-hidden="true" />} />
-      </section>
-
-      <section className="relative mt-4 flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-5 opacity-60 shadow-sm">
-        <Lock className="absolute right-4 top-4 h-4 w-4 text-text-tertiary" aria-hidden="true" />
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter">
-          <Mic className="h-5 w-5 text-primary" aria-hidden="true" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-base font-bold text-text-primary">Weak Area Practice</p>
-          <p className="mt-1 text-xs text-text-secondary">Personalised sessions targeting your specific gaps.</p>
-        </div>
-        <span className="shrink-0 text-[11px] font-semibold text-text-tertiary">Coming soon</span>
+        <LockedCard title="Weak Area Practice" description="Personalised sessions targeting your specific gaps." accentClassName="bg-primary-lighter" icon={<Mic className="h-5 w-5 text-primary" aria-hidden="true" />} />
       </section>
 
       <section className="mt-6 rounded-2xl border border-border bg-bg-muted p-5">

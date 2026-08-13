@@ -3,14 +3,15 @@
 import { motion } from "framer-motion";
 import {
   AlertCircle,
-  Award,
+  ArrowRight,
   BookOpen,
   CalendarClock,
   ChevronRight,
+  CircleCheck,
   ClipboardList,
-  Clock,
   Flame,
   Headphones,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import type { WeekDay, MonthActivity, RecentActivityItem } from "@/lib/content/progress";
@@ -208,7 +209,10 @@ export function ProgressView({
           transition={{ duration: 0.5, delay: 0.1 }}
           className="mt-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
         >
-          <h2 className="mb-4 text-sm font-semibold text-text-primary">Band Trend</h2>
+          <h2 className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-text-primary">
+            <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
+            Band Trend
+          </h2>
           {/* Sparkline-style chart */}
           <div className="relative">
             <div className="flex items-end gap-2" style={{ height: 80 }}>
@@ -244,12 +248,7 @@ export function ProgressView({
           transition={{ duration: 0.5, delay: 0.15 }}
           className="mt-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
         >
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-primary">Weak Areas</h2>
-            <Link href="/practice" className="text-xs font-semibold text-primary hover:underline">
-              Practice weak areas →
-            </Link>
-          </div>
+          <h2 className="mb-3 text-sm font-semibold text-text-primary">Weak Areas</h2>
           <div className="space-y-2">
             {weakAreas.map((area) => (
               <div key={area} className="flex items-center gap-3 rounded-xl bg-[#FF6B00]/[.06] p-3">
@@ -260,6 +259,12 @@ export function ProgressView({
               </div>
             ))}
           </div>
+          <Link
+            href="/practice"
+            className="mt-3 block text-center text-xs font-semibold text-primary hover:underline"
+          >
+            Practice weak areas →
+          </Link>
         </motion.section>
       )}
 
@@ -272,7 +277,7 @@ export function ProgressView({
           className="mt-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm"
         >
           <h2 className="mb-3 text-sm font-semibold text-text-primary">Recent Practice</h2>
-          <ul className="divide-y divide-border/40">
+          <div className="space-y-2">
             {recentPractice.map((item, i) => {
               const Icon =
                 item.type === "listening"
@@ -287,8 +292,8 @@ export function ProgressView({
                     ? "bg-primary/10 text-primary"
                     : "bg-amber-50 text-amber-600";
               return (
-                <li key={i} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${iconStyle}`}>
+                <div key={i} className="flex items-center gap-3 rounded-xl border border-border/60 bg-bg-muted p-3">
+                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconStyle}`}>
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -303,10 +308,10 @@ export function ProgressView({
                       {Math.round(item.scorePct)}% accuracy
                     </p>
                   </div>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         </motion.section>
       )}
 
@@ -318,9 +323,9 @@ export function ProgressView({
         className="mt-4 grid grid-cols-3 gap-3"
       >
         {[
-          { label: "Day streak", value: streak, icon: Flame },
-          { label: "Hours studied", value: totalStudiedHours, icon: Clock },
-          { label: "Last mock", value: latestCefrLevel ?? "—", icon: Award },
+          { label: "day streak", value: `${streak}`, icon: Flame },
+          { label: "studied", value: `${totalStudiedHours}h`, icon: TrendingUp },
+          { label: "last mock", value: latestCefrLevel ?? "—", icon: CircleCheck },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -339,26 +344,26 @@ export function ProgressView({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-4 rounded-2xl border border-border bg-[#FF6B00]/[.06] p-4 shadow-sm"
+          className="mt-4 rounded-2xl border border-border bg-bg-muted p-4 shadow-sm"
         >
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <CalendarClock className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
               <div>
                 <p className="text-sm font-semibold text-text-primary">Next assessment</p>
-                <p className="mt-0.5 text-xs text-text-secondary">{nextAssessmentDate}</p>
-                {daysUntilAssessment !== null && (
-                  <p className="mt-1 text-xs font-medium text-primary">
-                    {daysUntilAssessment > 0 ? `in ${daysUntilAssessment} days` : "Due now"}
-                  </p>
-                )}
+                <p className="mt-0.5 text-xs text-text-secondary">
+                  {nextAssessmentDate}
+                  {daysUntilAssessment !== null &&
+                    ` · ${daysUntilAssessment > 0 ? `in ${daysUntilAssessment} days` : "Due now"}`}
+                </p>
               </div>
             </div>
             <Link
               href="/mock"
-              className="shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white hover:bg-primary-dark"
+              className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary hover:underline"
             >
-              Start now →
+              Start now
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>
           </div>
         </motion.section>
