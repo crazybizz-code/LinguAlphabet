@@ -152,41 +152,66 @@ export function HomeView({
 
       <HeroLevelCard cefrLevel={cefrLevel} currentBand={currentBand} targetBand={targetBand} placementCompleted={placementCompleted} reading={latestMockReading} listening={latestMockListening} />
 
-      {todayPlan && todayPlan.tasks.length > 0 && (
+      {!placementCompleted ? (
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mt-4 px-5 sm:px-8">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-primary">Today&apos;s Plan</h2>
-            <Link href="/plan" className="text-xs font-semibold text-primary hover:underline">View Full Plan</Link>
-          </div>
           <div className="rounded-[2rem] border border-border bg-bg-card p-5 shadow-sm sm:p-6">
-            <ul className="space-y-2">
-              {todayPlan.tasks.map((task) => {
-                const Icon = TASK_ICONS[task.taskType] ?? ListChecks;
-                return (
-                  <li key={task.id} className="flex items-center gap-3 rounded-xl border border-border bg-bg-muted p-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-primary">
-                      {task.completed ? <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> : <Icon className="h-5 w-5" aria-hidden="true" />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className={`truncate text-sm font-semibold ${task.completed ? "line-through text-text-secondary" : "text-text-primary"}`}>{task.title}</p>
-                    </div>
-                    <span className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
-                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                      {task.estimatedMinutes ?? 0}m
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="mt-5 flex items-center justify-between">
-              <p className="text-xs font-medium text-text-tertiary">Total: {todayPlan.tasks.reduce((sum, task) => sum + (task.estimatedMinutes ?? 0), 0)} min</p>
-              {(() => {
-                const link = firstIncompleteLink(todayPlan.tasks);
-                return link ? <Link href={link} className="rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-glow">Continue</Link> : <span className="rounded-2xl bg-border px-6 py-3 text-sm font-bold text-text-tertiary">Continue</span>;
-              })()}
+            <div className="flex items-start gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-lighter">
+                <ClipboardList className="h-5 w-5 text-primary" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-text-primary">Find your real English level</p>
+                <p className="mt-1 text-xs leading-relaxed text-text-secondary">
+                  Take a short placement assessment so Tuto can build your personalised daily plan.
+                </p>
+              </div>
             </div>
+            <Link
+              href="/assessment/placement"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-glow transition-all hover:bg-primary-dark"
+            >
+              Start Placement Assessment
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
         </motion.section>
+      ) : (
+        todayPlan && todayPlan.tasks.length > 0 && (
+          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="mt-4 px-5 sm:px-8">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-text-primary">Today&apos;s Plan</h2>
+              <Link href="/plan" className="text-xs font-semibold text-primary hover:underline">View Full Plan</Link>
+            </div>
+            <div className="rounded-[2rem] border border-border bg-bg-card p-5 shadow-sm sm:p-6">
+              <ul className="space-y-2">
+                {todayPlan.tasks.map((task) => {
+                  const Icon = TASK_ICONS[task.taskType] ?? ListChecks;
+                  return (
+                    <li key={task.id} className="flex items-center gap-3 rounded-xl border border-border bg-bg-muted p-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-primary">
+                        {task.completed ? <CheckCircle2 className="h-5 w-5" aria-hidden="true" /> : <Icon className="h-5 w-5" aria-hidden="true" />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className={`truncate text-sm font-semibold ${task.completed ? "line-through text-text-secondary" : "text-text-primary"}`}>{task.title}</p>
+                      </div>
+                      <span className="ml-auto flex shrink-0 items-center gap-1 text-xs text-text-tertiary">
+                        <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                        {task.estimatedMinutes ?? 0}m
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="mt-5 flex items-center justify-between">
+                <p className="text-xs font-medium text-text-tertiary">Total: {todayPlan.tasks.reduce((sum, task) => sum + (task.estimatedMinutes ?? 0), 0)} min</p>
+                {(() => {
+                  const link = firstIncompleteLink(todayPlan.tasks);
+                  return link ? <Link href={link} className="rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-white shadow-glow">Continue</Link> : <span className="rounded-2xl bg-border px-6 py-3 text-sm font-bold text-text-tertiary">Continue</span>;
+                })()}
+              </div>
+            </div>
+          </motion.section>
+        )
       )}
 
       {resume && <ContinueLearningCard resume={resume} />}
