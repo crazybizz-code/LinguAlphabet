@@ -10,13 +10,20 @@
  *
  * This module only decides which level the SCRIPT GENERATOR is asked to
  * target. It does not, by itself, guarantee the final published episode
- * is actually at that level -- generateEnrichment() independently judges
- * the actual produced text's CEFR range (see ai-processing.ts), and
- * publishing.ts's quality gate rejects publication if that independent
- * judgment falls outside {B2, C1, C2}. That two-step design is
- * deliberate: a script generator asked for B2 could still produce text
- * that reads as B1, and simply trusting its own self-report would be
- * "merely labeling a B1 script as B2" -- exactly what must not happen.
+ * is actually at that level -- a script generator asked for B2 could
+ * still produce text that reads as B1, and simply trusting its own
+ * self-report would be "merely labeling a B1 script as B2" -- exactly
+ * what must not happen. Two independent checks exist specifically to
+ * catch that: scriptGeneration.ts's checkGeneratedCefrLevel() grades the
+ * actual generated text BEFORE Fish Audio synthesis/alignment ever run,
+ * feeding a miss back into the same bounded retry loop word-count/
+ * structural failures already use, so a mismatch is cheap to fix; and
+ * generateEnrichment() (ai-processing.ts) independently judges the final
+ * published transcript, with publishing.ts's quality gate rejecting
+ * publication outright if that judgment still falls outside {B2, C1, C2}.
+ * The quality gate is the authoritative, unweakened backstop -- the
+ * earlier check exists to make it rare for that backstop to ever fire on
+ * an AI-generated episode, not to replace it.
  */
 
 export type LinguAbcCefrLevel = "B2" | "C1" | "C2";
