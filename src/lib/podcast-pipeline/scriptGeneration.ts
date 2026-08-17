@@ -169,6 +169,20 @@ Return the episode as a title, a one-line topic description, 1-5 short topic tag
 
 const MAX_ATTEMPTS = 6;
 
+/**
+ * Explicit cap for generateStructuredJson()'s underlying provider call,
+ * scoped to THIS call only (generateStructuredJson's maxTokens is already
+ * per-call, not global -- see its own doc comment). Without this, OpenRouter
+ * receives no `max_tokens` at all and falls back to the model's own
+ * default, which is not guaranteed to comfortably fit this schema's output:
+ * ~990 words of dialogue (~1400 tokens) plus per-turn JSON overhead
+ * (speaker/text fields, quoting, punctuation) across up to 100 turns (the
+ * upper bound validateGeneratedScript() accepts) can plausibly reach
+ * ~3000-3500 tokens for the turns array alone. 6000 leaves comfortable
+ * headroom above that worst case without constraining normal-length output.
+ */
+const SCRIPT_JSON_MAX_TOKENS = 6000;
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -471,15 +485,40 @@ export interface ScriptGenerationResult {
   openingStructure: OpeningStructureCheck;
 }
 
+/**
+ * Turns the previous attempt's validation issues into concise corrective
+ * feedback appended to the NEXT attempt's prompt. Fixes the bug this
+ * function replaces: generateEpisodeScript() used to retry with the
+ * IDENTICAL prompt every time, so a model that missed the word-count
+ * target once had no reason to land differently on the next try.
+ *
+ * A word-count issue additionally gets a narrower, harder target
+ * (960-975, the middle of the accepted 920-990 range) than the base
+ * prompt's original 940-980 guidance -- a retry needs a firmer push
+ * toward the center, not a repeat of the instruction that already missed.
+ */
+export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
+  const bullets = issues.map((issue) => `- ${issue.message}`).join("\n");
+  const hasWordCountIssue = issues.some((issue) => /word count/i.test(issue.message));
+  const wordCountGuidance = hasWordCountIssue
+    ? "\nFor word count specifically, target approximately 960-975 spoken words this time -- aim for the middle of the accepted range, not its edge."
+    : "";
+
+  return `\n\n===================== PREVIOUS ATTEMPT REJECTED =====================\nYour previous draft was rejected for these reasons:\n${bullets}\nRewrite the script and fix ALL listed issues.${wordCountGuidance}`;
+}
+
 /** Generates and validates in a loop, bounded by MAX_ATTEMPTS. Throws
  * (never returns a script that failed validation) if every attempt fails
  * -- the caller must treat that as a failed generation, not publish
  * whatever the last attempt produced. */
 export async function generateEpisodeScript(request: ScriptGenerationRequest): Promise<ScriptGenerationResult> {
-  const prompt = buildPrompt(request);
+  const basePrompt = buildPrompt(request);
   let lastIssues: ScriptValidationIssue[] = [];
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    // Attempt 1 stays exactly as before (clean prompt, no feedback block).
+    // Attempts 2-6 append what the previous attempt got wrong.
+    const prompt = attempt === 1 ? basePrompt : `${basePrompt}${buildRetryFeedback(lastIssues)}`;
     let output: ScriptGenerationOutput;
     try {
       output = await generateStructuredJson({
@@ -488,6 +527,7 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
         schemaName: "linguabc_podcast_script",
         retryPolicy: BATCH_RETRY_POLICY,
         temperature: 0.9,
+        maxTokens: SCRIPT_JSON_MAX_TOKENS,
       });
     } catch (error) {
       // A malformed/truncated JSON response or a schema mismatch is a
@@ -501,11 +541,10 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
       // Observed in practice: OpenRouter occasionally returns HTTP 200
       // with finish_reason "error" and truncated content for this model —
       // not an HTTP-level failure generateStructuredJson's own retry
-      // policy would catch, but genuinely transient (a following call with
-      // the identical prompt succeeded). A short backoff before the next
-      // attempt costs little and matches this project's established
-      // backoff-before-retry posture elsewhere (Fish Audio, OpenRouter's
-      // own 429/5xx handling).
+      // policy would catch, but genuinely transient (a following call
+      // succeeded). A short backoff before the next attempt costs little
+      // and matches this project's established backoff-before-retry
+      // posture elsewhere (Fish Audio, OpenRouter's own 429/5xx handling).
       await sleep(3000 * attempt);
       continue;
     }
