@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { normalizeTranscript, getPublishedPodcasts, getPodcastById } from "./queries";
+import { normalizeTranscript, getPublishedPodcasts, getPodcastById, MIN_CATALOG_DURATION_SECONDS, MAX_CATALOG_DURATION_SECONDS } from "./queries";
 
 describe("normalizeTranscript", () => {
   it("returns an empty array for null/undefined/non-array", () => {
@@ -240,6 +240,13 @@ const DETAILS: FakePodcastDetailsRow[] = [
   baseDetailsFields({ content_item_id: NOAA_52MIN_ID, duration_seconds: 3149, attribution: "NOAA National Ocean Service" }),
   baseDetailsFields({ content_item_id: EXTERNAL_B1_ID, duration_seconds: 320, attribution: "Voice of America" }),
 ];
+
+describe("MIN_CATALOG_DURATION_SECONDS / MAX_CATALOG_DURATION_SECONDS", () => {
+  it("are exported so other modules (src/lib/planning/content-selector.ts) can import the single real duration rule instead of hardcoding a second 300/360 copy", () => {
+    expect(MIN_CATALOG_DURATION_SECONDS).toBe(300);
+    expect(MAX_CATALOG_DURATION_SECONDS).toBe(360);
+  });
+});
 
 describe("getPublishedPodcasts — LinguABC learning-catalog duration rule", () => {
   it("excludes the 16-minute NOAA episode (962s)", async () => {

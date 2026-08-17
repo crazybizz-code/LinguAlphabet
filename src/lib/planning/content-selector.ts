@@ -15,6 +15,7 @@
  */
 
 import { createServiceClient } from "@/lib/supabase/service-client";
+import { MIN_CATALOG_DURATION_SECONDS, MAX_CATALOG_DURATION_SECONDS } from "@/lib/content/queries";
 
 const CONTENT_TYPES_FOR_TASK: Record<string, "podcast" | "article" | null> = {
   podcast: "podcast",
@@ -65,14 +66,52 @@ export async function assignContentToTasks(input: AssignContentInput): Promise<A
     const level = task.cefr_level ?? "B1";
 
     // Pick a matching published item not already completed
-    const { data: candidates } = await supabase
-      .from("content_items")
-      .select("id")
-      .eq("content_type", contentType)
-      .eq("status", "published")
-      .lte("cefr_level_min", level)
-      .gte("cefr_level_max", level)
-      .limit(20);
+    let candidates: { id: string }[] | null;
+
+    if (contentType === "podcast") {
+      // Podcasts carry a second eligibility gate every real podcast-serving
+      // route already enforces (queries.ts's getPodcastById,
+      // fetchPublishedPodcastSummaries): duration must fall inside
+      // [MIN_CATALOG_DURATION_SECONDS, MAX_CATALOG_DURATION_SECONDS]. This
+      // query used to skip that check entirely, so it could (and did) hand
+      // out a content_item_id that getPodcastById then rejects, 404-ing the
+      // learner's Continue link. Fetch the full CEFR-matched set first, with
+      // no row limit, then filter to eligible podcast_details rows, THEN
+      // cap at 20 -- so an eligible podcast can never be excluded just
+      // because an ineligible one happened to occupy one of the first 20
+      // unfiltered rows.
+      const { data: allCandidates } = await supabase
+        .from("content_items")
+        .select("id")
+        .eq("content_type", contentType)
+        .eq("status", "published")
+        .lte("cefr_level_min", level)
+        .gte("cefr_level_max", level);
+
+      if (!allCandidates || allCandidates.length === 0) {
+        candidates = null;
+      } else {
+        const { data: eligibleDetails } = await supabase
+          .from("podcast_details")
+          .select("content_item_id")
+          .in("content_item_id", allCandidates.map((c: { id: string }) => c.id))
+          .gte("duration_seconds", MIN_CATALOG_DURATION_SECONDS)
+          .lte("duration_seconds", MAX_CATALOG_DURATION_SECONDS);
+
+        const eligibleIds = new Set((eligibleDetails ?? []).map((d: { content_item_id: string }) => d.content_item_id));
+        candidates = allCandidates.filter((c: { id: string }) => eligibleIds.has(c.id)).slice(0, 20);
+      }
+    } else {
+      const { data } = await supabase
+        .from("content_items")
+        .select("id")
+        .eq("content_type", contentType)
+        .eq("status", "published")
+        .lte("cefr_level_min", level)
+        .gte("cefr_level_max", level)
+        .limit(20);
+      candidates = data;
+    }
 
     if (!candidates || candidates.length === 0) continue;
 

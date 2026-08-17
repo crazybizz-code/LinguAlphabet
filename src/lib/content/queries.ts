@@ -29,8 +29,8 @@ type ArticleDetailsRow = Database["public"]["Tables"]["article_details"]["Row"];
  * catalog, and an operator needs to be able to see a too-long draft to
  * decide what to do with it.
  */
-const MIN_CATALOG_DURATION_SECONDS = 300;
-const MAX_CATALOG_DURATION_SECONDS = 360;
+export const MIN_CATALOG_DURATION_SECONDS = 300;
+export const MAX_CATALOG_DURATION_SECONDS = 360;
 
 /**
  * Normalizes a raw transcript from DB into typed TranscriptSegment[].
