@@ -189,9 +189,12 @@ export async function startPracticeSession(input: PracticeStartInput): Promise<P
       ...q,
       correctAnswer: "",
       explanation: null,
-      // Never expose the transcript to the client during a listening session
-      passage: q.skill === "listening" ? null : q.passage,
-      passageTitle: q.skill === "listening" ? null : q.passageTitle,
+      // Never expose the transcript while real audio can be played (anti-cheat).
+      // When there's no audio_url, the transcript is the only content that
+      // exists — pass it through as a reading stand-in, same as the
+      // placement engine (src/lib/assessment/engine.ts) already does.
+      passage: q.skill === "listening" && q.audioUrl ? null : q.passage,
+      passageTitle: q.skill === "listening" && q.audioUrl ? null : q.passageTitle,
       // Content-driven instructions pass through to the client as-is (null until authored)
       sectionInstruction: q.sectionInstruction,
       questionInstruction: q.questionInstruction,

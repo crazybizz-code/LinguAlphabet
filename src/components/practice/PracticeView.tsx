@@ -1,47 +1,34 @@
-import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookOpen, ChevronRight, Headphones, Info, Lock, Mic, PenLine } from "lucide-react";
+import { BookOpen, ChevronRight, Clock, Headphones, Info, Lock } from "lucide-react";
 
 export interface PracticeViewProps {
-  level: string | null;
-  band: number | null;
+  assessedLevel: string | null;
+  assessedBand: number | null;
   placementCompleted: boolean;
-  readingFocus: boolean;
-  listeningFocus: boolean;
+  readingBand: number | null;
+  listeningBand: number | null;
 }
 
-function LockedCard({
-  title,
-  description,
-  accentClassName,
-  icon,
-}: {
-  title: string;
-  description: string;
-  accentClassName: string;
-  icon: ReactNode;
-}) {
+function LockedCard({ title }: { title: string }) {
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-5 opacity-60 shadow-sm">
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${accentClassName}`}>{icon}</span>
+    <div className="flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-bg-muted">
+        <Lock className="h-5 w-5 text-text-tertiary" aria-hidden="true" />
+      </span>
       <div className="min-w-0 flex-1">
         <p className="text-base font-bold text-text-primary">{title}</p>
-        <p className="mt-1 text-xs leading-relaxed text-text-secondary">{description}</p>
+        <p className="mt-1 text-xs text-text-tertiary">Coming soon</p>
       </div>
-      <span className="flex shrink-0 items-center gap-1 text-[11px] font-semibold text-text-tertiary">
-        <Lock className="h-3 w-3" aria-hidden="true" />
-        Coming soon
-      </span>
     </div>
   );
 }
 
 export function PracticeView({
-  level,
-  band,
+  assessedLevel,
+  assessedBand,
   placementCompleted,
-  readingFocus,
-  listeningFocus,
+  readingBand,
+  listeningBand,
 }: PracticeViewProps) {
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 sm:px-8 md:py-10">
@@ -53,17 +40,27 @@ export function PracticeView({
       <section className="mb-5 rounded-2xl border border-border bg-bg-card p-5 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-text-secondary">Based on your assessment</span>
-          {level && band !== null && (
-            <span className="rounded-full bg-[#0F172A] px-3 py-1 text-xs font-bold text-white">
-              {level} · {band.toFixed(2)}
-            </span>
-          )}
-          {readingFocus && <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-white">Reading focus</span>}
-          {listeningFocus && <span className="rounded-full bg-blue-500 px-3 py-1 text-xs font-bold text-white">Listening focus</span>}
           {!placementCompleted && (
             <Link href="/assessment/placement" className="ml-auto rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-glow">
               Start Placement
             </Link>
+          )}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {assessedLevel && assessedBand !== null && (
+            <span className="rounded-full bg-[#0F172A] px-3 py-1 text-xs font-bold text-white">
+              {assessedLevel} · {assessedBand.toFixed(2)}
+            </span>
+          )}
+          {readingBand !== null && (
+            <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-primary-strong">
+              Reading {readingBand.toFixed(1)}
+            </span>
+          )}
+          {listeningBand !== null && (
+            <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-primary-strong">
+              Listening {listeningBand.toFixed(1)}
+            </span>
           )}
         </div>
         {!placementCompleted && (
@@ -79,28 +76,32 @@ export function PracticeView({
             <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-base font-bold text-text-primary">Reading</p>
-            <p className="mt-1 text-xs leading-relaxed text-text-secondary">Inference, main ideas, detail questions.</p>
-            <p className="mt-1 text-[11px] text-text-tertiary">10 questions · ~15 min · Graded instantly</p>
+            <p className="text-base font-bold text-text-primary">Reading Practice</p>
+            <p className="mt-1 flex items-center gap-1 text-[11px] text-text-tertiary">
+              <Clock className="h-3 w-3" aria-hidden="true" />
+              8 questions · ~10 min
+            </p>
           </div>
           <ChevronRight className="h-5 w-5 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
         </Link>
 
         <Link href="/practice/listening" className="group flex items-center gap-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm transition-all hover:shadow-md">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50">
-            <Headphones className="h-5 w-5 text-blue-500" aria-hidden="true" />
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-orange-50">
+            <Headphones className="h-5 w-5 text-primary" aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-base font-bold text-text-primary">Listening</p>
-            <p className="mt-1 text-xs leading-relaxed text-text-secondary">Gist, detail, and comprehension questions.</p>
-            <p className="mt-1 text-[11px] text-text-tertiary">8 questions · ~15 min · Audio once only</p>
+            <p className="text-base font-bold text-text-primary">Listening Practice</p>
+            <p className="mt-1 flex items-center gap-1 text-[11px] text-text-tertiary">
+              <Clock className="h-3 w-3" aria-hidden="true" />
+              8 questions · ~10 min
+            </p>
           </div>
           <ChevronRight className="h-5 w-5 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
         </Link>
 
-        <LockedCard title="Vocabulary" description="Word meaning, context, and collocations." accentClassName="bg-violet-50" icon={<PenLine className="h-5 w-5 text-violet-500" aria-hidden="true" />} />
-        <LockedCard title="Grammar & Expressions" description="Structures, collocations, and usage rules." accentClassName="bg-green-50" icon={<PenLine className="h-5 w-5 text-green-500" aria-hidden="true" />} />
-        <LockedCard title="Weak Area Practice" description="Personalised sessions targeting your specific gaps." accentClassName="bg-primary-lighter" icon={<Mic className="h-5 w-5 text-primary" aria-hidden="true" />} />
+        <LockedCard title="Vocabulary" />
+        <LockedCard title="Grammar & Expressions" />
+        <LockedCard title="Weak Area Practice" />
       </section>
 
       <section className="mt-6 rounded-2xl border border-border bg-bg-muted p-5">
@@ -108,16 +109,21 @@ export function PracticeView({
           <Info className="h-4 w-4 text-text-secondary" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-text-primary">How it works</h2>
         </div>
-        <ol className="space-y-2">
-          {["Choose Reading or Listening", "Complete a timed session", "Get instant feedback", "Weak areas update your next plan"].map((step, index) => (
-            <li key={step} className="flex items-start gap-3 text-xs text-text-secondary">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-bold text-text-tertiary">
-                {index + 1}
+        <p className="text-xs leading-relaxed text-text-secondary">
+          Practice sessions are short and skill-specific. Your results feed into weak-area detection and adapt your future plan.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {["Practice", "Weak-area signals", "Plan adaptation"].map((step, index, arr) => (
+            <span key={step} className="flex items-center gap-2">
+              <span className="rounded-full border border-border bg-white px-3 py-1.5 text-[11px] font-semibold text-text-secondary">
+                {step}
               </span>
-              {step}
-            </li>
+              {index < arr.length - 1 && (
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-text-tertiary" aria-hidden="true" />
+              )}
+            </span>
           ))}
-        </ol>
+        </div>
       </section>
     </div>
   );

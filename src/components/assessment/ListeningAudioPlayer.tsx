@@ -74,12 +74,12 @@ export function ListeningAudioPlayer({
   const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
   return (
-    <div className="rounded-2xl border border-blue-100 bg-blue-50/40 p-5">
+    <div className="rounded-2xl border border-orange-100 bg-orange-50/40 p-5">
       <div className="flex items-center gap-2">
         <p className="text-sm font-bold text-text-primary">Audio Recording</p>
         {playing ? (
-          <span className="flex items-center gap-1.5 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-blue-500" aria-hidden="true" />
+          <span className="flex items-center gap-1.5 rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-primary-strong">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
             Playing…
           </span>
         ) : played ? (
@@ -104,16 +104,16 @@ export function ListeningAudioPlayer({
             "flex h-14 w-14 shrink-0 items-center justify-center rounded-full shadow-lg transition-all",
             played
               ? "cursor-not-allowed bg-bg-muted text-text-tertiary"
-              : "bg-blue-500 text-white shadow-blue-500/30 hover:scale-105 active:scale-95",
+              : "bg-primary text-white shadow-primary/30 hover:scale-105 active:scale-95",
           ].join(" ")}
         >
           <Play className="h-6 w-6 fill-current" aria-hidden="true" />
         </button>
 
         <div className="flex-1">
-          <div className="relative h-2 overflow-hidden rounded-full bg-blue-100">
+          <div className="relative h-2 overflow-hidden rounded-full bg-orange-100">
             <div
-              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-blue-500 to-blue-400"
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-orange-400"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -134,7 +134,7 @@ export function ListeningAudioPlayer({
           step="0.05"
           value={volume}
           onChange={handleVolumeChange}
-          className="h-1.5 flex-1 cursor-pointer accent-blue-500"
+          className="h-1.5 flex-1 cursor-pointer accent-primary"
           aria-label="Volume"
         />
         <span className="w-8 text-right text-[11px] tabular-nums text-text-tertiary">

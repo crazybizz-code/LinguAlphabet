@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,7 +22,7 @@ import type { CefrLevel } from "@/types/content";
 
 export type PracticeType = "reading" | "listening";
 
-type Phase = "intro" | "audio" | "questions" | "submitting" | "result" | "no_questions" | "error";
+type Phase = "audio" | "questions" | "submitting" | "result" | "no_questions" | "error";
 
 interface PracticeQuestionResult {
   questionId: string;
@@ -42,18 +42,16 @@ interface PracticeResult {
   results: PracticeQuestionResult[];
 }
 
-const TYPE_META: Record<PracticeType, { title: string; description: string; color: string; bg: string }> = {
+const TYPE_META: Record<PracticeType, { title: string; color: string; bg: string }> = {
   reading: {
     title: "Reading Practice",
-    description: "Read each passage carefully and answer the comprehension questions.",
     color: "text-amber-500",
     bg: "bg-amber-50",
   },
   listening: {
     title: "Listening Practice",
-    description: "The audio will play once. Listen carefully — there is no replay.",
-    color: "text-blue-500",
-    bg: "bg-blue-50",
+    color: "text-primary",
+    bg: "bg-amber-50",
   },
 };
 
@@ -138,7 +136,7 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
   const router = useRouter();
   const meta = TYPE_META[practiceType];
 
-  const [phase, setPhase] = useState<Phase>("intro");
+  const [phase, setPhase] = useState<Phase>("submitting");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -191,6 +189,19 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
     }
   }, [practiceType, cefrLevel]);
 
+  // Auto-start the session on entry — Base44 goes straight from the Practice
+  // hub card into question 1, no separate "Start Session" gate screen. The
+  // ref (keyed by practiceType, not a plain boolean) guards against React 19
+  // Strict Mode's dev double-invoke of this effect while still re-starting
+  // correctly if practiceType ever changes without a full remount.
+  const startedForRef = useRef<PracticeType | null>(null);
+  useEffect(() => {
+    if (startedForRef.current === practiceType) return;
+    startedForRef.current = practiceType;
+    handleStart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [practiceType]);
+
   // ── Submit ───────────────────────────────────────────────────────────────────
 
   const handleSubmit = useCallback(async () => {
@@ -227,7 +238,12 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
   const Icon = practiceType === "listening" ? Headphones : BookOpen;
 
   function handleBack() {
-    if (phase === "result" || phase === "no_questions" || phase === "error" || phase === "intro") {
+    // sessionId is null only during the very first auto-start (no session
+    // created yet) — treat that like the old "intro" screen's back button.
+    // Once a session exists, "submitting" also covers mid-grading, where
+    // router.back() (into the in-flow question history) is still correct.
+    const atInitialLoad = phase === "submitting" && !sessionId;
+    if (phase === "result" || phase === "no_questions" || phase === "error" || atInitialLoad) {
       router.push("/practice");
     } else {
       router.back();
@@ -265,39 +281,11 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
       </div>
 
       <AnimatePresence mode="wait">
-        {/* ── Intro ──────────────────────────────────────────────────────────── */}
-        {phase === "intro" && (
-          <motion.div key="intro" {...fadeSlide} className="flex flex-col items-center text-center">
-            <div className={`mb-6 flex h-20 w-20 items-center justify-center rounded-full ${meta.bg}`}>
-              <Icon className={`h-9 w-9 ${meta.color}`} aria-hidden="true" />
-            </div>
-            <h1 className="mb-2 text-2xl font-bold text-text-primary">{meta.title}</h1>
-            <p className="mb-2 max-w-md text-sm text-text-secondary">{meta.description}</p>
-            <p className="mb-8 text-xs text-text-tertiary">
-              5–10 questions · graded instantly · level {cefrLevel}
-            </p>
-            {practiceType === "listening" && (
-              <div className="mb-8 max-w-sm rounded-2xl border border-border bg-bg-card p-4 text-left shadow-sm">
-                <p className="text-xs font-semibold text-text-primary">Listening rules</p>
-                <ul className="mt-2 space-y-1 text-xs text-text-secondary">
-                  <li className="flex gap-2"><span className="text-blue-500">•</span> The audio plays once — no replay.</li>
-                  <li className="flex gap-2"><span className="text-blue-500">•</span> No transcript is shown during the session.</li>
-                  <li className="flex gap-2"><span className="text-blue-500">•</span> You can adjust the volume before playing.</li>
-                </ul>
-              </div>
-            )}
-            <Button variant="primary" className="h-12 rounded-full px-8" onClick={handleStart}>
-              Start Session
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </motion.div>
-        )}
-
         {/* ── Audio phase (listening only) ────────────────────────────────────── */}
         {phase === "audio" && firstAudioUrl && (
           <motion.div key="audio" {...fadeSlide} className="space-y-6">
             <div>
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-blue-500">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-primary">
                 Listening Practice
               </p>
               <h2 className="text-xl font-bold text-text-primary">Listen carefully</h2>
@@ -345,41 +333,56 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
             {/* Progress */}
             <ProgressBar answered={answeredCount} total={questions.length} />
 
-            {/* Passage (reading only) */}
-            {currentQuestion.passage && (
-              <div className="max-h-64 overflow-y-auto rounded-2xl border border-border bg-bg-card p-5 shadow-sm">
-                {currentQuestion.passageTitle && (
-                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">
-                    {currentQuestion.passageTitle}
-                  </p>
-                )}
-                <p className="text-sm leading-relaxed text-text-primary">{currentQuestion.passage}</p>
-              </div>
-            )}
+            {/* Passage / question / options — one unified card, matching the reference layout */}
+            <div className="space-y-4 rounded-2xl border border-border bg-bg-card p-5 shadow-sm sm:p-6">
+              {currentQuestion.passage && (
+                <div className="max-h-64 overflow-y-auto rounded-xl bg-bg-muted p-4">
+                  {currentQuestion.skill === "listening" ? (
+                    <div className="mb-2 flex items-center gap-1.5">
+                      <Headphones className="h-3.5 w-3.5 text-text-tertiary" aria-hidden="true" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">
+                        Audio Transcript
+                      </span>
+                    </div>
+                  ) : (
+                    currentQuestion.passageTitle && (
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">
+                        {currentQuestion.passageTitle}
+                      </p>
+                    )
+                  )}
+                  {/* No audio_url for this question — same documented fallback as
+                      the placement assessment: show the transcript as a reading
+                      stand-in instead of leaving the question unanswerable. */}
+                  {currentQuestion.skill === "listening" && !currentQuestion.audioUrl && (
+                    <p className="mb-3 text-xs leading-relaxed text-text-secondary">
+                      🎧 Audio coming soon — read the transcript below as you would listen.
+                    </p>
+                  )}
+                  <p className="text-sm leading-relaxed text-text-primary">{currentQuestion.passage}</p>
+                </div>
+              )}
 
-            {/* Question-level instruction (content-driven, null until authored) */}
-            {currentQuestion.questionInstruction && (
-              <p className="text-xs text-text-secondary">{currentQuestion.questionInstruction}</p>
-            )}
+              {/* Question-level instruction (content-driven, null until authored) */}
+              {currentQuestion.questionInstruction && (
+                <p className="text-xs text-text-secondary">{currentQuestion.questionInstruction}</p>
+              )}
 
-            {/* Question card */}
-            <div className="rounded-2xl border border-border bg-bg-card p-5 shadow-sm">
               <p className="text-sm font-semibold leading-snug text-text-primary">
                 {currentQuestion.question}
               </p>
-            </div>
 
-            {/* Options */}
-            <div className="space-y-2.5">
-              {(currentQuestion.options ?? []).map((opt, optIndex) => (
-                <OptionButton
-                  key={opt}
-                  index={optIndex}
-                  label={opt}
-                  selected={answers[currentQuestion.id] === opt}
-                  onSelect={() => setAnswers((prev) => ({ ...prev, [currentQuestion.id]: opt }))}
-                />
-              ))}
+              <div className="space-y-2.5">
+                {(currentQuestion.options ?? []).map((opt, optIndex) => (
+                  <OptionButton
+                    key={opt}
+                    index={optIndex}
+                    label={opt}
+                    selected={answers[currentQuestion.id] === opt}
+                    onSelect={() => setAnswers((prev) => ({ ...prev, [currentQuestion.id]: opt }))}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Navigation */}
@@ -596,7 +599,7 @@ export function PracticeSessionClient({ practiceType, cefrLevel, displayName }: 
             <h2 className="mb-2 text-lg font-bold text-text-primary">Something went wrong</h2>
             <p className="mb-6 max-w-sm text-sm text-text-secondary">{errorMsg}</p>
             <div className="flex gap-3">
-              <Button variant="primary" className="h-11 rounded-xl px-6" onClick={() => setPhase("intro")}>
+              <Button variant="primary" className="h-11 rounded-xl px-6" onClick={handleStart}>
                 Try Again
               </Button>
               <Button variant="secondary" className="h-11 rounded-xl px-6" onClick={() => router.push("/practice")}>

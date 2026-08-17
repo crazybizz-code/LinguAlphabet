@@ -13,7 +13,7 @@ export function ListeningInstructions({ sectionInstruction, audioInstruction }: 
   return (
     <div className="rounded-2xl border border-border bg-bg-card p-4">
       <div className="flex items-start gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-500">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-50 text-primary">
           <Headphones className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="flex-1">
