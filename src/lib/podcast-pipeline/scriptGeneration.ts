@@ -144,9 +144,13 @@ Place some cues at the very start of a turn, but also place some cues INSIDE a t
 Use "..." for a trailing/hesitant pause and an em dash "—" for an interruption or self-correction, plus [break] or [long-break] for a real conversational boundary. Do not insert a pause or break at every turn change -- most natural speaker changes need no explicit pause tag at all; let native multi-speaker synthesis handle ordinary timing.
 
 MANDATORY, NON-NEGOTIABLE: NEVER wrap a word in asterisks or underscores for emphasis. This is the single most important formatting rule in this entire prompt -- violating it will get the whole script rejected regardless of how good the dialogue is.
-  WRONG (never write this): "I *really* thought it would work." / "That's **exactly** the problem." / "I _genuinely_ had no idea."
-  RIGHT (always write this instead): "[emphasis] I really thought it would work." / "That's [emphasis] exactly the problem." / "[emphasis] I genuinely had no idea."
+  WRONG (never write this): "I *really* thought it would work." / "That's **exactly** the problem." / "I _genuinely_ had no idea." / "so *close*"
+  RIGHT (always write this instead): "[emphasis] I really thought it would work." / "That's [emphasis] exactly the problem." / "[emphasis] I genuinely had no idea." / "[emphasis] so close"
 The [emphasis] bracket tag (or a natural-language cue like [with emphasis]) placed right before the word or phrase is the ONLY way to mark emphasis. Scan your own output before returning it and confirm it contains zero "*" and zero "_" characters anywhere.
+Audio-safe formatting, stated explicitly, because this rule is violated more than any other:
+  - NEVER use Markdown emphasis markers such as *word* or **word** -- anywhere, on any word, no matter how minor the emphasis feels.
+  - For spoken emphasis, use the [emphasis] bracket cue placed directly before the word or phrase. This schema has no closing or paired tag -- never write [/emphasis] or anything resembling it.
+  - Do not use ANY Markdown formatting (bold, italic, headers, bullet lists, etc.) anywhere in spoken dialogue. This schema supports only the bracket prosody cues already described above, nothing else.
 
 ===================== OPENING =====================
 Start with an original, specific hook (not a generic greeting) -- something concrete, slightly surprising or personal, that pulls the listener in. Let it continue naturally for a beat (a short reaction and a little development is fine), then create a clear boundary (a trailing "..." and/or a [break]/[long-break] cue) BEFORE the self-introductions. Never let the hook's last word run directly into "I'm ${request.speaker0Name}." There must be real separation. Then:
@@ -499,20 +503,36 @@ export interface ScriptGenerationResult {
  * toward the center, not a repeat of the instruction that already missed.
  * A CEFR-level issue (see checkGeneratedCefrLevel below) similarly gets a
  * concrete, actionable push rather than a repeat of the level name that
- * already failed to produce genuinely-B2+ text.
+ * already failed to produce genuinely-B2+ text. A markdown-emphasis issue
+ * gets the same treatment for the same reason: the base prompt already
+ * forbids Markdown-style asterisk/underscore emphasis explicitly (see the
+ * PROSODY section above), but before this fix a rejected attempt's
+ * markdown violation was folded into the generic bullet list with no
+ * extra insistence -- the model had already ignored that exact rule once,
+ * so restating it in the same generic list gave it no stronger a signal
+ * than the first time.
  */
 export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
   const bullets = issues.map((issue) => `- ${issue.message}`).join("\n");
   const hasWordCountIssue = issues.some((issue) => /word count/i.test(issue.message));
   const hasCefrIssue = issues.some((issue) => /cefr/i.test(issue.message));
+  const hasMarkdownIssue = issues.some((issue) => /markdown/i.test(issue.message));
   const wordCountGuidance = hasWordCountIssue
     ? "\nFor word count specifically, target approximately 960-975 spoken words this time -- aim for the middle of the accepted range, not its edge."
     : "";
   const cefrGuidance = hasCefrIssue
     ? "\nFor the CEFR level specifically, this draft read as easier than required. Raise vocabulary sophistication, use real conditional/subordinate-clause sentence structures throughout (not just when convenient), and discuss a genuinely complex or abstract angle of the topic instead of a simple personal anecdote -- do not just relabel the same simple script."
     : "";
+  // Bracket wording deliberately does NOT use a closing/paired tag like
+  // [/emphasis] -- the schema has never supported one (see PROSODY above
+  // and validateGeneratedScript's unclosed/unmatched-bracket check), and
+  // introducing one here would teach the model a convention nothing
+  // downstream (Fish Audio, transcript.ts's stripProsodyTags) recognizes.
+  const markdownGuidance = hasMarkdownIssue
+    ? "\nRemove ALL Markdown emphasis markers such as *word* and **word**. They would be spoken literally, not interpreted as emphasis. Use the [emphasis] bracket cue placed directly before the word or phrase instead (e.g. \"[emphasis] really\", never \"*really*\") -- there is no closing tag in this schema, so never write [/emphasis]."
+    : "";
 
-  return `\n\n===================== PREVIOUS ATTEMPT REJECTED =====================\nYour previous draft was rejected for these reasons:\n${bullets}\nRewrite the script and fix ALL listed issues.${wordCountGuidance}${cefrGuidance}`;
+  return `\n\n===================== PREVIOUS ATTEMPT REJECTED =====================\nYour previous draft was rejected for these reasons:\n${bullets}\nRewrite the script and fix ALL listed issues.${wordCountGuidance}${cefrGuidance}${markdownGuidance}`;
 }
 
 const CefrCheckOutputSchema = z.object({

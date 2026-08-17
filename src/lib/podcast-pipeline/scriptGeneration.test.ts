@@ -153,6 +153,34 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
     const feedback = buildRetryFeedback([{ message: "No genuine interruption found." }]);
     expect(feedback).not.toMatch(/raise vocabulary sophistication/i);
   });
+
+  it("gives concrete corrective guidance specifically for a markdown-emphasis failure", () => {
+    const feedback = buildRetryFeedback([
+      { message: "Found markdown-style emphasis markers that would be read aloud literally (use [emphasis] instead): *just*, *so close*" },
+    ]);
+    expect(feedback).toContain("Found markdown-style emphasis markers");
+    expect(feedback).toMatch(/remove all markdown emphasis markers/i);
+    expect(feedback).toMatch(/\[emphasis\] bracket cue placed directly before the word or phrase/i);
+  });
+
+  it("does not add markdown-specific guidance when there is no markdown issue", () => {
+    const feedback = buildRetryFeedback([{ message: "No genuine interruption found." }]);
+    expect(feedback).not.toMatch(/remove all markdown emphasis markers/i);
+  });
+
+  it("combines a markdown-emphasis issue with word-count and CEFR issues in the same feedback block", () => {
+    const feedback = buildRetryFeedback([
+      { message: "Word count 856 is outside the acceptable 920-990 range." },
+      { message: "Independent CEFR check graded this script as cefrLevelMin=B1, cefrLevelMax=B2." },
+      { message: "Found markdown-style emphasis markers that would be read aloud literally (use [emphasis] instead): *just*, *so close*" },
+    ]);
+    expect(feedback).toContain("Word count 856 is outside the acceptable 920-990 range.");
+    expect(feedback).toContain("Independent CEFR check graded this script as cefrLevelMin=B1");
+    expect(feedback).toContain("Found markdown-style emphasis markers");
+    expect(feedback).toMatch(/target approximately 960-975 spoken words/i);
+    expect(feedback).toMatch(/raise vocabulary sophistication/i);
+    expect(feedback).toMatch(/remove all markdown emphasis markers/i);
+  });
 });
 
 /**
@@ -189,5 +217,42 @@ describe("buildPrompt — B2 guidance explicitly distinguishes itself from B1", 
   it("does not add the B2-specific anti-B1 language for a C1 request", () => {
     const c1Prompt = buildPrompt({ ...request, cefrLevel: "C1" });
     expect(c1Prompt).not.toMatch(/must clearly clear B1, not sit at its edge/i);
+  });
+});
+
+/**
+ * Regression coverage for the real GitHub Actions failure this fix
+ * addresses: SCRIPT_GENERATION exhausted all 6 attempts because
+ * validateGeneratedScript() kept rejecting markdown-style emphasis
+ * markers (*just*, *so close*) that the base prompt already forbade, but
+ * buildRetryFeedback() (before this fix) gave that rejection no stronger
+ * a corrective push than the generic bullet list -- see
+ * buildRetryFeedback's markdown branch above for the actual fix. This
+ * covers the base prompt's own explicit rule, independent of the retry
+ * path, the same way the B2/anti-B1 guidance above is covered.
+ */
+describe("buildPrompt — explicit audio-safe formatting rule against Markdown emphasis", () => {
+  const request: ScriptGenerationRequest = {
+    speaker0Name: "Sarah",
+    speaker1Name: "Hannah",
+    cefrLevel: "B2",
+    usedTitles: [],
+    usedTopicTags: [],
+  };
+
+  it("explicitly forbids Markdown emphasis markers such as *word* or **word**", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/NEVER use Markdown emphasis markers such as \*word\* or \*\*word\*\*/);
+  });
+
+  it("directs spoken emphasis to the [emphasis] bracket cue and explicitly rejects a closing/paired tag", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/\[emphasis\] bracket cue placed directly before the word or phrase/i);
+    expect(prompt).toMatch(/never write \[\/emphasis\]/i);
+  });
+
+  it("forbids Markdown formatting generally, not just asterisk/underscore emphasis", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/do not use any markdown formatting/i);
   });
 });
