@@ -7,6 +7,8 @@
  * anything, and so a screen can never quietly invent its own validation.
  */
 
+import { bandToAbilityIndex, CEFR_LEVELS } from "@/lib/assessment/adaptive";
+
 /** Every exam shown on the selection grid. Only IELTS Academic is selectable today. */
 export type ExamType = "IELTS Academic" | "IELTS General" | "TOEFL iBT" | "Cambridge English" | "PTE Academic";
 
@@ -86,8 +88,10 @@ export function isTargetBandTooLow(data: OnboardingData): boolean {
  *
  * Needed because the rest of LinguABC (the plan screen, the Learning
  * Brain, content CEFR ranges) speaks CEFR, while this flow collects
- * bands. Mapping once, here, keeps that translation in one reviewable
- * place instead of scattering approximations through the app.
+ * bands. Delegates to the same band/CEFR alignment the real placement
+ * engine uses (src/lib/assessment/adaptive.ts) rather than maintaining a
+ * second, independently-tuned threshold table here — the two had drifted
+ * apart (e.g. a self-reported 4.0 was landing on B1 here but A2 there).
  *
  * Returns null for an unknown band — "Not sure" genuinely means we do not
  * know their level yet, and the placement assessment is what resolves it.
@@ -95,11 +99,7 @@ export function isTargetBandTooLow(data: OnboardingData): boolean {
  */
 export function bandToCefr(band: BandScore | null): string | null {
   if (band === null) return null;
-  if (band < 4.0) return "A2";
-  if (band <= 5.0) return "B1";
-  if (band <= 6.5) return "B2";
-  if (band <= 8.0) return "C1";
-  return "C2";
+  return CEFR_LEVELS[bandToAbilityIndex(band)];
 }
 
 /** Whether the current step has been answered well enough to advance. */

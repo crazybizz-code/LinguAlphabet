@@ -8,6 +8,7 @@ import {
   type OnboardingData,
 } from "./types";
 import { CURRENT_BAND_OPTIONS, TARGET_BAND_OPTIONS, formatBand } from "./constants";
+import { bandToAbilityIndex, CEFR_LEVELS } from "@/lib/assessment/adaptive";
 
 function data(overrides: Partial<OnboardingData> = {}): OnboardingData {
   return { ...INITIAL_ONBOARDING_DATA, ...overrides };
@@ -93,18 +94,25 @@ describe("canAdvance", () => {
 
 describe("bandToCefr", () => {
   it("maps bands onto the published CEFR alignment", () => {
-    expect(bandToCefr(4.0)).toBe("B1");
+    expect(bandToCefr(4.0)).toBe("A2");
     expect(bandToCefr(5.0)).toBe("B1");
-    expect(bandToCefr(5.5)).toBe("B2");
+    expect(bandToCefr(5.5)).toBe("B1");
     expect(bandToCefr(6.5)).toBe("B2");
     expect(bandToCefr(7.0)).toBe("C1");
-    expect(bandToCefr(8.0)).toBe("C1");
+    expect(bandToCefr(8.0)).toBe("C2");
     expect(bandToCefr(8.5)).toBe("C2");
     expect(bandToCefr(9.0)).toBe("C2");
   });
 
   it("returns null for an unknown band rather than inventing a level", () => {
     expect(bandToCefr(null)).toBeNull();
+  });
+
+  it("agrees with the placement engine's own band alignment (src/lib/assessment/adaptive.ts) for every selectable current- and target-band option — the two independently implemented this once and drifted apart (e.g. a self-reported 4.0 landed on B1 here but A2 there)", () => {
+    const allOptions = new Set([...CURRENT_BAND_OPTIONS, ...TARGET_BAND_OPTIONS]);
+    for (const band of allOptions) {
+      expect(bandToCefr(band)).toBe(CEFR_LEVELS[bandToAbilityIndex(band)]);
+    }
   });
 });
 
