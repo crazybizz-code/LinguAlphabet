@@ -127,7 +127,7 @@ async function loadAdaptiveState(
   // Load the question metadata for each response
   type RawResponse = { question_id: string; user_answer: string; is_correct: boolean; time_taken_seconds: number | null; sequence_number: number };
   const questionIds = (responses ?? [] as RawResponse[]).map((r: RawResponse) => r.question_id);
-  let questionMeta: Record<string, { skill: string; difficulty: string }> = {};
+  const questionMeta: Record<string, { skill: string; difficulty: string }> = {};
   if (questionIds.length > 0) {
     const { data: questions } = await supabase
       .from("assessment_questions")
@@ -172,6 +172,19 @@ async function loadAdaptiveState(
   return { reading, listening };
 }
 
+// ── Client-safe question shaping ──────────────────────────────────────────
+
+/**
+ * Strip the correct answer and explanation before a question is sent to the
+ * client. The server retains and uses the real values internally for
+ * grading (fetchQuestionById, computePlacementResult) — only the payload
+ * handed back to the learner is redacted. Mirrors the same pattern already
+ * used by src/lib/practice/engine.ts's startPracticeSession.
+ */
+function stripAnswer(question: AssessmentQuestion): AssessmentQuestion {
+  return { ...question, correctAnswer: "", explanation: null };
+}
+
 // ── Public API ─────────────────────────────────────────────────────────────
 
 /**
@@ -207,7 +220,7 @@ export async function startAssessment(
 
   return {
     attemptId: attempt.id,
-    firstQuestion,
+    firstQuestion: stripAnswer(firstQuestion),
     estimatedTotal: ESTIMATED_TOTAL_QUESTIONS,
   };
 }
@@ -296,7 +309,7 @@ export async function recordAnswer(input: {
 
   return {
     done: false,
-    nextQuestion,
+    nextQuestion: stripAnswer(nextQuestion),
     questionsAnswered: totalAnswered,
     estimatedTotal: ESTIMATED_TOTAL_QUESTIONS,
   };

@@ -15,6 +15,7 @@ import { buildRecommendationReason } from "@/lib/dashboard/recommendation-reason
 import { HomeView } from "@/components/dashboard/HomeView";
 import { fetchTodayPlan } from "@/lib/planning/today";
 import { buildMetadata } from "@/lib/seo/metadata";
+import type { CefrLevel } from "@/types/content";
 
 const DEFAULT_DAILY_MINUTES = 20;
 const RECENT_COMPLETION_WINDOW_MS = 6 * 60 * 60 * 1000;
@@ -48,7 +49,7 @@ export default async function DashboardPage() {
     supabase
       .from("profiles")
       .select(
-        "username, level, last_study_date, daily_time_minutes, interests, onboarding_completed, placement_completed, current_band, target_band, exam_timeline, exam_date",
+        "username, level, last_study_date, daily_time_minutes, interests, onboarding_completed, placement_completed, current_band, target_band, exam_timeline, exam_date, assessed_cefr_level, assessed_band",
       )
       .eq("user_id", user.id)
       .single(),
@@ -192,12 +193,26 @@ export default async function DashboardPage() {
   });
   const weakAreas = [...new Set(allWeakAreas)].slice(0, 3);
 
+  // Hero card must reflect the real placement result once one exists —
+  // never the self-reported onboarding values (learnerProfile.cefrLevel /
+  // profile.current_band are both self-report, see
+  // src/ai/data/learner-repository.ts). Falls back to the self-report only
+  // when placement hasn't been completed yet, or in the defensive case
+  // where placement_completed is true but the assessed field is somehow
+  // still null — never fabricated, always a real persisted value either way.
+  const heroCefrLevel = profile?.placement_completed
+    ? ((profile?.assessed_cefr_level as CefrLevel | null) ?? learnerProfile.cefrLevel ?? null)
+    : (learnerProfile.cefrLevel ?? null);
+  const heroBand = profile?.placement_completed
+    ? (profile?.assessed_band ?? profile?.current_band ?? null)
+    : (profile?.current_band ?? null);
+
   return (
     <HomeView
       displayName={profile?.username || "there"}
       streak={learnerProfile.streak ?? 0}
-      cefrLevel={learnerProfile.cefrLevel ?? null}
-      currentBand={profile?.current_band ?? null}
+      cefrLevel={heroCefrLevel}
+      currentBand={heroBand}
       targetBand={profile?.target_band ?? null}
       examTimeline={profile?.exam_timeline ?? null}
       examDate={profile?.exam_date ?? null}
