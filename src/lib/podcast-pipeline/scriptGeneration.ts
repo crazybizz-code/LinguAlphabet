@@ -115,7 +115,9 @@ The topic must give BOTH speakers real things to say -- not one expert lecturing
 }
 
 ===================== LENGTH =====================
-Target 940-980 words of actual spoken dialogue (prosody cues in [brackets] do not count toward this). A script under 920 words WILL BE REJECTED -- three separate real generations at ~850-870 words produced only 283-298 seconds of audio, just under the required 300 second minimum, and were wasted. Err toward the top of this range, not the bottom. This should produce roughly 5-6 minutes of audio.
+MANDATORY, NON-NEGOTIABLE: your dialogue MUST contain at least 940 spoken words (prosody cues in [brackets] do not count toward this) -- do not submit a draft under 940 words. This is a hard floor, checked mechanically by word count immediately after you respond, not a rough suggestion. Target 960-975 words specifically -- write to genuinely land in that range, not just barely above the floor.
+A script under 920 words WILL BE REJECTED outright: multiple real generations at 830-870 words have already been rejected and wasted real synthesis cost for landing short, despite every OTHER rule in this prompt (turn structure, interruption, prosody, opening position) being satisfied -- satisfying those other rules does NOT excuse a short script; length is checked with exactly the same severity as every "MANDATORY, NON-NEGOTIABLE" rule below.
+This should produce roughly 5-6 minutes of audio. A script that "feels finished" structurally at 850 words is NOT long enough -- extend the conversation with more genuine content (another follow-up question, a longer example, a deeper reaction, more of the callback) rather than stopping once the structural beats are covered.
 
 ===================== CRITICAL TURN-STRUCTURE RULE =====================
 A turn is NOT one sentence. NEVER alternate speaker after every single sentence like a ping-pong pattern (A-sentence, B-sentence, A-sentence, B-sentence...). Instead use IRREGULAR natural turns:
@@ -497,10 +499,17 @@ export interface ScriptGenerationResult {
  * IDENTICAL prompt every time, so a model that missed the word-count
  * target once had no reason to land differently on the next try.
  *
- * A word-count issue additionally gets a narrower, harder target
- * (960-975, the middle of the accepted 920-990 range) than the base
- * prompt's original 940-980 guidance -- a retry needs a firmer push
- * toward the center, not a repeat of the instruction that already missed.
+ * A word-count issue gets a CONCRETE, deficit-based instruction computed
+ * from the actual previous count (e.g. "Previous draft: 833 words...
+ * Add approximately 127-142 spoken words"), not just an abstract target
+ * restatement -- a model that has now undershot 920-990 multiple times in
+ * a row (see the LENGTH section's own note: 830-870-word real
+ * generations, repeatedly) needs to be told exactly how far off it was
+ * and by how much to extend, not handed the same "aim higher" phrasing
+ * that already failed to move it. Falls back to the abstract 960-975
+ * restatement only if the previous count can't be parsed out of the
+ * issue message (defensive; the message format is controlled by
+ * validateGeneratedScript above and should always match).
  * A CEFR-level issue (see checkGeneratedCefrLevel below) similarly gets a
  * concrete, actionable push rather than a repeat of the level name that
  * already failed to produce genuinely-B2+ text. A markdown-emphasis issue
@@ -512,14 +521,49 @@ export interface ScriptGenerationResult {
  * so restating it in the same generic list gave it no stronger a signal
  * than the first time.
  */
+const WORD_COUNT_ISSUE_RE = /word count (\d+) is outside/i;
+const WORD_COUNT_TARGET_MIN = 960;
+const WORD_COUNT_TARGET_MAX = 975;
+
+/**
+ * Builds the word-count-specific retry line. Given the actual previous
+ * count (parsed from validateGeneratedScript's own message, never
+ * guessed), computes a real add/cut range against the 960-975 sub-target
+ * so the model is told a concrete number instead of an abstract target it
+ * has already ignored. Undershoot and overshoot are both handled, even
+ * though only undershoot has ever been observed in practice, since
+ * validateGeneratedScript's own check fires symmetrically for a count
+ * above 990 too.
+ */
+function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
+  const match = issues.map((issue) => issue.message.match(WORD_COUNT_ISSUE_RE)).find((m): m is RegExpMatchArray => m !== null);
+  if (!match) {
+    // Defensive fallback -- should not normally happen, see doc comment above.
+    return "\nFor word count specifically, target approximately 960-975 spoken words this time -- aim for the middle of the accepted range, not its edge.";
+  }
+
+  const previousCount = Number(match[1]);
+  if (previousCount < WORD_COUNT_TARGET_MIN) {
+    const addMin = WORD_COUNT_TARGET_MIN - previousCount;
+    const addMax = WORD_COUNT_TARGET_MAX - previousCount;
+    return `\nPrevious draft: ${previousCount} words. Required: 920-990. Add approximately ${addMin}-${addMax} spoken words while preserving the existing structure, turn variety, and every other rule above -- do not pad with filler; extend real dialogue (a longer story, an extra follow-up question, a deeper reaction, more of the callback). Target 960-975 words total.`;
+  }
+  if (previousCount > WORD_COUNT_TARGET_MAX) {
+    const cutMin = previousCount - WORD_COUNT_TARGET_MAX;
+    const cutMax = previousCount - WORD_COUNT_TARGET_MIN;
+    return `\nPrevious draft: ${previousCount} words. Required: 920-990. Cut approximately ${cutMin}-${cutMax} spoken words while preserving the existing structure -- trim naturally within turns, don't just delete whole turns. Target 960-975 words total.`;
+  }
+  // previousCount is inside 960-975 but the issue still fired, which can
+  // only mean the message format changed underneath this parser.
+  return "\nFor word count specifically, target approximately 960-975 spoken words this time -- aim for the middle of the accepted range, not its edge.";
+}
+
 export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
   const bullets = issues.map((issue) => `- ${issue.message}`).join("\n");
   const hasWordCountIssue = issues.some((issue) => /word count/i.test(issue.message));
   const hasCefrIssue = issues.some((issue) => /cefr/i.test(issue.message));
   const hasMarkdownIssue = issues.some((issue) => /markdown/i.test(issue.message));
-  const wordCountGuidance = hasWordCountIssue
-    ? "\nFor word count specifically, target approximately 960-975 spoken words this time -- aim for the middle of the accepted range, not its edge."
-    : "";
+  const wordCountGuidance = hasWordCountIssue ? buildWordCountGuidance(issues) : "";
   const cefrGuidance = hasCefrIssue
     ? "\nFor the CEFR level specifically, this draft read as easier than required. Raise vocabulary sophistication, use real conditional/subordinate-clause sentence structures throughout (not just when convenient), and discuss a genuinely complex or abstract angle of the topic instead of a simple personal anecdote -- do not just relabel the same simple script."
     : "";
