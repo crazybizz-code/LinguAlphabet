@@ -4,6 +4,7 @@ import {
   buildRetryFeedback,
   buildPrompt,
   generateEpisodeScript,
+  checkOpeningStructure,
   type ScriptGenerationOutput,
   type ScriptGenerationRequest,
 } from "./scriptGeneration";
@@ -117,6 +118,135 @@ describe("validateGeneratedScript — bare cue word leaking as spoken dialogue",
   it("does not flag ordinary dialogue that starts with an unrelated word", () => {
     const issues = validateGeneratedScript(output([{ speaker: 0, text: "Honestly, I never thought about it that way." }]), REQUEST);
     expect(leakedCueIssue(issues)).toBe(false);
+  });
+});
+
+/**
+ * Direct unit coverage for checkOpeningStructure() -- previously zero,
+ * despite this being the exact function built to catch the Episode #004
+ * defect (introductions/LinguABC mention landing at the very end instead
+ * of the opening) and despite it being implicated again in the real
+ * SCRIPT_GENERATION failure this fix addresses (Ben 98.7%, Hannah 96.8%,
+ * LinguABC 96.8%, intro block only in the final 20%). Each check is
+ * exercised in isolation, matching this file's own established pattern
+ * (see the top-of-file doc comment) rather than requiring one fixture to
+ * pass or fail every rule at once.
+ */
+describe("checkOpeningStructure — direct unit coverage", () => {
+  const REQUEST_BEN_HANNAH: ScriptGenerationRequest = {
+    speaker0Name: "Ben",
+    speaker1Name: "Hannah",
+    cefrLevel: "B2",
+    usedTitles: [],
+    usedTopicTags: [],
+  };
+
+  function output(turns: ScriptGenerationOutput["turns"]): ScriptGenerationOutput {
+    return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+  }
+
+  function fillerTurns(count: number, label: string): ScriptGenerationOutput["turns"] {
+    const turns: ScriptGenerationOutput["turns"] = [];
+    for (let i = 0; i < count; i++) {
+      turns.push({ speaker: (i % 2) as 0 | 1, text: `This is ${label} filler turn number ${i} with enough words in it to matter for the percentage math in this test.` });
+    }
+    return turns;
+  }
+
+  function validOpeningTurns(): ScriptGenerationOutput["turns"] {
+    return [
+      { speaker: 0, text: "I once locked myself out of my own apartment wearing only socks, in the middle of January." },
+      { speaker: 1, text: "Wait, that is awful. What did you even do?" },
+      { speaker: 0, text: "It was a whole thing. Anyway, I'm Ben." },
+      { speaker: 1, text: "And I'm Hannah." },
+      { speaker: 0, text: "This is LinguABC, and today we are talking about small emergencies that teach you something." },
+      ...fillerTurns(16, "body"),
+    ];
+  }
+
+  it("passes a script with a real hook, early introductions, and an early LinguABC mention", () => {
+    const result = checkOpeningStructure(output(validOpeningTurns()), REQUEST_BEN_HANNAH);
+    expect(result.passed).toBe(true);
+    expect(result.issues).toEqual([]);
+  });
+
+  it("flags a first turn that reads like a generic greeting instead of a real hook", () => {
+    const turns = validOpeningTurns();
+    turns[0] = { speaker: 0, text: "Hello everyone, welcome back to the show." };
+    const result = checkOpeningStructure(output(turns), REQUEST_BEN_HANNAH);
+    expect(result.hookPresent).toBe(false);
+    expect(result.passed).toBe(false);
+    expect(result.issues.some((i) => /generic greeting\/announcement instead of a real hook/i.test(i))).toBe(true);
+  });
+
+  it("flags missing introductions when neither speaker ever says \"I'm <name>\"", () => {
+    const turns = validOpeningTurns();
+    turns[2] = { speaker: 0, text: "It was a whole thing, honestly." };
+    turns[3] = { speaker: 1, text: "Sounds like quite a morning." };
+    const result = checkOpeningStructure(output(turns), REQUEST_BEN_HANNAH);
+    expect(result.introductionBlockPresent).toBe(false);
+    expect(result.passed).toBe(false);
+    expect(result.issues.some((i) => /Missing one or both .*self-introductions entirely/i.test(i))).toBe(true);
+  });
+
+  it("flags Ben's introduction landing too late, close to the real 98.7% failure", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "I once locked myself out of my own apartment wearing only socks, in the middle of January." },
+      ...fillerTurns(30, "topic"),
+      { speaker: 0, text: "Anyway, before we go, I'm Ben." },
+      { speaker: 1, text: "And I'm Hannah. This is LinguABC, thanks so much for listening today." },
+    ];
+    const result = checkOpeningStructure(output(turns), REQUEST_BEN_HANNAH);
+    expect(result.firstIntroPositionValid).toBe(false);
+    expect(result.passed).toBe(false);
+    expect(result.issues.some((i) => /Ben's introduction occurs at [\d.]+% through the script -- must be within the first 25%/.test(i))).toBe(true);
+  });
+
+  it("flags Hannah's introduction landing too far from Ben's", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "I once locked myself out of my own apartment wearing only socks, in the middle of January." },
+      { speaker: 1, text: "Wait, that is awful. What did you even do?" },
+      { speaker: 0, text: "It was a whole thing. Anyway, I'm Ben." },
+      ...fillerTurns(10, "topic"),
+      { speaker: 1, text: "Oh, sorry, I never actually said -- I'm Hannah." },
+      { speaker: 0, text: "This is LinguABC, let's get into it." },
+      ...fillerTurns(10, "more"),
+    ];
+    const result = checkOpeningStructure(output(turns), REQUEST_BEN_HANNAH);
+    expect(result.secondIntroPositionValid).toBe(false);
+    expect(result.passed).toBe(false);
+    expect(result.issues.some((i) => /Hannah's introduction occurs at [\d.]+% through the script or too far from Ben's/.test(i))).toBe(true);
+  });
+
+  it("flags a LinguABC mention landing too late even when both introductions are early", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "I once locked myself out of my own apartment wearing only socks, in the middle of January." },
+      { speaker: 1, text: "Wait, that is awful. What did you even do?" },
+      { speaker: 0, text: "It was a whole thing. Anyway, I'm Ben." },
+      { speaker: 1, text: "And I'm Hannah, great to be here today." },
+      ...fillerTurns(20, "topic"),
+      { speaker: 0, text: "Well, that has been LinguABC for today, thanks so much for listening." },
+    ];
+    const result = checkOpeningStructure(output(turns), REQUEST_BEN_HANNAH);
+    expect(result.linguabcPositionValid).toBe(false);
+    expect(result.passed).toBe(false);
+    expect(result.issues.some((i) => /LinguABC identity occurs at [\d.]+% through the script/.test(i))).toBe(true);
+    // Both introductions were early -- this is an isolated LinguABC-only failure.
+    expect(result.firstIntroPositionValid).toBe(true);
+    expect(result.secondIntroPositionValid).toBe(true);
+  });
+
+  it("flags the introduction block found only in the final portion of the script -- the Episode #004 defect", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "I once locked myself out of my own apartment wearing only socks, in the middle of January." },
+      ...fillerTurns(30, "topic"),
+      { speaker: 0, text: "Anyway, before we go, I'm Ben." },
+      { speaker: 1, text: "And I'm Hannah. This is LinguABC, thanks so much for listening today." },
+    ];
+    const result = checkOpeningStructure(output(turns), REQUEST_BEN_HANNAH);
+    expect(result.introductionBlockNotAtEnding).toBe(false);
+    expect(result.passed).toBe(false);
+    expect(result.issues.some((i) => /Introduction block found only in the final \d+% of the script \(the sign-off\)/.test(i))).toBe(true);
   });
 });
 
@@ -319,6 +449,108 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
     it("does not add the combined-fix framing sentence when only one correction is active", () => {
       const feedback = buildRetryFeedback([{ message: "Word count 1181 is outside the acceptable 920-990 range." }]);
       expect(feedback).not.toMatch(/must ALL be fixed together/i);
+    });
+  });
+
+  /**
+   * Regression coverage for the real GitHub Actions failure this fix
+   * addresses: buildRetryFeedback() had dedicated guidance for word
+   * count, CEFR, markdown, prosody, and interruption, but NONE for any
+   * checkOpeningStructure() failure -- despite that being the exact
+   * function built to catch the Episode #004 defect. A real run failed
+   * 6/6 attempts with introductions and the LinguABC mention at
+   * 96.8-98.7% through the script, restated unchanged in the generic
+   * bullet list every retry, never reinforced. buildOpeningStructureGuidance()
+   * closes that gap, tested here the same way prosody/interruption are
+   * tested above (through the exported buildRetryFeedback(), since the
+   * builder itself is intentionally unexported, matching precedent).
+   */
+  describe("opening-structure guidance — the missing category this fix adds", () => {
+    it("gives the concrete percentage and required order for a late Ben introduction", () => {
+      const feedback = buildRetryFeedback([{ message: "Ben's introduction occurs at 98.7% through the script -- must be within the first 25%." }]);
+      expect(feedback).toContain("Ben's introduction was at 98.7% through the script -- far too late");
+      expect(feedback).toMatch(/REQUIRED order/i);
+      expect(feedback).toMatch(/\(1\) the hook, \(2\) one brief reaction\/development beat, \(3\) Speaker 0 introduces himself/i);
+    });
+
+    it("gives the concrete percentage for a late Hannah introduction", () => {
+      const feedback = buildRetryFeedback([
+        { message: "Hannah's introduction occurs at 96.8% through the script or too far from Ben's -- both introductions must be in the same opening block." },
+      ]);
+      expect(feedback).toContain("Hannah's introduction was at 96.8% through the script (or too far from Ben's)");
+    });
+
+    it("gives the concrete percentage for a late LinguABC mention", () => {
+      const feedback = buildRetryFeedback([
+        { message: "LinguABC identity occurs at 96.8% through the script -- must occur in or immediately after the opening introduction block." },
+      ]);
+      expect(feedback).toContain("the LinguABC mention was at 96.8% through the script -- far too late");
+    });
+
+    it("explicitly says the sign-off cannot substitute for the opening when the block is found only at the ending", () => {
+      const feedback = buildRetryFeedback([
+        {
+          message:
+            "Introduction block found only in the final 20% of the script (the sign-off) -- it must be near the opening instead. This is exactly the Episode #004 defect.",
+        },
+      ]);
+      expect(feedback).toContain("the introduction block was found ONLY in the final portion of the script, folded into the sign-off");
+      expect(feedback).toMatch(/must NOT first appear in the closing sign-off/i);
+      expect(feedback).toMatch(/that later mention does not satisfy this requirement/i);
+    });
+
+    it("does not add opening-structure guidance when there is no opening issue", () => {
+      const feedback = buildRetryFeedback([{ message: "Word count 833 is outside the acceptable 920-990 range." }]);
+      expect(feedback).not.toMatch(/The opening block is still wrong/i);
+    });
+
+    /**
+     * The exact combined shape of the real failure this fix addresses:
+     * word count 1055, prosody 1.23/100, introductions/LinguABC all near
+     * the end, and no genuine interruption -- seven simultaneous issues,
+     * all six MAX_ATTEMPTS retries. Every corrective category must appear
+     * together, none crowding out another.
+     */
+    it("combines word count, prosody, missing interruption, and every opening-structure failure in ONE coherent block, none dropped", () => {
+      const feedback = buildRetryFeedback([
+        { message: "Word count 1055 is outside the acceptable 920-990 range (calibrated to land inside the pipeline's 300-360s audio-duration gate with real margin)." },
+        { message: "Prosody density 1.23/100 words is far below the ~4-6 target -- prosody rules were not followed." },
+        { message: "Ben's introduction occurs at 98.7% through the script -- must be within the first 25%." },
+        { message: "Hannah's introduction occurs at 96.8% through the script or too far from Ben's -- both introductions must be in the same opening block." },
+        { message: "LinguABC identity occurs at 96.8% through the script -- must occur in or immediately after the opening introduction block." },
+        {
+          message:
+            "Introduction block found only in the final 20% of the script (the sign-off) -- it must be near the opening instead. This is exactly the Episode #004 defect.",
+        },
+        {
+          message:
+            "No genuine interruption found -- need one turn ending with a dash immediately followed by the next turn starting with a dash (e.g. Speaker 0: '...we—' / Speaker 1: '—never finish that?').",
+        },
+      ]);
+
+      // Every original issue bullet present.
+      expect(feedback).toContain("Word count 1055 is outside the acceptable 920-990 range");
+      expect(feedback).toContain("Prosody density 1.23/100 words is far below the ~4-6 target");
+      expect(feedback).toContain("Ben's introduction occurs at 98.7%");
+      expect(feedback).toContain("Hannah's introduction occurs at 96.8%");
+      expect(feedback).toContain("LinguABC identity occurs at 96.8%");
+      expect(feedback).toContain("Introduction block found only in the final 20%");
+      expect(feedback).toContain("No genuine interruption found");
+
+      // Every corrective instruction present -- fixing one must not crowd out the others.
+      // 1055 words overshoots the 960-975 sub-target, so the word-count
+      // guidance is the "cut" branch, not the "add" branch.
+      expect(feedback).toMatch(/cut approximately \d+-\d+ spoken words/i);
+      expect(feedback).toContain("Current prosody density: 1.23/100 words. Required: approximately 4-6/100 words.");
+      expect(feedback).toMatch(/structurally REQUIRED/i);
+      expect(feedback).toContain("Ben's introduction was at 98.7% through the script -- far too late");
+      expect(feedback).toContain("Hannah's introduction was at 96.8% through the script (or too far from Ben's)");
+      expect(feedback).toContain("the LinguABC mention was at 96.8% through the script -- far too late");
+      expect(feedback).toContain("the introduction block was found ONLY in the final portion of the script, folded into the sign-off");
+      expect(feedback).toMatch(/REQUIRED order/i);
+
+      // The explicit "fix all together" framing fires with this many corrections active.
+      expect(feedback).toMatch(/must ALL be fixed together in the SAME rewrite/i);
     });
   });
 });

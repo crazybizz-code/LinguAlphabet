@@ -163,7 +163,7 @@ Start with an original, specific hook (not a generic greeting) -- something conc
 Then a natural, brief mention that this is LinguABC, then transition into the topic conversationally (not a formal announcement).
 Do not reuse a hook about airplane clapping or about saying "on my way" -- those are two prior episodes' hooks.
 
-MANDATORY, NON-NEGOTIABLE: this entire introduction block (both speakers saying their names, plus the LinguABC mention) MUST occur within the FIRST FEW TURNS of the script -- roughly the first 15-25% of it, never later. It must NEVER appear only at the end, folded into the sign-off. A real prior generation put "I'm Sarah" / "And I'm Hannah" at the very end instead of the opening and was rejected for it after already being published by mistake -- do not repeat that mistake. The hook and a short development beat come first, then the introductions, then the main conversation. Do not save the names for later.
+MANDATORY, NON-NEGOTIABLE: this entire introduction block (both speakers saying their names, plus the LinguABC mention) MUST occur within the FIRST FEW TURNS of the script -- roughly the first 15-25% of it, never later. It must NEVER appear only at the end, folded into the sign-off. A real prior generation put "I'm Sarah" / "And I'm Hannah" at the very end instead of the opening and was rejected for it after already being published by mistake -- do not repeat that mistake. The hook and a short development beat come first, then the introductions, then the main conversation. Do not save the names for later. The closing sign-off is NOT a substitute for this opening block: even if your sign-off naturally mentions LinguABC again (that is fine and expected), the FIRST LinguABC mention and BOTH self-introductions must already have happened near the opening -- a script whose only introductions or brand mention occur in the closing sign-off fails this rule, no matter how natural that sign-off sounds.
 
 ===================== ENDING =====================
 Let the conversation reach its own natural conclusion first -- do not cut it off abruptly into a formal outro voice. Then close with a short, natural LinguABC sign-off. Vary the sign-off wording -- do not just write "This has been LinguABC" every time; find a natural way to close that fits THIS conversation's tone and, ideally, its callback.
@@ -542,10 +542,20 @@ export interface ScriptGenerationResult {
  * worked) while STILL failing prosody density (1.61/100 words, well
  * under the ~2/100 hard floor) and the interruption pattern, because
  * nothing in the feedback told the model those two failures were just as
- * non-negotiable as the word count it had just overcorrected. When two or
- * more of these issues co-occur, an explicit combined-fix sentence is
- * prepended so fixing one (e.g. trimming length) is never read as
- * permission to ignore the others.
+ * non-negotiable as the word count it had just overcorrected.
+ *
+ * checkOpeningStructure() issues (see buildOpeningStructureGuidance below)
+ * get the SAME treatment for the SAME reason, closing the last gap of this
+ * kind: a later run fixed word count and prosody while the introductions
+ * and LinguABC mention drifted to 96.8-98.7% through the script -- folded
+ * into the sign-off, unreinforced across all 6 attempts, because this was
+ * the one recurring category that had never gotten issue-specific retry
+ * guidance despite checkOpeningStructure() existing specifically to catch
+ * exactly this (the Episode #004 defect).
+ *
+ * When two or more of these issues co-occur, an explicit combined-fix
+ * sentence is prepended so fixing one (e.g. trimming length) is never
+ * read as permission to ignore the others.
  */
 const WORD_COUNT_ISSUE_RE = /word count (\d+) is outside/i;
 const WORD_COUNT_TARGET_MIN = 960;
@@ -626,6 +636,56 @@ function buildInterruptionGuidance(issues: ScriptValidationIssue[]): string {
   return `\nA genuine interruption is still missing and is structurally REQUIRED. You must include the EXACT pattern: one speaker's turn ends mid-sentence with an em dash "—", and the very next turn (the OTHER speaker) begins with an em dash "—" and completes or talks over that thought -- this is TWO separate turns, not a dash placed anywhere inside a single turn's dialogue. Merely including a dash somewhere in the script does NOT satisfy this rule. Required pattern: Speaker 0: "...and honestly I think the whole point is that we—" / Speaker 1: "—never actually finish that argument? Yeah, I've noticed."`;
 }
 
+// Match checkOpeningStructure()'s own issue message shapes exactly --
+// never guessed -- so names/percentages can be pulled straight out of the
+// real validation result instead of restated generically.
+const HOOK_MISSING_RE = /reads like a generic greeting\/announcement instead of a real hook/i;
+const NO_DEVELOPMENT_RE = /no hook\/development beat before it/i;
+const MISSING_INTROS_RE = /Missing one or both .*self-introductions entirely/i;
+const FIRST_INTRO_LATE_RE = /^(.+?)'s introduction occurs at ([\d.]+)% through the script -- must be within the first/i;
+const SECOND_INTRO_LATE_RE = /^(.+?)'s introduction occurs at ([\d.]+)% through the script or too far from (.+?)'s/i;
+const LINGUABC_LATE_RE = /^LinguABC identity occurs at ([\d.]+)% through the script/i;
+const ENDING_ONLY_RE = /Introduction block found only in the final \d+% of the script \(the sign-off\)/i;
+
+/**
+ * Builds the opening-structure-specific retry line -- the gap this fix
+ * closes. checkOpeningStructure() (and validateGeneratedScript(), which
+ * folds its issues in) has always produced fully specific messages
+ * ("Ben's introduction occurs at 98.7% through the script..."), but
+ * before this fix those messages only ever reached the generic bullet
+ * list, with none of the escalating, issue-specific reinforcement every
+ * OTHER recurring category (word count, prosody, interruption, CEFR,
+ * markdown) already gets. That gap let a real run fail 6/6 attempts with
+ * introductions and the LinguABC mention landing at 96.8-98.7% through
+ * the script -- restated unchanged in the bullet list every retry, never
+ * reinforced. This mirrors that exact pattern: pull the real names and
+ * percentages out of the actual issue messages (never guessed) and give
+ * the model the concrete, ordered structure it must follow instead.
+ */
+function buildOpeningStructureGuidance(issues: ScriptValidationIssue[]): string {
+  const hookMissing = issues.some((issue) => HOOK_MISSING_RE.test(issue.message));
+  const noDevelopment = issues.some((issue) => NO_DEVELOPMENT_RE.test(issue.message));
+  const missingIntros = issues.some((issue) => MISSING_INTROS_RE.test(issue.message));
+  const firstIntroLate = issues.map((issue) => issue.message.match(FIRST_INTRO_LATE_RE)).find((m): m is RegExpMatchArray => m !== null);
+  const secondIntroLate = issues.map((issue) => issue.message.match(SECOND_INTRO_LATE_RE)).find((m): m is RegExpMatchArray => m !== null);
+  const linguabcLate = issues.map((issue) => issue.message.match(LINGUABC_LATE_RE)).find((m): m is RegExpMatchArray => m !== null);
+  const endingOnly = issues.some((issue) => ENDING_ONLY_RE.test(issue.message));
+
+  const hasOpeningIssue = hookMissing || noDevelopment || missingIntros || !!firstIntroLate || !!secondIntroLate || !!linguabcLate || endingOnly;
+  if (!hasOpeningIssue) return "";
+
+  const specifics: string[] = [];
+  if (hookMissing) specifics.push("the first turn read like a generic greeting/announcement instead of a real hook");
+  if (noDevelopment) specifics.push("the introductions happened on the very first turn, with no hook/development beat before them");
+  if (missingIntros) specifics.push("one or both self-introductions (\"I'm <name>\") are missing entirely");
+  if (firstIntroLate) specifics.push(`${firstIntroLate[1]}'s introduction was at ${firstIntroLate[2]}% through the script -- far too late`);
+  if (secondIntroLate) specifics.push(`${secondIntroLate[1]}'s introduction was at ${secondIntroLate[2]}% through the script (or too far from ${secondIntroLate[3]}'s)`);
+  if (linguabcLate) specifics.push(`the LinguABC mention was at ${linguabcLate[1]}% through the script -- far too late`);
+  if (endingOnly) specifics.push("the introduction block was found ONLY in the final portion of the script, folded into the sign-off");
+
+  return `\nThe opening block is still wrong: ${specifics.join("; ")}. The REQUIRED order, every time, with nothing else in between, is: (1) the hook, (2) one brief reaction/development beat, (3) Speaker 0 introduces himself ("I'm <name>"), (4) Speaker 1 introduces herself in that SAME opening block ("And I'm <name>"), (5) a brief LinguABC mention immediately after the introductions, (6) THEN the main topic conversation begins. The introductions and the LinguABC identity must NOT first appear in the closing sign-off -- the sign-off may mention LinguABC again naturally, but that later mention does not satisfy this requirement. The FIRST LinguABC mention and BOTH introductions must land within roughly the first quarter of the script, immediately after the hook and its one reaction beat.`;
+}
+
 export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
   const bullets = issues.map((issue) => `- ${issue.message}`).join("\n");
   const hasWordCountIssue = issues.some((issue) => /word count/i.test(issue.message));
@@ -645,18 +705,22 @@ export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
     : "";
   const prosodyGuidance = buildProsodyGuidance(issues);
   const interruptionGuidance = buildInterruptionGuidance(issues);
+  const openingGuidance = buildOpeningStructureGuidance(issues);
 
   // When two or more of the specific corrections above are active at
   // once, fixing one must never read as permission to let another slide
   // -- exactly what happened when a word-count fix (1181 words) shipped
-  // with prosody density still at 1.61/100 and no interruption pattern.
-  const activeCorrectionCount = [hasWordCountIssue, hasCefrIssue, hasMarkdownIssue, !!prosodyGuidance, !!interruptionGuidance].filter(Boolean).length;
+  // with prosody density still at 1.61/100 and no interruption pattern,
+  // and again when a later run fixed length/prosody while the entire
+  // opening block (both introductions + LinguABC mention) drifted to
+  // 96.8-98.7% through the script.
+  const activeCorrectionCount = [hasWordCountIssue, hasCefrIssue, hasMarkdownIssue, !!prosodyGuidance, !!interruptionGuidance, !!openingGuidance].filter(Boolean).length;
   const combinedGuidance =
     activeCorrectionCount > 1
-      ? "\nThese issues must ALL be fixed together in the SAME rewrite. Fixing one (e.g. cutting word count) must never come at the expense of another (e.g. losing prosody cues or the interruption pattern) -- every specific instruction below applies simultaneously, not as alternatives."
+      ? "\nThese issues must ALL be fixed together in the SAME rewrite. Fixing one (e.g. cutting word count) must never come at the expense of another (e.g. losing prosody cues, the interruption pattern, or the opening block's position) -- every specific instruction below applies simultaneously, not as alternatives."
       : "";
 
-  return `\n\n===================== PREVIOUS ATTEMPT REJECTED =====================\nYour previous draft was rejected for these reasons:\n${bullets}\nRewrite the script and fix ALL listed issues.${combinedGuidance}${wordCountGuidance}${prosodyGuidance}${interruptionGuidance}${cefrGuidance}${markdownGuidance}`;
+  return `\n\n===================== PREVIOUS ATTEMPT REJECTED =====================\nYour previous draft was rejected for these reasons:\n${bullets}\nRewrite the script and fix ALL listed issues.${combinedGuidance}${wordCountGuidance}${prosodyGuidance}${interruptionGuidance}${openingGuidance}${cefrGuidance}${markdownGuidance}`;
 }
 
 /**
