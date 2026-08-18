@@ -90,13 +90,22 @@ function taskHref(task: PlanTask): string | null {
   return null;
 }
 
-function firstIncompleteHref(tasks: PlanTask[]): string | null {
+export function firstIncompleteHref(tasks: PlanTask[]): string | null {
   for (const task of tasks) {
     if (task.completed) continue;
     if (task.taskType === "mock") return "/mock";
     if (task.taskType === "practice") return "/practice";
     const href = taskHref(task);
     if (href) return href;
+    // No content assigned yet for this Article/Podcast task -- the Learning
+    // Brain fills content_item_id in lazily when the learner opens the day
+    // (see planning/content-selector.ts), so a freshly-generated task can be
+    // content-less here. Route to the same safe, non-dead-end fallback
+    // HomeView.tsx's firstIncompleteLink() already uses for this exact case
+    // (an incomplete Article with no content_item_id) rather than silently
+    // skipping to the next task -- see docs on this fix for the real
+    // Dashboard report this addresses.
+    if (PODCAST_TASK_TYPES.has(task.taskType) || ARTICLE_TASK_TYPES.has(task.taskType)) return "/practice";
   }
   return "/practice";
 }
@@ -228,8 +237,8 @@ export function MonthlyPlanView({ assessedLevel, weakAreas, days, today }: Month
       <AnimatePresence>
         {selectedDay && (
           <>
-            <motion.div key="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="fixed inset-0 z-40 bg-slate-950/35 backdrop-blur-[2px]" onClick={() => setSelectedDayId(null)} />
-            <motion.aside key="drawer" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", stiffness: 320, damping: 32 }} className="fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-sm flex-col bg-bg-card shadow-2xl">
+            <motion.div key="overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" onClick={() => setSelectedDayId(null)} />
+            <motion.aside key="drawer" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", stiffness: 320, damping: 32 }} className="fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-md flex-col bg-bg-card shadow-2xl">
               <div className="border-b border-border px-5 py-5">
                 <div className="flex items-start justify-between">
                   <div>
