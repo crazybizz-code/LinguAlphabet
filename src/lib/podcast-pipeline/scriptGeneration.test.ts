@@ -1300,4 +1300,242 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       }
     });
   });
+
+  /**
+   * Regression coverage for the dedicated word-count correction pass: a
+   * real run overshot to 1180 words with EVERY other check already
+   * passing, and the same multi-constraint revision prompt ("lightly
+   * edit... nothing else changes" alongside "cut 230+ words" alongside
+   * preserving four other categories "exactly as they already are")
+   * failed to converge across all 6 attempts. These fixtures use 1201 and
+   * 999 words rather than the exact real 1180/1015 -- the precise count
+   * is incidental; what matters is landing on the correct side of the
+   * large-vs-near-ceiling boundary (965 + NEAR_CEILING_OVERSHOOT_LIMIT),
+   * verified directly below rather than assumed.
+   */
+  describe("generateEpisodeScript — dedicated word-count correction pass", () => {
+    /** Cue-rich filler (same templates as buildValidScriptOutput's own,
+     * each carrying its own prosody cue) so a large word-count overshoot
+     * fixture can be built WITHOUT diluting prosody density the way
+     * plain padding would -- keeping this fixture genuinely
+     * "word-count-issue-only", never accidentally also failing prosody. */
+    function buildCueRichOvershootOutput(targetMinWords: number): ScriptGenerationOutput {
+      const turns: ScriptGenerationOutput["turns"] = [
+        { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+        { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+        { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+        { speaker: 1, text: "And I'm Hannah." },
+        { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+      ];
+      const fillerTemplates = [
+        "That is a genuinely interesting way to think about it, [curious] and honestly I had never considered it from that angle before. It also makes me wonder what else we take for granted.",
+        "Right, and it is not just about memory either -- it is about how much we trust our own sense of a totally ordinary morning. [amused] People rarely question it until something breaks.",
+        "I read somewhere that this happens more often to people who travel a lot, [thoughtful] which honestly makes a strange kind of sense once you think it through.",
+        "Exactly, and that is the part that surprised me the most. [reflective] It is such a small moment, but it really stuck with me for weeks afterward.",
+      ];
+      let i = 0;
+      while (countWords(turns) < targetMinWords) {
+        turns.push({ speaker: (i % 2) as 0 | 1, text: fillerTemplates[i % fillerTemplates.length] });
+        i++;
+      }
+      turns.push({ speaker: 0, text: "...and honestly I think the whole point is that we—" });
+      turns.push({ speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." });
+      turns.push({ speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." });
+      turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+      return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+    }
+
+    /** Same fixed opening/interruption/closing as above, but plain
+     * (no-cue) filler, sized to land IN the 920-965 word range while
+     * still failing prosody density -- models "correction fixed the word
+     * count but the corrected draft has its own separate issue". */
+    function buildInRangeLowProsodyOutput(): ScriptGenerationOutput {
+      const turns: ScriptGenerationOutput["turns"] = [
+        { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+        { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+        { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+        { speaker: 1, text: "And I'm Hannah." },
+        { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+      ];
+      let i = 0;
+      while (countWords(turns) < 880) {
+        turns.push({
+          speaker: (i % 2) as 0 | 1,
+          text: `This is plain filler turn number ${i} with absolutely no prosody cue anywhere in it at all. It just keeps talking about the topic in an ordinary flat way.`,
+        });
+        i++;
+      }
+      turns.push({ speaker: 0, text: "...and honestly I think the whole point is that we—" });
+      turns.push({ speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." });
+      turns.push({ speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." });
+      turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+      return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+    }
+
+    const LARGE_OVERSHOOT = buildCueRichOvershootOutput(1150); // lands at 1201 words -- 240 over the 965 ceiling, well past NEAR_CEILING_OVERSHOOT_LIMIT (60)
+    const NEAR_CEILING_OVERSHOOT = buildCueRichOvershootOutput(940); // lands at 999 words -- 38 over the 965 ceiling, within NEAR_CEILING_OVERSHOOT_LIMIT (60)
+
+    it("fixture sanity check: both overshoot fixtures fail ONLY word count, on the intended side of the near-ceiling boundary", () => {
+      const largeIssues = validateGeneratedScript(LARGE_OVERSHOOT, REQUEST_B2);
+      expect(largeIssues).toHaveLength(1);
+      expect(largeIssues[0].message).toMatch(/^Word count 1201 is outside/);
+
+      const nearIssues = validateGeneratedScript(NEAR_CEILING_OVERSHOOT, REQUEST_B2);
+      expect(nearIssues).toHaveLength(1);
+      expect(nearIssues[0].message).toMatch(/^Word count 999 is outside/);
+    });
+
+    it("fixture sanity check: the in-range low-prosody script fails ONLY prosody density", () => {
+      const issues = validateGeneratedScript(buildInRangeLowProsodyOutput(), REQUEST_B2);
+      expect(issues).toHaveLength(1);
+      expect(issues[0].message).toMatch(/^Prosody density [\d.]+\/100 words is far below/);
+    });
+
+    it("A: a large overshoot (1201 words) is corrected via a dedicated, separate call, and the corrected ~950-word draft is accepted", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(LARGE_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(950);
+      expect(result.attempts).toBe(1); // the correction pass does not consume an outer MAX_ATTEMPTS slot
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(2);
+
+      const correctionCall = vi.mocked(generateStructuredJson).mock.calls[1][0];
+      expect(correctionCall.schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      expect(correctionCall.messages).toHaveLength(1);
+      const correctionPrompt = correctionCall.messages[0].content as string;
+      expect(correctionPrompt).toMatch(/DEDICATED WORD-COUNT CORRECTION/i);
+      expect(correctionPrompt).toContain("Current spoken word count: 1201");
+      expect(correctionPrompt).toContain("Target for this correction: 935-950 words");
+      expect(correctionPrompt).toMatch(/Cut approximately 251-266 spoken words/i);
+      expect(correctionPrompt).toContain("CUT ONLY");
+      // Narrow and separate: never the full multi-category revision prompt.
+      expect(correctionPrompt).not.toContain("PREVIOUS ATTEMPT REJECTED");
+      expect(correctionPrompt).not.toMatch(/prosody density/i);
+    });
+
+    it("B: a near-ceiling overshoot (999 words) is corrected via the SAME dedicated pass, but targets 955-960 -- the existing near-ceiling behavior", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(NEAR_CEILING_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.attempts).toBe(1);
+      const correctionCall = vi.mocked(generateStructuredJson).mock.calls[1][0];
+      expect(correctionCall.schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      const correctionPrompt = correctionCall.messages[0].content as string;
+      expect(correctionPrompt).toContain("Current spoken word count: 999");
+      expect(correctionPrompt).toContain("Target for this correction: 955-960 words");
+      expect(correctionPrompt).toMatch(/Cut approximately 39-44 spoken words/i);
+      // Same near-ceiling target the pre-existing normal-revision path used
+      // for a near-miss -- NOT the large-overshoot 935-950 sub-target.
+      expect(correctionPrompt).not.toContain("Target for this correction: 935-950 words");
+    });
+
+    it("C: the corrected script returned to the caller preserves the full schema shape", async () => {
+      const corrected = buildValidScriptOutput();
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(LARGE_OVERSHOOT).mockResolvedValueOnce(corrected);
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.output).toEqual(corrected);
+      expect(result.output).toHaveProperty("title");
+      expect(result.output).toHaveProperty("topic");
+      expect(result.output).toHaveProperty("topicTags");
+      expect(result.output).toHaveProperty("cefrLevel");
+      expect(Array.isArray(result.output.turns)).toBe(true);
+    });
+
+    it("D: if the correction pass exhausts its 2 bounded attempts without reaching the valid range, it falls back honestly to the normal revision mechanism", async () => {
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 1 -- still overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 2 -- still overshoot, bound exhausted
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 (normal revision) -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(950);
+      expect(result.attempts).toBe(2); // only 2 OUTER attempts consumed -- the 2 correction sub-attempts don't count against MAX_ATTEMPTS
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(4);
+
+      // Exactly 2 correction sub-attempts were made, never a 3rd.
+      expect(vi.mocked(generateStructuredJson).mock.calls[1][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+
+      // The 4th call is the EXISTING normal revision mechanism, unchanged --
+      // 3-message shape, buildRetryFeedback's real header, referencing the
+      // still-overshooting corrected draft from the exhausted correction pass.
+      const fallbackCall = vi.mocked(generateStructuredJson).mock.calls[3][0];
+      expect(fallbackCall.schemaName).toBe("linguabc_podcast_script");
+      expect(fallbackCall.messages).toHaveLength(3);
+      const fallbackPrompt = fallbackCall.messages[2].content as string;
+      expect(fallbackPrompt).toContain("PREVIOUS ATTEMPT REJECTED");
+      expect(fallbackPrompt).toMatch(/Word count 1201 is outside the acceptable 920-965 range/i);
+    });
+
+    it("E: if the correction pass fixes word count but the corrected draft fails a DIFFERENT check, existing full validation catches it and normal revision takes over", async () => {
+      const lowProsodyButInRange = buildInRangeLowProsodyOutput();
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial) -- word-count-only overshoot
+        .mockResolvedValueOnce(lowProsodyButInRange) // correction sub-attempt 1 -- word count now fine, but prosody now fails
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 (normal revision) -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(950);
+      expect(result.attempts).toBe(2);
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(3);
+
+      // Only ONE correction sub-attempt ran -- the loop stops early once
+      // the word-count issue itself is resolved, even though another
+      // issue (prosody) remains for the normal mechanism to pick up.
+      expect(vi.mocked(generateStructuredJson).mock.calls[1][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+
+      const fallbackCall = vi.mocked(generateStructuredJson).mock.calls[2][0];
+      expect(fallbackCall.messages).toHaveLength(3);
+      const fallbackPrompt = fallbackCall.messages[2].content as string;
+      expect(fallbackPrompt).toContain("PREVIOUS ATTEMPT REJECTED");
+      expect(fallbackPrompt).toMatch(/Current prosody density: [\d.]+\/100 words/i);
+      // The issue that triggered this fallback is prosody, not word count.
+      expect(fallbackPrompt).not.toMatch(/This is a CUT operation/i);
+    });
+
+    it("F: the final failure's word-count trajectory shows per-attempt counts and phases, and never the generated script text", async () => {
+      // Every call -- outer AND correction -- returns the identical
+      // never-converging large-overshoot draft, so correction triggers
+      // and exhausts on every one of the 6 outer attempts.
+      vi.mocked(generateStructuredJson).mockResolvedValue(LARGE_OVERSHOOT);
+
+      let thrown: Error | undefined;
+      try {
+        await generateEpisodeScript(REQUEST_B2);
+      } catch (error) {
+        thrown = error as Error;
+      }
+
+      expect(thrown).toBeDefined();
+      const message = thrown!.message;
+      expect(message).toContain("Word-count trajectory:");
+
+      // 6 outer attempts, each contributing 1 initial/revision entry + 2
+      // correction entries (the bound), for 18 total trajectory lines.
+      const trajectoryLines = message.match(/attempt \d+ \[(initial|revision|word-count correction)\]: 1201 words -- word count/g) ?? [];
+      expect(trajectoryLines).toHaveLength(18);
+      expect(message).toMatch(/attempt 1 \[initial\]: 1201 words -- word count/);
+      expect(message).toMatch(/attempt 2 \[word-count correction\]: 1201 words -- word count/);
+      expect(message).toMatch(/attempt 3 \[word-count correction\]: 1201 words -- word count/);
+      expect(message).toMatch(/attempt 4 \[revision\]: 1201 words -- word count/);
+
+      // Never the actual generated dialogue or raw JSON, anywhere in the error.
+      expect(message).not.toContain("hotel room");
+      expect(message).not.toContain("LinguABC, and today we're talking");
+      expect(message).not.toContain('"turns":[');
+      expect(message).not.toContain('{"speaker"');
+    });
+  });
 });

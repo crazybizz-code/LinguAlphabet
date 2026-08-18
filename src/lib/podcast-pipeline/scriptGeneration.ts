@@ -879,6 +879,208 @@ export function buildRevisionPreamble(): string {
   return "The assistant message directly above is the EXACT script you wrote last time, as the same JSON structure you must return again. Do NOT discard it and write a new script from scratch -- REVISE that exact draft. Make the smallest possible targeted edits that fix every issue listed below, and leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged: same topic, same hook, same personalities, same wording wherever it already worked, same opening block and interruption if they already passed. You must still return the FULL script (every turn, not a diff or a summary of changes) -- but it should read as a lightly-edited version of your previous draft, not a different episode.";
 }
 
+/**
+ * Shared word-counting formula -- byte-for-byte the same arithmetic
+ * validateGeneratedScript() uses internally (strip [bracket] cues, split
+ * on whitespace, count non-empty tokens), extracted here as a standalone
+ * helper so the word-count correction pass and trajectory diagnostics
+ * below can compute it without re-parsing it out of an issue message
+ * string. validateGeneratedScript() itself is deliberately left untouched
+ * and does NOT call this -- its own internal computation is unchanged.
+ */
+function countSpokenWords(output: ScriptGenerationOutput): number {
+  return output.turns.reduce((sum, t) => sum + t.text.replace(/\[[^\]]*\]/g, " ").split(/\s+/).filter(Boolean).length, 0);
+}
+
+/**
+ * How many dedicated correction calls a single word-count-overshoot-only
+ * failure may spend before falling back to the normal multi-category
+ * revision mechanism. Deliberately small and separate from MAX_ATTEMPTS --
+ * this pass has exactly one job, so it either resolves quickly or it
+ * doesn't; there is no reason to let it consume as many tries as the full
+ * generation loop, and it must never become an unbounded loop of its own.
+ */
+const WORD_COUNT_CORRECTION_MAX_ATTEMPTS = 2;
+
+/**
+ * Reuses the SAME near-ceiling vs. large-overshoot classification and
+ * numeric constants buildWordCountGuidance() uses (see its doc comment) --
+ * no duplicated thresholds. A near-miss overshoot still only needs to
+ * clear the ceiling with a small margin; a large overshoot still needs
+ * the fuller cut toward the 935-950 sub-target.
+ */
+function wordCountCorrectionTarget(previousCount: number): { min: number; max: number } {
+  const overshoot = previousCount - WORD_COUNT_HARD_MAX;
+  if (overshoot > 0 && overshoot <= NEAR_CEILING_OVERSHOOT_LIMIT) {
+    return { min: NEAR_CEILING_TARGET_MIN, max: NEAR_CEILING_TARGET_MAX };
+  }
+  return { min: WORD_COUNT_TARGET_MIN, max: WORD_COUNT_TARGET_MAX };
+}
+
+/**
+ * A single, narrow, standalone user message -- deliberately NOT the full
+ * multi-category buildRetryFeedback() text and NOT the assistant-turn
+ * revision conversation shape. The whole point of this pass (see
+ * runWordCountCorrection()'s doc comment) is a model call with exactly one
+ * job and no other competing instructions to juggle, so it embeds the
+ * current script directly rather than referencing an earlier turn, and
+ * says nothing about prosody, opening structure, interruption, or CEFR
+ * beyond "preserve wherever possible" -- softer than the main overshoot
+ * guidance's "preserve ... exactly as they already are", because a cut
+ * this size may genuinely require touching one of them, and getting the
+ * word count right is this pass's one job, not a secondary goal.
+ */
+function buildWordCountCorrectionMessage(output: ScriptGenerationOutput, previousCount: number): string {
+  const { min, max } = wordCountCorrectionTarget(previousCount);
+  const cutMin = previousCount - max;
+  const cutMax = previousCount - min;
+  return `This is a DEDICATED WORD-COUNT CORRECTION pass, separate from normal script revision. Your ONLY job is to shorten the script below -- do not rewrite the episode, do not change the topic, and do not add any new content.
+
+Current spoken word count: ${previousCount}. Required range: 920-965 words. Target for this correction: ${min}-${max} words.
+
+CUT ONLY. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue below by trimming sentences and phrases within turns -- do not just delete whole turns. Do NOT add replacement paragraphs or new content to compensate for what you cut. Preserve the meaning, the two speakers and their personalities, the opening block (the hook, both self-introductions, and the LinguABC mention), the interruption pair, the prosody cues, and the CEFR-level vocabulary and complexity wherever possible -- but making the word count correct is this pass's one job, so a cut of this size may require trimming some of these too if there is no other way to reach the range. Return the COMPLETE script as the same JSON structure (title, topic, topicTags, cefrLevel, turns) -- not a diff, not a partial script, not a summary of changes. Before returning, mentally recount the final spoken word total (excluding bracket prosody cues) and confirm it falls within 920-965.
+
+Here is the exact script to shorten, as JSON:
+${JSON.stringify(output)}`;
+}
+
+/** One successfully-parsed generation call's outcome, kept ONLY for the
+ * word-count trajectory diagnostics below -- attemptNumber is a running
+ * count of successfully-parsed calls across the WHOLE run (initial +
+ * revision + word-count correction combined), separate from the outer
+ * MAX_ATTEMPTS loop counter, since a correction pass can add extra
+ * entries without consuming an outer attempt. issues is stored only to
+ * be summarized into short category labels (see summarizeIssueCategories)
+ * -- never rendered as raw text, since a few validateGeneratedScript
+ * issue messages embed short snippets of the generated script itself
+ * (e.g. the markdown/bracket/leaked-cue checks), which must never reach a
+ * log or thrown error. */
+interface WordCountTrajectoryEntry {
+  attemptNumber: number;
+  phase: "initial" | "revision" | "word-count correction";
+  wordCount: number;
+  issues: ScriptValidationIssue[];
+}
+
+/** Maps issues to short, fixed-vocabulary category labels ONLY --
+ * deliberately never echoes issue.message itself, for the same
+ * content-leak reason documented on WordCountTrajectoryEntry above. */
+function summarizeIssueCategories(issues: ScriptValidationIssue[]): string {
+  if (issues.length === 0) return "PASS";
+  const categories = new Set<string>();
+  for (const issue of issues) {
+    const msg = issue.message;
+    if (/word count/i.test(msg)) categories.add("word count");
+    else if (/prosody/i.test(msg) || /cue is turn-initial/i.test(msg)) categories.add("prosody");
+    else if (/turn count/i.test(msg)) categories.add("turn count");
+    else if (/2\+ sentences/i.test(msg)) categories.add("turn structure");
+    else if (/markdown/i.test(msg)) categories.add("markdown");
+    else if (/bracket/i.test(msg)) categories.add("formatting");
+    else if (/interruption/i.test(msg)) categories.add("interruption");
+    else if (/introduction|hook|linguabc|opening/i.test(msg)) categories.add("opening");
+    else if (/cefr|enrichment/i.test(msg)) categories.add("CEFR");
+    else categories.add("other");
+  }
+  return [...categories].join(", ");
+}
+
+/** Renders the trajectory as compact, content-free lines, e.g.:
+ *   attempt 1 [initial]: 1180 words -- word count, prosody
+ *   attempt 2 [revision]: 1172 words -- word count
+ *   attempt 3 [word-count correction]: 951 words -- PASS
+ * Appended to generateEpisodeScript()'s two final-failure throws so a
+ * real GitHub Actions failure shows the whole run's shape, not just the
+ * last attempt. */
+function formatTrajectory(trajectory: WordCountTrajectoryEntry[]): string {
+  return trajectory
+    .map((entry) => `attempt ${entry.attemptNumber} [${entry.phase}]: ${entry.wordCount} words -- ${summarizeIssueCategories(entry.issues)}`)
+    .join("\n");
+}
+
+interface WordCountCorrectionOutcome {
+  output: ScriptGenerationOutput;
+  issues: ScriptValidationIssue[];
+  entries: WordCountTrajectoryEntry[];
+}
+
+/**
+ * The dedicated, narrow correction pass this fix adds. Triggered ONLY
+ * when a successfully-parsed attempt's structural validation failed for
+ * EXACTLY one reason -- word count over the 965 hard ceiling -- so this
+ * call never has to juggle prosody/opening/interruption/CEFR feedback at
+ * the same time buildRetryFeedback()'s full multi-category prompt would.
+ *
+ * Addresses the real 1180-word failure this fix was built for: asking the
+ * SAME multi-constraint revision prompt ("lightly-edited... nothing else
+ * changes" alongside "cut 230+ words" alongside preserving four other
+ * categories "exactly as they already are") to make a large cut is a
+ * genuine tension -- see the investigation this fix implements. This pass
+ * removes that tension for the specific case it's narrow enough to solve:
+ * a single user message, the current script embedded directly, one job
+ * (cut to range), phrased with "preserve wherever possible" instead of
+ * "preserve exactly", and nothing else competing for the model's edits.
+ *
+ * Bounded by WORD_COUNT_CORRECTION_MAX_ATTEMPTS, reusing generateStructuredJson()
+ * (never a duplicate implementation) and validateGeneratedScript() (never
+ * weakened or reimplemented) on each sub-attempt. Stops early once a
+ * sub-attempt's word count is back in range, even if another issue
+ * remains -- that remaining issue is exactly what the normal revision
+ * mechanism the caller falls back to already exists to handle (see test
+ * "E" in the corresponding test file). A sub-attempt that fails to parse
+ * simply consumes one of the bounded tries and is not retried with
+ * different framing, matching generateStructuredJson()'s own "fails
+ * closed, not retried" posture for a wrong-shape response.
+ *
+ * If every sub-attempt is spent without clearing the word-count issue,
+ * this returns the LAST attempt's (still-imperfect but likely closer)
+ * output/issues -- the caller's normal MAX_ATTEMPTS loop then picks that
+ * up as the new previousOutput/lastIssues for its next revision attempt,
+ * exactly the same "fall back honestly" path a plain validation failure
+ * already takes. Nothing here fabricates, deletes, or post-processes
+ * generated text in code -- every edit is still produced by the model.
+ */
+async function runWordCountCorrection(
+  output: ScriptGenerationOutput,
+  previousCount: number,
+  request: ScriptGenerationRequest,
+  startingAttemptNumber: number,
+): Promise<WordCountCorrectionOutcome> {
+  const entries: WordCountTrajectoryEntry[] = [];
+  let currentOutput = output;
+  let currentCount = previousCount;
+  let currentIssues: ScriptValidationIssue[] = [
+    { message: `Word count ${previousCount} is outside the acceptable 920-965 range.` },
+  ];
+
+  for (let i = 0; i < WORD_COUNT_CORRECTION_MAX_ATTEMPTS; i++) {
+    let corrected: ScriptGenerationOutput;
+    try {
+      corrected = await generateStructuredJson({
+        messages: [{ role: "user", content: buildWordCountCorrectionMessage(currentOutput, currentCount) }],
+        schema: ScriptGenerationOutputSchema,
+        schemaName: "linguabc_podcast_script_word_count_correction",
+        retryPolicy: BATCH_RETRY_POLICY,
+        temperature: 0.9,
+        maxTokens: SCRIPT_JSON_MAX_TOKENS,
+      });
+    } catch {
+      continue;
+    }
+
+    const wordCount = countSpokenWords(corrected);
+    const issues = validateGeneratedScript(corrected, request);
+    currentOutput = corrected;
+    currentCount = wordCount;
+    currentIssues = issues;
+    entries.push({ attemptNumber: startingAttemptNumber + entries.length, phase: "word-count correction", wordCount, issues });
+
+    const stillWordCountIssue = issues.some((issue) => WORD_COUNT_ISSUE_RE.test(issue.message));
+    if (!stillWordCountIssue) break;
+  }
+
+  return { output: currentOutput, issues: currentIssues, entries };
+}
+
 /** Generates and validates in a loop, bounded by MAX_ATTEMPTS. Throws
  * (never returns a script that failed validation) if every attempt fails
  * -- the caller must treat that as a failed generation, not publish
@@ -906,6 +1108,12 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
   // tag on the two throws below -- never fed back into lastIssues or
   // buildRetryFeedback(), so it cannot change what the model sees.
   let lastAttemptWasRevision = false;
+  // Word-count trajectory across the WHOLE run (initial + revision +
+  // word-count correction, in the order they actually happened) -- see
+  // WordCountTrajectoryEntry's doc comment. Purely diagnostic: read by
+  // formatTrajectory() for the two final-failure throws below, never fed
+  // back into lastIssues or buildRetryFeedback().
+  const trajectory: WordCountTrajectoryEntry[] = [];
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     // Whether THIS attempt used the single-message full-generation shape
@@ -955,7 +1163,7 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
         // own doc comment and generate-structured-json.ts's parse-error
         // diagnostics for the investigation this closes the gap on.
         throw new Error(
-          `Script generation failed after ${MAX_ATTEMPTS} attempts (final failure: attempt ${attempt}/${MAX_ATTEMPTS}, ${isRevisionAttempt ? "revision" : "initial single-message"} generation): ${lastIssues.map((i) => i.message).join("; ")}`,
+          `Script generation failed after ${MAX_ATTEMPTS} attempts (final failure: attempt ${attempt}/${MAX_ATTEMPTS}, ${isRevisionAttempt ? "revision" : "initial single-message"} generation): ${lastIssues.map((i) => i.message).join("; ")}${trajectory.length > 0 ? `\n\nWord-count trajectory:\n${formatTrajectory(trajectory)}` : ""}`,
         );
       }
       // Observed in practice: OpenRouter occasionally returns HTTP 200
@@ -971,7 +1179,40 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
 
     previousOutput = output;
 
-    const structuralIssues = validateGeneratedScript(output, request);
+    let structuralIssues = validateGeneratedScript(output, request);
+    // attemptOutput is the script THIS attempt ultimately produces --
+    // either `output` as-is, or a word-count-corrected replacement below.
+    // Kept separate from `output` so the correction pass never has to
+    // mutate the variable the catch block above already closed over.
+    let attemptOutput = output;
+    trajectory.push({
+      attemptNumber: trajectory.length + 1,
+      phase: isRevisionAttempt ? "revision" : "initial",
+      wordCount: countSpokenWords(output),
+      issues: structuralIssues,
+    });
+
+    // Word-count-overshoot-only failures get a dedicated, narrow
+    // correction pass BEFORE falling through to the normal multi-category
+    // revision mechanism below -- see runWordCountCorrection()'s doc
+    // comment for why. Undershoot (too few words) and any failure that
+    // co-occurs with another issue are deliberately left to the existing
+    // revision mechanism, unchanged -- this pass has exactly one job.
+    if (structuralIssues.length === 1 && WORD_COUNT_ISSUE_RE.test(structuralIssues[0].message)) {
+      const previousCount = countSpokenWords(output);
+      if (previousCount > WORD_COUNT_HARD_MAX) {
+        const correction = await runWordCountCorrection(output, previousCount, request, trajectory.length + 1);
+        trajectory.push(...correction.entries);
+        attemptOutput = correction.output;
+        structuralIssues = correction.issues;
+        // If the corrected draft still needs another revision pass, the
+        // NEXT outer attempt must revise the corrected draft, not the
+        // original overshoot -- same reasoning as previousOutput = output
+        // above.
+        previousOutput = correction.output;
+      }
+    }
+
     // The real enrichment grading only runs once the structural checks
     // already passed -- a script that's already going to be rejected for
     // e.g. word count or missing interruption pattern doesn't need a
@@ -981,7 +1222,7 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
     let enrichment: EnrichmentResult | undefined;
     if (structuralIssues.length === 0) {
       try {
-        const graded = await generateAndCheckEnrichment(output, request);
+        const graded = await generateAndCheckEnrichment(attemptOutput, request);
         if ("enrichment" in graded) {
           enrichment = graded.enrichment;
         } else {
@@ -993,14 +1234,14 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
     }
 
     if (issues.length === 0 && enrichment) {
-      const wordCount = output.turns.reduce((sum, t) => sum + t.text.replace(/\[[^\]]*\]/g, " ").split(/\s+/).filter(Boolean).length, 0);
-      return { output, wordCount, attempts: attempt, openingStructure: checkOpeningStructure(output, request), enrichment };
+      const wordCount = countSpokenWords(attemptOutput);
+      return { output: attemptOutput, wordCount, attempts: attempt, openingStructure: checkOpeningStructure(attemptOutput, request), enrichment };
     }
     lastIssues = issues;
   }
 
   throw new Error(
-    `Script generation failed validation after ${MAX_ATTEMPTS} attempts (final failure: attempt ${MAX_ATTEMPTS}/${MAX_ATTEMPTS}, ${lastAttemptWasRevision ? "revision" : "initial single-message"} generation): ${lastIssues.map((i) => i.message).join("; ")}`,
+    `Script generation failed validation after ${MAX_ATTEMPTS} attempts (final failure: attempt ${MAX_ATTEMPTS}/${MAX_ATTEMPTS}, ${lastAttemptWasRevision ? "revision" : "initial single-message"} generation): ${lastIssues.map((i) => i.message).join("; ")}\n\nWord-count trajectory:\n${formatTrajectory(trajectory)}`,
   );
 }
 
