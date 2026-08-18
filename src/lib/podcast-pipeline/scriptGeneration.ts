@@ -902,9 +902,21 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
   const basePrompt = buildPrompt(request);
   let lastIssues: ScriptValidationIssue[] = [];
   let previousOutput: ScriptGenerationOutput | undefined;
+  // Tracks the shape of the LAST attempt made, purely for the diagnostic
+  // tag on the two throws below -- never fed back into lastIssues or
+  // buildRetryFeedback(), so it cannot change what the model sees.
+  let lastAttemptWasRevision = false;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const messages: AIProviderMessage[] = previousOutput
+    // Whether THIS attempt used the single-message full-generation shape
+    // or the 3-turn revision conversation -- decided by whether any prior
+    // attempt has ever successfully parsed, exactly like the messages
+    // ternary below. Captured before messages are built so it still
+    // reflects this attempt even if generateStructuredJson throws.
+    const isRevisionAttempt = previousOutput !== undefined;
+    lastAttemptWasRevision = isRevisionAttempt;
+
+    const messages: AIProviderMessage[] = isRevisionAttempt
       ? [
           { role: "user", content: basePrompt },
           { role: "assistant", content: JSON.stringify(previousOutput) },
@@ -932,7 +944,19 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
       // revise the last successfully-parsed one, if any, rather than lose it.
       lastIssues = [{ message: error instanceof Error ? error.message : String(error) }];
       if (attempt === MAX_ATTEMPTS) {
-        throw new Error(`Script generation failed after ${MAX_ATTEMPTS} attempts: ${lastIssues.map((i) => i.message).join("; ")}`);
+        // The attempt number and shape are appended to the thrown message
+        // ONLY -- never folded into lastIssues, so buildRetryFeedback()'s
+        // model-facing text is completely unaffected. This is what makes
+        // it possible to tell, from a real GitHub Actions failure alone,
+        // whether every attempt failed to parse (isRevisionAttempt false
+        // even on attempt 6 -- no draft ever successfully parsed) or
+        // whether earlier attempts drafted fine and only a later revision
+        // attempt broke (isRevisionAttempt true) -- see this function's
+        // own doc comment and generate-structured-json.ts's parse-error
+        // diagnostics for the investigation this closes the gap on.
+        throw new Error(
+          `Script generation failed after ${MAX_ATTEMPTS} attempts (final failure: attempt ${attempt}/${MAX_ATTEMPTS}, ${isRevisionAttempt ? "revision" : "initial single-message"} generation): ${lastIssues.map((i) => i.message).join("; ")}`,
+        );
       }
       // Observed in practice: OpenRouter occasionally returns HTTP 200
       // with finish_reason "error" and truncated content for this model —
@@ -976,7 +1000,7 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
   }
 
   throw new Error(
-    `Script generation failed validation after ${MAX_ATTEMPTS} attempts: ${lastIssues.map((i) => i.message).join("; ")}`,
+    `Script generation failed validation after ${MAX_ATTEMPTS} attempts (final failure: attempt ${MAX_ATTEMPTS}/${MAX_ATTEMPTS}, ${lastAttemptWasRevision ? "revision" : "initial single-message"} generation): ${lastIssues.map((i) => i.message).join("; ")}`,
   );
 }
 

@@ -83,6 +83,58 @@ describe("generateStructuredJson", () => {
     ).rejects.toThrow(/did not return valid JSON/);
   });
 
+  it("includes finishReason, content length, and the real parse error when truncated by maxTokens", async () => {
+    const truncated = '{"answer":"yes","score":';
+    install(async () => ({ content: truncated, finishReason: "length" }));
+
+    let thrown: Error | undefined;
+    try {
+      await runWithTimers(generateStructuredJson({ messages: [], schema: Schema, schemaName: "test" }));
+    } catch (error) {
+      thrown = error as Error;
+    }
+
+    expect(thrown?.message).toContain('did not return valid JSON for "test"');
+    expect(thrown?.message).toContain("finishReason: length");
+    expect(thrown?.message).toContain(`contentLength: ${truncated.length}`);
+    // The real, distinguishing SyntaxError text for a truncated body --
+    // not just a generic "invalid JSON" restatement.
+    expect(thrown?.message).toMatch(/parseError: .*Unexpected end of JSON input/i);
+  });
+
+  it("surfaces the real SyntaxError for non-truncated malformed JSON (e.g. markdown-wrapped), distinct from the truncation case", async () => {
+    const wrapped = '```json\n{"answer":"yes","score":7}\n```';
+    install(async () => ({ content: wrapped, finishReason: "stop" }));
+
+    let thrown: Error | undefined;
+    try {
+      await runWithTimers(generateStructuredJson({ messages: [], schema: Schema, schemaName: "test" }));
+    } catch (error) {
+      thrown = error as Error;
+    }
+
+    expect(thrown?.message).toContain('did not return valid JSON for "test"');
+    expect(thrown?.message).toContain("finishReason: stop");
+    expect(thrown?.message).toContain(`contentLength: ${wrapped.length}`);
+    // A markdown-fenced body produces a genuinely different SyntaxError
+    // (an unexpected token, not an unexpected end-of-input) -- proving the
+    // real error is surfaced, not a generic placeholder shared by both cases.
+    expect(thrown?.message).toMatch(/parseError: .*Unexpected token/i);
+    expect(thrown?.message).not.toMatch(/Unexpected end of JSON input/i);
+  });
+
+  it("never includes the full generated content in the thrown error", async () => {
+    const secretLookingContent = "SENTINEL_CONTENT_MARKER_should_not_leak_into_error {broken";
+    install(async () => ok(secretLookingContent));
+
+    try {
+      await runWithTimers(generateStructuredJson({ messages: [], schema: Schema, schemaName: "test" }));
+      throw new Error("expected generateStructuredJson to throw");
+    } catch (error) {
+      expect(error instanceof Error ? error.message : String(error)).not.toContain(secretLookingContent);
+    }
+  });
+
   it("does NOT retry a schema mismatch", async () => {
     // A model that answered in the wrong shape has not had a transient
     // failure; retrying burns quota to get the same answer.

@@ -75,10 +75,13 @@ export async function generateStructuredJson<T>(input: GenerateStructuredJsonInp
   };
 
   let content: string | undefined;
+  let finishReason: string | null = null;
 
   for (let attempt = 0; attempt < MAX_TOTAL_ATTEMPTS; attempt++) {
     try {
-      content = (await provider.complete(completionInput)).content;
+      const completion = await provider.complete(completionInput);
+      content = completion.content;
+      finishReason = completion.finishReason;
       break;
     } catch (error) {
       // A non-provider error (a bug, an abort) is not something a retry
@@ -113,8 +116,20 @@ export async function generateStructuredJson<T>(input: GenerateStructuredJsonInp
   let parsed: unknown;
   try {
     parsed = JSON.parse(content);
-  } catch {
-    throw new AIProviderError(`The model did not return valid JSON for "${input.schemaName}".`, 502, false);
+  } catch (error) {
+    // Deliberately omits the raw content -- it can run to thousands of
+    // characters and may echo back user/learner-adjacent text, neither of
+    // which belongs in a log line. finishReason (e.g. "length" for a
+    // response truncated mid-JSON), the content length, and the real
+    // SyntaxError message are enough to distinguish "truncated by
+    // maxTokens" from "wrapped in markdown" from "model refused" without
+    // ever printing what the model actually said.
+    const parseError = error instanceof Error ? error.message : String(error);
+    throw new AIProviderError(
+      `The model did not return valid JSON for "${input.schemaName}" (finishReason: ${finishReason ?? "unknown"}, contentLength: ${content.length}, parseError: ${parseError})`,
+      502,
+      false,
+    );
   }
 
   const result = input.schema.safeParse(parsed);

@@ -1233,4 +1233,71 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       }
     });
   });
+
+  /**
+   * Regression coverage for the observability gap this fix closes: the
+   * final thrown error used to report ONLY the last attempt's issue text,
+   * with no way to tell whether the JSON-parse failure it reports came
+   * from an attempt that never had a successfully-parsed draft to revise
+   * (the "attempt 1" / initial single-message shape -- which, per this
+   * function's own doc comment, ANY attempt falls back to if no draft has
+   * ever parsed yet, not just literally the first call) or from a later
+   * revision attempt that broke after earlier drafts parsed fine (the
+   * "attempts 2-6" / revision shape). Neither test changes lastIssues'
+   * content or buildRetryFeedback()'s output -- only the thrown Error's
+   * own message gains the attempt/shape tag.
+   */
+  describe("generateEpisodeScript — diagnostic tagging identifies which attempt/shape actually failed", () => {
+    it("tags the final error as initial single-message generation when no draft EVER successfully parses (attempt 1's shape, all 6 attempts)", async () => {
+      vi.useFakeTimers();
+      try {
+        vi.mocked(generateStructuredJson).mockRejectedValue(
+          new Error(
+            'The model did not return valid JSON for "linguabc_podcast_script" (finishReason: length, contentLength: 4102, parseError: Unexpected end of JSON input)',
+          ),
+        );
+
+        const failure = generateEpisodeScript(REQUEST_B2).catch((error) => error as Error);
+        await vi.runAllTimersAsync();
+        const error = await failure;
+
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toMatch(/attempt 6\/6, initial single-message generation/i);
+        expect((error as Error).message).toMatch(/parseError: Unexpected end of JSON input/i);
+        expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(6);
+        // Since no attempt ever successfully parsed, previousOutput was
+        // never set -- every single call, including the 6th, used
+        // attempt 1's single-message shape, never the 3-turn revision one.
+        for (const call of vi.mocked(generateStructuredJson).mock.calls) {
+          expect(call[0].messages).toHaveLength(1);
+        }
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("tags the final error as revision generation when earlier attempts parsed fine and only the 6th attempt (after revisions) failed to parse", async () => {
+      const draft = buildTooLongLowProsodyOutput();
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(draft)
+        .mockResolvedValueOnce(draft)
+        .mockResolvedValueOnce(draft)
+        .mockResolvedValueOnce(draft)
+        .mockResolvedValueOnce(draft)
+        .mockRejectedValueOnce(
+          new Error(
+            'The model did not return valid JSON for "linguabc_podcast_script" (finishReason: length, contentLength: 6001, parseError: Unexpected end of JSON input)',
+          ),
+        );
+
+      await expect(generateEpisodeScript(REQUEST_B2)).rejects.toThrow(/attempt 6\/6, revision generation/i);
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(6);
+
+      // Attempts 2-6 all used the real 3-turn revision shape, since
+      // attempt 1 successfully parsed (even though it failed validation).
+      for (let i = 1; i < 6; i++) {
+        expect(vi.mocked(generateStructuredJson).mock.calls[i][0].messages).toHaveLength(3);
+      }
+    });
+  });
 });
