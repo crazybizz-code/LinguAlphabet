@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { generateStructuredJson } from "@/ai/services/generate-structured-json";
+import type { AIProviderMessage } from "@/ai/providers";
 import { BATCH_RETRY_POLICY } from "@/ai/retry";
 import { generateEnrichment } from "@/lib/content-engine/ai-processing";
 import type { EnrichmentResult } from "@/lib/content-engine/types";
@@ -776,6 +777,33 @@ async function generateAndCheckEnrichment(
   return { enrichment };
 }
 
+/**
+ * Frames the previous attempt's raw JSON as an actual conversation turn to
+ * revise, not a rewrite prompt. Fixes the root cause behind four straight
+ * "prompt-only" iterations (833 words -> 1181 words+prosody/interruption ->
+ * 1055 words+prosody/opening/interruption -> 1032 words+prosody): the retry
+ * loop NEVER carried the previous draft forward -- only the validation
+ * issue TEXT survived between attempts (see lastIssues below), while the
+ * actual `output` object was discarded every time. Every "retry" was
+ * therefore a full blind regeneration from the unchanged base prompt plus
+ * an ever-growing feedback paragraph, asking the model to reconstruct an
+ * entire ~950-word, multi-constraint conversation from nothing and
+ * simultaneously hit every numeric/structural target at once -- exactly
+ * the shape of failure observed (fixing word count would cost prosody
+ * density, or vice versa, because nothing was actually being preserved
+ * between attempts, only re-imagined).
+ *
+ * This preamble is followed, in the SAME user turn, by buildRetryFeedback()'s
+ * existing (unchanged) issue list and per-category corrective guidance --
+ * reused as-is rather than duplicated, since that content ("what's wrong,
+ * how to fix it concretely") is equally valid whether the model is
+ * rewriting from scratch or revising a specific draft. Only the framing
+ * around it changes.
+ */
+export function buildRevisionPreamble(): string {
+  return "The assistant message directly above is the EXACT script you wrote last time, as the same JSON structure you must return again. Do NOT discard it and write a new script from scratch -- REVISE that exact draft. Make the smallest possible targeted edits that fix every issue listed below, and leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged: same topic, same hook, same personalities, same wording wherever it already worked, same opening block and interruption if they already passed. You must still return the FULL script (every turn, not a diff or a summary of changes) -- but it should read as a lightly-edited version of your previous draft, not a different episode.";
+}
+
 /** Generates and validates in a loop, bounded by MAX_ATTEMPTS. Throws
  * (never returns a script that failed validation) if every attempt fails
  * -- the caller must treat that as a failed generation, not publish
@@ -784,19 +812,35 @@ async function generateAndCheckEnrichment(
  * generateEnrichment() grading (generateAndCheckEnrichment) -- not just the
  * model's own self-reported level -- so the returned enrichment honestly
  * reflects content that has already been judged B2+, not merely labeled
- * that way, and is the SAME object the caller must publish, never re-graded. */
+ * that way, and is the SAME object the caller must publish, never re-graded.
+ *
+ * Attempt 1 is unchanged: a single clean user message, no history. Attempts
+ * 2-6, when a previous draft actually parsed (previousOutput is set), send
+ * a real 3-turn conversation instead of one ever-growing prompt string:
+ * the original instructions, the model's own previous JSON answer as a
+ * genuine assistant turn, then a revision instruction referencing it --
+ * see buildRevisionPreamble()'s doc comment for why. If no draft has ever
+ * successfully parsed yet (e.g. every attempt so far threw on malformed
+ * JSON), there is nothing to revise, so that attempt falls back to the
+ * same single-message full-generation shape attempt 1 uses. */
 export async function generateEpisodeScript(request: ScriptGenerationRequest): Promise<ScriptGenerationResult> {
   const basePrompt = buildPrompt(request);
   let lastIssues: ScriptValidationIssue[] = [];
+  let previousOutput: ScriptGenerationOutput | undefined;
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    // Attempt 1 stays exactly as before (clean prompt, no feedback block).
-    // Attempts 2-6 append what the previous attempt got wrong.
-    const prompt = attempt === 1 ? basePrompt : `${basePrompt}${buildRetryFeedback(lastIssues)}`;
+    const messages: AIProviderMessage[] = previousOutput
+      ? [
+          { role: "user", content: basePrompt },
+          { role: "assistant", content: JSON.stringify(previousOutput) },
+          { role: "user", content: `${buildRevisionPreamble()}${buildRetryFeedback(lastIssues)}` },
+        ]
+      : [{ role: "user", content: basePrompt }];
+
     let output: ScriptGenerationOutput;
     try {
       output = await generateStructuredJson({
-        messages: [{ role: "user", content: prompt }],
+        messages,
         schema: ScriptGenerationOutputSchema,
         schemaName: "linguabc_podcast_script",
         retryPolicy: BATCH_RETRY_POLICY,
@@ -808,6 +852,9 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
       // one-off model hiccup, not a reason to give up immediately -- retry
       // it exactly like a validation failure, bounded by the same
       // MAX_ATTEMPTS. Only the LAST attempt's error propagates.
+      // previousOutput is deliberately left untouched here -- there is no
+      // new draft to revise from a throw, so the NEXT attempt should still
+      // revise the last successfully-parsed one, if any, rather than lose it.
       lastIssues = [{ message: error instanceof Error ? error.message : String(error) }];
       if (attempt === MAX_ATTEMPTS) {
         throw new Error(`Script generation failed after ${MAX_ATTEMPTS} attempts: ${lastIssues.map((i) => i.message).join("; ")}`);
@@ -822,6 +869,8 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
       await sleep(3000 * attempt);
       continue;
     }
+
+    previousOutput = output;
 
     const structuralIssues = validateGeneratedScript(output, request);
     // The real enrichment grading only runs once the structural checks

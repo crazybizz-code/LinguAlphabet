@@ -3,6 +3,7 @@ import {
   validateGeneratedScript,
   buildRetryFeedback,
   buildPrompt,
+  buildRevisionPreamble,
   generateEpisodeScript,
   checkOpeningStructure,
   type ScriptGenerationOutput,
@@ -703,6 +704,82 @@ describe("buildPrompt — PROSODY section is an explicit hard floor, matching re
 });
 
 /**
+ * Regression coverage for the architectural fix addressing four straight
+ * "prompt-only" iterations that each fixed one dimension while breaking
+ * another (833 words -> 1181 words+prosody/interruption -> 1055
+ * words+prosody/opening/interruption -> 1032 words+prosody). Root cause:
+ * the retry loop never carried the previous draft forward, so every retry
+ * was a blind full regeneration. buildRevisionPreamble() is the new
+ * framing sent alongside the previous draft (as a real assistant turn)
+ * instead of asking the model to reconstruct the whole episode from
+ * nothing -- tested here in isolation, the same way buildPrompt()'s
+ * content is tested elsewhere in this file.
+ */
+describe("buildRevisionPreamble — targeted-revision framing", () => {
+  it("instructs the model to revise the previous draft, not start over", () => {
+    const preamble = buildRevisionPreamble();
+    expect(preamble).toMatch(/EXACT script you wrote last time/i);
+    expect(preamble).toMatch(/Do NOT discard it and write a new script from scratch/i);
+    expect(preamble).toMatch(/REVISE that exact draft/i);
+  });
+
+  it("explicitly preserves already-correct structure, including the opening block and interruption", () => {
+    const preamble = buildRevisionPreamble();
+    expect(preamble).toMatch(/leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged/i);
+    expect(preamble).toMatch(/same opening block and interruption if they already passed/i);
+  });
+
+  it("still requires the full script to be returned, not a diff or a summary", () => {
+    const preamble = buildRevisionPreamble();
+    expect(preamble).toMatch(/return the FULL script \(every turn, not a diff/i);
+  });
+});
+
+/**
+ * Regression coverage for the exact real failure this architectural fix
+ * addresses: 1032 words (an overshoot) combined with a 1.84/100 prosody
+ * density (well under the ~2/100 hard floor), the fourth straight
+ * "prompt-only" failure. Confirms buildRetryFeedback()'s existing,
+ * unchanged word-count and prosody guidance still produce the exact
+ * concrete numbers for these real values, and that opening/interruption/
+ * CEFR/markdown guidance all still compose alongside them -- this content
+ * is unchanged by the revision architecture, only WHERE it gets sent
+ * (the new revision turn, not an ever-growing single prompt) changed.
+ */
+describe("buildRetryFeedback — the exact real 1032-word / 1.84-prosody failure", () => {
+  it("computes the exact 57-72 cut range and 1.84 density guidance simultaneously", () => {
+    const feedback = buildRetryFeedback([
+      { message: "Word count 1032 is outside the acceptable 920-990 range (calibrated to land inside the pipeline's 300-360s audio-duration gate with real margin)." },
+      { message: "Prosody density 1.84/100 words is far below the ~4-6 target -- prosody rules were not followed." },
+    ]);
+    expect(feedback).toContain("Previous draft: 1032 words. Required: 920-990.");
+    expect(feedback).toMatch(/cut approximately 57-72 spoken words/i);
+    expect(feedback).toContain("Current prosody density: 1.84/100 words. Required: approximately 4-6/100 words.");
+  });
+
+  it("still composes with opening-structure, interruption, CEFR, and markdown guidance all at once", () => {
+    const feedback = buildRetryFeedback([
+      { message: "Word count 1032 is outside the acceptable 920-990 range." },
+      { message: "Prosody density 1.84/100 words is far below the ~4-6 target -- prosody rules were not followed." },
+      { message: "Ben's introduction occurs at 91.2% through the script -- must be within the first 25%." },
+      {
+        message:
+          "No genuine interruption found -- need one turn ending with a dash immediately followed by the next turn starting with a dash (e.g. Speaker 0: '...we—' / Speaker 1: '—never finish that?').",
+      },
+      { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2." },
+      { message: "Found markdown-style emphasis markers that would be read aloud literally (use [emphasis] instead): *just*" },
+    ]);
+    expect(feedback).toMatch(/cut approximately 57-72 spoken words/i);
+    expect(feedback).toContain("Current prosody density: 1.84/100 words. Required: approximately 4-6/100 words.");
+    expect(feedback).toContain("Ben's introduction was at 91.2% through the script -- far too late");
+    expect(feedback).toMatch(/structurally REQUIRED/i);
+    expect(feedback).toMatch(/independently graded BELOW the required B2\+ standard/i);
+    expect(feedback).toMatch(/remove all markdown emphasis markers/i);
+    expect(feedback).toMatch(/must ALL be fixed together in the SAME rewrite/i);
+  });
+});
+
+/**
  * Regression coverage for the single-authoritative-CEFR-grading
  * architecture fix: a real GitHub Actions run passed a separate,
  * hand-written CEFR-only precheck, then failed publishing.ts's quality
@@ -778,6 +855,42 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
     expect(issues).toEqual([]);
   });
 
+  /**
+   * A script sharing the EXACT SAME opening block and interruption pair
+   * as buildValidScriptOutput() above, but padded with plain (no
+   * prosody-cue) filler turns so word count overshoots 990 and prosody
+   * density falls under the 2/100 hard floor -- modeling the real failure
+   * this fix addresses (1032 words, 1.84/100 density) where everything
+   * else about the draft was already correct.
+   */
+  function buildTooLongLowProsodyOutput(): ScriptGenerationOutput {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+      { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+      { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+      { speaker: 1, text: "And I'm Hannah." },
+      { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+    ];
+    for (let i = 0; i < 40; i++) {
+      turns.push({
+        speaker: (i % 2) as 0 | 1,
+        text: `This is plain filler turn number ${i} with absolutely no prosody cue anywhere in it at all. It just keeps talking about the topic in an ordinary flat way.`,
+      });
+    }
+    turns.push({ speaker: 0, text: "...and honestly I think the whole point is that we—" });
+    turns.push({ speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." });
+    turns.push({ speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." });
+    turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+    return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+  }
+
+  it("fixture sanity check: the too-long/low-prosody script fails ONLY word count and prosody density", () => {
+    const issues = validateGeneratedScript(buildTooLongLowProsodyOutput(), REQUEST_B2);
+    expect(issues).toHaveLength(2);
+    expect(issues.some((i) => /^Word count \d+ is outside the acceptable 920-990 range/.test(i.message))).toBe(true);
+    expect(issues.some((i) => /^Prosody density [\d.]+\/100 words is far below/.test(i.message))).toBe(true);
+  });
+
   function fakeEnrichment(overrides: Partial<EnrichmentResult> = {}): EnrichmentResult {
     return {
       cefrLevelMin: "B2",
@@ -825,13 +938,21 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
     expect(result.enrichment.cefrLevelMin).toBe("B2");
     expect(vi.mocked(generateEnrichment)).toHaveBeenCalledTimes(2);
 
-    // The retry prompt for attempt 2 must carry the genuine-improvement
-    // guidance, not a metadata-relabeling instruction.
+    // Attempt 2 is a real 3-turn revision conversation, not a single
+    // ever-growing prompt string: original instructions, the model's own
+    // previous draft as an assistant turn, then the revision instruction.
     const secondCall = vi.mocked(generateStructuredJson).mock.calls[1][0];
-    const secondPrompt = secondCall.messages[0].content as string;
-    expect(secondPrompt).toMatch(/Authoritative enrichment graded this script as cefrLevelMin=B1/i);
-    expect(secondPrompt).toMatch(/independently graded BELOW the required B2\+ standard/i);
-    expect(secondPrompt).toMatch(/do not just relabel the same simple script or change the self-reported level field/i);
+    expect(secondCall.messages).toHaveLength(3);
+    expect(secondCall.messages[0].role).toBe("user");
+    expect(secondCall.messages[1].role).toBe("assistant");
+    expect(secondCall.messages[2].role).toBe("user");
+
+    // The revision turn must carry the genuine-improvement guidance, not
+    // a metadata-relabeling instruction.
+    const revisionPrompt = secondCall.messages[2].content as string;
+    expect(revisionPrompt).toMatch(/Authoritative enrichment graded this script as cefrLevelMin=B1/i);
+    expect(revisionPrompt).toMatch(/independently graded BELOW the required B2\+ standard/i);
+    expect(revisionPrompt).toMatch(/do not just relabel the same simple script or change the self-reported level field/i);
   });
 
   it("throws after exhausting all attempts if enrichment keeps grading below B2", async () => {
@@ -860,5 +981,76 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
     await generateEpisodeScript(REQUEST_B2);
 
     expect(vi.mocked(generateEnrichment)).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * Regression coverage for the targeted-revision architecture itself --
+   * the real fix. Before this change, generateEpisodeScript() discarded
+   * the previous attempt's `output` entirely; only the validation ISSUE
+   * TEXT survived into the next attempt's single, ever-growing prompt
+   * string. Confirms attempt 1 is completely unaffected (a single clean
+   * user message), and that a word-count+prosody-only failure -- which
+   * left the opening block and interruption pair untouched -- produces a
+   * real 3-turn conversation on attempt 2: the unchanged base prompt, the
+   * model's own EXACT previous draft as a genuine assistant turn, then a
+   * revision instruction carrying the real failures.
+   */
+  describe("targeted revision — the architectural fix", () => {
+    it("sends a single clean user message on attempt 1, unchanged by the revision architecture", async () => {
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const firstCall = vi.mocked(generateStructuredJson).mock.calls[0][0];
+      expect(firstCall.messages).toHaveLength(1);
+      expect(firstCall.messages[0].role).toBe("user");
+      expect(firstCall.messages[0].content).toBe(buildPrompt(REQUEST_B2));
+    });
+
+    it("routes a word-count+prosody-only failure through targeted revision, preserving the opening/interruption structure that already passed", async () => {
+      const brokenOutput = buildTooLongLowProsodyOutput();
+      const fixedOutput = buildValidScriptOutput();
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(brokenOutput).mockResolvedValueOnce(fixedOutput);
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.attempts).toBe(2);
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(2);
+
+      const secondCall = vi.mocked(generateStructuredJson).mock.calls[1][0];
+      expect(secondCall.messages).toHaveLength(3);
+      // The base instructions are sent again unchanged, not re-derived.
+      expect(secondCall.messages[0].role).toBe("user");
+      expect(secondCall.messages[0].content).toBe(buildPrompt(REQUEST_B2));
+      // The assistant turn is the EXACT previous (broken) draft -- not a
+      // summary, not regenerated -- so the model can literally edit it.
+      expect(secondCall.messages[1].role).toBe("assistant");
+      expect(JSON.parse(secondCall.messages[1].content as string)).toEqual(brokenOutput);
+      // The revision turn carries the real failures and the
+      // preserve-what-already-worked framing.
+      expect(secondCall.messages[2].role).toBe("user");
+      const revisionPrompt = secondCall.messages[2].content as string;
+      expect(revisionPrompt).toMatch(/REVISE that exact draft/i);
+      expect(revisionPrompt).toMatch(/Word count \d+ is outside the acceptable 920-990 range/i);
+      expect(revisionPrompt).toMatch(/Prosody density [\d.]+\/100 words is far below/i);
+    });
+
+    it("still fails honestly after exhausting all attempts if the same issue persists through every revision", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValue(buildTooLongLowProsodyOutput());
+
+      await expect(generateEpisodeScript(REQUEST_B2)).rejects.toThrow(/Script generation failed validation after 6 attempts/i);
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(6);
+      expect(vi.mocked(generateEnrichment)).not.toHaveBeenCalled();
+
+      // Every retry (attempts 2-6) used the real 3-turn revision shape,
+      // referencing the same persistently-broken draft each time -- never
+      // silently falling back to a single-message blind regeneration.
+      for (let i = 1; i < 6; i++) {
+        const call = vi.mocked(generateStructuredJson).mock.calls[i][0];
+        expect(call.messages).toHaveLength(3);
+        expect(call.messages[1].role).toBe("assistant");
+      }
+    });
   });
 });
