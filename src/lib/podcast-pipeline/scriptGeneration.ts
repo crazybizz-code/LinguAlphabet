@@ -567,10 +567,22 @@ const WORD_COUNT_TARGET_MAX = 975;
  * count (parsed from validateGeneratedScript's own message, never
  * guessed), computes a real add/cut range against the 960-975 sub-target
  * so the model is told a concrete number instead of an abstract target it
- * has already ignored. Undershoot and overshoot are both handled, even
- * though only undershoot has ever been observed in practice, since
- * validateGeneratedScript's own check fires symmetrically for a count
- * above 990 too.
+ * has already ignored. Undershoot and overshoot are both handled -- both
+ * have now been observed in real generations (initially only undershoot,
+ * later several real overshoots up to 1181 words, most recently 1087).
+ *
+ * The overshoot branch is deliberately more emphatic than the undershoot
+ * one: a real run converged on every OTHER constraint (opening, prosody,
+ * interruption, CEFR, markdown) via the targeted-revision architecture
+ * but still failed word count alone at 1087 -- across 6 revision attempts
+ * that all correctly received "cut approximately 112-127 words." The
+ * numbers were already right; the earlier wording ("Target 960-975...")
+ * could still be read as a generation target rather than an edit
+ * constraint on the specific draft in front of the model. The overshoot
+ * text now states explicitly that this is a CUT operation (not a
+ * rewrite/expansion), that the result must be shorter than the previous
+ * draft, restates the 990 hard ceiling, and asks the model to recount
+ * before returning -- undershoot guidance is untouched.
  */
 function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
   const match = issues.map((issue) => issue.message.match(WORD_COUNT_ISSUE_RE)).find((m): m is RegExpMatchArray => m !== null);
@@ -588,7 +600,7 @@ function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
   if (previousCount > WORD_COUNT_TARGET_MAX) {
     const cutMin = previousCount - WORD_COUNT_TARGET_MAX;
     const cutMax = previousCount - WORD_COUNT_TARGET_MIN;
-    return `\nPrevious draft: ${previousCount} words. Required: 920-990. Cut approximately ${cutMin}-${cutMax} spoken words while preserving the existing structure -- trim naturally within turns, don't just delete whole turns. Target 960-975 words total.`;
+    return `\nPrevious draft: ${previousCount} words. Required: 920-990, hard maximum 990 -- this draft already exceeds it. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue -- trim sentences and phrases within turns, don't just delete whole turns, and do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target 960-975 words total, and it MUST NOT exceed 990. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 990, cut more.`;
   }
   // previousCount is inside 960-975 but the issue still fired, which can
   // only mean the message format changed underneath this parser.

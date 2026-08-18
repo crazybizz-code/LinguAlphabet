@@ -305,7 +305,7 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
 
     it("tells the model to cut words, not add, for an overshoot above 990", () => {
       const feedback = buildRetryFeedback([{ message: "Word count 1005 is outside the acceptable 920-990 range." }]);
-      expect(feedback).toContain("Previous draft: 1005 words. Required: 920-990.");
+      expect(feedback).toContain("Previous draft: 1005 words. Required: 920-990, hard maximum 990");
       expect(feedback).toMatch(/cut approximately 30-45 spoken words/i);
       expect(feedback).not.toMatch(/add approximately/i);
     });
@@ -385,7 +385,7 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
   describe("prosody and interruption guidance — the constraint-convergence fix", () => {
     it("computes the exact 206-221 cut range for the real 1181-word overshoot", () => {
       const feedback = buildRetryFeedback([{ message: "Word count 1181 is outside the acceptable 920-990 range." }]);
-      expect(feedback).toContain("Previous draft: 1181 words. Required: 920-990.");
+      expect(feedback).toContain("Previous draft: 1181 words. Required: 920-990, hard maximum 990");
       expect(feedback).toMatch(/cut approximately 206-221 spoken words/i);
     });
 
@@ -752,7 +752,7 @@ describe("buildRetryFeedback — the exact real 1032-word / 1.84-prosody failure
       { message: "Word count 1032 is outside the acceptable 920-990 range (calibrated to land inside the pipeline's 300-360s audio-duration gate with real margin)." },
       { message: "Prosody density 1.84/100 words is far below the ~4-6 target -- prosody rules were not followed." },
     ]);
-    expect(feedback).toContain("Previous draft: 1032 words. Required: 920-990.");
+    expect(feedback).toContain("Previous draft: 1032 words. Required: 920-990, hard maximum 990");
     expect(feedback).toMatch(/cut approximately 57-72 spoken words/i);
     expect(feedback).toContain("Current prosody density: 1.84/100 words. Required: approximately 4-6/100 words.");
   });
@@ -772,6 +772,90 @@ describe("buildRetryFeedback — the exact real 1032-word / 1.84-prosody failure
     expect(feedback).toMatch(/cut approximately 57-72 spoken words/i);
     expect(feedback).toContain("Current prosody density: 1.84/100 words. Required: approximately 4-6/100 words.");
     expect(feedback).toContain("Ben's introduction was at 91.2% through the script -- far too late");
+    expect(feedback).toMatch(/structurally REQUIRED/i);
+    expect(feedback).toMatch(/independently graded BELOW the required B2\+ standard/i);
+    expect(feedback).toMatch(/remove all markdown emphasis markers/i);
+    expect(feedback).toMatch(/must ALL be fixed together in the SAME rewrite/i);
+  });
+});
+
+/**
+ * Regression coverage for the FIFTH straight real-run word-count failure
+ * this fix addresses: a script converged on EVERY other constraint
+ * (opening, prosody, interruption, CEFR, markdown all passed) via the
+ * targeted-revision architecture, but still failed word count alone at
+ * 1087 across all 6 revision attempts. The numeric cut range was already
+ * correct ("cut approximately 112-127") -- the gap was framing: the old
+ * text ("Target 960-975 words total") could still be read as a
+ * generation target rather than an edit constraint on the specific draft
+ * already in front of the model. The overshoot branch now explicitly
+ * states this is a CUT operation (not a rewrite/expansion), that the
+ * result must be shorter than the previous draft, restates the 990 hard
+ * ceiling twice, asks for a final recount, and explicitly preserves the
+ * already-passing structure -- undershoot guidance is deliberately
+ * untouched (asserted below).
+ */
+describe("buildRetryFeedback — the exact real 1087-word overshoot (fifth iteration, word count only)", () => {
+  it('gives the exact "cut approximately 112-127" range for the real 1087-word overshoot', () => {
+    const feedback = buildRetryFeedback([
+      { message: "Word count 1087 is outside the acceptable 920-990 range (calibrated to land inside the pipeline's 300-360s audio-duration gate with real margin)." },
+    ]);
+    expect(feedback).toContain("Previous draft: 1087 words.");
+    expect(feedback).toMatch(/cut approximately 112-127 spoken words/i);
+  });
+
+  it("explicitly frames the correction as a CUT operation, not a rewrite or expansion", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1087 is outside the acceptable 920-990 range." }]);
+    expect(feedback).toMatch(/Do NOT rewrite or expand the draft/i);
+    expect(feedback).toMatch(/This is a CUT operation, not a generation target/i);
+    expect(feedback).toMatch(/do not add replacement paragraphs or new content to compensate/i);
+  });
+
+  it("states the revised draft must be shorter than the previous draft", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1087 is outside the acceptable 920-990 range." }]);
+    expect(feedback).toMatch(/MUST be SHORTER than the previous 1087-word draft/i);
+  });
+
+  it("states both the 960-975 target and the 990 hard maximum explicitly", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1087 is outside the acceptable 920-990 range." }]);
+    expect(feedback).toMatch(/hard maximum 990/i);
+    expect(feedback).toMatch(/Target 960-975 words total/i);
+    expect(feedback).toMatch(/MUST NOT exceed 990/i);
+  });
+
+  it("asks for a final recount before returning the answer", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1087 is outside the acceptable 920-990 range." }]);
+    expect(feedback).toMatch(/mentally recount the final spoken word total/i);
+    expect(feedback).toMatch(/if it is still above 990, cut more/i);
+  });
+
+  it("explicitly preserves the already-passing opening block, interruption, prosody cues, and CEFR-level content", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1087 is outside the acceptable 920-990 range." }]);
+    expect(feedback).toMatch(/Preserve the existing opening block, interruption, prosody cues, and CEFR-level content/i);
+  });
+
+  it("leaves undershoot guidance completely unchanged", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 856 is outside the acceptable 920-990 range." }]);
+    expect(feedback).toContain("Previous draft: 856 words. Required: 920-990.");
+    expect(feedback).toMatch(/add approximately 104-119 spoken words/i);
+    expect(feedback).not.toMatch(/CUT operation/i);
+    expect(feedback).not.toMatch(/mentally recount/i);
+  });
+
+  it("still composes with opening-structure, interruption, CEFR, and markdown guidance when they co-occur with the overshoot", () => {
+    const feedback = buildRetryFeedback([
+      { message: "Word count 1087 is outside the acceptable 920-990 range." },
+      { message: "LinguABC identity occurs at 88.4% through the script -- must occur in or immediately after the opening introduction block." },
+      {
+        message:
+          "No genuine interruption found -- need one turn ending with a dash immediately followed by the next turn starting with a dash (e.g. Speaker 0: '...we—' / Speaker 1: '—never finish that?').",
+      },
+      { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2." },
+      { message: "Found markdown-style emphasis markers that would be read aloud literally (use [emphasis] instead): *just*" },
+    ]);
+    expect(feedback).toMatch(/cut approximately 112-127 spoken words/i);
+    expect(feedback).toMatch(/This is a CUT operation/i);
+    expect(feedback).toContain("the LinguABC mention was at 88.4% through the script -- far too late");
     expect(feedback).toMatch(/structurally REQUIRED/i);
     expect(feedback).toMatch(/independently graded BELOW the required B2\+ standard/i);
     expect(feedback).toMatch(/remove all markdown emphasis markers/i);
