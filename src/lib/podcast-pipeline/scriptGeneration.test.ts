@@ -216,6 +216,88 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
     expect(feedback).toMatch(/raise vocabulary sophistication/i);
     expect(feedback).toMatch(/remove all markdown emphasis markers/i);
   });
+
+  /**
+   * Regression coverage for the real GitHub Actions failure this fix
+   * addresses: a script overshot to 1181 words (correctly computed a
+   * 206-221 cut range by the existing word-count formula) but ALSO
+   * failed prosody density (1.61/100, well under the ~2/100 hard floor)
+   * and the interruption pattern -- and neither of those two failures got
+   * any corrective push beyond the generic bullet list, so the model kept
+   * fixing length alone across all 6 attempts. buildProsodyGuidance() and
+   * buildInterruptionGuidance() close that gap; this section covers each
+   * in isolation and combined, matching the exact real failure.
+   */
+  describe("prosody and interruption guidance — the constraint-convergence fix", () => {
+    it("computes the exact 206-221 cut range for the real 1181-word overshoot", () => {
+      const feedback = buildRetryFeedback([{ message: "Word count 1181 is outside the acceptable 920-990 range." }]);
+      expect(feedback).toContain("Previous draft: 1181 words. Required: 920-990.");
+      expect(feedback).toMatch(/cut approximately 206-221 spoken words/i);
+    });
+
+    it("states the real measured density and the 4-6 target for a low-prosody failure", () => {
+      const feedback = buildRetryFeedback([
+        { message: "Prosody density 1.61/100 words is far below the ~4-6 target -- prosody rules were not followed." },
+      ]);
+      expect(feedback).toContain("Current prosody density: 1.61/100 words. Required: approximately 4-6/100 words.");
+      expect(feedback).toMatch(/spread THROUGHOUT the entire dialogue/i);
+      expect(feedback).toMatch(/not clustered in only a few turns/i);
+    });
+
+    it("does not add prosody-specific guidance when there is no prosody issue", () => {
+      const feedback = buildRetryFeedback([{ message: "No genuine interruption found." }]);
+      expect(feedback).not.toMatch(/Current prosody density/i);
+    });
+
+    it("adds mid-sentence placement guidance for the turn-initial-only prosody issue", () => {
+      const feedback = buildRetryFeedback([{ message: "No prosody cues are placed mid-sentence -- every cue is turn-initial." }]);
+      expect(feedback).toMatch(/cues must sit INSIDE a turn, mid-sentence/i);
+    });
+
+    it("gives the exact required two-turn dash pattern for a missing-interruption failure", () => {
+      const feedback = buildRetryFeedback([
+        {
+          message:
+            "No genuine interruption found -- need one turn ending with a dash immediately followed by the next turn starting with a dash (e.g. Speaker 0: '...we—' / Speaker 1: '—never finish that?').",
+        },
+      ]);
+      expect(feedback).toMatch(/structurally REQUIRED/i);
+      expect(feedback).toMatch(/one speaker's turn ends mid-sentence with an em dash/i);
+      expect(feedback).toMatch(/does NOT satisfy this rule/i);
+      expect(feedback).toContain('Speaker 0: "...and honestly I think the whole point is that we—"');
+    });
+
+    it("does not add interruption-specific guidance when there is no interruption issue", () => {
+      const feedback = buildRetryFeedback([{ message: "Word count 833 is outside the acceptable 920-990 range." }]);
+      expect(feedback).not.toMatch(/structurally REQUIRED/i);
+    });
+
+    it("combines word-count overshoot, low prosody density, and missing interruption in ONE coherent block, none dropped", () => {
+      const feedback = buildRetryFeedback([
+        { message: "Word count 1181 is outside the acceptable 920-990 range." },
+        { message: "Prosody density 1.61/100 words is far below the ~4-6 target -- prosody rules were not followed." },
+        {
+          message:
+            "No genuine interruption found -- need one turn ending with a dash immediately followed by the next turn starting with a dash (e.g. Speaker 0: '...we—' / Speaker 1: '—never finish that?').",
+        },
+      ]);
+      // All three original issue bullets present.
+      expect(feedback).toContain("Word count 1181 is outside the acceptable 920-990 range.");
+      expect(feedback).toContain("Prosody density 1.61/100 words is far below the ~4-6 target");
+      expect(feedback).toContain("No genuine interruption found");
+      // All three corrective instructions present -- fixing one must not crowd out the others.
+      expect(feedback).toMatch(/cut approximately 206-221 spoken words/i);
+      expect(feedback).toContain("Current prosody density: 1.61/100 words. Required: approximately 4-6/100 words.");
+      expect(feedback).toMatch(/structurally REQUIRED/i);
+      // The explicit "fix all together" framing fires because 3 corrections are active at once.
+      expect(feedback).toMatch(/must ALL be fixed together in the SAME rewrite/i);
+    });
+
+    it("does not add the combined-fix framing sentence when only one correction is active", () => {
+      const feedback = buildRetryFeedback([{ message: "Word count 1181 is outside the acceptable 920-990 range." }]);
+      expect(feedback).not.toMatch(/must ALL be fixed together/i);
+    });
+  });
 });
 
 /**
@@ -326,5 +408,41 @@ describe("buildPrompt — LENGTH section is an explicit hard floor, not a soft t
   it("explicitly warns that satisfying every other rule does not excuse a short script", () => {
     const prompt = buildPrompt(request);
     expect(prompt).toMatch(/does NOT excuse a short script/i);
+  });
+});
+
+/**
+ * Regression coverage for the real GitHub Actions failure this fix
+ * addresses: a script overshot to 1181 words while prosody density fell
+ * to 1.61/100 (well under the ~2/100 hard floor validateGeneratedScript
+ * actually enforces). The base prompt previously told the model prosody
+ * density was "a target, not a mechanical rule" -- literally false given
+ * the real hard-reject check -- which plausibly let the model treat it as
+ * negotiable while padding length. This asserts the corrected framing and
+ * the explicit added-length-needs-proportional-cues warning.
+ */
+describe("buildPrompt — PROSODY section is an explicit hard floor, matching real validation", () => {
+  const request: ScriptGenerationRequest = {
+    speaker0Name: "Sarah",
+    speaker1Name: "Hannah",
+    cefrLevel: "B2",
+    usedTitles: [],
+    usedTopicTags: [],
+  };
+
+  it("states prosody density as MANDATORY, NON-NEGOTIABLE, not a soft target", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/MANDATORY, NON-NEGOTIABLE: target 4-6 meaningful cues per 100 words/i);
+    expect(prompt).not.toMatch(/this is a target, not a mechanical rule/i);
+  });
+
+  it("states the real ~2/100 hard-reject floor the validator actually enforces", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/below ~2 cues per 100 words WILL BE REJECTED outright/i);
+  });
+
+  it("warns that added length requires proportionally more cues, not the same handful spread thinner", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/a longer script needs MORE cues to hold the same density/i);
   });
 });

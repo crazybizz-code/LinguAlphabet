@@ -141,7 +141,7 @@ If your script does not contain this exact two-turn, dash-linked pattern at leas
 Every spoken line may contain bracket cues that describe HOW it should sound. These are Fish Audio TTS delivery directions and are never spoken aloud.
 Fixed supported tags you may use where they genuinely fit: ${FIXED_PROSODY_TAGS.join(", ")}.
 You are NOT limited to fixed tags -- write natural-language descriptive cues for anything else, for example: [thoughtful], [curious, slight pitch rise], [genuine surprise, slight pitch rise], [quiet, lower voice], [slightly more energetic], [warm, lightly amused], [playful], [reflective], [amused].
-Target roughly 4-6 meaningful cues per 100 words -- this is a target, not a mechanical rule. The important thing is CONTRAST: the vocal energy should genuinely shift across the episode (calm -> curious -> amused -> energetic -> reflective -> quiet), not sit at one flat energy the whole time. Do not tag every single sentence.
+MANDATORY, NON-NEGOTIABLE: target 4-6 meaningful cues per 100 words, spread across the WHOLE script. A script with a real prosody density below ~2 cues per 100 words WILL BE REJECTED outright, exactly like the other hard rules in this prompt -- this is checked mechanically by counting bracket cues after you respond, not judged loosely. The important thing is CONTRAST: the vocal energy should genuinely shift across the episode (calm -> curious -> amused -> energetic -> reflective -> quiet), not sit at one flat energy the whole time. Do not tag every single sentence -- but also do not add length to the script (more turns, more words) without proportionally adding more cues; a longer script needs MORE cues to hold the same density, not the same handful spread thinner.
 Place some cues at the very start of a turn, but also place some cues INSIDE a turn, in the middle of a thought, right before the word or phrase whose delivery changes -- not only at turn-start.
 Use "..." for a trailing/hesitant pause and an em dash "—" for an interruption or self-correction, plus [break] or [long-break] for a real conversational boundary. Do not insert a pause or break at every turn change -- most natural speaker changes need no explicit pause tag at all; let native multi-speaker synthesis handle ordinary timing.
 
@@ -520,6 +520,18 @@ export interface ScriptGenerationResult {
  * extra insistence -- the model had already ignored that exact rule once,
  * so restating it in the same generic list gave it no stronger a signal
  * than the first time.
+ *
+ * A prosody-density issue and a missing-interruption issue get the SAME
+ * dedicated treatment for the SAME reason -- both used to fall into the
+ * generic bullet list with no extra insistence, exactly the gap that let
+ * a real run land at 1181 words (fixed correctly, cut guidance already
+ * worked) while STILL failing prosody density (1.61/100 words, well
+ * under the ~2/100 hard floor) and the interruption pattern, because
+ * nothing in the feedback told the model those two failures were just as
+ * non-negotiable as the word count it had just overcorrected. When two or
+ * more of these issues co-occur, an explicit combined-fix sentence is
+ * prepended so fixing one (e.g. trimming length) is never read as
+ * permission to ignore the others.
  */
 const WORD_COUNT_ISSUE_RE = /word count (\d+) is outside/i;
 const WORD_COUNT_TARGET_MIN = 960;
@@ -558,6 +570,48 @@ function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
   return "\nFor word count specifically, target approximately 960-975 spoken words this time -- aim for the middle of the accepted range, not its edge.";
 }
 
+const PROSODY_DENSITY_ISSUE_RE = /Prosody density ([\d.]+)\/100 words/i;
+
+/**
+ * Builds the prosody-specific retry line. Parses the actual measured
+ * density from validateGeneratedScript's own message when present (never
+ * guessed), states it plainly against the 4-6/100 target, and tells the
+ * model to spread cues throughout the WHOLE dialogue -- not add a cue-spam
+ * pass, and not let a longer script (a word-count fix) dilute density by
+ * adding words without proportionally more cues. Also covers the
+ * separate "every cue is turn-initial" placement issue, which can fire
+ * independently of density.
+ */
+function buildProsodyGuidance(issues: ScriptValidationIssue[]): string {
+  const densityMatch = issues.map((issue) => issue.message.match(PROSODY_DENSITY_ISSUE_RE)).find((m): m is RegExpMatchArray => m !== null);
+  const hasMidSentenceIssue = issues.some((issue) => /every cue is turn-initial/i.test(issue.message));
+  if (!densityMatch && !hasMidSentenceIssue) return "";
+
+  const densityLine = densityMatch
+    ? `Current prosody density: ${densityMatch[1]}/100 words. Required: approximately 4-6/100 words.`
+    : "Prosody cue placement needs work.";
+  const placementLine = hasMidSentenceIssue
+    ? " At least some cues must sit INSIDE a turn, mid-sentence, right before the word or phrase whose delivery changes -- not only at the very start of a turn."
+    : "";
+
+  return `\n${densityLine} Add natural bracket prosody cues (the SAME existing tags/format already described in the PROSODY section above -- e.g. [emphasis], [thoughtful], [break] -- placed directly before the affected word or phrase) spread THROUGHOUT the entire dialogue, not clustered in only a few turns or added as a handful of isolated markers.${placementLine} Do not cue every single sentence either -- this is about even, natural distribution across the whole script, not maximum cue count. If you also need to change the length, keep density proportional: more words requires proportionally more cues, not the same handful spread thinner.`;
+}
+
+/**
+ * Builds the interruption-specific retry line. Restates the EXACT
+ * two-turn, dash-linked pattern validateGeneratedScript() checks for
+ * (mirroring the base prompt's own MANDATORY block), and explicitly rules
+ * out the common near-miss: a dash appearing somewhere inside a turn's
+ * dialogue is NOT the same as one turn ending on a dash and the next
+ * turn starting on one.
+ */
+function buildInterruptionGuidance(issues: ScriptValidationIssue[]): string {
+  const hasInterruptionIssue = issues.some((issue) => /no genuine interruption found/i.test(issue.message));
+  if (!hasInterruptionIssue) return "";
+
+  return `\nA genuine interruption is still missing and is structurally REQUIRED. You must include the EXACT pattern: one speaker's turn ends mid-sentence with an em dash "—", and the very next turn (the OTHER speaker) begins with an em dash "—" and completes or talks over that thought -- this is TWO separate turns, not a dash placed anywhere inside a single turn's dialogue. Merely including a dash somewhere in the script does NOT satisfy this rule. Required pattern: Speaker 0: "...and honestly I think the whole point is that we—" / Speaker 1: "—never actually finish that argument? Yeah, I've noticed."`;
+}
+
 export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
   const bullets = issues.map((issue) => `- ${issue.message}`).join("\n");
   const hasWordCountIssue = issues.some((issue) => /word count/i.test(issue.message));
@@ -575,8 +629,20 @@ export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
   const markdownGuidance = hasMarkdownIssue
     ? "\nRemove ALL Markdown emphasis markers such as *word* and **word**. They would be spoken literally, not interpreted as emphasis. Use the [emphasis] bracket cue placed directly before the word or phrase instead (e.g. \"[emphasis] really\", never \"*really*\") -- there is no closing tag in this schema, so never write [/emphasis]."
     : "";
+  const prosodyGuidance = buildProsodyGuidance(issues);
+  const interruptionGuidance = buildInterruptionGuidance(issues);
 
-  return `\n\n===================== PREVIOUS ATTEMPT REJECTED =====================\nYour previous draft was rejected for these reasons:\n${bullets}\nRewrite the script and fix ALL listed issues.${wordCountGuidance}${cefrGuidance}${markdownGuidance}`;
+  // When two or more of the specific corrections above are active at
+  // once, fixing one must never read as permission to let another slide
+  // -- exactly what happened when a word-count fix (1181 words) shipped
+  // with prosody density still at 1.61/100 and no interruption pattern.
+  const activeCorrectionCount = [hasWordCountIssue, hasCefrIssue, hasMarkdownIssue, !!prosodyGuidance, !!interruptionGuidance].filter(Boolean).length;
+  const combinedGuidance =
+    activeCorrectionCount > 1
+      ? "\nThese issues must ALL be fixed together in the SAME rewrite. Fixing one (e.g. cutting word count) must never come at the expense of another (e.g. losing prosody cues or the interruption pattern) -- every specific instruction below applies simultaneously, not as alternatives."
+      : "";
+
+  return `\n\n===================== PREVIOUS ATTEMPT REJECTED =====================\nYour previous draft was rejected for these reasons:\n${bullets}\nRewrite the script and fix ALL listed issues.${combinedGuidance}${wordCountGuidance}${prosodyGuidance}${interruptionGuidance}${cefrGuidance}${markdownGuidance}`;
 }
 
 const CefrCheckOutputSchema = z.object({
