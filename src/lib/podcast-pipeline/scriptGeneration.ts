@@ -118,7 +118,8 @@ The topic must give BOTH speakers real things to say -- not one expert lecturing
 }
 
 ===================== LENGTH =====================
-MANDATORY, NON-NEGOTIABLE: your dialogue MUST contain at least 940 spoken words (prosody cues in [brackets] do not count toward this) -- do not submit a draft under 940 words. This is a hard floor, checked mechanically by word count immediately after you respond, not a rough suggestion. Target 960-975 words specifically -- write to genuinely land in that range, not just barely above the floor.
+MANDATORY, NON-NEGOTIABLE: your dialogue MUST contain at least 930 spoken words (prosody cues in [brackets] do not count toward this) -- do not submit a draft under 930 words. This is a hard floor, checked mechanically by word count immediately after you respond, not a rough suggestion. Target 935-950 words specifically -- write to genuinely land in that range, not just barely above the floor.
+MANDATORY, NON-NEGOTIABLE: do NOT exceed 965 words under any circumstances. A script over 965 words has already been rejected in real production for producing audio longer than the pipeline's hard 360-second limit -- going over the target range is exactly as invalid as falling short of it, not a safe direction to err toward.
 A script under 920 words WILL BE REJECTED outright: multiple real generations at 830-870 words have already been rejected and wasted real synthesis cost for landing short, despite every OTHER rule in this prompt (turn structure, interruption, prosody, opening position) being satisfied -- satisfying those other rules does NOT excuse a short script; length is checked with exactly the same severity as every "MANDATORY, NON-NEGOTIABLE" rule below.
 This should produce roughly 5-6 minutes of audio. A script that "feels finished" structurally at 850 words is NOT long enough -- extend the conversation with more genuine content (another follow-up question, a longer example, a deeper reaction, more of the callback) rather than stopping once the structural beats are covered.
 
@@ -185,7 +186,7 @@ const MAX_ATTEMPTS = 6;
  * per-call, not global -- see its own doc comment). Without this, OpenRouter
  * receives no `max_tokens` at all and falls back to the model's own
  * default, which is not guaranteed to comfortably fit this schema's output:
- * ~990 words of dialogue (~1400 tokens) plus per-turn JSON overhead
+ * ~965 words of dialogue (~1400 tokens) plus per-turn JSON overhead
  * (speaker/text fields, quoting, punctuation) across up to 100 turns (the
  * upper bound validateGeneratedScript() accepts) can plausibly reach
  * ~3000-3500 tokens for the turns array alone. 6000 leaves comfortable
@@ -361,16 +362,27 @@ export function validateGeneratedScript(output: ScriptGenerationOutput, request:
   // approved voice pair so far, which range ~2.72-2.95+ words/sec (e.g.
   // Sarah+Hannah: 832 words -> 306.18s = 2.72 wps; a later run measured
   // closer to 2.95 wps and produced only 294.7s from a sub-870-word
-  // script). The pipeline's audio-duration gate is 300-360s, so at the
-  // Three consecutive real generations at ~850-870 words produced
-  // 283.3s, 294.7s, and 298.2s -- all just under the 300s floor, all
-  // wasted after a real Fish Audio spend. The implied rate (~2.85-2.95
-  // words/sec) means 850-870 words is simply not enough margin. Floor
-  // raised to 920 -- still comfortably below the 970-990 words that would
-  // risk the 360s ceiling at the SLOWEST observed rate (~2.72 wps).
+  // script). The pipeline's audio-duration gate is 300-360s. Three
+  // consecutive real generations at ~850-870 words produced 283.3s,
+  // 294.7s, and 298.2s -- all just under the 300s floor, all wasted after
+  // a real Fish Audio spend. The implied rate (~2.85-2.95 words/sec)
+  // means 850-870 words is simply not enough margin. Floor raised to 920.
+  //
+  // CEILING: originally set to 990 on the theory that 990 words at the
+  // slowest documented rate (2.72 wps) would merely "risk" the 360s
+  // ceiling. That was wrong, not just optimistic -- 990/2.72 = 364.4s,
+  // already PAST 360s, with no margin at all. A real linguabc-episode-006
+  // run (Ben+Hannah, a DIFFERENT pair than the original 2.72 wps
+  // measurement) passed this 920-990 gate and then produced 365.4s of
+  // real, paid audio -- confirming the ceiling let through word counts
+  // that cannot reliably stay under the audio gate at real, slow-pair
+  // speech rates. Ceiling lowered to 965 (360s / 2.72 wps = 979.2 words
+  // theoretical max; 965 keeps ~5s / ~14 words of real margin below that,
+  // matching the same "real margin, not just the theoretical edge"
+  // posture already used for the 920 floor above).
   const wordCount = output.turns.reduce((sum, t) => sum + stripTags(t.text).split(/\s+/).filter(Boolean).length, 0);
-  if (wordCount < 920 || wordCount > 990) {
-    issues.push({ message: `Word count ${wordCount} is outside the acceptable 920-990 range (calibrated to land inside the pipeline's 300-360s audio-duration gate with real margin).` });
+  if (wordCount < 920 || wordCount > 965) {
+    issues.push({ message: `Word count ${wordCount} is outside the acceptable 920-965 range (calibrated to land inside the pipeline's 300-360s audio-duration gate with real margin, including at the slowest real Fish Audio rates observed).` });
   }
 
   // Lower bound deliberately loose: natural multi-sentence turns (the
@@ -516,15 +528,16 @@ export interface ScriptGenerationResult {
  *
  * A word-count issue gets a CONCRETE, deficit-based instruction computed
  * from the actual previous count (e.g. "Previous draft: 833 words...
- * Add approximately 127-142 spoken words"), not just an abstract target
- * restatement -- a model that has now undershot 920-990 multiple times in
- * a row (see the LENGTH section's own note: 830-870-word real
- * generations, repeatedly) needs to be told exactly how far off it was
- * and by how much to extend, not handed the same "aim higher" phrasing
- * that already failed to move it. Falls back to the abstract 960-975
- * restatement only if the previous count can't be parsed out of the
- * issue message (defensive; the message format is controlled by
- * validateGeneratedScript above and should always match).
+ * Add approximately 102-117 spoken words"), not just an abstract target
+ * restatement -- a model that has now undershot (or overshot) the range
+ * multiple times in a row (see the LENGTH section's own note: 830-870-word
+ * real generations, repeatedly, and separately several real overshoots)
+ * needs to be told exactly how far off it was and by how much to
+ * add/cut, not handed the same "aim higher/lower" phrasing that already
+ * failed to move it. Falls back to the abstract 935-950 restatement only
+ * if the previous count can't be parsed out of the issue message
+ * (defensive; the message format is controlled by validateGeneratedScript
+ * above and should always match).
  * A CEFR-level issue (see generateAndCheckEnrichment below) similarly gets a
  * concrete, actionable push rather than a repeat of the level name that
  * already failed to produce genuinely-B2+ text. A markdown-emphasis issue
@@ -559,52 +572,61 @@ export interface ScriptGenerationResult {
  * read as permission to ignore the others.
  */
 const WORD_COUNT_ISSUE_RE = /word count (\d+) is outside/i;
-const WORD_COUNT_TARGET_MIN = 960;
-const WORD_COUNT_TARGET_MAX = 975;
+const WORD_COUNT_TARGET_MIN = 935;
+const WORD_COUNT_TARGET_MAX = 950;
 
 /**
  * Builds the word-count-specific retry line. Given the actual previous
  * count (parsed from validateGeneratedScript's own message, never
- * guessed), computes a real add/cut range against the 960-975 sub-target
+ * guessed), computes a real add/cut range against the 935-950 sub-target
  * so the model is told a concrete number instead of an abstract target it
  * has already ignored. Undershoot and overshoot are both handled -- both
  * have now been observed in real generations (initially only undershoot,
- * later several real overshoots up to 1181 words, most recently 1087).
+ * later several real overshoots up to 1181 words, then 1087, most
+ * recently a script that passed the OLD 920-990 gate outright and still
+ * produced 365.4s of real audio).
+ *
+ * The sub-target itself moved from 960-975 to 935-950 when
+ * validateGeneratedScript()'s hard ceiling was recalibrated from 990 to
+ * 965 (see that function's doc comment for the real-data derivation) --
+ * the old 960-975 band no longer fit entirely inside the corrected hard
+ * range, so it shifted down with it, keeping the same 15-word width and
+ * the same real margin on both sides of the true 920-965 range.
  *
  * The overshoot branch is deliberately more emphatic than the undershoot
  * one: a real run converged on every OTHER constraint (opening, prosody,
  * interruption, CEFR, markdown) via the targeted-revision architecture
  * but still failed word count alone at 1087 -- across 6 revision attempts
- * that all correctly received "cut approximately 112-127 words." The
- * numbers were already right; the earlier wording ("Target 960-975...")
- * could still be read as a generation target rather than an edit
- * constraint on the specific draft in front of the model. The overshoot
- * text now states explicitly that this is a CUT operation (not a
- * rewrite/expansion), that the result must be shorter than the previous
- * draft, restates the 990 hard ceiling, and asks the model to recount
- * before returning -- undershoot guidance is untouched.
+ * that all correctly received a concrete cut range. The numbers were
+ * already right at the time; the wording ("Target 960-975...") could
+ * still be read as a generation target rather than an edit constraint on
+ * the specific draft in front of the model. The overshoot text states
+ * explicitly that this is a CUT operation (not a rewrite/expansion), that
+ * the result must be shorter than the previous draft, restates the hard
+ * ceiling, and asks the model to recount before returning -- undershoot
+ * guidance is otherwise untouched by either fix.
  */
 function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
   const match = issues.map((issue) => issue.message.match(WORD_COUNT_ISSUE_RE)).find((m): m is RegExpMatchArray => m !== null);
   if (!match) {
     // Defensive fallback -- should not normally happen, see doc comment above.
-    return "\nFor word count specifically, target approximately 960-975 spoken words this time -- aim for the middle of the accepted range, not its edge.";
+    return "\nFor word count specifically, target approximately 935-950 spoken words this time -- aim for the middle of the accepted range, not its edge.";
   }
 
   const previousCount = Number(match[1]);
   if (previousCount < WORD_COUNT_TARGET_MIN) {
     const addMin = WORD_COUNT_TARGET_MIN - previousCount;
     const addMax = WORD_COUNT_TARGET_MAX - previousCount;
-    return `\nPrevious draft: ${previousCount} words. Required: 920-990. Add approximately ${addMin}-${addMax} spoken words while preserving the existing structure, turn variety, and every other rule above -- do not pad with filler; extend real dialogue (a longer story, an extra follow-up question, a deeper reaction, more of the callback). Target 960-975 words total.`;
+    return `\nPrevious draft: ${previousCount} words. Required: 920-965. Add approximately ${addMin}-${addMax} spoken words while preserving the existing structure, turn variety, and every other rule above -- do not pad with filler; extend real dialogue (a longer story, an extra follow-up question, a deeper reaction, more of the callback). Target 935-950 words total.`;
   }
   if (previousCount > WORD_COUNT_TARGET_MAX) {
     const cutMin = previousCount - WORD_COUNT_TARGET_MAX;
     const cutMax = previousCount - WORD_COUNT_TARGET_MIN;
-    return `\nPrevious draft: ${previousCount} words. Required: 920-990, hard maximum 990 -- this draft already exceeds it. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue -- trim sentences and phrases within turns, don't just delete whole turns, and do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target 960-975 words total, and it MUST NOT exceed 990. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 990, cut more.`;
+    return `\nPrevious draft: ${previousCount} words. Required: 920-965, hard maximum 965 -- this draft already exceeds it. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue -- trim sentences and phrases within turns, don't just delete whole turns, and do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target 935-950 words total, and it MUST NOT exceed 965. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 965, cut more.`;
   }
-  // previousCount is inside 960-975 but the issue still fired, which can
+  // previousCount is inside 935-950 but the issue still fired, which can
   // only mean the message format changed underneath this parser.
-  return "\nFor word count specifically, target approximately 960-975 spoken words this time -- aim for the middle of the accepted range, not its edge.";
+  return "\nFor word count specifically, target approximately 935-950 spoken words this time -- aim for the middle of the accepted range, not its edge.";
 }
 
 const PROSODY_DENSITY_ISSUE_RE = /Prosody density ([\d.]+)\/100 words/i;
