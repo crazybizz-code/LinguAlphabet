@@ -576,15 +576,56 @@ const WORD_COUNT_TARGET_MIN = 935;
 const WORD_COUNT_TARGET_MAX = 950;
 
 /**
+ * Mirrors validateGeneratedScript()'s own 965 hard ceiling, named here
+ * ONLY so the near-ceiling formula below is self-documenting.
+ * validateGeneratedScript()'s check above is left as a literal and is NOT
+ * wired to this constant -- there is still exactly one authoritative
+ * validation gate (unchanged), and this is a separately-named mirror of
+ * its ceiling value used purely to compute retry guidance text.
+ */
+const WORD_COUNT_HARD_MAX = 965;
+
+/**
+ * Real overshoots have come in two very different shapes: large ones
+ * (1032, 1087, 1181 words -- 67 to 216 words past the 965 ceiling), where
+ * a full cut down to the 935-950 sub-target is the right ask, and a near
+ * miss (1015 words -- only 50 past the ceiling, with every OTHER check
+ * already passing), where that same "cut all the way to 935-950"
+ * instruction demanded a 65-80-word cut when only ~55 words needed
+ * removing to become compliant. Asking for a bigger edit than necessary
+ * gives the model more surface area to under- or over-correct on --
+ * exactly the failure a real run hit (SCRIPT_GENERATION failing after 6
+ * attempts, final word count 1015).
+ *
+ * A previous count within this many words of the hard ceiling is treated
+ * as a near miss and gets the smaller, ceiling-anchored cut below instead.
+ * 60 is chosen from the real data on hand: it keeps the confirmed near
+ * miss (1015, 50 over) on the modest path while keeping every confirmed
+ * large overshoot (1032, 67 over; 1087; 1181) on the existing 935-950
+ * path -- there is no observed real overshoot between 51 and 66 words to
+ * calibrate a tighter boundary against.
+ */
+const NEAR_CEILING_OVERSHOOT_LIMIT = 60;
+
+/**
+ * Near-miss cut target: safely under the 965 hard ceiling with a small
+ * margin (5-10 words), but deliberately NOT all the way down to the
+ * 935-950 sub-target -- the point of this path is a smaller, more
+ * executable edit for a draft that is already close to compliant.
+ */
+const NEAR_CEILING_TARGET_MAX = WORD_COUNT_HARD_MAX - 5; // 960
+const NEAR_CEILING_TARGET_MIN = WORD_COUNT_HARD_MAX - 10; // 955
+
+/**
  * Builds the word-count-specific retry line. Given the actual previous
  * count (parsed from validateGeneratedScript's own message, never
- * guessed), computes a real add/cut range against the 935-950 sub-target
- * so the model is told a concrete number instead of an abstract target it
- * has already ignored. Undershoot and overshoot are both handled -- both
- * have now been observed in real generations (initially only undershoot,
- * later several real overshoots up to 1181 words, then 1087, most
- * recently a script that passed the OLD 920-990 gate outright and still
- * produced 365.4s of real audio).
+ * guessed), computes a real add/cut range so the model is told a concrete
+ * number instead of an abstract target it has already ignored. Undershoot
+ * and overshoot are both handled -- both have now been observed in real
+ * generations (initially only undershoot, later several real overshoots
+ * up to 1181 words, then 1087, then a near-miss at 1015, most recently a
+ * script that passed the OLD 920-990 gate outright and still produced
+ * 365.4s of real audio).
  *
  * The sub-target itself moved from 960-975 to 935-950 when
  * validateGeneratedScript()'s hard ceiling was recalibrated from 990 to
@@ -593,18 +634,12 @@ const WORD_COUNT_TARGET_MAX = 950;
  * range, so it shifted down with it, keeping the same 15-word width and
  * the same real margin on both sides of the true 920-965 range.
  *
- * The overshoot branch is deliberately more emphatic than the undershoot
- * one: a real run converged on every OTHER constraint (opening, prosody,
- * interruption, CEFR, markdown) via the targeted-revision architecture
- * but still failed word count alone at 1087 -- across 6 revision attempts
- * that all correctly received a concrete cut range. The numbers were
- * already right at the time; the wording ("Target 960-975...") could
- * still be read as a generation target rather than an edit constraint on
- * the specific draft in front of the model. The overshoot text states
- * explicitly that this is a CUT operation (not a rewrite/expansion), that
- * the result must be shorter than the previous draft, restates the hard
- * ceiling, and asks the model to recount before returning -- undershoot
- * guidance is otherwise untouched by either fix.
+ * The overshoot branch has two paths (see NEAR_CEILING_OVERSHOOT_LIMIT's
+ * doc comment for why): a near-miss draft gets a smaller cut anchored just
+ * under the hard ceiling; a large overshoot keeps the original, more
+ * emphatic "cut all the way to 935-950" treatment, restating the hard
+ * ceiling and asking the model to recount before returning. Undershoot
+ * guidance is untouched by this or either prior fix.
  */
 function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
   const match = issues.map((issue) => issue.message.match(WORD_COUNT_ISSUE_RE)).find((m): m is RegExpMatchArray => m !== null);
@@ -620,6 +655,12 @@ function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
     return `\nPrevious draft: ${previousCount} words. Required: 920-965. Add approximately ${addMin}-${addMax} spoken words while preserving the existing structure, turn variety, and every other rule above -- do not pad with filler; extend real dialogue (a longer story, an extra follow-up question, a deeper reaction, more of the callback). Target 935-950 words total.`;
   }
   if (previousCount > WORD_COUNT_TARGET_MAX) {
+    const overshoot = previousCount - WORD_COUNT_HARD_MAX;
+    if (overshoot > 0 && overshoot <= NEAR_CEILING_OVERSHOOT_LIMIT) {
+      const cutMin = previousCount - NEAR_CEILING_TARGET_MAX;
+      const cutMax = previousCount - NEAR_CEILING_TARGET_MIN;
+      return `\nPrevious draft: ${previousCount} words. Required: 920-965, hard maximum 965 -- this draft already exceeds it, but only by ${overshoot} word(s), so a full cut down to 935-950 is unnecessary. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue -- trim sentences and phrases within turns, don't just delete whole turns, and do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target ${NEAR_CEILING_TARGET_MIN}-${NEAR_CEILING_TARGET_MAX} words total, safely under the 965 hard maximum with a small margin -- you do NOT need to reach all the way down to 935-950. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 965, cut more.`;
+    }
     const cutMin = previousCount - WORD_COUNT_TARGET_MAX;
     const cutMax = previousCount - WORD_COUNT_TARGET_MIN;
     return `\nPrevious draft: ${previousCount} words. Required: 920-965, hard maximum 965 -- this draft already exceeds it. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue -- trim sentences and phrases within turns, don't just delete whole turns, and do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target 935-950 words total, and it MUST NOT exceed 965. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 965, cut more.`;

@@ -307,7 +307,11 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
     it("tells the model to cut words, not add, for an overshoot above 965", () => {
       const feedback = buildRetryFeedback([{ message: "Word count 1005 is outside the acceptable 920-965 range." }]);
       expect(feedback).toContain("Previous draft: 1005 words. Required: 920-965, hard maximum 965");
-      expect(feedback).toMatch(/cut approximately 55-70 spoken words/i);
+      // 1005 is only 40 words over the 965 ceiling -- a near miss (see the
+      // dedicated "near-ceiling overshoot" describe block below), so it
+      // gets the smaller, ceiling-anchored cut rather than the full
+      // 935-950 treatment a large overshoot gets.
+      expect(feedback).toMatch(/cut approximately 45-50 spoken words/i);
       expect(feedback).not.toMatch(/add approximately/i);
     });
 
@@ -877,6 +881,81 @@ describe("buildRetryFeedback — the exact real 1087-word overshoot (fifth itera
     expect(feedback).toMatch(/independently graded BELOW the required B2\+ standard/i);
     expect(feedback).toMatch(/remove all markdown emphasis markers/i);
     expect(feedback).toMatch(/must ALL be fixed together in the SAME rewrite/i);
+  });
+});
+
+/**
+ * Regression coverage for the near-ceiling overshoot fix: a real run
+ * (SCRIPT_GENERATION failing after 6 attempts, final word count 1015 --
+ * only 50 words past the 965 hard ceiling, every other check already
+ * passing) was given the same "cut all the way to 935-950" instruction as
+ * a large overshoot, demanding a 65-80-word cut when only ~55 words
+ * needed removing. buildWordCountGuidance() now special-cases a previous
+ * count within NEAR_CEILING_OVERSHOOT_LIMIT (60) words of the 965 ceiling:
+ * it asks for a smaller cut anchored to 955-960 (safely under 965 with a
+ * 5-10 word margin) instead of forcing the draft down to 935-950. Large
+ * overshoots (67+ words past the ceiling -- 1032, 1087, 1181, all
+ * asserted above) are unaffected and keep the original 935-950 treatment.
+ */
+describe("buildWordCountGuidance — near-ceiling overshoot (real 1015-word failure)", () => {
+  it('gives a modest "cut approximately 40-45" range, not 65-80, for a 1000-word near-miss overshoot', () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1000 is outside the acceptable 920-965 range." }]);
+    expect(feedback).toContain("Previous draft: 1000 words. Required: 920-965, hard maximum 965");
+    expect(feedback).toMatch(/but only by 35 word\(s\), so a full cut down to 935-950 is unnecessary/i);
+    expect(feedback).toMatch(/cut approximately 40-45 spoken words/i);
+    expect(feedback).toMatch(/Target 955-960 words total, safely under the 965 hard maximum/i);
+    expect(feedback).not.toMatch(/Target 935-950 words total/i);
+  });
+
+  it('gives the exact "cut approximately 55-60" range for the real 1015-word near-miss overshoot', () => {
+    const feedback = buildRetryFeedback([
+      { message: "Word count 1015 is outside the acceptable 920-965 range (calibrated to land inside the pipeline's 300-360s audio-duration gate with real margin)." },
+    ]);
+    expect(feedback).toContain("Previous draft: 1015 words. Required: 920-965, hard maximum 965");
+    expect(feedback).toMatch(/but only by 50 word\(s\), so a full cut down to 935-950 is unnecessary/i);
+    expect(feedback).toMatch(/cut approximately 55-60 spoken words/i);
+    expect(feedback).toMatch(/Target 955-960 words total/i);
+    expect(feedback).not.toMatch(/Target 935-950 words total/i);
+  });
+
+  it("still uses the near-ceiling path at the boundary (1025 words, exactly 60 over)", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1025 is outside the acceptable 920-965 range." }]);
+    expect(feedback).toContain("Previous draft: 1025 words. Required: 920-965, hard maximum 965");
+    expect(feedback).toMatch(/but only by 60 word\(s\), so a full cut down to 935-950 is unnecessary/i);
+    expect(feedback).toMatch(/cut approximately 65-70 spoken words/i);
+    expect(feedback).toMatch(/Target 955-960 words total/i);
+    expect(feedback).not.toMatch(/Target 935-950 words total/i);
+  });
+
+  it("switches back to the large-overshoot 935-950 path just beyond the boundary (1026 words, 61 over)", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1026 is outside the acceptable 920-965 range." }]);
+    expect(feedback).toContain("Previous draft: 1026 words. Required: 920-965, hard maximum 965 -- this draft already exceeds it. Do NOT rewrite or expand the draft.");
+    expect(feedback).not.toMatch(/so a full cut down to 935-950 is unnecessary/i);
+    expect(feedback).toMatch(/cut approximately 76-91 spoken words/i);
+    expect(feedback).toMatch(/Target 935-950 words total, and it MUST NOT exceed 965/i);
+    expect(feedback).not.toMatch(/Target 955-960 words total/i);
+  });
+
+  it("leaves large-overshoot guidance (1032, 1087, 1181) on the existing 935-950 path, unaffected", () => {
+    const feedback1032 = buildRetryFeedback([{ message: "Word count 1032 is outside the acceptable 920-965 range." }]);
+    expect(feedback1032).toMatch(/cut approximately 82-97 spoken words/i);
+    expect(feedback1032).toMatch(/Target 935-950 words total/i);
+
+    const feedback1087 = buildRetryFeedback([{ message: "Word count 1087 is outside the acceptable 920-965 range." }]);
+    expect(feedback1087).toMatch(/cut approximately 137-152 spoken words/i);
+    expect(feedback1087).toMatch(/Target 935-950 words total/i);
+
+    const feedback1181 = buildRetryFeedback([{ message: "Word count 1181 is outside the acceptable 920-965 range." }]);
+    expect(feedback1181).toMatch(/cut approximately 231-246 spoken words/i);
+    expect(feedback1181).toMatch(/Target 935-950 words total/i);
+  });
+
+  it("leaves undershoot guidance (856 words) completely unaffected by the near-ceiling path", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 856 is outside the acceptable 920-965 range." }]);
+    expect(feedback).toContain("Previous draft: 856 words. Required: 920-965.");
+    expect(feedback).toMatch(/add approximately 79-94 spoken words/i);
+    expect(feedback).not.toMatch(/CUT operation/i);
+    expect(feedback).not.toMatch(/safely under the 965 hard maximum/i);
   });
 });
 
