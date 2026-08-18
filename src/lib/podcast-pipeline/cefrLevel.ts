@@ -13,17 +13,30 @@
  * is actually at that level -- a script generator asked for B2 could
  * still produce text that reads as B1, and simply trusting its own
  * self-report would be "merely labeling a B1 script as B2" -- exactly
- * what must not happen. Two independent checks exist specifically to
- * catch that: scriptGeneration.ts's checkGeneratedCefrLevel() grades the
- * actual generated text BEFORE Fish Audio synthesis/alignment ever run,
- * feeding a miss back into the same bounded retry loop word-count/
- * structural failures already use, so a mismatch is cheap to fix; and
- * generateEnrichment() (ai-processing.ts) independently judges the final
- * published transcript, with publishing.ts's quality gate rejecting
- * publication outright if that judgment still falls outside {B2, C1, C2}.
- * The quality gate is the authoritative, unweakened backstop -- the
- * earlier check exists to make it rare for that backstop to ever fire on
- * an AI-generated episode, not to replace it.
+ * what must not happen.
+ *
+ * The real enforcement is a SINGLE authoritative grading, not two
+ * separate ones that can disagree: scriptGeneration.ts's
+ * generateEpisodeScript() calls the real generateEnrichment()
+ * (ai-processing.ts) once a script passes structural validation, BEFORE
+ * Fish Audio synthesis/alignment ever run. A B1-or-below result feeds
+ * back into the same bounded retry loop word-count/structural failures
+ * already use. That EXACT EnrichmentResult -- not a re-derived or
+ * re-graded copy -- is what dailyGenerate.ts publishes, so
+ * publishing.ts's quality gate re-checks the SAME judgment already made,
+ * not a second independent one, and remains the authoritative,
+ * unweakened backstop.
+ *
+ * (An earlier version of this design ran a separate, hand-written
+ * CEFR-only precheck prompt instead of calling the real grader --
+ * cheaper per retry attempt, but a real GitHub Actions run proved the two
+ * prompts could disagree: the precheck passed a script that the real
+ * generateEnrichment() call then graded cefrLevelMin=B1/cefrLevelMax=B2,
+ * because the two prompts weren't actually the same task -- different
+ * framing, and CEFR was 2 of ~10 simultaneous fields in the authoritative
+ * call versus the precheck's sole focus. Replaced with the single-grading
+ * design above, which makes that class of disagreement architecturally
+ * impossible rather than merely less likely.)
  */
 
 export type LinguAbcCefrLevel = "B2" | "C1" | "C2";

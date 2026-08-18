@@ -1,10 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { checkProviderConfiguration } from "@/ai/providers";
-import { generateEnrichment } from "@/lib/content-engine/ai-processing";
 import { checkExistingEpisode, nextEpisodeNumber, checkForOrphanedDraft } from "./idempotency";
 import { chooseVoicesForEpisode, chooseVoicesForCombination, voiceMetadata, type VoiceCombination } from "./voiceRotation";
 import { generateEpisodeScript, toScriptLines, type ScriptGenerationRequest, type OpeningStructureCheck } from "./scriptGeneration";
-import { buildReaderTranscript } from "./transcript";
 import { generatePodcastEpisode } from "./pipeline";
 import { chooseCefrLevelForEpisode, type LinguAbcCefrLevel } from "./cefrLevel";
 import type { PipelineOutcome } from "./types";
@@ -65,11 +63,15 @@ export type DailyGenerationOutcome =
       scriptGenerationAttempts: number;
       wordCount: number;
       openingStructure: OpeningStructureCheck;
-      /** Which level the script generator was targeted at -- NOT the
-       * authoritative final level (that's the published episode's
-       * cefrLevelMin/cefrLevelMax, from generateEnrichment()'s independent
-       * assessment, enforced by publishing.ts's quality gate). Surfaced
-       * here for operator visibility only. */
+      /** Which level the script generator was ASKED to target -- not
+       * necessarily identical to the achieved level, though the achieved
+       * level is now guaranteed B2/C1/C2: generateEpisodeScript() only
+       * returns once the real generateEnrichment() call (run inside its
+       * own retry loop, before any Fish Audio spend) has graded the
+       * script that way -- see scriptGeneration.ts's
+       * generateAndCheckEnrichment(). publishing.ts's quality gate
+       * re-checks that SAME already-computed result, not a second
+       * independent one. Surfaced here for operator visibility only. */
       targetCefrLevel: LinguAbcCefrLevel;
     });
 
@@ -160,7 +162,14 @@ export async function generateDailyEpisode(
   //     as voice rotation) ---
   const cefrLevel = chooseCefrLevelForEpisode(episodeNumber);
 
-  // --- Script generation (LLM, self-validating, bounded retries) ---
+  // --- Script generation (LLM, self-validating, bounded retries). This
+  //     now includes the REAL, authoritative enrichment grading -- see
+  //     scriptGeneration.ts's generateAndCheckEnrichment(). scriptResult
+  //     only exists once that grading has already confirmed B2/C1/C2, so
+  //     there is no separate enrichment-generation stage here anymore;
+  //     regenerating it would spend tokens re-grading already-judged
+  //     content and could reintroduce the exact precheck/authoritative
+  //     disagreement this design eliminates. ---
   const scriptRequest: ScriptGenerationRequest = {
     speaker0Name: speaker0,
     speaker1Name: speaker1,
@@ -177,17 +186,6 @@ export async function generateDailyEpisode(
   }
   const script = toScriptLines(scriptResult.output, scriptRequest);
 
-  // --- Enrichment (LLM, SAME processor articles/manual episodes use) ---
-  const readerText = buildReaderTranscript(script)
-    .map((segment) => `${segment.speaker}: ${segment.text}`)
-    .join("\n");
-  let enrichment;
-  try {
-    enrichment = await generateEnrichment(scriptResult.output.title, readerText, "audio");
-  } catch (error) {
-    return { status: "failed", stage: "ENRICHMENT_GENERATION", reason: error instanceof Error ? error.message : String(error) };
-  }
-
   // --- Everything after content is written: the existing, unmodified pipeline ---
   const outcome = await generatePodcastEpisode(supabase, {
     externalId,
@@ -195,7 +193,7 @@ export async function generateDailyEpisode(
     title: scriptResult.output.title,
     topic: scriptResult.output.topic,
     script,
-    enrichment,
+    enrichment: scriptResult.enrichment,
   });
 
   if (outcome.status !== "published") return outcome as DailyGenerationOutcome;

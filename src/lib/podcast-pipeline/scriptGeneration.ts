@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { generateStructuredJson } from "@/ai/services/generate-structured-json";
 import { BATCH_RETRY_POLICY } from "@/ai/retry";
+import { generateEnrichment } from "@/lib/content-engine/ai-processing";
+import type { EnrichmentResult } from "@/lib/content-engine/types";
 import type { ScriptLine } from "./types";
 import type { SpeakerName } from "./config";
 import { isApprovedLinguAbcCefrLevel, type LinguAbcCefrLevel } from "./cefrLevel";
@@ -490,6 +492,18 @@ export interface ScriptGenerationResult {
    * validation (guaranteed .passed === true here, since generateEpisodeScript
    * only returns a script once validateGeneratedScript found zero issues). */
   openingStructure: OpeningStructureCheck;
+  /**
+   * The REAL, authoritative enrichment result -- generated exactly once,
+   * here, via generateAndCheckEnrichment(), before any Fish Audio/
+   * alignment spend. Its cefrLevelMin/cefrLevelMax are guaranteed B2/C1/C2
+   * (that grading is what makes generateEpisodeScript() return at all --
+   * see generateAndCheckEnrichment()'s doc comment). The caller MUST reuse
+   * this object as-is for publishing (dailyGenerate.ts does) -- calling
+   * generateEnrichment() again would spend tokens re-grading content
+   * that's already been judged, and could theoretically re-introduce the
+   * exact precheck/authoritative disagreement this design eliminates.
+   */
+  enrichment: EnrichmentResult;
 }
 
 /**
@@ -510,7 +524,7 @@ export interface ScriptGenerationResult {
  * restatement only if the previous count can't be parsed out of the
  * issue message (defensive; the message format is controlled by
  * validateGeneratedScript above and should always match).
- * A CEFR-level issue (see checkGeneratedCefrLevel below) similarly gets a
+ * A CEFR-level issue (see generateAndCheckEnrichment below) similarly gets a
  * concrete, actionable push rather than a repeat of the level name that
  * already failed to produce genuinely-B2+ text. A markdown-emphasis issue
  * gets the same treatment for the same reason: the base prompt already
@@ -619,7 +633,7 @@ export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
   const hasMarkdownIssue = issues.some((issue) => /markdown/i.test(issue.message));
   const wordCountGuidance = hasWordCountIssue ? buildWordCountGuidance(issues) : "";
   const cefrGuidance = hasCefrIssue
-    ? "\nFor the CEFR level specifically, this draft read as easier than required. Raise vocabulary sophistication, use real conditional/subordinate-clause sentence structures throughout (not just when convenient), and discuss a genuinely complex or abstract angle of the topic instead of a simple personal anecdote -- do not just relabel the same simple script."
+    ? "\nFor the CEFR level specifically: this draft was independently graded BELOW the required B2+ standard by the same authoritative grading the published episode will be checked against -- this is not a labeling mistake, the actual vocabulary and sentence complexity were too simple. Raise vocabulary sophistication, use real conditional/subordinate-clause sentence structures throughout (not just when convenient), and discuss a genuinely complex or abstract angle of the topic instead of a simple personal anecdote. Genuinely rewrite the language -- do not just relabel the same simple script or change the self-reported level field."
     : "";
   // Bracket wording deliberately does NOT use a closing/paired tag like
   // [/emphasis] -- the schema has never supported one (see PROSODY above
@@ -645,87 +659,68 @@ export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
   return `\n\n===================== PREVIOUS ATTEMPT REJECTED =====================\nYour previous draft was rejected for these reasons:\n${bullets}\nRewrite the script and fix ALL listed issues.${combinedGuidance}${wordCountGuidance}${prosodyGuidance}${interruptionGuidance}${cefrGuidance}${markdownGuidance}`;
 }
 
-const CefrCheckOutputSchema = z.object({
-  cefrLevelMin: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
-  cefrLevelMax: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
-});
-
 /**
- * Grading rubric deliberately mirrors ai-processing.ts's buildPrompt()
- * cefrLevelMin/cefrLevelMax criteria IN SUBSTANCE, kept as an independent
- * copy here rather than an import -- same "by value, not import" posture
- * this codebase already uses for cross-module constants that must never
- * silently drift apart (see MIN_CATALOG_DURATION_SECONDS's doc comment in
- * queries.ts). ai-processing.ts is the generic, content-type-agnostic
- * Content Engine grader used for articles too; this check is intentionally
- * a separate, podcast-pipeline-scoped copy so a change to the generic
- * engine's prompt can never silently alter what this retry loop accepts
- * (or vice versa) without a reviewer seeing both.
+ * Result of a single generateEnrichment() call: either it graded B2/C1/C2
+ * (the script is done, and this IS the enrichment that will be published
+ * -- never regenerated), or it graded B1 or below (a validation issue,
+ * same shape every other check returns, so it feeds the existing retry
+ * loop with no special-casing there).
  */
-function buildCefrCheckPrompt(readerText: string): string {
-  return `You are grading the CEFR difficulty of this English podcast transcript, honestly and strictly -- do not default to a flattering level. This grading uses the exact rubric a downstream content-quality gate will also apply, so an inaccurate grade here does not prevent a real rejection later, it only delays it.
-
-Transcript:
-"${readerText}"
-
-Return cefrLevelMin (the LOWEST CEFR level at which a learner can independently understand approximately 70% of this content without extensive external help) and cefrLevelMax (the HIGHEST CEFR level this content still meaningfully serves), using this rubric: A1 = absolute beginner (very familiar basic words, present tense and 'be' verb only, zero unknown vocabulary); A2 = elementary (common everyday words, simple past, basic connectors like and/but/so, short sentences on familiar topics such as shopping or family); B1 = intermediate (everyday conversations and introduced abstract topics, some idioms and phrasal verbs, past/present/future used fluently); B2 = upper-intermediate (extended discussion of complex or abstract topics, conditional sentences, nuanced vocabulary, requires solid fluency); C1 = advanced (implicit meaning, irony, dense vocabulary, cultural references, spontaneous or technical language for near-fluent speakers); C2 = mastery (near-native level, highly abstract or technical or culturally embedded, essentially no simplification, only near-native speakers reach 70% independently).`;
-}
+type EnrichmentGradingResult = { enrichment: EnrichmentResult } | { issues: ScriptValidationIssue[] };
 
 /**
- * The real independent CEFR verification this project's own design already
- * calls for -- see cefrLevel.ts's doc comment: "a script generator asked
- * for B2 could still produce text that reads as B1, and simply trusting
- * its own self-report would be 'merely labeling'". Until this function
- * existed, that independent judgment only ever happened AFTER Fish Audio
- * synthesis, forced alignment, and audio upload had already run (real
- * paid spend, real compute) -- publishing.ts's quality gate was the sole
- * enforcement point, and a miss there discarded all of that work. This
- * runs the SAME kind of independent judgment here instead, while a miss
- * is still cheap to retry (bounded by generateEpisodeScript's existing
- * MAX_ATTEMPTS loop, same as any other validation failure) -- so the
- * metadata that eventually reaches the quality gate honestly reflects
- * content that has already cleared this bar, not a relabeled guess.
+ * Runs the REAL, authoritative enrichment grading -- the exact same
+ * generateEnrichment() (ai-processing.ts) call that used to run a SECOND
+ * time, later, in dailyGenerate.ts, after Fish Audio synthesis, forced
+ * alignment, and audio upload had already spent real money and compute.
  *
- * Deliberately NOT the full generateEnrichment() call (which also
- * produces vocabulary/quiz/summary/etc.) -- that would spend real tokens
- * regenerating content this function never needs, on every attempt. Only
- * cefrLevelMin/cefrLevelMax are requested here; the real, full enrichment
- * is still generated exactly once, after a script has already passed this
- * check (dailyGenerate.ts's existing generateEnrichment() call, unchanged).
+ * This replaces an earlier design (a separate, hand-written CEFR-only
+ * precheck prompt) that was cheaper per retry attempt but could disagree
+ * with the authoritative grader -- a real GitHub Actions run proved it:
+ * the precheck passed a script the real generateEnrichment() call then
+ * graded cefrLevelMin=B1/cefrLevelMax=B2, because the two prompts weren't
+ * actually the same task (different framing, and CEFR was 2 of ~10
+ * simultaneous fields in the authoritative call vs. the precheck's sole
+ * focus). Calling the REAL function here, once per script-generation
+ * attempt instead of once per whole pipeline run, makes that class of
+ * disagreement architecturally impossible: there is exactly one CEFR
+ * judgment, computed before any TTS spend, and it IS what gets published
+ * -- not a hand-copied approximation of it.
+ *
+ * A miss here is still cheap to retry, bounded by generateEpisodeScript's
+ * existing MAX_ATTEMPTS loop, same as any other validation failure.
  */
-export async function checkGeneratedCefrLevel(
+async function generateAndCheckEnrichment(
   output: ScriptGenerationOutput,
   request: ScriptGenerationRequest,
-): Promise<ScriptValidationIssue[]> {
+): Promise<EnrichmentGradingResult> {
   const readerText = buildReaderTranscript(toScriptLines(output, request))
     .map((segment) => `${segment.speaker}: ${segment.text}`)
     .join("\n");
 
-  const graded = await generateStructuredJson({
-    messages: [{ role: "user", content: buildCefrCheckPrompt(readerText) }],
-    schema: CefrCheckOutputSchema,
-    schemaName: "linguabc_podcast_script_cefr_check",
-    retryPolicy: BATCH_RETRY_POLICY,
-  });
+  const enrichment = await generateEnrichment(output.title, readerText, "audio");
 
-  if (!isApprovedLinguAbcCefrLevel(graded.cefrLevelMin) || !isApprovedLinguAbcCefrLevel(graded.cefrLevelMax)) {
-    return [
-      {
-        message: `Independent CEFR check graded this script as cefrLevelMin=${graded.cefrLevelMin}, cefrLevelMax=${graded.cefrLevelMax} -- LinguABC AI-generated podcasts must grade as B2, C1, or C2 (the same rubric publishing.ts's quality gate enforces on the published episode). Requested level was ${request.cefrLevel}.`,
-      },
-    ];
+  if (!isApprovedLinguAbcCefrLevel(enrichment.cefrLevelMin) || !isApprovedLinguAbcCefrLevel(enrichment.cefrLevelMax)) {
+    return {
+      issues: [
+        {
+          message: `Authoritative enrichment graded this script as cefrLevelMin=${enrichment.cefrLevelMin}, cefrLevelMax=${enrichment.cefrLevelMax} -- LinguABC AI-generated podcasts must grade as B2, C1, or C2. This is the SAME grading publishing.ts's quality gate would apply to the published episode, run here instead of after Fish Audio spend. Requested level was ${request.cefrLevel}.`,
+        },
+      ],
+    };
   }
-  return [];
+  return { enrichment };
 }
 
 /** Generates and validates in a loop, bounded by MAX_ATTEMPTS. Throws
  * (never returns a script that failed validation) if every attempt fails
  * -- the caller must treat that as a failed generation, not publish
  * whatever the last attempt produced. A passing script has cleared BOTH
- * the structural checks (validateGeneratedScript) AND an independent CEFR
- * grading (checkGeneratedCefrLevel) -- not just the model's own
- * self-reported level -- so downstream metadata honestly reflects content
- * that has already been judged B2+, not merely labeled that way. */
+ * the structural checks (validateGeneratedScript) AND the REAL, authoritative
+ * generateEnrichment() grading (generateAndCheckEnrichment) -- not just the
+ * model's own self-reported level -- so the returned enrichment honestly
+ * reflects content that has already been judged B2+, not merely labeled
+ * that way, and is the SAME object the caller must publish, never re-graded. */
 export async function generateEpisodeScript(request: ScriptGenerationRequest): Promise<ScriptGenerationResult> {
   const basePrompt = buildPrompt(request);
   let lastIssues: ScriptValidationIssue[] = [];
@@ -765,22 +760,29 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
     }
 
     const structuralIssues = validateGeneratedScript(output, request);
-    // Independent CEFR grading only runs once the structural checks
+    // The real enrichment grading only runs once the structural checks
     // already passed -- a script that's already going to be rejected for
     // e.g. word count or missing interruption pattern doesn't need a
-    // second paid LLM call to also grade its reading level.
+    // second paid LLM call (generateEnrichment produces vocabulary/quiz/
+    // summary/etc. too, not just the CEFR fields) to also grade it.
     let issues = structuralIssues;
+    let enrichment: EnrichmentResult | undefined;
     if (structuralIssues.length === 0) {
       try {
-        issues = await checkGeneratedCefrLevel(output, request);
+        const graded = await generateAndCheckEnrichment(output, request);
+        if ("enrichment" in graded) {
+          enrichment = graded.enrichment;
+        } else {
+          issues = graded.issues;
+        }
       } catch (error) {
-        issues = [{ message: `CEFR-level check failed: ${error instanceof Error ? error.message : String(error)}` }];
+        issues = [{ message: `Enrichment/CEFR grading failed: ${error instanceof Error ? error.message : String(error)}` }];
       }
     }
 
-    if (issues.length === 0) {
+    if (issues.length === 0 && enrichment) {
       const wordCount = output.turns.reduce((sum, t) => sum + t.text.replace(/\[[^\]]*\]/g, " ").split(/\s+/).filter(Boolean).length, 0);
-      return { output, wordCount, attempts: attempt, openingStructure: checkOpeningStructure(output, request) };
+      return { output, wordCount, attempts: attempt, openingStructure: checkOpeningStructure(output, request), enrichment };
     }
     lastIssues = issues;
   }

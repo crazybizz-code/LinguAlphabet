@@ -1,5 +1,26 @@
-import { describe, it, expect } from "vitest";
-import { validateGeneratedScript, buildRetryFeedback, buildPrompt, type ScriptGenerationOutput, type ScriptGenerationRequest } from "./scriptGeneration";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+import {
+  validateGeneratedScript,
+  buildRetryFeedback,
+  buildPrompt,
+  generateEpisodeScript,
+  type ScriptGenerationOutput,
+  type ScriptGenerationRequest,
+} from "./scriptGeneration";
+import { generateStructuredJson } from "@/ai/services/generate-structured-json";
+import { generateEnrichment } from "@/lib/content-engine/ai-processing";
+import type { EnrichmentResult } from "@/lib/content-engine/types";
+
+// Same mocking pattern src/lib/content-engine/pipeline.test.ts already uses
+// for generateEnrichment -- preserve every other real export via
+// importOriginal, replace only the one function under test's control.
+vi.mock("@/ai/services/generate-structured-json", () => ({
+  generateStructuredJson: vi.fn(),
+}));
+vi.mock("@/lib/content-engine/ai-processing", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/content-engine/ai-processing")>();
+  return { ...actual, generateEnrichment: vi.fn() };
+});
 
 /**
  * Security-audit regression tests (LOW findings #7/#8) for the two new
@@ -176,11 +197,13 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
 
   it("gives concrete corrective guidance specifically for a CEFR-level failure", () => {
     const feedback = buildRetryFeedback([
-      { message: "Independent CEFR check graded this script as cefrLevelMin=B1, cefrLevelMax=B2 -- LinguABC AI-generated podcasts must grade as B2, C1, or C2." },
+      { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2 -- LinguABC AI-generated podcasts must grade as B2, C1, or C2." },
     ]);
-    expect(feedback).toContain("Independent CEFR check graded this script as cefrLevelMin=B1");
+    expect(feedback).toContain("Authoritative enrichment graded this script as cefrLevelMin=B1");
+    expect(feedback).toMatch(/independently graded BELOW the required B2\+ standard/i);
     expect(feedback).toMatch(/raise vocabulary sophistication/i);
     expect(feedback).toMatch(/conditional\/subordinate-clause sentence structures/i);
+    expect(feedback).toMatch(/do not just relabel the same simple script or change the self-reported level field/i);
   });
 
   it("does not add CEFR-specific guidance when there is no CEFR issue", () => {
@@ -205,11 +228,11 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
   it("combines a markdown-emphasis issue with word-count and CEFR issues in the same feedback block", () => {
     const feedback = buildRetryFeedback([
       { message: "Word count 833 is outside the acceptable 920-990 range." },
-      { message: "Independent CEFR check graded this script as cefrLevelMin=B1, cefrLevelMax=B2." },
+      { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2." },
       { message: "Found markdown-style emphasis markers that would be read aloud literally (use [emphasis] instead): *just*, *so close*" },
     ]);
     expect(feedback).toContain("Word count 833 is outside the acceptable 920-990 range.");
-    expect(feedback).toContain("Independent CEFR check graded this script as cefrLevelMin=B1");
+    expect(feedback).toContain("Authoritative enrichment graded this script as cefrLevelMin=B1");
     expect(feedback).toContain("Found markdown-style emphasis markers");
     expect(feedback).toContain("Previous draft: 833 words. Required: 920-990.");
     expect(feedback).toMatch(/add approximately 127-142 spoken words/i);
@@ -444,5 +467,166 @@ describe("buildPrompt — PROSODY section is an explicit hard floor, matching re
   it("warns that added length requires proportionally more cues, not the same handful spread thinner", () => {
     const prompt = buildPrompt(request);
     expect(prompt).toMatch(/a longer script needs MORE cues to hold the same density/i);
+  });
+});
+
+/**
+ * Regression coverage for the single-authoritative-CEFR-grading
+ * architecture fix: a real GitHub Actions run passed a separate,
+ * hand-written CEFR-only precheck, then failed publishing.ts's quality
+ * gate because the REAL generateEnrichment() call (run later, after Fish
+ * Audio synthesis/alignment) graded the identical text cefrLevelMin=B1.
+ * generateEpisodeScript() now calls the real generateEnrichment() itself,
+ * once per attempt, and only returns once IT grades B2/C1/C2 -- so there
+ * is exactly one CEFR judgment, not two that could disagree.
+ *
+ * generateStructuredJson (the script-writing call) and generateEnrichment
+ * (the grading call) are both mocked -- the same pattern
+ * src/lib/content-engine/pipeline.test.ts already uses for
+ * generateEnrichment, applied here for the sibling script-generation call
+ * too, so this suite never makes a real LLM request.
+ */
+describe("generateEpisodeScript — single authoritative enrichment grading", () => {
+  const REQUEST_B2: ScriptGenerationRequest = {
+    speaker0Name: "Sarah",
+    speaker1Name: "Hannah",
+    cefrLevel: "B2",
+    usedTitles: [],
+    usedTopicTags: [],
+  };
+
+  const stripTags = (t: string) => t.replace(/\[[^\]]*\]/g, " ");
+  const countWords = (turns: ScriptGenerationOutput["turns"]) =>
+    turns.reduce((sum, t) => sum + stripTags(t.text).split(/\s+/).filter(Boolean).length, 0);
+
+  /**
+   * A script built to genuinely satisfy every structural rule in
+   * validateGeneratedScript() (word count, turn count, multi-sentence
+   * ratio, prosody density + mid-sentence placement, no markdown, no
+   * unbalanced/leaked brackets, opening-block position, the interruption
+   * pattern) -- verified directly below by asserting
+   * validateGeneratedScript() returns zero issues for it. Word count is
+   * padded to exactly 950 at runtime (never hand-counted) so this fixture
+   * can't silently drift out of the 920-990 range as its text changes.
+   */
+  function buildValidScriptOutput(): ScriptGenerationOutput {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+      { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+      { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+      { speaker: 1, text: "And I'm Hannah." },
+      { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+    ];
+
+    const fillerTemplates = [
+      "That is a genuinely interesting way to think about it, [curious] and honestly I had never considered it from that angle before. It also makes me wonder what else we take for granted.",
+      "Right, and it is not just about memory either -- it is about how much we trust our own sense of a totally ordinary morning. [amused] People rarely question it until something breaks.",
+      "I read somewhere that this happens more often to people who travel a lot, [thoughtful] which honestly makes a strange kind of sense once you think it through.",
+      "Exactly, and that is the part that surprised me the most. [reflective] It is such a small moment, but it really stuck with me for weeks afterward.",
+    ];
+    for (let i = 0; i < 24; i++) {
+      turns.push({ speaker: (i % 2) as 0 | 1, text: fillerTemplates[i % fillerTemplates.length] });
+    }
+
+    turns.push({ speaker: 0, text: "...and honestly I think the whole point is that we—" });
+    turns.push({ speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." });
+    turns.push({ speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." });
+    turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+
+    while (countWords(turns) < 950) {
+      const last = turns[turns.length - 1];
+      turns[turns.length - 1] = { ...last, text: `${last.text} genuinely` };
+    }
+
+    return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+  }
+
+  it("fixture sanity check: the valid script passes every structural rule with zero issues", () => {
+    const issues = validateGeneratedScript(buildValidScriptOutput(), REQUEST_B2);
+    expect(issues).toEqual([]);
+  });
+
+  function fakeEnrichment(overrides: Partial<EnrichmentResult> = {}): EnrichmentResult {
+    return {
+      cefrLevelMin: "B2",
+      cefrLevelMax: "C1",
+      topics: [],
+      rawTopics: [],
+      summary: "A concise summary of the episode.",
+      vocabulary: [{ word: "episode", phonetic: "", pos: "noun", translation: "", definition: "One part of a series.", example: "This episode covers a new topic." }],
+      quiz: [{ id: "q1", type: "mc", question: "What is this content?", options: ["An episode", "A book", "A film", "A song"], correct: 0, explanation: "Defined above.", grammarTopic: null, vocabularyWord: null }],
+      takeaways: ["Key takeaway."],
+      reflection: "Reflect on this episode.",
+      keyExpressions: [],
+      discussionQuestions: [],
+      listeningNotes: ["Listen for pacing."],
+      grammarNotes: [],
+      readingDifficulty: null,
+      ...overrides,
+    };
+  }
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.mocked(generateStructuredJson).mockResolvedValue(buildValidScriptOutput());
+  });
+
+  it("returns the real enrichment result on success once it grades B2+", async () => {
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+
+    const result = await generateEpisodeScript(REQUEST_B2);
+
+    expect(result.enrichment.cefrLevelMin).toBe("B2");
+    expect(result.enrichment.cefrLevelMax).toBe("C1");
+    expect(result.attempts).toBe(1);
+    expect(vi.mocked(generateEnrichment)).toHaveBeenCalledTimes(1);
+  });
+
+  it("treats a below-B2 enrichment grade as a retry-worthy failure, not a success", async () => {
+    vi.mocked(generateEnrichment)
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }))
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+
+    const result = await generateEpisodeScript(REQUEST_B2);
+
+    expect(result.attempts).toBe(2);
+    expect(result.enrichment.cefrLevelMin).toBe("B2");
+    expect(vi.mocked(generateEnrichment)).toHaveBeenCalledTimes(2);
+
+    // The retry prompt for attempt 2 must carry the genuine-improvement
+    // guidance, not a metadata-relabeling instruction.
+    const secondCall = vi.mocked(generateStructuredJson).mock.calls[1][0];
+    const secondPrompt = secondCall.messages[0].content as string;
+    expect(secondPrompt).toMatch(/Authoritative enrichment graded this script as cefrLevelMin=B1/i);
+    expect(secondPrompt).toMatch(/independently graded BELOW the required B2\+ standard/i);
+    expect(secondPrompt).toMatch(/do not just relabel the same simple script or change the self-reported level field/i);
+  });
+
+  it("throws after exhausting all attempts if enrichment keeps grading below B2", async () => {
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }));
+
+    await expect(generateEpisodeScript(REQUEST_B2)).rejects.toThrow(/Script generation failed validation after 6 attempts/i);
+    expect(vi.mocked(generateEnrichment)).toHaveBeenCalledTimes(6);
+  });
+
+  it("never calls generateEnrichment when structural validation already failed -- no wasted grading call", async () => {
+    vi.mocked(generateStructuredJson).mockResolvedValue({
+      title: "Test Episode",
+      topic: "Testing",
+      topicTags: ["Testing"],
+      cefrLevel: "B2",
+      turns: [{ speaker: 0, text: "Too short to pass any structural rule." }],
+    });
+
+    await expect(generateEpisodeScript(REQUEST_B2)).rejects.toThrow();
+    expect(vi.mocked(generateEnrichment)).not.toHaveBeenCalled();
+  });
+
+  it("calls generateEnrichment exactly once per successful episode -- no duplicate grading call", async () => {
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+    await generateEpisodeScript(REQUEST_B2);
+
+    expect(vi.mocked(generateEnrichment)).toHaveBeenCalledTimes(1);
   });
 });
