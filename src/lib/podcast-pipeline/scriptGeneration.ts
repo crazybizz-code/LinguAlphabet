@@ -570,6 +570,19 @@ export interface ScriptGenerationResult {
  * When two or more of these issues co-occur, an explicit combined-fix
  * sentence is prepended so fixing one (e.g. trimming length) is never
  * read as permission to ignore the others.
+ *
+ * CEFR guidance word-count-preservation constraint (see buildCefrGuidance()
+ * below): closes a DIFFERENT kind of gap than the ones above -- not a
+ * missing category, but two existing, individually-correct mechanisms
+ * (word-count correction and CEFR-grading retry) undoing each other. A
+ * real diagnostic run showed a script pass structural validation at 964
+ * words, fail ONLY the authoritative CEFR grading, then get rewritten by
+ * the (previously length-unaware) CEFR guidance into a 1269-word draft --
+ * erasing several attempts' worth of word-count-correction progress in one
+ * step and causing the whole run to exhaust MAX_ATTEMPTS still over the
+ * ceiling. buildCefrGuidance() now tells the model explicitly not to let
+ * that happen, but only when the previous draft's word count was already
+ * inside or close to 920-965 -- see its own doc comment.
  */
 const WORD_COUNT_ISSUE_RE = /word count (\d+) is outside/i;
 const WORD_COUNT_TARGET_MIN = 935;
@@ -617,6 +630,210 @@ const NEAR_CEILING_TARGET_MAX = WORD_COUNT_HARD_MAX - 5; // 960
 const NEAR_CEILING_TARGET_MIN = WORD_COUNT_HARD_MAX - 10; // 955
 
 /**
+ * Mirrors validateGeneratedScript()'s own 920 floor literal, exactly like
+ * WORD_COUNT_HARD_MAX mirrors its 965 ceiling above -- used only to decide
+ * whether buildCefrGuidance()'s word-count-preservation constraint should
+ * fire, never wired to the actual validation gate.
+ */
+const WORD_COUNT_HARD_MIN = 920;
+
+/**
+ * How close to the 920-965 range a previous draft's word count must be
+ * before buildCefrGuidance() adds its word-count-preservation constraint.
+ * See that function's doc comment for why this exists. 40 comfortably
+ * covers the exact real case this fix was built for -- a script that had
+ * ALREADY cleared structural validation, including word count, before
+ * failing ONLY the authoritative CEFR grading (meaning its word count was,
+ * by construction, already inside 920-965 at that point) -- while also
+ * covering a script that's merely close (e.g. it failed word count by a
+ * small margin at the same time its CEFR self-report was wrong), where the
+ * same "don't let raising sophistication add length" caution still
+ * usefully applies.
+ */
+const CEFR_GUIDANCE_NEAR_RANGE_MARGIN = 40;
+
+function isInOrNearWordCountRange(wordCount: number | undefined): boolean {
+  if (wordCount === undefined) return false;
+  return wordCount >= WORD_COUNT_HARD_MIN - CEFR_GUIDANCE_NEAR_RANGE_MARGIN && wordCount <= WORD_COUNT_HARD_MAX + CEFR_GUIDANCE_NEAR_RANGE_MARGIN;
+}
+
+/**
+ * Shared "how to cut" instruction, reused by both the outer-revision
+ * large-overshoot guidance (buildWordCountGuidance below) and the
+ * dedicated word-count-correction message (buildWordCountCorrectionMessage
+ * further down) -- the two places a word-count cut is ever requested.
+ *
+ * Root cause this fixes: a real diagnostic run captured the FULL script
+ * text at every attempt of a real 6-attempt failure and diffed them. Every
+ * single cut across the whole run -- large and small alike -- was a
+ * cosmetic word/phrase trim ("at the time" removed, "completely" removed,
+ * "or anything" removed); zero turns or sentences were ever deleted, even
+ * when 100-300+ words still needed removing. The single longest turn in
+ * the script (a ~110-word personal anecdote, explicitly one OPTIONAL
+ * conversational feature per the base prompt, not a mandated element)
+ * survived completely untouched through all 15 real drafts, including the
+ * final failing one. The old instruction ("trim sentences and phrases
+ * within turns, don't just delete whole turns") is reasonable advice for a
+ * SMALL cut, but for a large one it reliably produced repeated 5-15 word
+ * cosmetic trims that never closed the gap, no matter how many times the
+ * same request was retried.
+ *
+ * For a genuinely large cut (see NEAR_CEILING_OVERSHOOT_LIMIT for the
+ * exact boundary, reused unchanged from the pre-existing near-miss
+ * classification), the model is now told directly to find and
+ * substantially shorten or remove ONE existing non-essential turn -- a
+ * personal example, story, extended explanation, or aside, explicitly
+ * NEVER the hook, introductions, LinguABC mention, or interruption pair --
+ * then use smaller trims only for the remainder. A small cut (near-ceiling
+ * overshoot, or the undershoot/add-words path elsewhere, both untouched by
+ * this fix) keeps the original phrase-trim-only instruction, which already
+ * works fine at that size and does not need a whole turn removed.
+ */
+function buildCutMethodGuidance(isLargeCut: boolean): string {
+  return isLargeCut
+    ? "This cut is TOO LARGE to reach through word- and phrase-level trims alone -- that approach has repeatedly produced cuts of only 5-15 words per attempt in real generations, far short of what a cut this size requires, no matter how many times it is retried. Instead: find the SINGLE longest turn in the script that is a personal example, story, extended explanation, or other non-essential aside (never the hook, the self-introductions, the LinguABC mention, or the interruption pair) and cut it substantially -- remove at least half of it, or cut it entirely if the conversation still flows naturally without it. That one structural cut should account for a large share of the total; use smaller word- and phrase-level trims elsewhere in the script only for the remainder."
+    : "Trim sentences and phrases within turns, don't just delete whole turns -- a cut this small does not require it.";
+}
+
+/** A single turn, deterministically identified as the safe target for a
+ * large cut -- see selectLargeCutTarget()'s doc comment. */
+export interface LargeCutTarget {
+  turnIndex: number;
+  speakerName: SpeakerName;
+  text: string;
+  wordCount: number;
+}
+
+/**
+ * DETERMINISTIC LARGE-CUT TARGET SELECTION (word-count convergence fix,
+ * correction pass only -- see buildDeterministicLargeCutInstruction()'s
+ * call site in buildWordCountCorrectionMessage()).
+ *
+ * Root cause this fixes: a real diagnostic run captured every message sent
+ * during a large-cut failure and confirmed the classification, cut-range
+ * arithmetic, and instruction text were all correct -- the model was
+ * explicitly, repeatedly told to "find the SINGLE longest turn... that is
+ * a personal example, story, extended explanation, or other non-essential
+ * aside" and cut it substantially. It never reliably did. The one real
+ * edit in that entire run trimmed a single sentence off an unrelated turn,
+ * not the longest eligible one; two genuinely eligible candidate turns
+ * (including one with zero structural protection) went untouched across
+ * 12 consecutive attempts. The instruction's WEAKEST link was never the
+ * cut size or the "don't just trim words" framing -- it was asking the
+ * model to perform an open-ended SEARCH ("find the single longest turn
+ * that is...") over the whole script as a discrete step, every single
+ * retry, with no state carried over from prior failed searches.
+ *
+ * This function removes that search from the model's job entirely and
+ * replaces it with the same kind of deterministic, position-based logic
+ * this file ALREADY uses for structural checks -- it does not invent a new
+ * classification mechanism (no LLM call, no keyword/topic classifier).
+ * "Eligible" is defined negatively, by REUSING existing structural signals
+ * unmodified: reuses checkOpeningStructure() (already exported, already
+ * the authoritative source for where the hook, both self-introductions,
+ * and the LinguABC mention land) for the opening-block indices, and
+ * reuses the SAME em-dash regexes validateGeneratedScript()'s own
+ * interruption check already uses (copied here only because that function
+ * returns a boolean, not indices -- the regex definitions themselves are
+ * not duplicated logic, they are the single existing definition of "what
+ * counts as an interruption dash" reapplied to find WHICH turns matched).
+ * The final turn is also excluded as a conservative closing/sign-off
+ * margin: the correction contract does not name a separate "closing" item
+ * the way it names the opening block, but removing the episode's only
+ * sign-off turn entirely would still contradict the base prompt's ENDING
+ * section, and excluding one additional turn costs nothing in a
+ * typically 16-100-turn script.
+ *
+ * Among every turn NOT in that protected set, the LONGEST one (by the
+ * same countSpokenWords() word-counting formula used everywhere else in
+ * this file) is returned as the designated target -- ties broken by
+ * earliest turnIndex, for determinism. A longer turn is not a proof of
+ * being "a personal example/story/aside" (there is no such semantic
+ * label in the schema, and requirement 5 of this fix explicitly forbids
+ * adding an LLM classifier just to create one), but it is the same,
+ * already-observed real-world correlation the original prompt text itself
+ * relied on ("find the SINGLE LONGEST turn that is...") -- this function
+ * computes the "longest" half of that instruction exactly and
+ * deterministically; the model is still the one performing the actual
+ * rewrite, and still receives the same "personal example/story/aside"
+ * framing as context for HOW to shorten the designated turn, not for
+ * WHICH turn to pick.
+ *
+ * Returns null when no eligible turn exists (e.g., a very short or
+ * unusually heavily-protected script) -- callers MUST fall back to the
+ * existing, unmodified buildCutMethodGuidance(true) text in that case
+ * rather than inventing a fallback target (see
+ * buildDeterministicLargeCutInstruction()).
+ */
+export function selectLargeCutTarget(output: ScriptGenerationOutput, request: ScriptGenerationRequest): LargeCutTarget | null {
+  const protectedIndices = new Set<number>();
+  if (output.turns.length > 0) protectedIndices.add(0); // the hook
+  protectedIndices.add(output.turns.length - 1); // conservative closing/sign-off margin -- see doc comment
+
+  const opening = checkOpeningStructure(output, request);
+  if (opening.speaker0IntroPosition) protectedIndices.add(opening.speaker0IntroPosition.turnIndex);
+  if (opening.speaker1IntroPosition) protectedIndices.add(opening.speaker1IntroPosition.turnIndex);
+  if (opening.linguabcPosition) protectedIndices.add(opening.linguabcPosition.turnIndex);
+
+  // Same em-dash definitions validateGeneratedScript()'s own interruption
+  // check uses -- reapplied here to recover WHICH turn indices matched,
+  // since that function only returns whether a match exists anywhere.
+  const endsWithDash = (t: string) => /[—-]\s*$/.test(t.trim());
+  const startsWithDash = (t: string) => /^\s*[—-]/.test(t.trim());
+  for (let i = 1; i < output.turns.length; i++) {
+    if (endsWithDash(output.turns[i - 1].text) && startsWithDash(output.turns[i].text)) {
+      protectedIndices.add(i - 1);
+      protectedIndices.add(i);
+    }
+  }
+
+  let best: LargeCutTarget | null = null;
+  for (let i = 0; i < output.turns.length; i++) {
+    if (protectedIndices.has(i)) continue;
+    const turn = output.turns[i];
+    const wordCount = turn.text.replace(/\[[^\]]*\]/g, " ").split(/\s+/).filter(Boolean).length;
+    if (!best || wordCount > best.wordCount) {
+      best = { turnIndex: i, speakerName: turn.speaker === 0 ? request.speaker0Name : request.speaker1Name, text: turn.text, wordCount };
+    }
+  }
+  return best;
+}
+
+/**
+ * Truncates a turn's text for display in the correction prompt without
+ * cutting in the middle of a bracket prosody cue (e.g. "...[emph" instead
+ * of "...[emphasis]") -- a plain slice(0, maxLen) can land inside a "[...]"
+ * pair, showing the model a visibly malformed preview. If the naive cut
+ * point falls inside an unclosed bracket, backs up to just before that
+ * bracket instead.
+ */
+function truncatePreview(text: string, maxLen: number): string {
+  if (text.length <= maxLen) return text;
+  let cut = text.slice(0, maxLen);
+  const lastOpen = cut.lastIndexOf("[");
+  const lastClose = cut.lastIndexOf("]");
+  if (lastOpen > lastClose) cut = cut.slice(0, lastOpen);
+  return `${cut.trimEnd()}...`;
+}
+
+/**
+ * Builds the large-cut instruction text using the deterministic target
+ * selectLargeCutTarget() found, if any. When a target exists, the model is
+ * told EXACTLY which turn to cut -- no search required -- but still
+ * performs the actual rewrite (shorten substantially, or remove it
+ * entirely), and still receives the same content-type framing (personal
+ * example/story/aside) as guidance for HOW to edit it. When no eligible
+ * target exists, falls back to the ORIGINAL, unmodified
+ * buildCutMethodGuidance(true) text -- existing behavior preserved exactly,
+ * per this fix's explicit "do not invent a fallback target" requirement.
+ */
+function buildDeterministicLargeCutInstruction(target: LargeCutTarget | null): string {
+  if (!target) return buildCutMethodGuidance(true);
+  const preview = truncatePreview(target.text, 140);
+  return `The cut target has ALREADY BEEN IDENTIFIED for you -- you do not need to search the script for it. Turn #${target.turnIndex} (${target.speakerName}, ${target.wordCount} words) is the designated cut target: "${preview}" This is the kind of content (a personal example, story, extended explanation, or non-essential aside) that this cut should come from. Substantially shorten this turn -- remove at least half of it -- or remove it entirely if the conversation still flows naturally without it. Do not select a different turn instead. That one structural cut should account for a large share of the total; use smaller word- and phrase-level trims elsewhere in the script only for the remainder.`;
+}
+
+/**
  * Builds the word-count-specific retry line. Given the actual previous
  * count (parsed from validateGeneratedScript's own message, never
  * guessed), computes a real add/cut range so the model is told a concrete
@@ -639,7 +856,10 @@ const NEAR_CEILING_TARGET_MIN = WORD_COUNT_HARD_MAX - 10; // 955
  * under the hard ceiling; a large overshoot keeps the original, more
  * emphatic "cut all the way to 935-950" treatment, restating the hard
  * ceiling and asking the model to recount before returning. Undershoot
- * guidance is untouched by this or either prior fix.
+ * guidance is untouched by this or either prior fix. Both branches now
+ * route their "how to cut" sentence through buildCutMethodGuidance() above
+ * instead of a hardcoded phrase-trim-only instruction -- see its doc
+ * comment for why.
  */
 function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
   const match = issues.map((issue) => issue.message.match(WORD_COUNT_ISSUE_RE)).find((m): m is RegExpMatchArray => m !== null);
@@ -659,11 +879,11 @@ function buildWordCountGuidance(issues: ScriptValidationIssue[]): string {
     if (overshoot > 0 && overshoot <= NEAR_CEILING_OVERSHOOT_LIMIT) {
       const cutMin = previousCount - NEAR_CEILING_TARGET_MAX;
       const cutMax = previousCount - NEAR_CEILING_TARGET_MIN;
-      return `\nPrevious draft: ${previousCount} words. Required: 920-965, hard maximum 965 -- this draft already exceeds it, but only by ${overshoot} word(s), so a full cut down to 935-950 is unnecessary. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue -- trim sentences and phrases within turns, don't just delete whole turns, and do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target ${NEAR_CEILING_TARGET_MIN}-${NEAR_CEILING_TARGET_MAX} words total, safely under the 965 hard maximum with a small margin -- you do NOT need to reach all the way down to 935-950. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 965, cut more.`;
+      return `\nPrevious draft: ${previousCount} words. Required: 920-965, hard maximum 965 -- this draft already exceeds it, but only by ${overshoot} word(s), so a full cut down to 935-950 is unnecessary. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue. ${buildCutMethodGuidance(false)} Do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target ${NEAR_CEILING_TARGET_MIN}-${NEAR_CEILING_TARGET_MAX} words total, safely under the 965 hard maximum with a small margin -- you do NOT need to reach all the way down to 935-950. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 965, cut more.`;
     }
     const cutMin = previousCount - WORD_COUNT_TARGET_MAX;
     const cutMax = previousCount - WORD_COUNT_TARGET_MIN;
-    return `\nPrevious draft: ${previousCount} words. Required: 920-965, hard maximum 965 -- this draft already exceeds it. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue -- trim sentences and phrases within turns, don't just delete whole turns, and do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target 935-950 words total, and it MUST NOT exceed 965. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 965, cut more.`;
+    return `\nPrevious draft: ${previousCount} words. Required: 920-965, hard maximum 965 -- this draft already exceeds it. Do NOT rewrite or expand the draft. This is a CUT operation, not a generation target: the revised draft MUST be SHORTER than the previous ${previousCount}-word draft. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue. ${buildCutMethodGuidance(true)} Do not add replacement paragraphs or new content to compensate for what you cut. Preserve the existing opening block, interruption, prosody cues, and CEFR-level content exactly as they already are -- only cut. Target 935-950 words total, and it MUST NOT exceed 965. Before returning your answer, mentally recount the final spoken word total (excluding bracket cues) -- if it is still above 965, cut more.`;
   }
   // previousCount is inside 935-950 but the issue still fired, which can
   // only mean the message format changed underneath this parser.
@@ -762,15 +982,62 @@ function buildOpeningStructureGuidance(issues: ScriptValidationIssue[]): string 
   return `\nThe opening block is still wrong: ${specifics.join("; ")}. The REQUIRED order, every time, with nothing else in between, is: (1) the hook, (2) one brief reaction/development beat, (3) Speaker 0 introduces himself ("I'm <name>"), (4) Speaker 1 introduces herself in that SAME opening block ("And I'm <name>"), (5) a brief LinguABC mention immediately after the introductions, (6) THEN the main topic conversation begins. The introductions and the LinguABC identity must NOT first appear in the closing sign-off -- the sign-off may mention LinguABC again naturally, but that later mention does not satisfy this requirement. The FIRST LinguABC mention and BOTH introductions must land within roughly the first quarter of the script, immediately after the hook and its one reaction beat.`;
 }
 
-export function buildRetryFeedback(issues: ScriptValidationIssue[]): string {
+/**
+ * Builds the CEFR-grading-specific retry line. The base guidance (raise
+ * vocabulary sophistication, use real subordinate-clause structures,
+ * discuss a more complex angle) is unchanged from before this fix.
+ *
+ * WORD-COUNT-PRESERVATION CONSTRAINT (added by this fix): a real
+ * diagnostic run showed that when a script had ALREADY cleared structural
+ * validation -- including landing inside 920-965 -- and then failed ONLY
+ * the authoritative CEFR grading, the base guidance below (with no length
+ * constraint attached) reliably produced a MUCH longer draft: a real run
+ * went 964 words -> 1269 words in a single rewrite, wiping out several
+ * attempts' worth of word-count-correction progress and causing the whole
+ * run to fail after MAX_ATTEMPTS that would otherwise have published. The
+ * model was satisfying "more sophisticated" by adding hedges, subordinate
+ * clauses, and formal near-synonyms of already-adequate phrasing -- length
+ * as a side effect, never a constraint it was asked to respect DURING that
+ * specific rewrite.
+ *
+ * Deliberately narrow: fires only when the PREVIOUS draft's word count
+ * (passed in by the caller, computed from the real previous output --
+ * never guessed) is already inside or close to 920-965, per
+ * isInOrNearWordCountRange(). A draft that's still far from the range
+ * (e.g. a fresh 1113-word initial attempt that also has a CEFR self-report
+ * mismatch) keeps the original, unconstrained guidance -- forcing a length
+ * constraint onto a draft that isn't close yet would just recreate the
+ * exact tension runWordCountCorrection() already exists to avoid.
+ */
+function buildCefrGuidance(previousWordCount?: number): string {
+  const base =
+    "\nFor the CEFR level specifically: this draft was independently graded BELOW the required B2+ standard by the same authoritative grading the published episode will be checked against -- this is not a labeling mistake, the actual vocabulary and sentence complexity were too simple. Raise vocabulary sophistication, use real conditional/subordinate-clause sentence structures throughout (not just when convenient), and discuss a genuinely complex or abstract angle of the topic instead of a simple personal anecdote. Genuinely rewrite the language -- do not just relabel the same simple script or change the self-reported level field.";
+
+  if (!isInOrNearWordCountRange(previousWordCount)) return base;
+
+  return `${base} This draft's word count (${previousWordCount}) is already inside or close to the required 920-965 range -- the rewrite above must NOT be allowed to push it back out. Improve CEFR sophistication through vocabulary CHOICE and sentence-level syntax variety, NOT by adding length: do not add new content, new turns, new examples, or new explanations. If a rewritten sentence becomes longer because it now uses a genuinely more sophisticated structure, cut an equivalent number of words elsewhere in the SAME revision to compensate. Preserve the existing script's structure and meaning -- this is still the same episode, only its language is being upgraded. Treat the 920-965 word count as a HARD constraint during this CEFR revision, exactly as strict as the CEFR requirement itself, not a secondary concern to fix on a later attempt.`;
+}
+
+export function buildRetryFeedback(issues: ScriptValidationIssue[], previousWordCount?: number): string {
   const bullets = issues.map((issue) => `- ${issue.message}`).join("\n");
   const hasWordCountIssue = issues.some((issue) => /word count/i.test(issue.message));
   const hasCefrIssue = issues.some((issue) => /cefr/i.test(issue.message));
   const hasMarkdownIssue = issues.some((issue) => /markdown/i.test(issue.message));
   const wordCountGuidance = hasWordCountIssue ? buildWordCountGuidance(issues) : "";
-  const cefrGuidance = hasCefrIssue
-    ? "\nFor the CEFR level specifically: this draft was independently graded BELOW the required B2+ standard by the same authoritative grading the published episode will be checked against -- this is not a labeling mistake, the actual vocabulary and sentence complexity were too simple. Raise vocabulary sophistication, use real conditional/subordinate-clause sentence structures throughout (not just when convenient), and discuss a genuinely complex or abstract angle of the topic instead of a simple personal anecdote. Genuinely rewrite the language -- do not just relabel the same simple script or change the self-reported level field."
-    : "";
+  // A PURE CEFR mismatch already gets its own dedicated, self-contained
+  // preamble (buildCefrOnlyRevisionPreamble(), selected by the caller via
+  // isPureCefrMismatch()) -- this generic block must NOT also be appended
+  // in that case (Fix #7's root-cause finding): buildCefrGuidance()'s base
+  // text says to "discuss a genuinely complex or abstract angle of the
+  // topic instead of a simple personal anecdote," which directly
+  // contradicts the dedicated preamble's "preserve the facts, topic,
+  // meaning... do NOT add any new facts, examples, explanations... content
+  // of any kind" -- a real, reproduced 952->989-word CEFR-only revision
+  // received BOTH blocks stacked in the same message. Every OTHER CEFR
+  // scenario (combined with word count, opening, etc. -- i.e. NOT a pure
+  // mismatch) keeps this exactly as before; isPureCefrMismatch() itself is
+  // untouched.
+  const cefrGuidance = hasCefrIssue && !isPureCefrMismatch(issues) ? buildCefrGuidance(previousWordCount) : "";
   // Bracket wording deliberately does NOT use a closing/paired tag like
   // [/emphasis] -- the schema has never supported one (see PROSODY above
   // and validateGeneratedScript's unclosed/unmatched-bracket check), and
@@ -874,9 +1141,182 @@ async function generateAndCheckEnrichment(
  * how to fix it concretely") is equally valid whether the model is
  * rewriting from scratch or revising a specific draft. Only the framing
  * around it changes.
+ *
+ * largeCutNeeded (word-count-convergence fix): this preamble's own "leave
+ * every turn, line, joke, example... completely unchanged" framing
+ * directly fights buildCutMethodGuidance()'s large-cut instruction below
+ * it in the SAME message -- a real diagnostic run showed exactly this
+ * combination reach the outer revision path (a 1094-word initial draft
+ * with multiple issues went to "revision" carrying a word-count issue
+ * requiring a 130+ word cut) and produce only an 8-10 word cosmetic trim,
+ * the same failure buildCutMethodGuidance() exists to fix. When the
+ * previous attempt's issues include a large word-count overshoot (see
+ * NEAR_CEILING_OVERSHOOT_LIMIT), an explicit exception is appended stating
+ * that substantially shortening or removing the ONE turn identified in the
+ * word-count guidance is REQUIRED here, not a violation of "smallest
+ * possible targeted edits" -- every other unflagged element still must
+ * stay unchanged. Defaults to false, so every existing caller/test that
+ * calls this with no argument gets byte-identical output to before this
+ * fix; a small or near-ceiling cut, or any other issue category alone,
+ * never triggers it.
  */
-export function buildRevisionPreamble(): string {
-  return "The assistant message directly above is the EXACT script you wrote last time, as the same JSON structure you must return again. Do NOT discard it and write a new script from scratch -- REVISE that exact draft. Make the smallest possible targeted edits that fix every issue listed below, and leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged: same topic, same hook, same personalities, same wording wherever it already worked, same opening block and interruption if they already passed. You must still return the FULL script (every turn, not a diff or a summary of changes) -- but it should read as a lightly-edited version of your previous draft, not a different episode.";
+export function buildRevisionPreamble(largeCutNeeded: boolean = false): string {
+  const base =
+    "The assistant message directly above is the EXACT script you wrote last time, as the same JSON structure you must return again. Do NOT discard it and write a new script from scratch -- REVISE that exact draft. Make the smallest possible targeted edits that fix every issue listed below, and leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged: same topic, same hook, same personalities, same wording wherever it already worked, same opening block and interruption if they already passed. You must still return the FULL script (every turn, not a diff or a summary of changes) -- but it should read as a lightly-edited version of your previous draft, not a different episode.";
+
+  if (!largeCutNeeded) return base;
+
+  return `${base} EXCEPTION for this revision: the word-count issue below requires a LARGE cut that "leave every example unchanged" cannot satisfy on its own. For the ONE turn identified in the word-count guidance below (a personal example, story, extended explanation, or aside), substantially shortening or removing it is REQUIRED here -- that is not a violation of "smallest possible targeted edits," it is what this specific revision needs. Every other unflagged turn, line, and structural element -- including the opening block and interruption if they already passed -- must still stay unchanged.`;
+}
+
+/**
+ * Decides buildRevisionPreamble()'s largeCutNeeded argument: true whenever
+ * ANY issue in the previous attempt's list is a word-count overshoot past
+ * NEAR_CEILING_OVERSHOOT_LIMIT -- regardless of what else co-occurs with
+ * it, since the preamble conflict this exists to avoid applies equally
+ * whether the large cut is the only issue or one of several. Reuses the
+ * same regex and threshold buildWordCountGuidance() and
+ * buildWordCountCorrectionMessage() already use, never a second copy of
+ * the classification logic.
+ */
+function isLargeWordCountCutNeeded(issues: ScriptValidationIssue[]): boolean {
+  const match = issues.map((issue) => issue.message.match(WORD_COUNT_ISSUE_RE)).find((m): m is RegExpMatchArray => m !== null);
+  if (!match) return false;
+  const previousCount = Number(match[1]);
+  return previousCount - WORD_COUNT_HARD_MAX > NEAR_CEILING_OVERSHOOT_LIMIT;
+}
+
+/**
+ * True when CEFR mismatch is the ONLY issue in the previous attempt's
+ * list -- covers both shapes buildRetryFeedback()'s hasCefrIssue already
+ * treats identically: the authoritative-grading failure
+ * (generateAndCheckEnrichment, always exactly one issue on its own, since
+ * enrichment only runs once structural validation is already clean) and
+ * the rarer structural self-report mismatch (validateGeneratedScript's own
+ * "Requested CEFR level X but the model self-reported Y" check, which CAN
+ * co-occur with other structural issues like word count). Deliberately
+ * `issues.length === 1`, not just "contains a CEFR issue" -- see
+ * buildCefrOnlyRevisionPreamble()'s doc comment for why a pure mismatch
+ * needs fundamentally different framing than a combined failure, where the
+ * existing word-count/other-category machinery must keep handling things
+ * exactly as it already does.
+ */
+function isPureCefrMismatch(issues: ScriptValidationIssue[]): boolean {
+  return issues.length === 1 && /cefr/i.test(issues[0].message);
+}
+
+/**
+ * Dedicated preamble for a PURE CEFR mismatch revision -- used INSTEAD of
+ * buildRevisionPreamble() only when isPureCefrMismatch() is true, never
+ * composed with it. Root cause this fixes: a real diagnostic run captured
+ * the exact message sent for this scenario and found a direct, live
+ * contradiction inside it -- buildRevisionPreamble()'s own "leave every
+ * turn, line, joke, example, and structural element that was NOT flagged
+ * completely unchanged... same wording wherever it already worked"
+ * sitting immediately next to buildCefrGuidance()'s "Genuinely rewrite the
+ * language -- do not just relabel the same simple script." A CEFR
+ * mismatch is a GLOBAL property of the text (there is no per-turn "CEFR
+ * flag" the way there is for a specific prosody or interruption issue), so
+ * satisfying it legitimately requires touching most sentences' wording --
+ * exactly what the minimal-edit preamble tells the model not to do. The
+ * real observed result: a 960-word passing draft, failing ONLY CEFR
+ * grading, revised into a 994-word draft where nearly every turn was
+ * rewritten with more Latinate/nominalized vocabulary for the SAME ideas
+ * ("asking for forgiveness" -> "an appeal for forbearance"; "Something
+ * like, 'How can I make this right?'" -> "Something along the lines of,
+ * 'How might I endeavor to ameliorate this?'") -- no new content anywhere,
+ * just systematically less word-efficient phrasing, net +34 words.
+ *
+ * This preamble resolves the contradiction by removing it rather than by
+ * telling the model to ignore one side or the other: wording is
+ * explicitly UNPROTECTED (the opposite of buildRevisionPreamble()'s
+ * stance) so there is nothing left to contradict "genuinely rewrite the
+ * language," while CONTENT (facts, topic, meaning, structure,
+ * personalities, examples) and the 920-965 word count are both explicitly
+ * protected instead -- reframing the whole task as substitution/
+ * compression, never expansion, and naming the exact failure mode
+ * (nominalized, longer-for-no-reason phrasing) so the model has a concrete
+ * bar to avoid, not just an abstract "don't add length."
+ *
+ * Deliberately narrow via isPureCefrMismatch(): a CEFR mismatch combined
+ * with ANY other issue (most commonly word count) falls through to the
+ * existing buildRevisionPreamble(isLargeWordCountCutNeeded(...)) path,
+ * completely unchanged -- that machinery already handles word-count/
+ * prosody/interruption/opening/markdown correctly and this fix must not
+ * alter it.
+ *
+ * FIX #7 (CEFR REVISION WORD-COUNT REGRESSION): a second real reproduction
+ * (952 -> 989 words, still failing structurally afterward) confirmed this
+ * preamble's existing anti-expansion language was not concrete enough to
+ * reliably stop it on its own, and also surfaced a real CONTRADICTION this
+ * fix removes at the call site (see buildRetryFeedback()'s comment):
+ * buildCefrGuidance() -- meant for a CEFR mismatch COMBINED with other
+ * issues -- was ALSO being appended after this preamble for the PURE case,
+ * and its base text ("discuss a genuinely complex or abstract angle of the
+ * topic instead of a simple personal anecdote") directly contradicts this
+ * preamble's own "do NOT add any new... content of any kind." That
+ * contamination is now suppressed for the pure case at the source.
+ *
+ * This preamble itself is also strengthened with the SPECIFIC failure
+ * pattern the second reproduction exhibited, verbatim from the real
+ * output ("feel... empty" -> "feel... ineffectual"; "I know exactly what
+ * you mean" -> "I comprehend precisely what you signify"; "I get that" ->
+ * "I apprehend that distinction") -- naming nominalization and periphrastic
+ * expansion explicitly, by name and by counter-example, rather than only
+ * the previous fix's more abstract "longer academic or nominalized
+ * phrasing." Also adds: concrete positive technique guidance (precise word
+ * choice, sentence-level structure, natural higher-level grammar --
+ * anything BUT length), an explicit same-length-or-shorter preference with
+ * a numeric compensation rule, a threshold (CEFR_REVISION_NEAR_CEILING_THRESHOLD)
+ * that shifts the instruction to "substitution only, no expansion anywhere"
+ * once the previous draft is already close to the 965 ceiling, and an
+ * explicit final self-recount instruction (previously implicit).
+ *
+ * A second adversarial review of this fix caught four further real issues,
+ * all fixed here: (1) the original "feel... empty" -> "feel... ineffectual"
+ * worked example was itself a borderline MEANING change (emotional vacancy
+ * vs. incompetence), undermining the exact distinction it was meant to
+ * illustrate -- replaced with "really good" -> "excellent" (unambiguously
+ * shorter, same meaning, more precise); (2) the compensation rule ("shorten
+ * a different sentence... by at least N words") gave no guidance on HOW to
+ * shorten, inviting a new failure mode -- cutting real content to pay a
+ * word debt, contradicting "no content changes" -- now explicit: word-level
+ * tightening only, never cutting a fact/example/turn; (3) "at least N
+ * words" had no upper bound, risking systematically undershooting the 920
+ * floor with no floor-side guidance to match the ceiling-side note -- now
+ * "approximately N... not significantly more" plus an explicit "both the
+ * 920 floor and the 965 ceiling are equally hard limits" statement; (4) the
+ * near-ceiling override note could read as merely ADDITIONAL to the general
+ * compensation allowance rather than replacing it -- now explicitly states
+ * "this OVERRIDES the compensation allowance above."
+ *
+ * One review finding was deliberately NOT acted on: if a revision still
+ * overshoots despite this preamble, the next attempt's issues array is no
+ * longer length-1 (now CEFR + word count), so isPureCefrMismatch() is
+ * false and the NEXT retry falls through to the existing, unchanged
+ * buildCefrGuidance()/buildRevisionPreamble() combined-issue machinery --
+ * exactly as requirement 10 of this fix requires ("must NOT change
+ * behavior for a CEFR mismatch combined with any other issue"). Closing
+ * that loop further would mean touching the combined path, which this fix
+ * is explicitly scoped not to do.
+ */
+const CEFR_REVISION_NEAR_CEILING_THRESHOLD = 940;
+
+export function buildCefrOnlyRevisionPreamble(previousWordCount?: number): string {
+  const nearCeiling = previousWordCount !== undefined && previousWordCount > CEFR_REVISION_NEAR_CEILING_THRESHOLD;
+  const ceilingNote = nearCeiling
+    ? ` This draft is already at ${previousWordCount} words, close to the 965 ceiling -- this OVERRIDES the compensation allowance above: do NOT expand ANYWHERE in this revision, even by one or two words per sentence and even if you plan to compensate elsewhere; every register change here must be same-length-or-shorter, no exceptions.`
+    : "";
+
+  return `The assistant message directly above is the EXACT script you wrote last time, as the same JSON structure you must return again. This revision failed ONLY the authoritative CEFR grading -- every structural rule (word count, turn structure, prosody, opening block, interruption) already passed and must keep passing. Preserve the facts, topic, meaning, structure, speaker personalities, and existing examples exactly as they are -- do NOT add any new facts, examples, explanations, turns, or content of any kind, and do NOT reframe the discussion toward a "more complex" or "more abstract" angle -- the topic and what is actually said about it must stay the same. UNLIKE a normal minimal-edit revision, wording is NOT protected here: you are REQUIRED to rewrite existing sentences to genuinely reach the required CEFR register, not just relabel them.
+
+Treat this as SUBSTITUTION and COMPRESSION, not expansion. Raise the register ONLY through: more precise or specific word choice (a more exact word, not a longer one), better sentence-level structure (subordinate or relative clauses, varied sentence openings), and natural higher-level grammar (conditionals, passive voice where it reads naturally, more sophisticated connectors) -- never through raw length.
+
+STRICTLY FORBIDDEN, because "longer" is never evidence of "more advanced": (1) nominalization -- turning a verb or adjective into an abstract noun for its own sake (e.g. "really good" -> "excellent" is fine: shorter, same meaning, more precise; "feel... empty" -> "experience a sense of hollowness" is NOT, because it is longer AND changes the meaning); (2) periphrastic expansion -- using more words to express the same idea (the REAL, observed failure this fix addresses: "I know exactly what you mean" -> "I comprehend precisely what you signify", and "I get that" -> "I apprehend that distinction" -- both longer, more Latinate, and no more precise than the original); (3) any synonym swap that adds length without adding real meaning or level, or that changes what is actually being said.
+
+Strongly prefer substitutions that are the SAME LENGTH or SHORTER than what they replace. If one rewritten sentence must become longer by N words to correctly express the required register, shorten a different existing sentence elsewhere in this SAME revision by approximately N words (not significantly more -- overcorrecting below 920 is exactly as wrong as overshooting 965) to compensate -- the net word-count change from register changes alone should be zero or slightly negative. Compensate by tightening WORDING ONLY -- removing filler, a redundant modifier, or a repeated phrase -- never by cutting a fact, an example, or a turn to pay the difference; that would violate the "no content changes" rule above.${ceilingNote} The revised script MUST remain inside the existing 920-965 word range -- both the 920 floor and the 965 ceiling are equally hard limits.
+
+Do not merge, shorten, or remove the required LinguABC branding, the self-introductions, the opening hook, or the interruption pair merely to save words -- those structural elements must stay intact even while other sentences are rewritten for register. You must still return the FULL script (every turn, not a diff or a summary of changes). Before returning, mentally recount the final spoken word total (excluding bracket prosody cues) and confirm it is between 920 and 965 -- the final draft must satisfy BOTH the CEFR requirement and the 920-965 word count simultaneously, neither is a secondary concern to fix on a later attempt.`;
 }
 
 /**
@@ -893,6 +1333,70 @@ function countSpokenWords(output: ScriptGenerationOutput): number {
 }
 
 /**
+ * Structural equality check used ONLY by runWordCountCorrection()'s no-op
+ * detection below -- true when two drafts have identical turns (same
+ * speaker + exact text) in the same order. Deliberately ignores
+ * title/topic/topicTags/cefrLevel: the correction pass's whole job is
+ * shortening dialogue, so what matters for "did this attempt actually
+ * change anything" is the turns themselves.
+ */
+function isSameScript(a: ScriptGenerationOutput, b: ScriptGenerationOutput): boolean {
+  if (a.turns.length !== b.turns.length) return false;
+  for (let i = 0; i < a.turns.length; i++) {
+    if (a.turns[i].speaker !== b.turns[i].speaker || a.turns[i].text !== b.turns[i].text) return false;
+  }
+  return true;
+}
+
+/**
+ * Boundary (in words past the 965 ceiling) below which the DEDICATED
+ * correction pass (buildWordCountCorrectionMessage(), runWordCountCorrection())
+ * treats an overshoot as "small" rather than "meaningful" -- see
+ * classifyCorrectionCutMagnitude(). Scoped ONLY to those two functions;
+ * does NOT affect buildWordCountGuidance() (the outer revision path) or
+ * buildCutMethodGuidance(), both byte-for-byte unchanged by this fix.
+ *
+ * 10 is taken directly from the real evidence this fix addresses: two
+ * confirmed real no-ops (966->966, 969->969, both byte-identical output)
+ * were 1- and 4-word overshoots -- comfortably inside this band -- where
+ * the previous generic "trim sentences and phrases... a cut this small
+ * does not require [deleting whole turns]" phrasing gave the model no
+ * concrete target to aim at and, in these two real instances, the model
+ * returned the input completely unchanged.
+ */
+const WORD_COUNT_SMALL_OVERSHOOT_LIMIT = 10;
+
+type CorrectionCutMagnitude = "small" | "meaningful" | "large";
+
+/**
+ * Classifies an ALREADY-COMPUTED overshoot (words past the 965 ceiling) for
+ * the DEDICATED correction pass ONLY. Takes the overshoot itself, not
+ * previousCount, so the one subtraction lives in exactly one place
+ * (buildWordCountCorrectionMessage() computes it once and reuses it for
+ * both classification and the displayed "words over" figure -- no
+ * duplicated arithmetic that could silently drift out of sync). Only ever
+ * called when previousCount > WORD_COUNT_HARD_MAX (i.e. overshoot > 0),
+ * matching runWordCountCorrection()'s entry guard AND its own
+ * `wordCount <= WORD_COUNT_HARD_MAX` early-exit -- the loop no longer calls
+ * this (indirectly, via buildWordCountCorrectionMessage()) with a
+ * previousCount that isn't still a genuine overshoot.
+ *
+ * The "large" boundary is intentionally the SAME constant
+ * (NEAR_CEILING_OVERSHOOT_LIMIT) wordCountCorrectionTarget() and
+ * buildCutMethodGuidance() already use -- the large-cut sub-target
+ * (935-950) and the large-cut instruction text are completely unchanged by
+ * this fix; only the previously-undifferentiated near-ceiling band (1-60
+ * words over) is now split into "small" (1-10) and "meaningful" (11-60),
+ * each with its own, more concrete instruction (see
+ * buildWordCountCorrectionMessage()).
+ */
+function classifyCorrectionCutMagnitude(overshoot: number): CorrectionCutMagnitude {
+  if (overshoot <= WORD_COUNT_SMALL_OVERSHOOT_LIMIT) return "small";
+  if (overshoot <= NEAR_CEILING_OVERSHOOT_LIMIT) return "meaningful";
+  return "large";
+}
+
+/**
  * How many dedicated correction calls a single word-count-overshoot-only
  * failure may spend before falling back to the normal multi-category
  * revision mechanism. Deliberately small and separate from MAX_ATTEMPTS --
@@ -903,18 +1407,192 @@ function countSpokenWords(output: ScriptGenerationOutput): number {
 const WORD_COUNT_CORRECTION_MAX_ATTEMPTS = 2;
 
 /**
- * Reuses the SAME near-ceiling vs. large-overshoot classification and
- * numeric constants buildWordCountGuidance() uses (see its doc comment) --
- * no duplicated thresholds. A near-miss overshoot still only needs to
- * clear the ceiling with a small margin; a large overshoot still needs
- * the fuller cut toward the 935-950 sub-target.
+ * How far below WORD_COUNT_HARD_MAX the "small"/final-boundary band's
+ * target range floor sits (FINAL-BOUNDARY CONVERGENCE FIX). Deliberately
+ * tiny -- this band is 1-WORD_COUNT_SMALL_OVERSHOOT_LIMIT words over, so the
+ * fix is "remove that many words," not a bigger safety cut. Before this
+ * fix, the small band silently inherited the "meaningful" band's
+ * NEAR_CEILING_TARGET_MIN/MAX (955-960) here, while
+ * buildFinalBoundaryCorrectionInstruction() separately told the model to
+ * remove only the exact deficit (e.g. 2 words for a 967-word script) --
+ * two DIFFERENT cut sizes in the same prompt (the shared "Cut approximately
+ * X-Y spoken words" line above cutMethod said 7-12; the final-boundary
+ * instruction said 2). This margin makes both lines agree: for previousCount
+ * 966-975, cutMin below always equals the exact overshoot exactly.
+ */
+const FINAL_BOUNDARY_TARGET_MARGIN = 2;
+
+/**
+ * Reuses classifyCorrectionCutMagnitude() itself (not a second copy of its
+ * threshold logic -- an adversarial review of this fix caught an earlier
+ * version that reimplemented the same small/meaningful/large boundaries
+ * inline here, which would have silently drifted out of sync with that
+ * function if its thresholds ever changed) to pick a target range per band:
+ * "small"/final-boundary gets its own tight range (FINAL_BOUNDARY_TARGET_MARGIN),
+ * which buildWordCountGuidance() has no equivalent of; "meaningful" and
+ * "large" reuse the SAME near-ceiling/large-overshoot numeric constants
+ * buildWordCountGuidance() uses (see its doc comment) -- no duplicated
+ * numbers. Only ever called with previousCount > WORD_COUNT_HARD_MAX, the
+ * same invariant classifyCorrectionCutMagnitude() itself documents.
  */
 function wordCountCorrectionTarget(previousCount: number): { min: number; max: number } {
   const overshoot = previousCount - WORD_COUNT_HARD_MAX;
-  if (overshoot > 0 && overshoot <= NEAR_CEILING_OVERSHOOT_LIMIT) {
+  if (overshoot <= 0) return { min: WORD_COUNT_TARGET_MIN, max: WORD_COUNT_TARGET_MAX }; // not actually an overshoot -- preserves the original fallback for this invariant-violating input; see classifyCorrectionCutMagnitude()'s own "only called when overshoot > 0" doc note
+  const magnitude = classifyCorrectionCutMagnitude(overshoot);
+  if (magnitude === "small") {
+    return { min: WORD_COUNT_HARD_MAX - FINAL_BOUNDARY_TARGET_MARGIN, max: WORD_COUNT_HARD_MAX };
+  }
+  if (magnitude === "meaningful") {
     return { min: NEAR_CEILING_TARGET_MIN, max: NEAR_CEILING_TARGET_MAX };
   }
   return { min: WORD_COUNT_TARGET_MIN, max: WORD_COUNT_TARGET_MAX };
+}
+
+/**
+ * Builds the final-boundary ("small", 1-WORD_COUNT_SMALL_OVERSHOOT_LIMIT
+ * over) branch's cut-method text -- see the FINAL-BOUNDARY CONVERGENCE FIX
+ * note on buildWordCountCorrectionMessage() below for the real trajectory
+ * this addresses. Deliberately numeric and narrow: states the exact word
+ * count to remove (never a range, since a cut this small has no reason to
+ * overshoot), forbids any edit that could add length or hold it steady, and
+ * names a concrete method (delete one redundant phrase/sentence, or shorten
+ * one existing phrase) instead of an open-ended "make an edit." This is
+ * intentionally NOT a rewrite instruction -- the goal for a 967-word script
+ * is removing 2 words, not restructuring turns.
+ *
+ * previousAttemptWasNoOp gets its OWN stronger escalation here, replacing
+ * (not stacking with) the generic noOpWarning every other magnitude still
+ * uses unchanged -- see buildWordCountCorrectionMessage()'s call site.
+ *
+ * An adversarial review of this fix caught an earlier version's "(a couple
+ * more is fine; fewer will not cross the boundary)" wording actively
+ * inviting a bigger cut than necessary, contradicting this same
+ * instruction's own "SMALLEST edit" framing and the real requirement that
+ * a 967-word script's fix is removing exactly 2 words, not more. Reworded
+ * to state the exact deficit as the smallest sufficient cut without
+ * inviting extra trimming.
+ */
+function buildFinalBoundaryCorrectionInstruction(exactWordsOver: number, previousAttemptWasNoOp: boolean): string {
+  const escalation = previousAttemptWasNoOp
+    ? ` YOUR PREVIOUS ATTEMPT AT THIS FINAL BOUNDARY MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. That is not acceptable this close to the limit. This time you MUST actually delete words: pick ONE short redundant phrase, filler aside, or repeated idea and remove it entirely (or shorten one existing sentence), then recount before responding.`
+    : "";
+  return `You are exactly ${exactWordsOver} word(s) over the ${WORD_COUNT_HARD_MAX}-word hard maximum. This is the FINAL boundary correction -- the goal is one small, surgical edit, not a rewrite. Remove at least ${exactWordsOver} word(s) from the EXISTING dialogue below -- ${exactWordsOver} is the smallest cut that actually crosses the boundary; removing fewer will not cross it, and removing significantly more is a bigger edit than this fix calls for. Do NOT add, expand, or rephrase any content in a way that could increase the total length -- a same-length paraphrase or a longer "improved" sentence does not satisfy this. Prefer deleting one genuinely redundant short phrase, filler aside, or repeated idea, or shortening one existing phrase -- do not delete or rewrite an entire turn for a cut this small, and do not touch the hook, the self-introductions, the LinguABC mention, or the interruption pair. Make the SMALLEST edit that actually gets the script to ${WORD_COUNT_HARD_MAX} words or fewer, then recount the final spoken word total (excluding bracket prosody cues) before returning your answer.${escalation}`;
+}
+
+/**
+ * MEANINGFUL-BAND CONVERGENCE FIX (Fix #6): a real daily-generation run got
+ * stuck at 982 words (17 over the 965 ceiling -- squarely in the
+ * "meaningful", 11-NEAR_CEILING_OVERSHOOT_LIMIT-over band) and produced
+ * repeated no-op correction sub-attempts EVEN WITH the existing generic
+ * no-op escalation already firing on the second sub-attempt of each pass --
+ * the SAME class of failure Fix #5 found and fixed for the "small" band,
+ * one band up. The old meaningful text ("Prefer removing a redundant
+ * phrase... compress within existing turns instead") asked the model to
+ * find its own candidate across the whole script -- exactly the open-ended-
+ * search failure mode Fix #4 already diagnosed and fixed for "large" cuts.
+ *
+ * Per this fix's own explicit direction, the answer is NOT more vague
+ * prompt wording: this reuses selectLargeCutTarget() UNCHANGED (never
+ * modified by this fix -- Fix #4's large-cut mechanism is untouched) to
+ * deterministically name the SAME safe, longest-eligible, non-essential
+ * turn as a compression candidate here too. The instruction is COMPRESS,
+ * never cut-substantially-or-remove: a cut this size (11-60 words) does not
+ * justify deleting a whole turn, so the model is told to trim redundant
+ * phrasing WITHIN the named turn instead, and explicitly forbidden from
+ * adding content or raising vocabulary/grammar sophistication while doing
+ * it (a compression edit drifting toward more "advanced" phrasing would be
+ * a regression of its own). Falls back to the ORIGINAL, unmodified
+ * meaningful text when no eligible turn exists, same "never invent a
+ * fallback target" rule Fix #4 established -- with its own light escalation
+ * appended so a no-op is still met with an explicit callout even without a
+ * named turn to point at.
+ *
+ * Gets its own no-op escalation (like Fix #5's small-band one), replacing
+ * the generic noOpWarning for this band -- see
+ * buildWordCountCorrectionMessage()'s call site.
+ *
+ * An adversarial review of this fix caught three real issues, all fixed
+ * here: (1) the no-target fallback never stated the exact deficit at all,
+ * failing this fix's own "calculate exact deficit" requirement in exactly
+ * the case determinism matters most; (2) "you are exactly N word(s) over"
+ * and the shared template's separate "cut approximately cutMin-cutMax"
+ * line (a WIDER range, deliberately cut past the bare ceiling for margin --
+ * same relationship the "large" and "small" bands already have) could read
+ * as two competing targets, risking a model anchoring on the narrower N and
+ * landing with zero margin right back at the fragile boundary this whole
+ * effort exists to avoid -- now stated together, in one sentence, with the
+ * wider range explicitly framed as the real target; (3) near the TOP of
+ * this band (up to 60 over), a single ~30-40-word turn cannot supply the
+ * full cutMax on its own while also being forbidden from full deletion --
+ * selectSecondCompressionTarget() below deterministically names a SECOND
+ * candidate turn (by re-running selectLargeCutTarget() on a copy with the
+ * first candidate's text blanked out -- never modifying selectLargeCutTarget()
+ * itself) whenever the primary doesn't hold at least DOUBLE the cut ceiling
+ * (not just barely more than it -- a second review of this fix pointed out
+ * that "just enough raw words" would require compressing nearly the entire
+ * turn, in tension with "do not delete the entire turn"), replacing the old
+ * vague "apply the same trim to one or two other turns" escape hatch with a
+ * second named turn instead, plus a bounded last-resort allowance (a few
+ * words each from OTHER turns) for the rare case where even two named
+ * turns' realistic compression still falls short.
+ */
+/**
+ * Blanking the primary's text to "" is safe -- selectLargeCutTarget()'s own
+ * word-count formula (`text.replace(bracketRe, " ").split(/\s+/).filter(Boolean).length`)
+ * gives an empty string exactly 0 words, via the trailing filter(Boolean),
+ * not 1 -- so it can never tie with (and therefore never be re-selected
+ * over) any turn that has genuine spoken content, including a real
+ * one-word backchannel turn like "Right." (1 word). A second adversarial
+ * review specifically checked this against the real formula rather than
+ * assuming a naive split().length.
+ */
+function selectSecondCompressionTarget(output: ScriptGenerationOutput, request: ScriptGenerationRequest, primary: LargeCutTarget): LargeCutTarget | null {
+  const withoutPrimary: ScriptGenerationOutput = {
+    ...output,
+    turns: output.turns.map((t, i) => (i === primary.turnIndex ? { ...t, text: "" } : t)),
+  };
+  return selectLargeCutTarget(withoutPrimary, request);
+}
+
+function buildMeaningfulCompressionInstruction(
+  output: ScriptGenerationOutput,
+  request: ScriptGenerationRequest,
+  target: LargeCutTarget | null,
+  exactWordsOver: number,
+  cutMax: number,
+  previousAttemptWasNoOp: boolean,
+): string {
+  const deficitContext = `The script needs approximately ${cutMax} word(s) removed at most to reach a safe margin below the ${WORD_COUNT_HARD_MAX}-word hard maximum (it is currently ${exactWordsOver} word(s) past that maximum) -- this needs a deliberate structural compression, not scattered single-word edits.`;
+  if (!target) {
+    const fallback = `Prefer removing a redundant phrase, a repeated explanation, or a full sentence that restates something already said elsewhere in the script -- not scattered single-word edits spread across many turns. Do not delete an entire turn for a cut this size (that strategy is reserved for much larger overages); compress within existing turns instead.`;
+    const fallbackEscalation = previousAttemptWasNoOp
+      ? ` YOUR PREVIOUS ATTEMPT MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. This time you MUST make a real, verifiable cut, then recount before responding.`
+      : "";
+    return `${deficitContext} ${fallback}${fallbackEscalation}`;
+  }
+  const preview = truncatePreview(target.text, 140);
+  // Near the top of this band, one turn's worth of redundant phrasing may
+  // not be able to supply the whole cut while staying short of a full
+  // deletion -- name a second deterministic candidate instead of an
+  // open-ended "other turns" escape hatch when that looks likely. A bare
+  // `target.wordCount < cutMax` comparison (an earlier version of this
+  // fix) treated "just barely enough raw words" as sufficient, which would
+  // require compressing nearly the ENTIRE turn -- close to the very "full
+  // deletion" this instruction forbids. Requiring the turn to hold at
+  // least DOUBLE the cut (the same "remove at least half" ceiling the
+  // large-cut instruction already uses as its own compression assumption)
+  // is a more realistic bar for "genuinely sufficient alone."
+  const second = target.wordCount < cutMax * 2 ? selectSecondCompressionTarget(output, request, target) : null;
+  const secondPreview = second ? truncatePreview(second.text, 140) : null;
+  const secondCandidateSentence = second
+    ? ` If Turn #${target.turnIndex} alone cannot supply the full cut, Turn #${second.turnIndex} (${second.speakerName}, ${second.wordCount} words) is the second candidate: "${secondPreview}" -- apply the same kind of compression there too. If these two turns together still cannot reach the target after genuine compression, you may lightly trim (a few words each) from one or two other turns as a last resort -- but the two named turns should supply most of the cut.`
+    : ` If this turn alone cannot supply the full cut, apply the same kind of redundant-phrase/repeated-explanation trim to it more aggressively before considering any other turn.`;
+  const escalation = previousAttemptWasNoOp
+    ? second
+      ? ` YOUR PREVIOUS ATTEMPT AT THIS COMPRESSION MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. That is not acceptable. This time you MUST actually shorten BOTH Turn #${target.turnIndex} and Turn #${second.turnIndex}: cut a specific redundant phrase or sentence from each, then recount before responding.`
+      : ` YOUR PREVIOUS ATTEMPT AT THIS COMPRESSION MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. That is not acceptable. This time you MUST actually shorten Turn #${target.turnIndex}: cut a specific redundant phrase or sentence from it, then recount before responding.`
+    : "";
+  return `${deficitContext} Turn #${target.turnIndex} (${target.speakerName}, ${target.wordCount} words) is a good compression candidate: "${preview}" COMPRESS this turn -- remove a redundant phrase, a repeated explanation, or one low-value sentence from it. Do NOT delete the entire turn (this cut is not large enough to justify that), and do NOT rewrite the rest of the script beyond the candidate turn(s) named here.${secondCandidateSentence} Do not add any new content, and do not increase vocabulary or grammatical sophistication while compressing -- keep the same CEFR-level complexity. Recount the final spoken word total (excluding bracket prosody cues) before returning your answer; it must be <=${WORD_COUNT_HARD_MAX}.${escalation}`;
 }
 
 /**
@@ -929,16 +1607,88 @@ function wordCountCorrectionTarget(previousCount: number): { min: number; max: n
  * guidance's "preserve ... exactly as they already are", because a cut
  * this size may genuinely require touching one of them, and getting the
  * word count right is this pass's one job, not a secondary goal.
+ *
+ * NEAR-CEILING RELIABILITY FIX: the cut-method sentence now uses
+ * classifyCorrectionCutMagnitude() to distinguish THREE cases, not two.
+ * The previously-undifferentiated near-ceiling band (1-60 over, phrased
+ * identically regardless of exact magnitude) is split into "small" (1-10
+ * over) and "meaningful" (11-60 over), each now with its own deterministic-
+ * target-based instruction -- see buildFinalBoundaryCorrectionInstruction()
+ * and buildMeaningfulCompressionInstruction()'s own doc comments for the
+ * real evidence each addresses. Neither is a whole-turn deletion (that
+ * stays reserved for "large").
+ *
+ * NO-OP ESCALATION: previousAttemptWasNoOp (passed by
+ * runWordCountCorrection() from the immediately preceding sub-attempt's
+ * own outcome, never guessed) appends an explicit, blunt callout when the
+ * last correction call failed to make progress -- returned the same OR a
+ * greater word count, or a byte-identical script -- directly addressing
+ * the confirmed real no-op pattern rather than hoping the same phrasing
+ * works better on a second try. Defaults to
+ * false so the very first sub-attempt of any correction pass is
+ * unaffected. For the "small"/final-boundary and "meaningful"/compression
+ * branches specifically, this generic escalation text is REPLACED by their
+ * own stronger, band-specific ones -- see
+ * buildFinalBoundaryCorrectionInstruction()'s and
+ * buildMeaningfulCompressionInstruction()'s doc comments. Only "large"
+ * still uses this generic text, unchanged since before Fix #5.
+ *
+ * FINAL-BOUNDARY CONVERGENCE FIX: a real daily-generation run got a script
+ * all the way down to 967 words (2 over the 965 ceiling) and then produced
+ * TWO consecutive no-op correction sub-attempts, exhausting the run without
+ * ever crossing the boundary or reaching CEFR grading. The "small" text
+ * above ("Make a deliberate edit... pick one specific phrase or short
+ * clause") already asked for a concrete edit but left room for the model to
+ * return a same-length paraphrase, a slightly LONGER "improvement," or an
+ * unrelated rewrite -- none of which the old phrasing explicitly ruled out.
+ * buildFinalBoundaryCorrectionInstruction() replaces that branch's text
+ * with an explicit, numeric, single-purpose instruction (exact word count
+ * to remove, a hard <=965 requirement, an explicit ban on any edit that
+ * could add or hold length steady, and a concrete "delete one redundant
+ * phrase/sentence, or shorten one existing phrase" method) plus its own
+ * stronger no-op escalation when the previous sub-attempt made no
+ * progress. This is deliberately the SAME 1-WORD_COUNT_SMALL_OVERSHOOT_LIMIT
+ * range the "small" classification already used -- no new threshold, no
+ * change to classifyCorrectionCutMagnitude() or wordCountCorrectionTarget().
+ *
+ * DETERMINISTIC LARGE-CUT TARGET SELECTION: the "large" branch (>60 over)
+ * no longer asks the model to SEARCH the script for "the single longest
+ * turn that is a personal example/story/aside" -- a real diagnostic run
+ * confirmed classification and cut-range arithmetic were already correct,
+ * and the search itself was the failure point (see
+ * selectLargeCutTarget()'s doc comment for the full evidence). The target
+ * turn is now computed deterministically in code and named explicitly via
+ * buildDeterministicLargeCutInstruction(); the model still performs the
+ * actual rewrite. Falls back to the ORIGINAL buildCutMethodGuidance(true)
+ * text, unmodified, when no eligible turn exists.
  */
-function buildWordCountCorrectionMessage(output: ScriptGenerationOutput, previousCount: number): string {
+function buildWordCountCorrectionMessage(output: ScriptGenerationOutput, previousCount: number, request: ScriptGenerationRequest, previousAttemptWasNoOp: boolean = false): string {
   const { min, max } = wordCountCorrectionTarget(previousCount);
   const cutMin = previousCount - max;
   const cutMax = previousCount - min;
+  const exactWordsOver = previousCount - WORD_COUNT_HARD_MAX;
+  const magnitude = classifyCorrectionCutMagnitude(exactWordsOver);
+
+  const cutMethod =
+    magnitude === "small"
+      ? buildFinalBoundaryCorrectionInstruction(exactWordsOver, previousAttemptWasNoOp)
+      : magnitude === "meaningful"
+        ? buildMeaningfulCompressionInstruction(output, request, selectLargeCutTarget(output, request), exactWordsOver, cutMax, previousAttemptWasNoOp)
+        : buildDeterministicLargeCutInstruction(selectLargeCutTarget(output, request));
+
+  // Both "small"/final-boundary and "meaningful"/compression carry their
+  // OWN stronger no-op escalation (embedded in cutMethod above) instead of
+  // this generic one -- stacking both would be redundant. Only "large" is
+  // still unaffected, unchanged since Fix #4.
+  const noOpWarning = previousAttemptWasNoOp && magnitude === "large"
+    ? ` YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE: it returned the same word count, or a script identical to the one you were given. That is not an acceptable response. This time you MUST make a real edit -- identify a specific phrase, clause, or sentence, remove it, and confirm the new word count is actually lower than ${previousCount} before returning your answer.`
+    : "";
+
   return `This is a DEDICATED WORD-COUNT CORRECTION pass, separate from normal script revision. Your ONLY job is to shorten the script below -- do not rewrite the episode, do not change the topic, and do not add any new content.
 
 Current spoken word count: ${previousCount}. Required range: 920-965 words. Target for this correction: ${min}-${max} words.
 
-CUT ONLY. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue below by trimming sentences and phrases within turns -- do not just delete whole turns. Do NOT add replacement paragraphs or new content to compensate for what you cut. Preserve the meaning, the two speakers and their personalities, the opening block (the hook, both self-introductions, and the LinguABC mention), the interruption pair, the prosody cues, and the CEFR-level vocabulary and complexity wherever possible -- but making the word count correct is this pass's one job, so a cut of this size may require trimming some of these too if there is no other way to reach the range. Return the COMPLETE script as the same JSON structure (title, topic, topicTags, cefrLevel, turns) -- not a diff, not a partial script, not a summary of changes. Before returning, mentally recount the final spoken word total (excluding bracket prosody cues) and confirm it falls within 920-965.
+CUT ONLY. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue below. ${cutMethod}${noOpWarning} Do not add replacement paragraphs or new content to compensate for what you cut. Preserve the meaning, the two speakers and their personalities, the opening block (the hook, both self-introductions, and the LinguABC mention), the interruption pair, the prosody cues, and the CEFR-level vocabulary and complexity wherever possible -- but making the word count correct is this pass's one job, so a cut of this size may require trimming some of these too if there is no other way to reach the range. Return the COMPLETE script as the same JSON structure (title, topic, topicTags, cefrLevel, turns) -- not a diff, not a partial script, not a summary of changes. Before returning, mentally recount the final spoken word total (excluding bracket prosody cues) and confirm it falls within 920-965.
 
 Here is the exact script to shorten, as JSON:
 ${JSON.stringify(output)}`;
@@ -1038,6 +1788,32 @@ interface WordCountCorrectionOutcome {
  * exactly the same "fall back honestly" path a plain validation failure
  * already takes. Nothing here fabricates, deletes, or post-processes
  * generated text in code -- every edit is still produced by the model.
+ *
+ * NO-OP ESCALATION (near-ceiling reliability fix): tracks whether the
+ * immediately preceding sub-attempt failed to make progress -- its output
+ * word count was the same as OR GREATER than its input word count (this is
+ * a CUT-only pass; an increase is a worse failure than a stall, not a
+ * lesser one, so it gets the same escalation), or its output was
+ * structurally identical to its input (isSameScript(), which a >= check
+ * alone can miss only in the impossible case of identical text producing a
+ * different count) -- and passes that as
+ * buildWordCountCorrectionMessage()'s previousAttemptWasNoOp argument for
+ * the NEXT sub-attempt only. With WORD_COUNT_CORRECTION_MAX_ATTEMPTS still
+ * at 2 (unchanged), this can only ever affect sub-attempt 2, reflecting
+ * sub-attempt 1's real, observed outcome -- never guessed, never carried
+ * over from a different correction-pass invocation or outer attempt.
+ *
+ * BOUNDARY FIX: stops the loop as soon as `wordCount <= WORD_COUNT_HARD_MAX`
+ * -- deliberately NOT the same condition as "no word-count issue is
+ * flagged" (validateGeneratedScript's word-count message fires for BOTH
+ * over 965 and under 920, so that check alone can't tell an overshoot from
+ * an undershoot). Without this, a sub-attempt that overcorrects below 920
+ * would still show "a word-count issue" and the loop would call
+ * buildWordCountCorrectionMessage() again with a previousCount that is no
+ * longer an overshoot at all -- producing a negative "words over" figure
+ * and a negative cut range on the wasted final sub-attempt. An undershoot
+ * belongs to the outer revision path's separate add-words guidance, never
+ * to a second call inside this pass.
  */
 async function runWordCountCorrection(
   output: ScriptGenerationOutput,
@@ -1051,12 +1827,15 @@ async function runWordCountCorrection(
   let currentIssues: ScriptValidationIssue[] = [
     { message: `Word count ${previousCount} is outside the acceptable 920-965 range.` },
   ];
+  let previousAttemptWasNoOp = false;
 
   for (let i = 0; i < WORD_COUNT_CORRECTION_MAX_ATTEMPTS; i++) {
+    const inputOutput = currentOutput;
+    const inputCount = currentCount;
     let corrected: ScriptGenerationOutput;
     try {
       corrected = await generateStructuredJson({
-        messages: [{ role: "user", content: buildWordCountCorrectionMessage(currentOutput, currentCount) }],
+        messages: [{ role: "user", content: buildWordCountCorrectionMessage(inputOutput, inputCount, request, previousAttemptWasNoOp) }],
         schema: ScriptGenerationOutputSchema,
         schemaName: "linguabc_podcast_script_word_count_correction",
         retryPolicy: BATCH_RETRY_POLICY,
@@ -1069,13 +1848,22 @@ async function runWordCountCorrection(
 
     const wordCount = countSpokenWords(corrected);
     const issues = validateGeneratedScript(corrected, request);
+    previousAttemptWasNoOp = wordCount >= inputCount || isSameScript(inputOutput, corrected);
     currentOutput = corrected;
     currentCount = wordCount;
     currentIssues = issues;
     entries.push({ attemptNumber: startingAttemptNumber + entries.length, phase: "word-count correction", wordCount, issues });
 
-    const stillWordCountIssue = issues.some((issue) => WORD_COUNT_ISSUE_RE.test(issue.message));
-    if (!stillWordCountIssue) break;
+    // Stop as soon as the overshoot itself is resolved, whether the result
+    // landed in range OR undershot -- NOT merely "no word-count issue is
+    // flagged" (validateGeneratedScript's word-count message covers BOTH
+    // over 965 and under 920, so that alone can't distinguish them). This
+    // pass's one job is cutting an overshoot; an undershoot belongs to the
+    // outer revision path's separate add-words guidance, never to a second
+    // call here with a previousCount that is no longer actually an
+    // overshoot (which would otherwise compute a nonsensical negative
+    // "words over" figure and a negative cut range on the next sub-attempt).
+    if (wordCount <= WORD_COUNT_HARD_MAX) break;
   }
 
   return { output: currentOutput, issues: currentIssues, entries };
@@ -1099,7 +1887,49 @@ async function runWordCountCorrection(
  * see buildRevisionPreamble()'s doc comment for why. If no draft has ever
  * successfully parsed yet (e.g. every attempt so far threw on malformed
  * JSON), there is nothing to revise, so that attempt falls back to the
- * same single-message full-generation shape attempt 1 uses. */
+ * same single-message full-generation shape attempt 1 uses.
+ *
+ * FIX #8 (CEFR-REGROWTH RETRY-BUDGET FIX): a real run reached 961 words
+ * (structural PASS), failed ONLY authoritative CEFR grading, and Fix #7's
+ * dedicated CEFR-only revision correctly improved the register -- but the
+ * model still returned 1210 words (+249), a large overshoot. The EXISTING
+ * mechanism already routes that draft into the dedicated
+ * runWordCountCorrection() pass immediately (see the WORD_COUNT_ISSUE_RE
+ * check below) -- that part already worked. The gap: a 249-word overshoot
+ * routinely needs more than WORD_COUNT_CORRECTION_MAX_ATTEMPTS (2, UNCHANGED
+ * by this fix) sub-attempts to fully resolve, and once that bound is
+ * exhausted, the NEXT outer attempt fell back to the generic
+ * buildRevisionPreamble()/buildWordCountGuidance() path -- which uses the
+ * OLDER, non-deterministic "find the SINGLE longest turn..." large-cut
+ * instruction (buildCutMethodGuidance(true) directly, never
+ * selectLargeCutTarget()), not Fix #4's deterministic mechanism, since that
+ * upgrade was deliberately scoped only to the dedicated correction pass.
+ * The real run alternated between this weaker generic revision and the
+ * correction pass for the rest of MAX_ATTEMPTS (1210->1156->1139 [correction,
+ * exhausted] ->1110 [generic revision] ->1106->1104 [correction, exhausted]
+ * ->1043 [generic revision] ->...) and never recovered.
+ *
+ * cefrRecoveryPending (declared below, scoped to this function only) tracks
+ * whether the CURRENT unresolved state is a plain word-count OVERSHOOT that
+ * originated from an actual pure-CEFR-mismatch revision (isPureCefrMismatch(),
+ * UNCHANGED) -- never from any other cause. While true, the NEXT outer
+ * attempt skips the generic revision call ENTIRELY and calls the SAME,
+ * UNMODIFIED runWordCountCorrection() again directly on the existing draft
+ * -- reusing Fix #4/#5/#6's deterministic mechanisms repeatedly instead of
+ * spending an outer attempt on the weaker generic large-cut path, so more
+ * of the bounded MAX_ATTEMPTS budget goes toward the correction mechanism
+ * that is actually capable of resolving it. The flag is scoped as narrowly
+ * as possible: it can only ever become true immediately after a genuine
+ * pure-CEFR-mismatch revision (never a normal overshoot, e.g. from a fresh
+ * initial draft -- that scenario's existing fall-back-to-generic-revision
+ * behavior, and its regression tests, are completely unaffected), it clears
+ * itself the moment the state stops being a plain overshoot (full recovery,
+ * an undershoot, or any other/combined issue), and once structural
+ * validation clears, the EXISTING, unconditional "grade if zero issues"
+ * check below reruns CEFR grading exactly as it always has -- there is
+ * nothing to specially "remember" about a CEFR mismatch, only the ordinary,
+ * stateless "are there zero structural issues right now" check.
+ */
 export async function generateEpisodeScript(request: ScriptGenerationRequest): Promise<ScriptGenerationResult> {
   const basePrompt = buildPrompt(request);
   let lastIssues: ScriptValidationIssue[] = [];
@@ -1108,6 +1938,9 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
   // tag on the two throws below -- never fed back into lastIssues or
   // buildRetryFeedback(), so it cannot change what the model sees.
   let lastAttemptWasRevision = false;
+  // Fix #8 -- see this function's doc comment. Starts false; can only ever
+  // become true immediately after a genuine pure-CEFR-mismatch revision.
+  let cefrRecoveryPending = false;
   // Word-count trajectory across the WHOLE run (initial + revision +
   // word-count correction, in the order they actually happened) -- see
   // WordCountTrajectoryEntry's doc comment. Purely diagnostic: read by
@@ -1124,94 +1957,167 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
     const isRevisionAttempt = previousOutput !== undefined;
     lastAttemptWasRevision = isRevisionAttempt;
 
-    const messages: AIProviderMessage[] = isRevisionAttempt
-      ? [
-          { role: "user", content: basePrompt },
-          { role: "assistant", content: JSON.stringify(previousOutput) },
-          { role: "user", content: `${buildRevisionPreamble()}${buildRetryFeedback(lastIssues)}` },
-        ]
-      : [{ role: "user", content: basePrompt }];
+    // A PURE CEFR mismatch (see isPureCefrMismatch()'s doc comment) uses
+    // its own dedicated preamble instead of buildRevisionPreamble() -- any
+    // other issue, or a CEFR mismatch combined with anything else (most
+    // commonly word count), keeps the existing preamble/large-cut logic
+    // completely unchanged. Captured here, before any reuse below, since
+    // Fix #8's cefrRecoveryPending update at the end of this iteration
+    // needs to know whether THIS iteration's input state was a genuine
+    // pure CEFR mismatch, independent of which branch actually runs.
+    const wasPureCefrMismatch = isPureCefrMismatch(lastIssues);
 
-    let output: ScriptGenerationOutput;
-    try {
-      output = await generateStructuredJson({
-        messages,
-        schema: ScriptGenerationOutputSchema,
-        schemaName: "linguabc_podcast_script",
-        retryPolicy: BATCH_RETRY_POLICY,
-        temperature: 0.9,
-        maxTokens: SCRIPT_JSON_MAX_TOKENS,
+    let attemptOutput: ScriptGenerationOutput;
+    let structuralIssues: ScriptValidationIssue[];
+
+    if (cefrRecoveryPending && previousOutput !== undefined) {
+      // FIX #8: the current state is a plain word-count overshoot that
+      // started with a pure-CEFR-mismatch revision, and a previous
+      // correction-pass invocation didn't fully resolve it within its own
+      // bounded WORD_COUNT_CORRECTION_MAX_ATTEMPTS (UNCHANGED). Skip the
+      // generic revision call ENTIRELY this outer attempt -- no new draft
+      // is generated via buildRevisionPreamble()/buildWordCountGuidance()
+      // -- and go straight back into the SAME, unmodified
+      // runWordCountCorrection() on the existing draft instead, so this
+      // outer attempt is spent on the mechanism that can actually resolve
+      // a large overshoot deterministically, not the weaker generic
+      // large-cut fallback.
+      const previousCount = countSpokenWords(previousOutput);
+      const correction = await runWordCountCorrection(previousOutput, previousCount, request, trajectory.length + 1);
+      trajectory.push(...correction.entries);
+      attemptOutput = correction.output;
+      structuralIssues = correction.issues;
+      previousOutput = correction.output;
+    } else {
+      const revisionPreamble = wasPureCefrMismatch
+        ? buildCefrOnlyRevisionPreamble(previousOutput ? countSpokenWords(previousOutput) : undefined)
+        : buildRevisionPreamble(isLargeWordCountCutNeeded(lastIssues));
+      const messages: AIProviderMessage[] = previousOutput
+        ? [
+            { role: "user", content: basePrompt },
+            { role: "assistant", content: JSON.stringify(previousOutput) },
+            { role: "user", content: `${revisionPreamble}${buildRetryFeedback(lastIssues, countSpokenWords(previousOutput))}` },
+          ]
+        : [{ role: "user", content: basePrompt }];
+
+      let output: ScriptGenerationOutput;
+      try {
+        output = await generateStructuredJson({
+          messages,
+          schema: ScriptGenerationOutputSchema,
+          schemaName: "linguabc_podcast_script",
+          retryPolicy: BATCH_RETRY_POLICY,
+          temperature: 0.9,
+          maxTokens: SCRIPT_JSON_MAX_TOKENS,
+        });
+      } catch (error) {
+        // A malformed/truncated JSON response or a schema mismatch is a
+        // one-off model hiccup, not a reason to give up immediately -- retry
+        // it exactly like a validation failure, bounded by the same
+        // MAX_ATTEMPTS. Only the LAST attempt's error propagates.
+        // previousOutput is deliberately left untouched here -- there is no
+        // new draft to revise from a throw, so the NEXT attempt should still
+        // revise the last successfully-parsed one, if any, rather than lose it.
+        lastIssues = [{ message: error instanceof Error ? error.message : String(error) }];
+        if (attempt === MAX_ATTEMPTS) {
+          // The attempt number and shape are appended to the thrown message
+          // ONLY -- never folded into lastIssues, so buildRetryFeedback()'s
+          // model-facing text is completely unaffected. This is what makes
+          // it possible to tell, from a real GitHub Actions failure alone,
+          // whether every attempt failed to parse (isRevisionAttempt false
+          // even on attempt 6 -- no draft ever successfully parsed) or
+          // whether earlier attempts drafted fine and only a later revision
+          // attempt broke (isRevisionAttempt true) -- see this function's
+          // own doc comment and generate-structured-json.ts's parse-error
+          // diagnostics for the investigation this closes the gap on.
+          throw new Error(
+            `Script generation failed after ${MAX_ATTEMPTS} attempts (final failure: attempt ${attempt}/${MAX_ATTEMPTS}, ${isRevisionAttempt ? "revision" : "initial single-message"} generation): ${lastIssues.map((i) => i.message).join("; ")}${trajectory.length > 0 ? `\n\nWord-count trajectory:\n${formatTrajectory(trajectory)}` : ""}`,
+          );
+        }
+        // Observed in practice: OpenRouter occasionally returns HTTP 200
+        // with finish_reason "error" and truncated content for this model —
+        // not an HTTP-level failure generateStructuredJson's own retry
+        // policy would catch, but genuinely transient (a following call
+        // succeeded). A short backoff before the next attempt costs little
+        // and matches this project's established backoff-before-retry
+        // posture elsewhere (Fish Audio, OpenRouter's own 429/5xx handling).
+        await sleep(3000 * attempt);
+        continue;
+      }
+
+      previousOutput = output;
+
+      structuralIssues = validateGeneratedScript(output, request);
+      // attemptOutput is the script THIS attempt ultimately produces --
+      // either `output` as-is, or a word-count-corrected replacement below.
+      // Kept separate from `output` so the correction pass never has to
+      // mutate the variable the catch block above already closed over.
+      attemptOutput = output;
+      trajectory.push({
+        attemptNumber: trajectory.length + 1,
+        phase: isRevisionAttempt ? "revision" : "initial",
+        wordCount: countSpokenWords(output),
+        issues: structuralIssues,
       });
-    } catch (error) {
-      // A malformed/truncated JSON response or a schema mismatch is a
-      // one-off model hiccup, not a reason to give up immediately -- retry
-      // it exactly like a validation failure, bounded by the same
-      // MAX_ATTEMPTS. Only the LAST attempt's error propagates.
-      // previousOutput is deliberately left untouched here -- there is no
-      // new draft to revise from a throw, so the NEXT attempt should still
-      // revise the last successfully-parsed one, if any, rather than lose it.
-      lastIssues = [{ message: error instanceof Error ? error.message : String(error) }];
-      if (attempt === MAX_ATTEMPTS) {
-        // The attempt number and shape are appended to the thrown message
-        // ONLY -- never folded into lastIssues, so buildRetryFeedback()'s
-        // model-facing text is completely unaffected. This is what makes
-        // it possible to tell, from a real GitHub Actions failure alone,
-        // whether every attempt failed to parse (isRevisionAttempt false
-        // even on attempt 6 -- no draft ever successfully parsed) or
-        // whether earlier attempts drafted fine and only a later revision
-        // attempt broke (isRevisionAttempt true) -- see this function's
-        // own doc comment and generate-structured-json.ts's parse-error
-        // diagnostics for the investigation this closes the gap on.
-        throw new Error(
-          `Script generation failed after ${MAX_ATTEMPTS} attempts (final failure: attempt ${attempt}/${MAX_ATTEMPTS}, ${isRevisionAttempt ? "revision" : "initial single-message"} generation): ${lastIssues.map((i) => i.message).join("; ")}${trajectory.length > 0 ? `\n\nWord-count trajectory:\n${formatTrajectory(trajectory)}` : ""}`,
-        );
-      }
-      // Observed in practice: OpenRouter occasionally returns HTTP 200
-      // with finish_reason "error" and truncated content for this model —
-      // not an HTTP-level failure generateStructuredJson's own retry
-      // policy would catch, but genuinely transient (a following call
-      // succeeded). A short backoff before the next attempt costs little
-      // and matches this project's established backoff-before-retry
-      // posture elsewhere (Fish Audio, OpenRouter's own 429/5xx handling).
-      await sleep(3000 * attempt);
-      continue;
-    }
 
-    previousOutput = output;
-
-    let structuralIssues = validateGeneratedScript(output, request);
-    // attemptOutput is the script THIS attempt ultimately produces --
-    // either `output` as-is, or a word-count-corrected replacement below.
-    // Kept separate from `output` so the correction pass never has to
-    // mutate the variable the catch block above already closed over.
-    let attemptOutput = output;
-    trajectory.push({
-      attemptNumber: trajectory.length + 1,
-      phase: isRevisionAttempt ? "revision" : "initial",
-      wordCount: countSpokenWords(output),
-      issues: structuralIssues,
-    });
-
-    // Word-count-overshoot-only failures get a dedicated, narrow
-    // correction pass BEFORE falling through to the normal multi-category
-    // revision mechanism below -- see runWordCountCorrection()'s doc
-    // comment for why. Undershoot (too few words) and any failure that
-    // co-occurs with another issue are deliberately left to the existing
-    // revision mechanism, unchanged -- this pass has exactly one job.
-    if (structuralIssues.length === 1 && WORD_COUNT_ISSUE_RE.test(structuralIssues[0].message)) {
-      const previousCount = countSpokenWords(output);
-      if (previousCount > WORD_COUNT_HARD_MAX) {
-        const correction = await runWordCountCorrection(output, previousCount, request, trajectory.length + 1);
-        trajectory.push(...correction.entries);
-        attemptOutput = correction.output;
-        structuralIssues = correction.issues;
-        // If the corrected draft still needs another revision pass, the
-        // NEXT outer attempt must revise the corrected draft, not the
-        // original overshoot -- same reasoning as previousOutput = output
-        // above.
-        previousOutput = correction.output;
+      // Word-count-overshoot-only failures get a dedicated, narrow
+      // correction pass BEFORE falling through to the normal multi-category
+      // revision mechanism below -- see runWordCountCorrection()'s doc
+      // comment for why. Undershoot (too few words) and any failure that
+      // co-occurs with another issue are deliberately left to the existing
+      // revision mechanism, unchanged -- this pass has exactly one job.
+      if (structuralIssues.length === 1 && WORD_COUNT_ISSUE_RE.test(structuralIssues[0].message)) {
+        const previousCount = countSpokenWords(output);
+        if (previousCount > WORD_COUNT_HARD_MAX) {
+          const correction = await runWordCountCorrection(output, previousCount, request, trajectory.length + 1);
+          trajectory.push(...correction.entries);
+          attemptOutput = correction.output;
+          structuralIssues = correction.issues;
+          // If the corrected draft still needs another revision pass, the
+          // NEXT outer attempt must revise the corrected draft, not the
+          // original overshoot -- same reasoning as previousOutput = output
+          // above.
+          previousOutput = correction.output;
+        }
       }
     }
+
+    // FIX #8: decide whether the NEXT outer attempt (if this one doesn't
+    // already succeed below) should skip the generic revision path and go
+    // straight back into runWordCountCorrection() -- true only when the
+    // CURRENT state is a plain word-count OVERSHOOT (never an undershoot;
+    // runWordCountCorrection() itself is only ever entered for
+    // previousCount > WORD_COUNT_HARD_MAX, matching its existing entry
+    // guard above) that either just came from a pure CEFR mismatch, or was
+    // already in this recovery chain. Any other outcome -- full recovery
+    // (structuralIssues now empty), an undershoot, or a different/combined
+    // issue -- clears it, falling through to ordinary handling next time.
+    // The trailing `> WORD_COUNT_HARD_MAX` conjunct is load-bearing, not
+    // decorative -- an adversarial review confirmed it is the ONLY thing
+    // keeping this branch from ever firing on an undershoot (WORD_COUNT_ISSUE_RE
+    // alone matches both directions); do not simplify this condition to
+    // drop it.
+    //
+    // Deliberately no stall/progress detection across repeated recovery
+    // iterations (same review): once this flag is true, every subsequent
+    // outer attempt keeps calling runWordCountCorrection() again for as
+    // long as the result stays a lone overshoot, even if consecutive calls
+    // stop making meaningful progress -- it never "gives up" and falls
+    // back to the generic path mid-chain. Adding that would mean inventing
+    // a new stall-detection heuristic and threshold this fix's explicit
+    // scope does not call for (requirement 5: reuse existing mechanisms,
+    // do not add new ones) and MAX_ATTEMPTS already bounds the total cost.
+    // Also note: isPureCefrMismatch() (unmodified) is already shared by
+    // Fix #7 between an authoritative-grading failure and the rarer
+    // structural self-report mismatch -- this flag inherits that same
+    // surface unchanged; both are "a real CEFR problem needing the
+    // dedicated preamble," and routing either one's regrowth through
+    // correction is equally appropriate.
+    cefrRecoveryPending =
+      (wasPureCefrMismatch || cefrRecoveryPending) &&
+      structuralIssues.length === 1 &&
+      WORD_COUNT_ISSUE_RE.test(structuralIssues[0].message) &&
+      countSpokenWords(attemptOutput) > WORD_COUNT_HARD_MAX;
 
     // The real enrichment grading only runs once the structural checks
     // already passed -- a script that's already going to be rejected for

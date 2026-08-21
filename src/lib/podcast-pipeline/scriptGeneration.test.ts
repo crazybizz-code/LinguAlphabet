@@ -4,8 +4,10 @@ import {
   buildRetryFeedback,
   buildPrompt,
   buildRevisionPreamble,
+  buildCefrOnlyRevisionPreamble,
   generateEpisodeScript,
   checkOpeningStructure,
+  selectLargeCutTarget,
   type ScriptGenerationOutput,
   type ScriptGenerationRequest,
 } from "./scriptGeneration";
@@ -252,6 +254,188 @@ describe("checkOpeningStructure — direct unit coverage", () => {
 });
 
 /**
+ * Regression coverage for the DETERMINISTIC LARGE-CUT TARGET SELECTION
+ * fix: a real diagnostic run confirmed the large-cut classification and
+ * cut-range arithmetic were already correct, and the model was explicitly,
+ * repeatedly told to "find the SINGLE longest turn... that is a personal
+ * example, story, extended explanation, or other non-essential aside" --
+ * and reliably failed to do so (one real edit trimmed an unrelated turn's
+ * trailing sentence instead; two genuinely eligible turns went untouched
+ * across 12 consecutive attempts). selectLargeCutTarget() removes the
+ * SEARCH from the model's job -- tested directly here, the same way
+ * checkOpeningStructure() above is tested directly, since it needs no LLM
+ * call and reuses checkOpeningStructure() (unmodified) for the opening-block
+ * signals.
+ */
+describe("selectLargeCutTarget — direct unit coverage", () => {
+  const REQUEST_BEN_HANNAH: ScriptGenerationRequest = {
+    speaker0Name: "Ben",
+    speaker1Name: "Hannah",
+    cefrLevel: "B2",
+    usedTitles: [],
+    usedTopicTags: [],
+  };
+
+  function output(turns: ScriptGenerationOutput["turns"]): ScriptGenerationOutput {
+    return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+  }
+
+  /** A real, structurally-valid opening block (hook, both self-intros,
+   * LinguABC mention) matching checkOpeningStructure()'s own expectations,
+   * so speaker0IntroPosition/speaker1IntroPosition/linguabcPosition are
+   * all found and actually exercise the protection logic under test. */
+  function openingBlock(): ScriptGenerationOutput["turns"] {
+    return [
+      { speaker: 0, text: "I once locked myself out of my own apartment wearing only socks, in the middle of January." }, // turn 0: the hook
+      { speaker: 1, text: "Wait, that is awful. What did you even do?" }, // turn 1
+      { speaker: 0, text: "It was a whole thing. Anyway, I'm Ben." }, // turn 2: speaker0 self-intro
+      { speaker: 1, text: "And I'm Hannah." }, // turn 3: speaker1 self-intro
+      { speaker: 0, text: "This is LinguABC, and today we are talking about small emergencies that teach you something." }, // turn 4: LinguABC mention
+    ];
+  }
+
+  function interruptionPair(): ScriptGenerationOutput["turns"] {
+    return [
+      { speaker: 0, text: "...and honestly I think the whole point is that we—" },
+      { speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." },
+    ];
+  }
+
+  function closingTurn(): ScriptGenerationOutput["turns"] {
+    return [{ speaker: 1, text: "It really does. That has been LinguABC -- thanks for listening, and we will catch you in the next one." }];
+  }
+
+  it("1. selects a real, correctly-eligible turn (not one of the protected ones) when exactly one non-trivial candidate exists", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      ...openingBlock(),
+      { speaker: 1, text: "Right, and it is not just about memory either -- it is about how much we trust our own sense of a totally ordinary morning." }, // eligible
+      ...interruptionPair(),
+      ...closingTurn(),
+    ];
+    const target = selectLargeCutTarget(output(turns), REQUEST_BEN_HANNAH);
+    expect(target).not.toBeNull();
+    expect(target!.turnIndex).toBe(5);
+    expect(target!.speakerName).toBe("Hannah");
+    expect(target!.text).toContain("Right, and it is not just about memory either");
+  });
+
+  it("2. the LONGEST eligible turn wins when multiple candidates exist -- a short eligible turn does not win over a longer one", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      ...openingBlock(),
+      { speaker: 1, text: "Sure, I guess." }, // eligible but short (3 words)
+      {
+        speaker: 0,
+        text: "I read somewhere that this happens more often to people who travel a lot, which honestly makes a strange kind of sense once you think it through, especially after a long international flight.",
+      }, // eligible and much longer
+      { speaker: 1, text: "Huh, interesting." }, // eligible but short
+      ...interruptionPair(),
+      ...closingTurn(),
+    ];
+    const target = selectLargeCutTarget(output(turns), REQUEST_BEN_HANNAH);
+    expect(target).not.toBeNull();
+    expect(target!.turnIndex).toBe(6); // the long turn, not either short one
+    expect(target!.speakerName).toBe("Ben");
+  });
+
+  it("3. never selects the hook (turn 0), even when it is the longest turn in the script", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      {
+        speaker: 0,
+        text: "I once locked myself out of my own apartment wearing only socks, in the middle of January, and it took the building superintendent almost an hour to let me back in while I stood there freezing and increasingly embarrassed in front of my neighbors.",
+      }, // turn 0: the hook -- by far the longest turn, but must never be selected
+      ...openingBlock().slice(1),
+      { speaker: 1, text: "Short reply." },
+      ...interruptionPair(),
+      ...closingTurn(),
+    ];
+    const target = selectLargeCutTarget(output(turns), REQUEST_BEN_HANNAH);
+    expect(target).not.toBeNull();
+    expect(target!.turnIndex).not.toBe(0);
+  });
+
+  it("4. never selects the LinguABC branding/intro turn, even when it is the longest eligible-looking turn", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "I once locked myself out of my own apartment wearing only socks, in the middle of January." },
+      { speaker: 1, text: "Wait, that is awful. What did you even do?" },
+      { speaker: 0, text: "It was a whole thing. Anyway, I'm Ben." },
+      { speaker: 1, text: "And I'm Hannah." },
+      {
+        speaker: 0,
+        text: "This is LinguABC, and today we are talking about small emergencies that teach you something, and honestly this could turn into a much longer conversation than either of us expected going in.",
+      }, // turn 4: LinguABC mention -- deliberately made the longest turn
+      { speaker: 1, text: "Short reply." },
+      ...interruptionPair(),
+      ...closingTurn(),
+    ];
+    const target = selectLargeCutTarget(output(turns), REQUEST_BEN_HANNAH);
+    expect(target).not.toBeNull();
+    expect(target!.turnIndex).not.toBe(4);
+  });
+
+  it("5. never selects either turn of the interruption pair, even when one of them is the longest eligible-looking turn", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      ...openingBlock(),
+      { speaker: 1, text: "Short reply." },
+      {
+        speaker: 0,
+        text: "...and honestly I think the whole point is that we never really stop to consider how much of our daily routine depends on other people simply being reasonable, which is a much bigger thought than I meant to start with, but—",
+      }, // long interruption-initiating turn
+      { speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." },
+      ...closingTurn(),
+    ];
+    const target = selectLargeCutTarget(output(turns), REQUEST_BEN_HANNAH);
+    expect(target).not.toBeNull();
+    expect(target!.turnIndex).not.toBe(6); // the long interruption-initiating turn
+    expect(target!.turnIndex).not.toBe(7); // its interruption partner
+  });
+
+  it("6. never selects the final (closing/sign-off) turn, even when it is the longest eligible-looking turn", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      ...openingBlock(),
+      { speaker: 1, text: "Short reply." },
+      ...interruptionPair(),
+      {
+        speaker: 1,
+        text: "It really does. That has been LinguABC, and honestly this was one of the more interesting conversations we have had in a while, so thanks so much for listening and we will catch you again very soon.",
+      }, // final turn -- deliberately made the longest turn
+    ];
+    const target = selectLargeCutTarget(output(turns), REQUEST_BEN_HANNAH);
+    expect(target).not.toBeNull();
+    expect(target!.turnIndex).not.toBe(turns.length - 1);
+  });
+
+  it("7. returns null (no candidate) when every turn in the script is protected -- preserves the fallback path rather than inventing an unsafe target", () => {
+    // A minimal, degenerate script where EVERY turn is protected: turn 0 is
+    // both the hook AND speaker0's self-intro; turn 1 is both speaker1's
+    // self-intro AND the LinguABC mention; turns 2-3 are the interruption
+    // pair; turn 4 is the closing turn (also the last index). Nothing left
+    // over for a large cut -- exactly the case selectLargeCutTarget() must
+    // return null for, rather than inventing an unsafe fallback target.
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "I'm Ben." },
+      { speaker: 1, text: "And I'm Hannah. This is LinguABC." },
+      ...interruptionPair(),
+      ...closingTurn(),
+    ];
+    const target = selectLargeCutTarget(output(turns), REQUEST_BEN_HANNAH);
+    expect(target).toBeNull();
+  });
+
+  it("ties between equally-long eligible turns resolve to the earliest turn index, deterministically", () => {
+    const turns: ScriptGenerationOutput["turns"] = [
+      ...openingBlock(),
+      { speaker: 1, text: "This particular turn has exactly the same word count as the other one below it." },
+      { speaker: 0, text: "This particular turn has exactly the same word count as the other one above it." },
+      ...interruptionPair(),
+      ...closingTurn(),
+    ];
+    const target = selectLargeCutTarget(output(turns), REQUEST_BEN_HANNAH);
+    expect(target).not.toBeNull();
+    expect(target!.turnIndex).toBe(5); // the earlier of the two ties
+  });
+});
+
+/**
  * Regression coverage for the bug this fix addresses: generateEpisodeScript()
  * used to retry every failed attempt with the IDENTICAL prompt, giving the
  * model no signal about what to fix. buildRetryFeedback() is the pure
@@ -331,9 +515,14 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
     expect(feedback).toMatch(/add approximately 102-117 spoken words/i);
   });
 
-  it("gives concrete corrective guidance specifically for a CEFR-level failure", () => {
+  it("gives concrete corrective guidance specifically for a CEFR-level failure COMBINED with another issue", () => {
+    // A single, standalone CEFR issue is a PURE mismatch (Fix #7) and gets
+    // the dedicated buildCefrOnlyRevisionPreamble() instead -- this generic
+    // guidance is reserved for a CEFR issue combined with something else;
+    // see the "Fix #7" describe block below for the pure-mismatch case.
     const feedback = buildRetryFeedback([
       { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2 -- LinguABC AI-generated podcasts must grade as B2, C1, or C2." },
+      { message: "No genuine interruption found." },
     ]);
     expect(feedback).toContain("Authoritative enrichment graded this script as cefrLevelMin=B1");
     expect(feedback).toMatch(/independently graded BELOW the required B2\+ standard/i);
@@ -345,6 +534,188 @@ describe("buildRetryFeedback — corrective feedback for the next attempt", () =
   it("does not add CEFR-specific guidance when there is no CEFR issue", () => {
     const feedback = buildRetryFeedback([{ message: "No genuine interruption found." }]);
     expect(feedback).not.toMatch(/raise vocabulary sophistication/i);
+  });
+
+  /**
+   * Regression coverage for the real diagnostic finding this fix
+   * implements: a script passed structural validation at 964 words (inside
+   * 920-965), then failed ONLY the authoritative CEFR grading. The
+   * (previously length-unaware) CEFR guidance told the model to "raise
+   * vocabulary sophistication... use real conditional/subordinate-clause
+   * sentence structures throughout... genuinely rewrite the language" with
+   * no word-count constraint attached, and a real rewrite ballooned to
+   * 1269 words -- undoing several attempts' worth of word-count-correction
+   * progress. buildCefrGuidance() (called from buildRetryFeedback() via
+   * its new optional previousWordCount parameter) now adds an explicit
+   * word-count-preservation constraint whenever the previous draft was
+   * already inside or close to 920-965 -- see isInOrNearWordCountRange().
+   */
+  describe("CEFR guidance word-count-preservation constraint (the 964 -> 1269 regression fix)", () => {
+    const cefrIssue = { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2 -- LinguABC AI-generated podcasts must grade as B2, C1, or C2." };
+    // FIX #7: buildCefrGuidance() is now suppressed by buildRetryFeedback()
+    // whenever the issues array is a PURE CEFR mismatch (isPureCefrMismatch()
+    // -- exactly one issue, the CEFR one) since that scenario now gets its
+    // own dedicated buildCefrOnlyRevisionPreamble() instead, and stacking
+    // both produced a real, reproduced contradiction (see that function's
+    // doc comment). Every test in this block therefore pairs cefrIssue with
+    // a second, unrelated issue -- the ONLY shape (CEFR combined with
+    // something else) that still reaches buildCefrGuidance() in real
+    // production usage; a dedicated block below covers the pure-mismatch
+    // suppression itself and the combined-path preservation explicitly.
+    const otherIssue = { message: "No genuine interruption found." };
+
+    it("1. adds the word-count constraint when the previous draft is exactly at the real regression's word count (964, in range)", () => {
+      const feedback = buildRetryFeedback([cefrIssue, otherIssue], 964);
+      expect(feedback).toMatch(/word count \(964\) is already inside or close to the required 920-965 range/i);
+      expect(feedback).toMatch(/must not be allowed to push it back out/i);
+      expect(feedback).toMatch(/not by adding length/i);
+      expect(feedback).toMatch(/do not add new content, new turns, new examples, or new explanations/i);
+      expect(feedback).toMatch(/cut an equivalent number of words elsewhere in the same revision/i);
+      expect(feedback).toMatch(/preserve the existing script's structure and meaning/i);
+      expect(feedback).toMatch(/treat the 920-965 word count as a hard constraint/i);
+    });
+
+    it("1b. adds the constraint for a word count merely CLOSE to the range, not just exactly inside it (900, 20 under the 920 floor)", () => {
+      const feedback = buildRetryFeedback([cefrIssue, otherIssue], 900);
+      expect(feedback).toMatch(/word count \(900\) is already inside or close to the required 920-965 range/i);
+    });
+
+    it("1c. adds the constraint just inside the near-range margin above the ceiling (1005, 40 over 965)", () => {
+      const feedback = buildRetryFeedback([cefrIssue, otherIssue], 1005);
+      expect(feedback).toMatch(/word count \(1005\) is already inside or close to the required 920-965 range/i);
+    });
+
+    it("does NOT add the constraint when the previous draft is far from the range (1113, a fresh initial-attempt-sized overshoot)", () => {
+      const feedback = buildRetryFeedback([cefrIssue, otherIssue], 1113);
+      expect(feedback).not.toMatch(/already inside or close to the required 920-965 range/i);
+      expect(feedback).not.toMatch(/must not be allowed to push it back out/i);
+    });
+
+    it("does NOT add the constraint when no previousWordCount is supplied at all", () => {
+      const feedback = buildRetryFeedback([cefrIssue, otherIssue]);
+      expect(feedback).not.toMatch(/already inside or close to the required 920-965 range/i);
+    });
+
+    it("2. the original CEFR guidance text is fully preserved even when the constraint fires (addition, not replacement)", () => {
+      const feedback = buildRetryFeedback([cefrIssue, otherIssue], 964);
+      expect(feedback).toMatch(/independently graded BELOW the required B2\+ standard/i);
+      expect(feedback).toMatch(/raise vocabulary sophistication/i);
+      expect(feedback).toMatch(/conditional\/subordinate-clause sentence structures/i);
+      expect(feedback).toMatch(/do not just relabel the same simple script or change the self-reported level field/i);
+    });
+
+    it("2b. the original CEFR guidance text is byte-identical whether or not previousWordCount is passed (out-of-range case)", () => {
+      const withoutCount = buildRetryFeedback([cefrIssue, otherIssue]);
+      const withFarCount = buildRetryFeedback([cefrIssue, otherIssue], 1113);
+      expect(withoutCount).toBe(withFarCount);
+    });
+
+    it("3. does not leak into or alter a co-occurring word-count issue's own guidance", () => {
+      const feedback = buildRetryFeedback(
+        [{ message: "Word count 1269 is outside the acceptable 920-965 range." }, cefrIssue],
+        1269,
+      );
+      // 1269 is far outside the near-range margin, so the constraint must
+      // not fire even though a previousWordCount was supplied -- the
+      // ordinary large-overshoot word-count guidance is untouched.
+      expect(feedback).toMatch(/cut approximately 319-334 spoken words/i);
+      expect(feedback).not.toMatch(/already inside or close to the required 920-965 range/i);
+    });
+
+    it("4. is level-agnostic -- fires identically regardless of which CEFR level was requested (B2 vs C1 grading messages)", () => {
+      const b2Issue = { message: "Authoritative enrichment graded this script as cefrLevelMin=A2, cefrLevelMax=B1 -- requested level was B2." };
+      const c1Issue = { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2 -- requested level was C1." };
+      const b2Feedback = buildRetryFeedback([b2Issue, otherIssue], 964);
+      const c1Feedback = buildRetryFeedback([c1Issue, otherIssue], 964);
+      expect(b2Feedback).toMatch(/word count \(964\) is already inside or close to the required 920-965 range/i);
+      expect(c1Feedback).toMatch(/word count \(964\) is already inside or close to the required 920-965 range/i);
+    });
+  });
+
+  /**
+   * FIX #7: the actual gating change at buildRetryFeedback()'s call site --
+   * verified directly here (not just indirectly through
+   * buildCefrOnlyRevisionPreamble()'s own describe block above), since this
+   * is the exact mechanism that removes the real, reproduced contradiction
+   * (buildCefrGuidance()'s "discuss a genuinely complex or abstract angle"
+   * sitting next to the dedicated preamble's "do NOT add any new... content
+   * of any kind").
+   */
+  describe("Fix #7: buildCefrGuidance() is suppressed for a PURE CEFR mismatch, unchanged for a combined one", () => {
+    const cefrIssue = { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2 -- LinguABC AI-generated podcasts must grade as B2, C1, or C2." };
+    const otherIssue = { message: "No genuine interruption found." };
+
+    it("a PURE CEFR mismatch (issues.length === 1) never receives buildCefrGuidance()'s text, regardless of previousWordCount", () => {
+      const withCount = buildRetryFeedback([cefrIssue], 964);
+      const withoutCount = buildRetryFeedback([cefrIssue]);
+      for (const feedback of [withCount, withoutCount]) {
+        expect(feedback).not.toMatch(/raise vocabulary sophistication/i);
+        expect(feedback).not.toMatch(/discuss a genuinely complex or abstract angle/i);
+        expect(feedback).not.toMatch(/already inside or close to the required 920-965 range/i);
+      }
+    });
+
+    it("a CEFR mismatch COMBINED with any other issue still receives buildCefrGuidance()'s text, completely unchanged", () => {
+      const feedback = buildRetryFeedback([cefrIssue, otherIssue], 964);
+      expect(feedback).toMatch(/raise vocabulary sophistication/i);
+      expect(feedback).toMatch(/discuss a genuinely complex or abstract angle/i);
+      expect(feedback).toMatch(/already inside or close to the required 920-965 range/i);
+    });
+
+    // The real end-to-end integration case (generateEpisodeScript()'s
+    // actual preamble selection agreeing with this gating in one real
+    // message) is covered in the "generateEpisodeScript — single
+    // authoritative enrichment grading" describe block below, where
+    // REQUEST_B2/buildValidScriptOutput()/fakeEnrichment() are in scope --
+    // see "treats a below-B2 enrichment grade as a retry-worthy failure...".
+  });
+
+  /**
+   * 3. Proves the new previousWordCount parameter is scoped ONLY to CEFR
+   * guidance -- every other issue category's guidance (prosody,
+   * interruption, opening structure, markdown, plain word-count-only) is
+   * byte-identical whether or not a previousWordCount is supplied, and
+   * never mentions the new CEFR word-count-preservation wording.
+   */
+  describe("other retry categories are unaffected by the new previousWordCount parameter", () => {
+    it("prosody-only guidance is unchanged by passing previousWordCount", () => {
+      const issue = { message: "Prosody density 1.61/100 words is far below the ~4-6 target -- prosody rules were not followed." };
+      expect(buildRetryFeedback([issue])).toBe(buildRetryFeedback([issue], 964));
+    });
+
+    it("interruption-only guidance is unchanged by passing previousWordCount", () => {
+      const issue = { message: "No genuine interruption found." };
+      expect(buildRetryFeedback([issue])).toBe(buildRetryFeedback([issue], 940));
+    });
+
+    it("opening-structure-only guidance is unchanged by passing previousWordCount", () => {
+      const issue = { message: "Ben's introduction occurs at 98.7% through the script -- must be within the first 25%." };
+      expect(buildRetryFeedback([issue])).toBe(buildRetryFeedback([issue], 950));
+    });
+
+    it("markdown-only guidance is unchanged by passing previousWordCount", () => {
+      const issue = { message: "Found markdown-style emphasis markers that would be read aloud literally (use [emphasis] instead): *just*" };
+      expect(buildRetryFeedback([issue])).toBe(buildRetryFeedback([issue], 945));
+    });
+
+    it("word-count-only guidance (no CEFR issue) is unchanged by passing previousWordCount", () => {
+      const issue = { message: "Word count 1005 is outside the acceptable 920-965 range." };
+      expect(buildRetryFeedback([issue])).toBe(buildRetryFeedback([issue], 1005));
+    });
+
+    it("none of these categories' feedback ever contains the CEFR word-count-preservation wording", () => {
+      const issues = [
+        { message: "Prosody density 1.61/100 words is far below the ~4-6 target -- prosody rules were not followed." },
+        { message: "No genuine interruption found." },
+        { message: "Ben's introduction occurs at 98.7% through the script -- must be within the first 25%." },
+        { message: "Found markdown-style emphasis markers that would be read aloud literally (use [emphasis] instead): *just*" },
+        { message: "Word count 1005 is outside the acceptable 920-965 range." },
+      ];
+      for (const issue of issues) {
+        const feedback = buildRetryFeedback([issue], 940);
+        expect(feedback).not.toMatch(/already inside or close to the required 920-965 range/i);
+      }
+    });
   });
 
   it("gives concrete corrective guidance specifically for a markdown-emphasis failure", () => {
@@ -960,6 +1331,207 @@ describe("buildWordCountGuidance — near-ceiling overshoot (real 1015-word fail
 });
 
 /**
+ * Regression coverage for the word-count CONVERGENCE fix (distinct from
+ * the cut-SIZE fix above): a real diagnostic run captured every full draft
+ * across a real 6-attempt failure and diffed them turn-by-turn. Every cut,
+ * large and small alike, was a cosmetic word/phrase trim (an article, an
+ * adverb, a short qualifying phrase) -- zero turns or sentences were ever
+ * deleted, even when 100-300+ words still needed removing, and the single
+ * longest turn in the script (a ~110-word personal anecdote) survived
+ * completely untouched through all 15 real drafts. The requested cut
+ * RANGE was already correct (see the tests above); the problem was the
+ * METHOD instruction ("trim sentences and phrases within turns, don't
+ * just delete whole turns") never permitting a cut large enough to close
+ * a 100+ word gap. buildCutMethodGuidance() now requires substantially
+ * shortening or removing ONE non-essential turn whenever the needed cut
+ * is large (past NEAR_CEILING_OVERSHOOT_LIMIT, the same boundary already
+ * used above) -- a near-ceiling cut is untouched, still phrase-trim-only.
+ */
+describe("buildCutMethodGuidance / large-overage compression (the convergence fix)", () => {
+  it("a large overshoot (1026 words, just past the boundary) requires cutting one whole non-essential turn", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1026 is outside the acceptable 920-965 range." }]);
+    expect(feedback).toMatch(/TOO LARGE to reach through word- and phrase-level trims alone/i);
+    expect(feedback).toMatch(/find the SINGLE longest turn in the script/i);
+    expect(feedback).toMatch(/personal example, story, extended explanation, or other non-essential aside/i);
+    expect(feedback).toMatch(/remove at least half of it, or cut it entirely/i);
+    // The turns explicitly protected from this cut.
+    expect(feedback).toMatch(/never the hook, the self-introductions, the LinguABC mention, or the interruption pair/i);
+  });
+
+  it("does NOT require a whole-turn cut for a near-ceiling overshoot (1025 words, at the boundary)", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1025 is outside the acceptable 920-965 range." }]);
+    expect(feedback).not.toMatch(/TOO LARGE to reach through word- and phrase-level trims alone/i);
+    expect(feedback).not.toMatch(/find the SINGLE longest turn/i);
+    expect(feedback).toMatch(/Trim sentences and phrases within turns, don't just delete whole turns/i);
+  });
+
+  it("does NOT require a whole-turn cut for any near-ceiling value (1000, 1015 words)", () => {
+    expect(buildRetryFeedback([{ message: "Word count 1000 is outside the acceptable 920-965 range." }])).not.toMatch(/find the SINGLE longest turn/i);
+    expect(buildRetryFeedback([{ message: "Word count 1015 is outside the acceptable 920-965 range." }])).not.toMatch(/find the SINGLE longest turn/i);
+  });
+
+  it("requires the whole-turn cut for every confirmed real large overshoot (1032, 1087, 1181)", () => {
+    expect(buildRetryFeedback([{ message: "Word count 1032 is outside the acceptable 920-965 range." }])).toMatch(/find the SINGLE longest turn/i);
+    expect(buildRetryFeedback([{ message: "Word count 1087 is outside the acceptable 920-965 range." }])).toMatch(/find the SINGLE longest turn/i);
+    expect(buildRetryFeedback([{ message: "Word count 1181 is outside the acceptable 920-965 range." }])).toMatch(/find the SINGLE longest turn/i);
+  });
+
+  it("still requires the whole-turn cut for the real 964 -> 1269 CEFR-regression overshoot (304 over)", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 1269 is outside the acceptable 920-965 range." }]);
+    expect(feedback).toMatch(/find the SINGLE longest turn/i);
+    expect(feedback).toMatch(/cut approximately 319-334 spoken words/i);
+  });
+
+  it("undershoot guidance (adding words) is completely unaffected -- it never mentions cutting a turn", () => {
+    const feedback = buildRetryFeedback([{ message: "Word count 856 is outside the acceptable 920-965 range." }]);
+    expect(feedback).not.toMatch(/find the SINGLE longest turn/i);
+    expect(feedback).not.toMatch(/TOO LARGE to reach through word- and phrase-level trims alone/i);
+  });
+});
+
+/**
+ * buildRevisionPreamble()'s own "leave every turn, line, joke, example...
+ * completely unchanged" framing directly contradicts the whole-turn cut
+ * buildCutMethodGuidance() now requires for a large overshoot -- both are
+ * sent in the SAME message on a normal (non-dedicated-correction-pass)
+ * revision attempt. This is the preamble-level half of the convergence
+ * fix: an explicit, narrowly-gated exception is appended only when the
+ * previous attempt's issues include a large word-count overshoot.
+ */
+describe("buildRevisionPreamble — largeCutNeeded exception (the convergence fix)", () => {
+  it("defaults to false: identical output to calling with no argument at all (byte-for-byte)", () => {
+    expect(buildRevisionPreamble()).toBe(buildRevisionPreamble(false));
+  });
+
+  it("with no argument, never mentions the large-cut exception (existing behavior fully preserved)", () => {
+    const preamble = buildRevisionPreamble();
+    expect(preamble).not.toMatch(/EXCEPTION for this revision/i);
+    expect(preamble).toMatch(/leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged/i);
+  });
+
+  it("when largeCutNeeded is true, appends an exception permitting the one whole-turn cut, without removing the original framing", () => {
+    const preamble = buildRevisionPreamble(true);
+    // Original framing still present in full.
+    expect(preamble).toMatch(/EXACT script you wrote last time/i);
+    expect(preamble).toMatch(/leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged/i);
+    // New exception appended.
+    expect(preamble).toMatch(/EXCEPTION for this revision/i);
+    expect(preamble).toMatch(/substantially shortening or removing it is REQUIRED here/i);
+    expect(preamble).toMatch(/not a violation of "smallest possible targeted edits/i);
+    // Everything else unflagged still protected, including opening/interruption.
+    expect(preamble).toMatch(/every other unflagged turn, line, and structural element/i);
+    expect(preamble).toMatch(/including the opening block and interruption if they already passed/i);
+  });
+
+  it("largeCutNeeded=true output starts with the exact same base text as the default call", () => {
+    const base = buildRevisionPreamble();
+    const withException = buildRevisionPreamble(true);
+    expect(withException.startsWith(base)).toBe(true);
+  });
+});
+
+/**
+ * Regression coverage for the CEFR-REGRESSION fix (distinct from the
+ * word-count-compression fix above, which must NOT be touched by this
+ * one): a real diagnostic run captured the exact message sent for a PURE
+ * CEFR mismatch (a 960-word draft that passed every structural check but
+ * failed authoritative CEFR grading) and found a direct, live
+ * contradiction inside it -- buildRevisionPreamble()'s own "leave every
+ * turn, line, joke, example... completely unchanged... same wording
+ * wherever it already worked" sitting immediately next to
+ * buildCefrGuidance()'s "Genuinely rewrite the language." The real
+ * revision that resulted grew to 994 words with no new content anywhere --
+ * every turn rewritten with more Latinate/nominalized phrasing for the
+ * SAME ideas ("asking for forgiveness" -> "an appeal for forbearance").
+ *
+ * buildCefrOnlyRevisionPreamble() is a SEPARATE preamble used INSTEAD of
+ * buildRevisionPreamble() only for a pure CEFR mismatch (see
+ * isPureCefrMismatch(), tested indirectly below through
+ * generateEpisodeScript() since it is not exported, matching this file's
+ * existing convention for isLargeWordCountCutNeeded()).
+ */
+describe("buildCefrOnlyRevisionPreamble — dedicated CEFR-mismatch revision framing (the 960 -> 994 regression fix)", () => {
+  it("does NOT contain the minimal-edit preamble's wording-protection language", () => {
+    const preamble = buildCefrOnlyRevisionPreamble();
+    expect(preamble).not.toMatch(/same wording wherever it already worked/i);
+    expect(preamble).not.toMatch(/leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged/i);
+    expect(preamble).not.toMatch(/smallest possible targeted edits/i);
+  });
+
+  it("explicitly protects content but explicitly UNPROTECTS wording", () => {
+    const preamble = buildCefrOnlyRevisionPreamble();
+    expect(preamble).toMatch(/Preserve the facts, topic, meaning, structure, speaker personalities, and existing examples/i);
+    expect(preamble).toMatch(/wording is NOT protected here/i);
+    expect(preamble).toMatch(/you are REQUIRED to rewrite existing sentences/i);
+  });
+
+  it("contains the 920-965 hard word-count constraint, framed as a simultaneous requirement", () => {
+    const preamble = buildCefrOnlyRevisionPreamble();
+    expect(preamble).toMatch(/MUST remain inside the existing 920-965 word range/i);
+    expect(preamble).toMatch(/shorten a different existing sentence elsewhere in this SAME revision by approximately N words/i);
+    // Compensation is word-level tightening only, never content removal --
+    // and the 920 floor is protected as explicitly as the 965 ceiling.
+    expect(preamble).toMatch(/never by cutting a fact, an example, or a turn to pay the difference/i);
+    expect(preamble).toMatch(/both the 920 floor and the 965 ceiling are equally hard limits/i);
+    expect(preamble).toMatch(/must satisfy BOTH the CEFR requirement and the 920-965 word count simultaneously/i);
+  });
+
+  it("tells the model not to add content of any kind, and not to reframe the discussion toward a more complex angle", () => {
+    const preamble = buildCefrOnlyRevisionPreamble();
+    expect(preamble).toMatch(/do NOT add any new facts, examples, explanations, turns, or content/i);
+    // Fix #7: the contamination this removes (buildCefrGuidance()'s "discuss
+    // a genuinely complex or abstract angle... instead of a simple personal
+    // anecdote") directly contradicted this -- see buildRetryFeedback()'s
+    // gating change and the "pure CEFR mismatch never receives..." test below.
+    expect(preamble).toMatch(/do NOT reframe the discussion toward a "more complex" or "more abstract" angle/i);
+  });
+
+  it("frames the task as substitution/compression, not expansion, and names nominalization and periphrastic expansion by name as the failure modes to avoid (Fix #7)", () => {
+    const preamble = buildCefrOnlyRevisionPreamble();
+    expect(preamble).toMatch(/Treat this as SUBSTITUTION and COMPRESSION, not expansion/i);
+    expect(preamble).toMatch(/Raise the register ONLY through: more precise or specific word choice/i);
+    expect(preamble).toMatch(/nominalization -- turning a verb or adjective into an abstract noun for its own sake/i);
+    expect(preamble).toMatch(/periphrastic expansion -- using more words to express the same idea/i);
+    // The exact real-world failure examples this fix was written from.
+    expect(preamble).toMatch(/"I know exactly what you mean" -> "I comprehend precisely what you signify"/i);
+    expect(preamble).toMatch(/"I get that" -> "I apprehend that distinction"/i);
+    expect(preamble).toMatch(/Strongly prefer substitutions that are the SAME LENGTH or SHORTER than what they replace/i);
+    expect(preamble).toMatch(/mentally recount the final spoken word total \(excluding bracket prosody cues\) and confirm it is between 920 and 965/i);
+  });
+
+  it("prioritizes substitution-only (no expansion anywhere) once the previous draft is already close to the 965 ceiling, explicitly overriding the general compensation allowance", () => {
+    const nearCeiling = buildCefrOnlyRevisionPreamble(952);
+    expect(nearCeiling).toMatch(/This draft is already at 952 words, close to the 965 ceiling -- this OVERRIDES the compensation allowance above: do NOT expand ANYWHERE in this revision/i);
+
+    const farFromCeiling = buildCefrOnlyRevisionPreamble(925);
+    expect(farFromCeiling).not.toMatch(/close to the 965 ceiling/i);
+
+    const noWordCountGiven = buildCefrOnlyRevisionPreamble();
+    expect(noWordCountGiven).not.toMatch(/close to the 965 ceiling/i);
+  });
+
+  it("protects required branding and structural elements even though wording is otherwise unprotected", () => {
+    const preamble = buildCefrOnlyRevisionPreamble();
+    expect(preamble).toMatch(/Do not merge, shorten, or remove the required LinguABC branding, the self-introductions, the opening hook, or the interruption pair merely to save words/i);
+  });
+
+  it("still requires the full script to be returned, not a diff or summary", () => {
+    const preamble = buildCefrOnlyRevisionPreamble();
+    expect(preamble).toMatch(/return the FULL script \(every turn, not a diff/i);
+  });
+
+  it("the existing non-CEFR revision preamble (buildRevisionPreamble) remains byte-identical to before this fix", () => {
+    // Unchanged calls, unchanged output -- this fix added a NEW function,
+    // it did not modify buildRevisionPreamble() itself.
+    expect(buildRevisionPreamble()).toMatch(/same wording wherever it already worked/i);
+    expect(buildRevisionPreamble()).toMatch(/leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged/i);
+    expect(buildRevisionPreamble()).not.toMatch(/wording is NOT protected here/i);
+    expect(buildRevisionPreamble()).not.toMatch(/SUBSTITUTION and COMPRESSION/i);
+    expect(buildRevisionPreamble(true)).not.toMatch(/wording is NOT protected here/i);
+  });
+});
+
+/**
  * Regression coverage for the single-authoritative-CEFR-grading
  * architecture fix: a real GitHub Actions run passed a separate,
  * hand-written CEFR-only precheck, then failed publishing.ts's quality
@@ -1128,11 +1700,100 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
     expect(secondCall.messages[2].role).toBe("user");
 
     // The revision turn must carry the genuine-improvement guidance, not
-    // a metadata-relabeling instruction.
+    // a metadata-relabeling instruction. The issue itself is still listed
+    // (via buildRetryFeedback()'s bullet list, unaffected by Fix #7).
     const revisionPrompt = secondCall.messages[2].content as string;
     expect(revisionPrompt).toMatch(/Authoritative enrichment graded this script as cefrLevelMin=B1/i);
-    expect(revisionPrompt).toMatch(/independently graded BELOW the required B2\+ standard/i);
-    expect(revisionPrompt).toMatch(/do not just relabel the same simple script or change the self-reported level field/i);
+
+    // CEFR-REGRESSION fix: a PURE CEFR mismatch (this is the only issue --
+    // buildValidScriptOutput() passes every structural check) must use the
+    // dedicated buildCefrOnlyRevisionPreamble(), NOT buildRevisionPreamble().
+    expect(revisionPrompt).toMatch(/wording is NOT protected here/i);
+    expect(revisionPrompt).toMatch(/Treat this as SUBSTITUTION and COMPRESSION, not expansion/i);
+    expect(revisionPrompt).not.toMatch(/same wording wherever it already worked/i);
+    expect(revisionPrompt).not.toMatch(/smallest possible targeted edits/i);
+
+    // FIX #7: buildCefrGuidance()'s generic text (meant for a CEFR mismatch
+    // COMBINED with other issues) must NOT also appear here -- stacking it
+    // with the dedicated preamble is the real, reproduced contradiction this
+    // fix removes ("discuss a genuinely complex or abstract angle... instead
+    // of a simple personal anecdote" directly contradicts the dedicated
+    // preamble's "do NOT add any new... content of any kind").
+    expect(revisionPrompt).not.toMatch(/independently graded BELOW the required B2\+ standard/i);
+    expect(revisionPrompt).not.toMatch(/raise vocabulary sophistication/i);
+    expect(revisionPrompt).not.toMatch(/discuss a genuinely complex or abstract angle/i);
+    expect(revisionPrompt).not.toMatch(/do not just relabel the same simple script or change the self-reported level field/i);
+
+    // FIX #7: buildValidScriptOutput() lands at >=950 words (>940, the
+    // near-ceiling threshold) -- close to the real reproduced 952-word
+    // case -- so the real revision prompt must carry the "no expansion
+    // anywhere" ceiling note, not the plain (far-from-ceiling) preamble.
+    const realPreviousWordCount = countWords(buildValidScriptOutput().turns);
+    expect(realPreviousWordCount).toBeGreaterThan(940);
+    expect(revisionPrompt).toMatch(new RegExp(`This draft is already at ${realPreviousWordCount} words, close to the 965 ceiling`, "i"));
+  });
+
+  it("a PURE CEFR mismatch at a different requested level (C1) also gets the dedicated CEFR-only preamble -- level-agnostic", async () => {
+    // cefrLevel overridden to match the requested level, so the model's
+    // self-report agrees with the request -- the ONLY failure is the
+    // authoritative grading below, not a self-report structural mismatch.
+    const draftAtC1 = { ...buildValidScriptOutput(), cefrLevel: "C1" as const };
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(draftAtC1).mockResolvedValueOnce(draftAtC1);
+    vi.mocked(generateEnrichment)
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }))
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "C1", cefrLevelMax: "C2" }));
+
+    await generateEpisodeScript({ ...REQUEST_B2, cefrLevel: "C1" });
+
+    const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+    expect(revisionPrompt).toMatch(/wording is NOT protected here/i);
+    expect(revisionPrompt).not.toMatch(/same wording wherever it already worked/i);
+  });
+
+  it("a PURE CEFR mismatch at C2 also gets the dedicated CEFR-only preamble -- level-agnostic", async () => {
+    const draftAtC2 = { ...buildValidScriptOutput(), cefrLevel: "C2" as const };
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(draftAtC2).mockResolvedValueOnce(draftAtC2);
+    vi.mocked(generateEnrichment)
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }))
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
+
+    await generateEpisodeScript({ ...REQUEST_B2, cefrLevel: "C2" });
+
+    const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+    expect(revisionPrompt).toMatch(/wording is NOT protected here/i);
+    expect(revisionPrompt).not.toMatch(/same wording wherever it already worked/i);
+  });
+
+  /**
+   * Regression coverage for requirement 4/5 of the CEFR-regression fix:
+   * isPureCefrMismatch() must be false the moment ANY other issue
+   * co-occurs, so a CEFR self-report mismatch combined with a word-count
+   * issue (both come from validateGeneratedScript() together, unlike the
+   * authoritative-grading failure which is always alone) must keep using
+   * the EXISTING buildRevisionPreamble()/large-cut machinery, never the
+   * new pure-CEFR preamble.
+   */
+  it("a CEFR self-report mismatch COMBINED with a word-count issue does NOT enter the pure-CEFR branch", async () => {
+    const combinedFailure: ScriptGenerationOutput = { ...buildValidScriptOutput(), cefrLevel: "C1" }; // wrong self-report vs REQUEST_B2's "B2", AND still needs to fail word count too
+    // Force a word-count failure alongside the self-report mismatch by
+    // truncating well below the 920 floor.
+    const tooShort: ScriptGenerationOutput = { ...combinedFailure, turns: combinedFailure.turns.slice(0, 5) };
+    const issues = validateGeneratedScript(tooShort, REQUEST_B2);
+    expect(issues.some((i) => /word count/i.test(i.message))).toBe(true);
+    expect(issues.some((i) => /Requested CEFR level B2 but the model self-reported C1/i.test(i.message))).toBe(true);
+
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(tooShort).mockResolvedValueOnce(buildValidScriptOutput());
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+    await generateEpisodeScript(REQUEST_B2);
+
+    const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+    // The EXISTING minimal-edit preamble (or its large-cut exception) is
+    // used here, not the new pure-CEFR preamble -- because more than one
+    // issue is present.
+    expect(revisionPrompt).toMatch(/same wording wherever it already worked|EXCEPTION for this revision/i);
+    expect(revisionPrompt).not.toMatch(/wording is NOT protected here/i);
+    expect(revisionPrompt).not.toMatch(/Treat this as SUBSTITUTION and COMPRESSION, not expansion/i);
   });
 
   it("throws after exhausting all attempts if enrichment keeps grading below B2", async () => {
@@ -1214,6 +1875,76 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       expect(revisionPrompt).toMatch(/REVISE that exact draft/i);
       expect(revisionPrompt).toMatch(/Word count \d+ is outside the acceptable 920-965 range/i);
       expect(revisionPrompt).toMatch(/Prosody density [\d.]+\/100 words is far below/i);
+    });
+
+    /**
+     * Regression coverage for the word-count CONVERGENCE fix's
+     * preamble-level half: buildTooLongLowProsodyOutput() is a LARGE
+     * overshoot (well over 300 words past the 965 ceiling -- far past
+     * NEAR_CEILING_OVERSHOOT_LIMIT) combined with a co-occurring prosody
+     * issue, so it fails validation with MORE than word count alone and
+     * routes through the normal outer revision path directly (never the
+     * dedicated correction pass, which only triggers for a word-count-ONLY
+     * failure) -- exactly the shape of the real attempt-1 failure this fix
+     * was diagnosed from. The revision message must carry BOTH the
+     * whole-turn cut instruction AND buildRevisionPreamble()'s large-cut
+     * exception, or the preamble's own "leave every example unchanged"
+     * framing would keep contradicting it.
+     */
+    it("a large overshoot combined with another issue gets BOTH the whole-turn-cut guidance AND the preamble's large-cut exception", async () => {
+      const brokenOutput = buildTooLongLowProsodyOutput();
+      expect(countWords(brokenOutput.turns)).toBeGreaterThan(965 + 60); // sanity: confirms this fixture is a LARGE overshoot, not near-ceiling
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(brokenOutput).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+      // The preamble's large-cut exception (before "PREVIOUS ATTEMPT REJECTED").
+      expect(revisionPrompt).toMatch(/EXCEPTION for this revision/i);
+      expect(revisionPrompt).toMatch(/substantially shortening or removing it is REQUIRED here/i);
+      // The word-count guidance's whole-turn-cut instruction (after it).
+      expect(revisionPrompt).toMatch(/find the SINGLE longest turn in the script/i);
+      // Original preamble framing is still present, not replaced.
+      expect(revisionPrompt).toMatch(/leave every turn, line, joke, example, and structural element that was NOT flagged completely unchanged/i);
+    });
+
+    it("a near-ceiling overshoot combined with another issue does NOT get the large-cut exception (regression safety)", async () => {
+      // Same fixture family as buildTooLongLowProsodyOutput, but with far
+      // fewer filler turns so the overshoot stays within
+      // NEAR_CEILING_OVERSHOOT_LIMIT of the 965 ceiling while still also
+      // failing prosody density.
+      const turns: ScriptGenerationOutput["turns"] = [
+        { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+        { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+        { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+        { speaker: 1, text: "And I'm Hannah." },
+        { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+      ];
+      for (let i = 0; i < 30; i++) {
+        turns.push({
+          speaker: (i % 2) as 0 | 1,
+          text: `This is plain filler turn number ${i} with absolutely no prosody cue anywhere in it at all. It just keeps talking about the topic in an ordinary flat way.`,
+        });
+      }
+      turns.push({ speaker: 0, text: "...and honestly I think the whole point is that we—" });
+      turns.push({ speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." });
+      turns.push({ speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." });
+      turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+      const nearCeilingBroken: ScriptGenerationOutput = { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+
+      const wordCount = countWords(turns);
+      expect(wordCount).toBeGreaterThan(965); // still an overshoot...
+      expect(wordCount - 965).toBeLessThanOrEqual(60); // ...but within the near-ceiling boundary
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(nearCeilingBroken).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+      expect(revisionPrompt).not.toMatch(/EXCEPTION for this revision/i);
+      expect(revisionPrompt).not.toMatch(/find the SINGLE longest turn in the script/i);
     });
 
     it("still fails honestly after exhausting all attempts if the same issue persists through every revision", async () => {
@@ -1373,7 +2104,74 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
     }
 
     const LARGE_OVERSHOOT = buildCueRichOvershootOutput(1150); // lands at 1201 words -- 240 over the 965 ceiling, well past NEAR_CEILING_OVERSHOOT_LIMIT (60)
-    const NEAR_CEILING_OVERSHOOT = buildCueRichOvershootOutput(940); // lands at 999 words -- 38 over the 965 ceiling, within NEAR_CEILING_OVERSHOOT_LIMIT (60)
+    const NEAR_CEILING_OVERSHOOT = buildCueRichOvershootOutput(940); // lands at 999 words -- 38 over the 965 ceiling, within NEAR_CEILING_OVERSHOOT_LIMIT (60), in the "meaningful" (11-60) band
+    const SMALL_OVERSHOOT = buildCueRichOvershootOutput(900); // lands at 967 words -- 2 over the 965 ceiling, in the "small" (1-10) band -- matches the real confirmed no-ops (966->966, 969->969) in magnitude
+
+    /** Adjusts a fixture's word count to an EXACT target by adding/removing
+     * single plain-word tokens from one real filler turn (never a
+     * protected opening/interruption/closing turn) -- for exercising the
+     * final-boundary band's exact 1-10-over targets precisely, rather than
+     * whatever count a filler-template cycle happens to land on. Defaults
+     * to turn index 5 (the first filler turn, and every fixture's
+     * consistently-selected target -- see selectLargeCutTarget()'s tests);
+     * an explicit idx lets meaningful-band tests adjust a DIFFERENT turn so
+     * turn 5 -- and therefore WHICH turn gets selected -- stays untouched. */
+    function withExactWordCount(base: ScriptGenerationOutput, targetCount: number, idx: number = 5): ScriptGenerationOutput {
+      const turns = base.turns.map((t) => ({ ...t }));
+      let diff = targetCount - countWords(turns);
+      while (diff > 0) {
+        turns[idx] = { ...turns[idx], text: `${turns[idx].text} extra` };
+        diff -= 1;
+      }
+      while (diff < 0) {
+        const words = turns[idx].text.split(/\s+/).filter(Boolean);
+        if (words.length === 0) break; // safety -- turn exhausted, avoid an infinite loop (popping "" forever is falsy and never advances diff)
+        const popped = words.pop();
+        turns[idx] = { ...turns[idx], text: words.join(" ") };
+        // A bracket-only token (e.g. "[curious]") is stripped entirely by
+        // countWords() -- it was never counted as a word, so popping it
+        // must not count toward the removal budget either, or the final
+        // total silently drifts by however many cue tokens got consumed.
+        if (popped && !/^\[.*\]$/.test(popped)) diff += 1;
+      }
+      return { ...base, turns };
+    }
+
+    /** Adjusts a fixture's total word count to an EXACT overshoot (965 +
+     * targetOvershoot) WITHOUT ever letting any turn other than turn 5 grow
+     * to 32+ words -- so selectLargeCutTarget() keeps selecting the same
+     * turn 5 ("Sarah", 32 words) regardless of the fixture's total
+     * overshoot, for meaningful-band tests that need a precise 11/17/30/60
+     * deficit. Shrinks the last filler turn (turns.length - 5, just before
+     * the interruption pair) word-by-word for a negative diff -- always
+     * safe, since it only makes that turn shorter, never a rival to turn
+     * 5's length. For a positive diff (needed for the 60-over case, since
+     * NEAR_CEILING_OVERSHOOT starts at 999 = 34 over), inserts new short
+     * filler turns (capped at 5 words each, well under turn 5's 32) instead
+     * of growing one turn without bound, which would eventually outgrow and
+     * replace turn 5 as the selected target. */
+    function withExactOvershootPreservingTarget(base: ScriptGenerationOutput, targetOvershoot: number): ScriptGenerationOutput {
+      const targetCount = 965 + targetOvershoot;
+      const turns = base.turns.map((t) => ({ ...t }));
+      let diff = targetCount - countWords(turns);
+      const lastFillerIdx = () => turns.length - 5;
+      while (diff < 0) {
+        const idx = lastFillerIdx();
+        const words = turns[idx].text.split(/\s+/).filter(Boolean);
+        if (words.length === 0) break; // safety -- avoid an infinite loop if the turn is ever exhausted (a bare split() on "" yields [""], not [], which would never trip a naive length check)
+        const popped = words.pop();
+        turns[idx] = { ...turns[idx], text: words.join(" ") };
+        if (popped && !/^\[.*\]$/.test(popped)) diff += 1; // see withExactWordCount()'s comment: a bracket-only token isn't a counted word
+      }
+      let i = 0;
+      while (diff > 0) {
+        const addNow = Math.min(diff, 5);
+        turns.splice(lastFillerIdx() + 1, 0, { speaker: (i % 2) as 0 | 1, text: Array.from({ length: addNow }, () => "extra").join(" ") });
+        diff -= addNow;
+        i += 1;
+      }
+      return { ...base, turns };
+    }
 
     it("fixture sanity check: both overshoot fixtures fail ONLY word count, on the intended side of the near-ceiling boundary", () => {
       const largeIssues = validateGeneratedScript(LARGE_OVERSHOOT, REQUEST_B2);
@@ -1413,6 +2211,63 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       // Narrow and separate: never the full multi-category revision prompt.
       expect(correctionPrompt).not.toContain("PREVIOUS ATTEMPT REJECTED");
       expect(correctionPrompt).not.toMatch(/prosody density/i);
+      // DETERMINISTIC LARGE-CUT TARGET SELECTION fix: a cut this large
+      // (251-266 words) must name a specific, deterministically-selected
+      // turn instead of asking the model to search for one -- see
+      // selectLargeCutTarget()'s doc comment for the real diagnostic
+      // evidence this addresses. LARGE_OVERSHOOT's longest eligible turn
+      // is turn #5 (Sarah, 32 words, the first filler turn).
+      expect(correctionPrompt).toMatch(/cut target has ALREADY BEEN IDENTIFIED for you -- you do not need to search the script/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is the designated cut target/i);
+      expect(correctionPrompt).toMatch(/Substantially shorten this turn -- remove at least half of it/i);
+      expect(correctionPrompt).not.toMatch(/find the SINGLE longest turn in the script/i);
+    });
+
+    /**
+     * Regression coverage for a real defect found during this fix's own
+     * doubt-driven-development adversarial review: buildDeterministicLargeCutInstruction()
+     * originally sliced the target turn's text at a fixed character length
+     * (140) with no awareness of bracket prosody cues -- a cut point that
+     * happened to land inside an unclosed "[...]" pair would show the model
+     * a visibly malformed preview (e.g. "...[emph") in its own prompt. The
+     * fix (truncatePreview()) backs the cut point up to just before the
+     * unclosed bracket instead. This turn is built so the naive 140-char
+     * cut would land inside a bracket cue placed right around that offset.
+     */
+    it("a large-cut target's preview text never truncates mid-bracket-cue, even when the naive character cut point lands inside one", async () => {
+      // Padding built from real, space-separated words (not one giant
+      // token) so this turn's WORD count -- the actual metric
+      // selectLargeCutTarget() compares -- genuinely stays the largest in
+      // the script, while still pushing the bracket cue's "[" past char
+      // ~128 so the naive slice(0, 140) cut point lands inside it.
+      const prefix = "Rome story begins here and ";
+      let padding = "";
+      while (prefix.length + padding.length < 128) {
+        padding += (padding.length > 0 ? " " : "") + "pad";
+      }
+      const straddlingText = `${prefix}${padding} [thoughtful] then continues on for quite a while after the cue with plenty more real content following it. And here is quite a lot more genuine dialogue content padded out further so this turn's real spoken word count clearly exceeds every other candidate turn in the script, making it unambiguously the longest eligible turn available, well beyond any of the short filler turns elsewhere.`;
+
+      const bracketOpenIndex = straddlingText.indexOf("[");
+      expect(bracketOpenIndex).toBeLessThan(140); // sanity: "[" is inside the naive cut window
+      expect(straddlingText.indexOf("]")).toBeGreaterThanOrEqual(140); // sanity: "]" is not
+
+      const base = buildCueRichOvershootOutput(1150);
+      const straddlingTurn: ScriptGenerationOutput["turns"][number] = { speaker: 1, text: straddlingText };
+      const withStraddlingTurn: ScriptGenerationOutput = { ...base, turns: [...base.turns.slice(0, 5), straddlingTurn, ...base.turns.slice(5)] };
+
+      const target = selectLargeCutTarget(withStraddlingTurn, REQUEST_B2);
+      expect(target?.turnIndex).toBe(5); // sanity: this is genuinely the selected turn
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(withStraddlingTurn).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).not.toMatch(/\[thought(?!ful\])/); // never an unclosed "[thought" fragment
+      // The preview was backed up to end cleanly before the bracket instead.
+      const expectedPreview = `${straddlingText.slice(0, bracketOpenIndex).trimEnd()}...`;
+      expect(correctionPrompt).toContain(expectedPreview);
     });
 
     it("B: a near-ceiling overshoot (999 words) is corrected via the SAME dedicated pass, but targets 955-960 -- the existing near-ceiling behavior", async () => {
@@ -1431,6 +2286,18 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       // Same near-ceiling target the pre-existing normal-revision path used
       // for a near-miss -- NOT the large-overshoot 935-950 sub-target.
       expect(correctionPrompt).not.toContain("Target for this correction: 935-950 words");
+      // Word-count CONVERGENCE fix regression safety: a cut like this one
+      // does NOT require the whole-turn removal instruction -- that stays
+      // reserved for much larger overages.
+      expect(correctionPrompt).not.toMatch(/TOO LARGE to reach through word- and phrase-level trims alone/i);
+      expect(correctionPrompt).not.toMatch(/find the SINGLE longest turn in the script/i);
+      // NEAR-CEILING RELIABILITY fix: 999 words is 34 over the 965 ceiling
+      // -- inside the "meaningful" (11-60) band, not "small" (1-10) -- so
+      // it gets Fix #6's deterministic compression-target guidance, not
+      // the ultra-precise "small"/final-boundary wording.
+      expect(correctionPrompt).toMatch(/The script needs approximately 44 word\(s\) removed at most to reach a safe margin below the 965-word hard maximum \(it is currently 34 word\(s\) past that maximum\)/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is a good compression candidate/i);
+      expect(correctionPrompt).not.toMatch(/You need to remove exactly enough words to get at or below 965/i);
     });
 
     it("C: the corrected script returned to the caller preserves the full schema shape", async () => {
@@ -1536,6 +2403,958 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       expect(message).not.toContain("LinguABC, and today we're talking");
       expect(message).not.toContain('"turns":[');
       expect(message).not.toContain('{"speaker"');
+    });
+
+    /**
+     * Regression coverage for the DIMINISHING-RETURN case named in this
+     * fix's own scope: the real diagnostic run's trajectory (e.g.
+     * 1094 -> 1084 -> 1062 -> 1029 -> 1021 -> ...) showed cuts shrinking to
+     * single digits well before the gap closed, as if each successive
+     * correction call reverted to a cosmetic trim regardless of how large
+     * the remaining gap still was. Updated for the DETERMINISTIC LARGE-CUT
+     * TARGET SELECTION fix: this now proves the designated-target
+     * instruction does NOT fade or get "used up" after one call -- it is
+     * recomputed independently on EVERY correction sub-attempt whose
+     * previous draft is still a large overshoot, from that attempt's own
+     * actual input script, never carried over as state.
+     */
+    it("G: the deterministic cut-target instruction persists across BOTH correction sub-attempts when the cut only shrinks a little each time (the diminishing-return case)", async () => {
+      // A second large-overshoot fixture, smaller than LARGE_OVERSHOOT
+      // (1201) but still far past the near-ceiling boundary -- models a
+      // correction sub-attempt that only trimmed a small amount instead of
+      // closing the gap, the exact diminishing-return pattern observed.
+      // Its filler turns cycle through the SAME templates starting at the
+      // SAME turn index 5, so it independently selects the SAME target.
+      const stillLargeOvershoot = buildCueRichOvershootOutput(1050);
+      expect(countWords(stillLargeOvershoot.turns)).toBeGreaterThan(965 + 60); // sanity: still a LARGE overshoot, not near-ceiling
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial) -- 1201 words
+        .mockResolvedValueOnce(stillLargeOvershoot) // correction sub-attempt 1 -- cut some, but still a large overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 2 -- bound exhausted, still overshooting
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 (normal revision) -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionSubAttempt1Prompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      const correctionSubAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+
+      // The designated-target instruction must appear on BOTH sub-attempts,
+      // independently recomputed from each one's own actual input script --
+      // not just the first call, and not something that wears off after
+      // one retry. Sub-attempt 1's input is LARGE_OVERSHOOT (target: turn
+      // #5); sub-attempt 2's input is stillLargeOvershoot, a DIFFERENT
+      // script object that happens to select the same turn index/content.
+      expect(correctionSubAttempt1Prompt).toMatch(/cut target has ALREADY BEEN IDENTIFIED for you/i);
+      expect(correctionSubAttempt1Prompt).toMatch(/Turn #5 \(Sarah, 32 words\) is the designated cut target/i);
+      expect(correctionSubAttempt2Prompt).toMatch(/cut target has ALREADY BEEN IDENTIFIED for you/i);
+      expect(correctionSubAttempt2Prompt).toMatch(/Turn #5 \(Sarah, 32 words\) is the designated cut target/i);
+    });
+
+    /**
+     * Regression coverage for the NEAR-CEILING RELIABILITY fix: a real
+     * diagnostic run captured two genuine byte-identical no-ops
+     * (966->966, 969->969) under the OLD generic near-ceiling correction
+     * text ("trim sentences and phrases... a cut this small does not
+     * require [whole turns]"). This fix splits the previously-undifferentiated
+     * near-ceiling band into "small" (1-10 over, exact-target instruction)
+     * and "meaningful" (11-60 over, redundant-phrase/repeated-explanation
+     * instruction -- see test B above, already updated), and adds explicit
+     * no-op escalation between correction sub-attempts. The large-overage
+     * mechanism (test A, test G) is untouched throughout.
+     */
+    it("H: a small overshoot (967 words, 2 over) gets the FINAL-BOUNDARY exact-word-deficit instruction, not vague 'trim a little' language", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(SMALL_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      // FINAL-BOUNDARY CONVERGENCE FIX (Fix #5): the exact deficit, a hard
+      // <=965 requirement, and an explicit ban on any edit that could add
+      // or hold length steady -- replacing the older, vaguer "make a
+      // deliberate edit" phrasing.
+      expect(correctionPrompt).toMatch(/You are exactly 2 word\(s\) over the 965-word hard maximum/i);
+      expect(correctionPrompt).toMatch(/This is the FINAL boundary correction -- the goal is one small, surgical edit, not a rewrite/i);
+      expect(correctionPrompt).toMatch(/Remove at least 2 word\(s\) from the EXISTING dialogue below/i);
+      expect(correctionPrompt).toMatch(/Do NOT add, expand, or rephrase any content in a way that could increase the total length/i);
+      // The shared "Cut approximately X-Y" line must agree with the exact
+      // deficit above -- no internal contradiction between a wide generic
+      // range and the final-boundary instruction's exact number.
+      expect(correctionPrompt).toContain("Cut approximately 2-4 spoken words");
+      expect(correctionPrompt).toContain("Target for this correction: 963-965 words");
+      expect(correctionPrompt).not.toMatch(/This is more than a single-word trim/i);
+      expect(correctionPrompt).not.toMatch(/find the SINGLE longest turn in the script/i);
+    });
+
+    it("966 words (1 over) gets an exact 1-word-reduction final-boundary target", async () => {
+      const oneOver = withExactWordCount(SMALL_OVERSHOOT, 966);
+      expect(validateGeneratedScript(oneOver, REQUEST_B2)).toHaveLength(1); // sanity: still word-count-only
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(oneOver).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/You are exactly 1 word\(s\) over the 965-word hard maximum/i);
+      expect(correctionPrompt).toMatch(/Remove at least 1 word\(s\) from the EXISTING dialogue below/i);
+      expect(correctionPrompt).toContain("Cut approximately 1-3 spoken words");
+    });
+
+    it("975 words (10 over -- the top of the small/final-boundary band) gets an exact 10-word-reduction target", async () => {
+      const tenOver = withExactWordCount(SMALL_OVERSHOOT, 975);
+      expect(validateGeneratedScript(tenOver, REQUEST_B2)).toHaveLength(1); // sanity: still word-count-only
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(tenOver).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/You are exactly 10 word\(s\) over the 965-word hard maximum/i);
+      expect(correctionPrompt).toMatch(/Remove at least 10 word\(s\) from the EXISTING dialogue below/i);
+      expect(correctionPrompt).toContain("Cut approximately 10-12 spoken words");
+    });
+
+    it("I: a byte-identical no-op correction in the final-boundary band triggers the STRONGER final-boundary escalation on the NEXT sub-attempt, never on the first, and never the generic meaningful/large warning", async () => {
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(SMALL_OVERSHOOT) // outer attempt 1 (initial) -- 967 words
+        .mockResolvedValueOnce(SMALL_OVERSHOOT) // correction sub-attempt 1 -- byte-identical no-op
+        .mockResolvedValueOnce(buildValidScriptOutput()); // correction sub-attempt 2 -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt1Prompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+
+      // The FIRST correction call never carries the warning -- there is
+      // nothing prior within this correction pass to compare against.
+      expect(subAttempt1Prompt).not.toMatch(/MADE NO PROGRESS/i);
+      // The SECOND, following a real detected no-op, MUST carry the
+      // final-boundary-SPECIFIC escalation, not the generic one (that
+      // generic text is reserved for "meaningful"/"large" -- see the
+      // "increased word count" and "generic warning never appears" tests
+      // below).
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT AT THIS FINAL BOUNDARY MADE NO PROGRESS/i);
+      expect(subAttempt2Prompt).toMatch(/it returned the same word count, a HIGHER word count, or a script identical to the one you were given/i);
+      expect(subAttempt2Prompt).not.toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+    });
+
+    it("I2: same word count but reworded (NOT byte-identical) still counts as a no-op for final-boundary escalation purposes", async () => {
+      const rewordedSameCount: ScriptGenerationOutput = {
+        ...SMALL_OVERSHOOT,
+        turns: SMALL_OVERSHOOT.turns.map((t, i) => (i === 0 ? { ...t, text: t.text.replace("genuinely", "truly") } : t)),
+      };
+      expect(countWords(rewordedSameCount.turns)).toBe(countWords(SMALL_OVERSHOOT.turns)); // sanity: identical word count
+      expect(rewordedSameCount.turns[0].text).not.toBe(SMALL_OVERSHOOT.turns[0].text); // sanity: NOT byte-identical
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(SMALL_OVERSHOOT)
+        .mockResolvedValueOnce(rewordedSameCount)
+        .mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT AT THIS FINAL BOUNDARY MADE NO PROGRESS/i);
+    });
+
+    it("an INCREASED word count on a final-boundary sub-attempt (967 -> 970) still counts as no-progress, not merely 'still overshooting'", async () => {
+      const increased = withExactWordCount(SMALL_OVERSHOOT, 970); // worse than the 967 input, but still within the small/final-boundary band
+      expect(countWords(increased.turns)).toBeGreaterThan(countWords(SMALL_OVERSHOOT.turns));
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(SMALL_OVERSHOOT) // outer attempt 1 (initial) -- 967 words
+        .mockResolvedValueOnce(increased) // correction sub-attempt 1 -- WORSE, 970 words
+        .mockResolvedValueOnce(buildValidScriptOutput()); // correction sub-attempt 2 -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT AT THIS FINAL BOUNDARY MADE NO PROGRESS/i);
+      expect(subAttempt2Prompt).toMatch(/a HIGHER word count/i);
+    });
+
+    it("a final-boundary sub-attempt that already lands at <=965 stops the correction pass immediately -- no second call, even mid-pass", async () => {
+      const nowInRange = buildValidScriptOutput(); // a genuinely valid, in-range (950-word) script
+      expect(countWords(nowInRange.turns)).toBeLessThanOrEqual(965);
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(SMALL_OVERSHOOT) // outer attempt 1 (initial) -- 967 words
+        .mockResolvedValueOnce(nowInRange); // correction sub-attempt 1 -- already <=965
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      // Exactly 3 calls: initial + ONE correction sub-attempt. The pass
+      // stopped immediately instead of spending its second sub-attempt --
+      // existing validation/add-word logic (not this pass) handles
+      // whatever else, per the "let existing logic handle any other
+      // issue" requirement.
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(2);
+      expect(result.wordCount).toBe(countWords(nowInRange.turns));
+    });
+
+    it("J: large-overage guidance stays on the large-cut path (never small/meaningful text) and uses the deterministic target instruction, not the old open-ended search text", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(LARGE_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).not.toMatch(/This is more than a single-word trim/i);
+      expect(correctionPrompt).not.toMatch(/You need to remove exactly enough words to get at or below 965/i);
+      // DETERMINISTIC LARGE-CUT TARGET SELECTION fix: no longer the old
+      // "find the SINGLE longest turn in the script" open-ended search --
+      // a specific turn is now named for the model.
+      expect(correctionPrompt).not.toMatch(/find the SINGLE longest turn in the script/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is the designated cut target/i);
+    });
+
+    it("K: an undershoot (add-words) failure never enters the correction pass or its new near-ceiling logic at all", async () => {
+      const under = buildValidScriptOutput();
+      const shortened: ScriptGenerationOutput = { ...under, turns: under.turns.slice(0, 5) }; // opening block only, well under the 920 floor
+      expect(countWords(shortened.turns)).toBeLessThan(920);
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(shortened).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      // Only ONE follow-up call happened -- the ordinary outer revision --
+      // never a dedicated word-count-correction call.
+      expect(vi.mocked(generateStructuredJson).mock.calls[1][0].schemaName).toBe("linguabc_podcast_script");
+      const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+      expect(revisionPrompt).toMatch(/Add approximately/i);
+      expect(revisionPrompt).not.toMatch(/DEDICATED WORD-COUNT CORRECTION/i);
+    });
+
+    it("L: other retry categories (prosody, interruption, opening, CEFR, markdown) are completely unaffected -- their guidance text is unchanged and never leaks the new correction wording", () => {
+      const prosodyIssue = { message: "Prosody density 1.61/100 words is far below the ~4-6 target -- prosody rules were not followed." };
+      const interruptionIssue = {
+        message:
+          "No genuine interruption found -- need one turn ending with a dash immediately followed by the next turn starting with a dash (e.g. Speaker 0: '...we—' / Speaker 1: '—never finish that?').",
+      };
+      const openingIssue = { message: "Ben's introduction occurs at 98.7% through the script -- must be within the first 25%." };
+      const cefrIssue = { message: "Authoritative enrichment graded this script as cefrLevelMin=B1, cefrLevelMax=B2." };
+      const markdownIssue = { message: "Found markdown-style emphasis markers that would be read aloud literally (use [emphasis] instead): *just*" };
+
+      const feedback = buildRetryFeedback([prosodyIssue, interruptionIssue, openingIssue, cefrIssue, markdownIssue], 964);
+
+      // The new near-ceiling correction-pass wording lives entirely inside
+      // buildWordCountCorrectionMessage(), a completely separate code path
+      // never invoked by buildRetryFeedback() -- must never leak here.
+      expect(feedback).not.toMatch(/This is more than a single-word trim/i);
+      expect(feedback).not.toMatch(/You need to remove exactly enough words to get at or below 965/i);
+      expect(feedback).not.toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+      // Every other category's own guidance is present and untouched.
+      expect(feedback).toMatch(/Current prosody density: 1.61\/100 words/i);
+      expect(feedback).toMatch(/structurally REQUIRED/i);
+      expect(feedback).toMatch(/Ben's introduction was at 98.7% through the script/i);
+      expect(feedback).toMatch(/independently graded BELOW the required B2\+ standard/i);
+      expect(feedback).toMatch(/remove all markdown emphasis markers/i);
+    });
+
+    it("M: final-boundary correction guidance is level-agnostic -- identical exact-deficit behavior for a C1 request", async () => {
+      const requestC1: ScriptGenerationRequest = { ...REQUEST_B2, cefrLevel: "C1" };
+      const smallOvershootC1: ScriptGenerationOutput = { ...SMALL_OVERSHOOT, cefrLevel: "C1" };
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(smallOvershootC1)
+        .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C1" });
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(requestC1);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/You are exactly 2 word\(s\) over the 965-word hard maximum/i);
+    });
+
+    it("M2: final-boundary correction guidance is level-agnostic for a C2 request too", async () => {
+      const requestC2: ScriptGenerationRequest = { ...REQUEST_B2, cefrLevel: "C2" };
+      const smallOvershootC2: ScriptGenerationOutput = { ...SMALL_OVERSHOOT, cefrLevel: "C2" };
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(smallOvershootC2)
+        .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C2" });
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(requestC2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/You are exactly 2 word\(s\) over the 965-word hard maximum/i);
+    });
+
+    it("meaningful-band correction guidance (11-60 over) uses Fix #6's deterministic compression target, never the final-boundary or large-cut text", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(NEAR_CEILING_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toContain("Current spoken word count: 999");
+      expect(correctionPrompt).toContain("Target for this correction: 955-960 words");
+      expect(correctionPrompt).toMatch(/Cut approximately 39-44 spoken words/i);
+      // Fix #6: a deterministic compression target, not an open-ended search.
+      expect(correctionPrompt).toMatch(/The script needs approximately 44 word\(s\) removed at most.*it is currently 34 word\(s\) past that maximum/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is a good compression candidate/i);
+      expect(correctionPrompt).toMatch(/COMPRESS this turn/i);
+      expect(correctionPrompt).toMatch(/do not increase vocabulary or grammatical sophistication while compressing/i);
+      // 34 over, cutMax 44: turn 5 alone (32 words) is below the cut
+      // ceiling, so a deterministic SECOND candidate is named too, never a
+      // vague "one or two other turns" escape hatch.
+      expect(correctionPrompt).toMatch(/is the second candidate/i);
+      expect(correctionPrompt).not.toMatch(/apply the same kind of redundant-phrase\/repeated-explanation trim to one or two other turns/i);
+      expect(correctionPrompt).not.toMatch(/This is more than a single-word trim/i);
+      // Never the final-boundary or large-cut branch's own text leaking in.
+      expect(correctionPrompt).not.toMatch(/FINAL boundary correction/i);
+      expect(correctionPrompt).not.toMatch(/is the designated cut target/i);
+      expect(correctionPrompt).not.toMatch(/ALREADY BEEN IDENTIFIED/i);
+      // The generic no-op warning is no longer this band's mechanism --
+      // replaced by its own (see the no-op escalation tests below).
+      expect(correctionPrompt).not.toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+    });
+
+    it("11 words over (the bottom of the meaningful band) gets an exact 11-word-deficit compression target", async () => {
+      const elevenOver = withExactOvershootPreservingTarget(NEAR_CEILING_OVERSHOOT, 11);
+      expect(validateGeneratedScript(elevenOver, REQUEST_B2)).toHaveLength(1); // sanity: still word-count-only
+      const target = selectLargeCutTarget(elevenOver, REQUEST_B2);
+      expect(target?.turnIndex).toBe(5); // sanity: turn 5 is still the selected target
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(elevenOver).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      // 11 over, min/max=955/960 -> cutMax=976-955=21. Turn 5 has 32 words,
+      // which is NOT double cutMax (42) -- realistically compressing it
+      // alone (roughly half its length) may not reach 21, so a
+      // deterministic second candidate is named too.
+      expect(correctionPrompt).toMatch(/The script needs approximately 21 word\(s\) removed at most.*it is currently 11 word\(s\) past that maximum/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is a good compression candidate/i);
+      expect(correctionPrompt).toMatch(/is the second candidate/i);
+      // Sanity: 11 over is genuinely "meaningful", not "small" (that band
+      // tops out at 10) -- confirmed by the compression wording, not the
+      // final-boundary "Remove at least N word(s)" phrasing.
+      expect(correctionPrompt).not.toMatch(/FINAL boundary correction/i);
+    });
+
+    it("a target turn holding at least double the cut ceiling is treated as sufficient alone -- no second candidate named", async () => {
+      // A deliberately long target turn (inflated well past 2x cutMax) to
+      // exercise the "primary alone is genuinely sufficient" branch --
+      // every other fixture in this suite uses a fixed 32-word turn 5,
+      // which (correctly) never clears this bar on its own. The fixture's
+      // exact resulting overshoot depends on buildCueRichOvershootOutput()'s
+      // filler-cycle landing point, which this test does not hand-predict --
+      // it verifies its OWN preconditions (genuinely "meaningful", and the
+      // inflated turn genuinely clears 2x cutMax) at runtime instead of
+      // asserting a guessed number, so a drift in that landing point fails
+      // loudly here rather than silently testing the wrong scenario.
+      const inflatedWords = 80;
+      const base = buildCueRichOvershootOutput(860);
+      const longTurnText = Array.from({ length: inflatedWords }, (_, i) => `word${i}`).join(" ");
+      const withLongTurn: ScriptGenerationOutput = { ...base, turns: base.turns.map((t, i) => (i === 5 ? { ...t, text: longTurnText } : t)) };
+
+      const total = countWords(withLongTurn.turns);
+      const exactWordsOver = total - 965;
+      expect(exactWordsOver).toBeGreaterThan(10); // sanity: genuinely "meaningful", not "small"
+      expect(exactWordsOver).toBeLessThanOrEqual(60); // sanity: genuinely "meaningful", not "large"
+      const cutMax = total - 955; // meaningful band's target min is always 955 (see other tests' "Target for this correction: 955-960 words" assertions)
+      expect(inflatedWords).toBeGreaterThanOrEqual(cutMax * 2); // sanity: this fixture genuinely exercises "sufficient alone"
+
+      expect(validateGeneratedScript(withLongTurn, REQUEST_B2)).toHaveLength(1);
+      const target = selectLargeCutTarget(withLongTurn, REQUEST_B2);
+      expect(target?.turnIndex).toBe(5);
+      expect(target?.wordCount).toBe(inflatedWords);
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(withLongTurn).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(new RegExp(`Turn #5 \\(Sarah, ${inflatedWords} words\\) is a good compression candidate`, "i"));
+      expect(correctionPrompt).not.toMatch(/is the second candidate/i);
+      expect(correctionPrompt).toMatch(/apply the same kind of redundant-phrase\/repeated-explanation trim to it more aggressively/i);
+    });
+
+    it("17 words over (the real 982-word daily-generation failure) gets an exact 17-word-deficit compression target", async () => {
+      const seventeenOver = withExactOvershootPreservingTarget(NEAR_CEILING_OVERSHOOT, 17);
+      expect(validateGeneratedScript(seventeenOver, REQUEST_B2)).toHaveLength(1);
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(seventeenOver).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      // 17 over -> cutMax=982-955=27; turn 5 (32 words) is below double
+      // that (54), so a second candidate is named here too.
+      expect(correctionPrompt).toMatch(/The script needs approximately 27 word\(s\) removed at most.*it is currently 17 word\(s\) past that maximum/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is a good compression candidate/i);
+      expect(correctionPrompt).toMatch(/is the second candidate/i);
+    });
+
+    it("30 words over gets an exact 30-word-deficit compression target", async () => {
+      const thirtyOver = withExactOvershootPreservingTarget(NEAR_CEILING_OVERSHOOT, 30);
+      expect(validateGeneratedScript(thirtyOver, REQUEST_B2)).toHaveLength(1);
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(thirtyOver).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      // 30 over -> cutMax=995-955=40, which EXCEEDS turn 5's 32 words --
+      // a deterministic second candidate must be named.
+      expect(correctionPrompt).toMatch(/The script needs approximately 40 word\(s\) removed at most.*it is currently 30 word\(s\) past that maximum/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is a good compression candidate/i);
+      expect(correctionPrompt).toMatch(/is the second candidate/i);
+    });
+
+    it("60 words over (the top of the meaningful band) gets an exact 60-word-deficit compression target, and 61 over is genuinely 'large' instead", async () => {
+      const sixtyOver = withExactOvershootPreservingTarget(NEAR_CEILING_OVERSHOOT, 60);
+      expect(validateGeneratedScript(sixtyOver, REQUEST_B2)).toHaveLength(1);
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(sixtyOver).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      // 60 over (the top of the band) -> cutMax=1025-955=70, far above
+      // turn 5's 32 words -- a deterministic second candidate is required,
+      // not the old vague "one or two other turns" escape hatch.
+      expect(correctionPrompt).toMatch(/The script needs approximately 70 word\(s\) removed at most.*it is currently 60 word\(s\) past that maximum/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is a good compression candidate/i);
+      expect(correctionPrompt).toMatch(/is the second candidate/i);
+      expect(correctionPrompt).not.toMatch(/apply the same kind of redundant-phrase\/repeated-explanation trim to one or two other turns/i);
+      // 61 over crosses into "large" -- confirmed against LARGE_OVERSHOOT
+      // (240 over), which already uses the large-cut deterministic text,
+      // not this one -- see the "large-cut correction guidance" test below.
+      expect(correctionPrompt).not.toMatch(/cut target has ALREADY BEEN IDENTIFIED for you/i);
+    });
+
+    it("a byte-identical no-op in the meaningful/compression band triggers the STRONGER compression-specific escalation on the NEXT sub-attempt, never the generic one", async () => {
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(NEAR_CEILING_OVERSHOOT) // outer attempt 1 (initial) -- 999 words
+        .mockResolvedValueOnce(NEAR_CEILING_OVERSHOOT) // correction sub-attempt 1 -- byte-identical no-op
+        .mockResolvedValueOnce(buildValidScriptOutput()); // correction sub-attempt 2 -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt1Prompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+
+      expect(subAttempt1Prompt).not.toMatch(/MADE NO PROGRESS/i);
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT AT THIS COMPRESSION MADE NO PROGRESS/i);
+      // 999 words (34 over) triggers a second candidate (32 < 44*2), so the
+      // escalation must reference BOTH named turns, not just the first --
+      // otherwise the strongest, most emphatic sentence in the message
+      // would silently point the model back at a single, likely-
+      // insufficient turn.
+      expect(subAttempt2Prompt).toMatch(/you MUST actually shorten BOTH Turn #5 and Turn #\d+: cut a specific redundant phrase or sentence from each/i);
+      expect(subAttempt2Prompt).not.toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+    });
+
+    it("an INCREASED word count on a meaningful/compression sub-attempt (999 -> 1010) still counts as no-progress, not merely 'still overshooting'", async () => {
+      const increased = withExactOvershootPreservingTarget(NEAR_CEILING_OVERSHOOT, 45); // 1010 words -- worse than the 999 input, but still within the meaningful band
+      expect(countWords(increased.turns)).toBeGreaterThan(countWords(NEAR_CEILING_OVERSHOOT.turns));
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(NEAR_CEILING_OVERSHOOT) // outer attempt 1 (initial) -- 999 words
+        .mockResolvedValueOnce(increased) // correction sub-attempt 1 -- WORSE, 1010 words
+        .mockResolvedValueOnce(buildValidScriptOutput()); // correction sub-attempt 2 -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT AT THIS COMPRESSION MADE NO PROGRESS/i);
+      expect(subAttempt2Prompt).toMatch(/a HIGHER word count/i);
+    });
+
+    it("small-band correction guidance is completely unaffected by Fix #6's meaningful-band compression work", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(SMALL_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/You are exactly 2 word\(s\) over the 965-word hard maximum/i);
+      expect(correctionPrompt).toMatch(/This is the FINAL boundary correction/i);
+      expect(correctionPrompt).not.toMatch(/is a good compression candidate/i);
+      expect(correctionPrompt).not.toMatch(/COMPRESS this turn/i);
+    });
+
+    it("large-cut correction guidance is completely unaffected by Fix #6's meaningful-band compression work", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(LARGE_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/cut target has ALREADY BEEN IDENTIFIED for you -- you do not need to search the script/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is the designated cut target/i);
+      expect(correctionPrompt).not.toMatch(/is a good compression candidate/i);
+      expect(correctionPrompt).not.toMatch(/COMPRESS this turn/i);
+    });
+
+    it("CEFR-level preservation guidance inside the correction prompt is unchanged by Fix #6, on the meaningful band too", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(NEAR_CEILING_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toContain("the CEFR-level vocabulary and complexity wherever possible");
+    });
+
+    it("meaningful/compression guidance is level-agnostic -- identical deterministic-target behavior for C1 and C2 requests", async () => {
+      const requestC1: ScriptGenerationRequest = { ...REQUEST_B2, cefrLevel: "C1" };
+      const nearCeilingC1: ScriptGenerationOutput = { ...NEAR_CEILING_OVERSHOOT, cefrLevel: "C1" };
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(nearCeilingC1)
+        .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C1" });
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(requestC1);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/The script needs approximately 44 word\(s\) removed at most.*it is currently 34 word\(s\) past that maximum/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is a good compression candidate/i);
+    });
+
+    it("large-cut correction guidance (>60 over) is byte-for-byte unchanged by the Fix #5 final-boundary work", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(LARGE_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toContain("Target for this correction: 935-950 words");
+      expect(correctionPrompt).toMatch(/cut target has ALREADY BEEN IDENTIFIED for you -- you do not need to search the script/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is the designated cut target/i);
+      // Never any final-boundary-specific text leaking into the large band.
+      expect(correctionPrompt).not.toMatch(/FINAL boundary correction/i);
+      expect(correctionPrompt).not.toMatch(/hard maximum/i);
+    });
+
+    it("CEFR-level preservation guidance inside the correction prompt is unchanged by the Fix #5 final-boundary work, on every magnitude", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(SMALL_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+      await generateEpisodeScript(REQUEST_B2);
+      const smallPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(smallPrompt).toContain("the CEFR-level vocabulary and complexity wherever possible");
+    });
+
+    it("the final-boundary instruction text never contradicts the outer revision preamble's own guidance -- narrow and separate, same as every other magnitude", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(SMALL_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      // Never the full multi-category revision conversation shape or its
+      // distinct vocabulary -- this remains a single, narrow, standalone
+      // user message (see buildWordCountCorrectionMessage()'s doc comment).
+      expect(correctionPrompt).not.toContain("PREVIOUS ATTEMPT REJECTED");
+      expect(correctionPrompt).not.toMatch(/prosody density/i);
+      expect(correctionPrompt).not.toMatch(/Add approximately/i); // never the undershoot/add-words line
+      // And its own internal instructions are mutually consistent: the
+      // shared "CUT ONLY" framing and the final-boundary instruction agree
+      // on direction (cut, never add) and never ask for two different cut
+      // sizes (see the "H" test's exact-figure-agreement assertions above).
+      expect(correctionPrompt).toMatch(/CUT ONLY\./);
+    });
+
+    /**
+     * Regression coverage for a real defect found during this fix's own
+     * doubt-driven-development adversarial review (not something the
+     * original evidence surfaced): if a correction sub-attempt OVERCORRECTS
+     * past the 920 floor, the loop's old break condition
+     * (`!stillWordCountIssue`) could not distinguish "still overshooting"
+     * from "now undershooting" -- validateGeneratedScript's word-count
+     * message covers both -- so it would proceed to a SECOND correction
+     * call with a previousCount that is no longer an overshoot at all,
+     * producing a nonsensical negative "words over" figure and a negative
+     * cut range. The fix changes the break condition to
+     * `wordCount <= WORD_COUNT_HARD_MAX`, which stops the pass the moment
+     * the overshoot itself is resolved (in range OR undershot), handing an
+     * undershoot to the outer revision path's existing add-words guidance
+     * instead of feeding it back into this pass.
+     */
+    it("N: a correction sub-attempt that overcorrects PAST the 920 floor stops the pass immediately -- never a second correction call with a negative deficit", async () => {
+      const drasticallyOvercorrected: ScriptGenerationOutput = {
+        title: "Test Episode",
+        topic: "Testing",
+        topicTags: ["Testing"],
+        cefrLevel: "B2",
+        turns: [
+          { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+          { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+          { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+          { speaker: 1, text: "And I'm Hannah." },
+          { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+          { speaker: 0, text: "...and honestly I think the whole point is that we—" },
+          { speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." },
+          { speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." },
+          { speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." },
+        ],
+      };
+      expect(countWords(drasticallyOvercorrected.turns)).toBeLessThan(920); // sanity: a real undershoot, not just "closer to range"
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(SMALL_OVERSHOOT) // outer attempt 1 (initial) -- 967 words, word-count-only
+        .mockResolvedValueOnce(drasticallyOvercorrected) // correction sub-attempt 1 -- overcorrects to under 920
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 (normal revision, add-words path) -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(950);
+      // Exactly 3 calls total: initial, ONE correction sub-attempt (the
+      // pass stops immediately instead of spending its 2nd sub-attempt on
+      // a nonsensical negative-deficit prompt), then the outer revision.
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(3);
+      expect(vi.mocked(generateStructuredJson).mock.calls[1][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script");
+
+      // The fallback outer-revision prompt correctly received UNDERSHOOT
+      // (add-words) guidance, not another cut instruction -- proving the
+      // undershoot was hung back to the right mechanism.
+      const fallbackPrompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[2].content as string;
+      expect(fallbackPrompt).toMatch(/Add approximately/i);
+      expect(fallbackPrompt).not.toMatch(/word\(s\) over/i);
+      expect(fallbackPrompt).not.toMatch(/currently -/i); // never a negative deficit anywhere
+    });
+
+    it("8: the generated correction prompt explicitly identifies the selected turn -- names its index, speaker, word count, and a text preview", async () => {
+      const base = buildCueRichOvershootOutput(1150);
+      const romeStoryText =
+        "So this one time in Rome I got completely lost near the Colosseum, [amused] and I ended up wandering for almost two hours because my phone had died and I refused to just ask someone for directions like a reasonable person. " +
+        "I kept telling myself I would recognize a landmark any minute now, [thoughtful] but every street just looked like every other street, all cobblestone and orange buildings and tiny cafes. " +
+        "Eventually a shopkeeper took pity on me and just walked me halfway back to my hotel himself, [warm] which honestly remains one of the kindest things a total stranger has ever done for me.";
+      const romeTurn: ScriptGenerationOutput["turns"][number] = { speaker: 1, text: romeStoryText };
+      const withRomeStory: ScriptGenerationOutput = { ...base, turns: [...base.turns.slice(0, 5), romeTurn, ...base.turns.slice(5)] };
+      expect(countWords([romeTurn])).toBeGreaterThan(80); // sanity: unambiguously the longest single turn in this script
+
+      // Confirmed directly against selectLargeCutTarget() itself first, not
+      // just inferred from the prompt text below.
+      const target = selectLargeCutTarget(withRomeStory, REQUEST_B2);
+      expect(target).not.toBeNull();
+      expect(target?.turnIndex).toBe(5);
+      expect(target?.speakerName).toBe("Hannah");
+      expect(target?.text).toBe(romeStoryText);
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(withRomeStory).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toContain(`Turn #5 (Hannah, ${target!.wordCount} words) is the designated cut target`);
+      // The text preview names THIS turn specifically, not a generic
+      // description -- the model does not have to search for it.
+      expect(correctionPrompt).toContain(romeStoryText.slice(0, 100));
+    });
+
+    it("9: when every turn is structurally protected, the large-cut branch falls back to the ORIGINAL open-ended search text unchanged -- selectLargeCutTarget's null case never invents a fragile heuristic", async () => {
+      // A continuous chain of turns that each start AND end with an em
+      // dash protects the ENTIRE chain (every adjacent pair matches the
+      // same interruption-pair pattern selectLargeCutTarget() reuses from
+      // validateGeneratedScript() -- see its doc comment), combined with
+      // the always-protected hook (index 0) and closing (last index) and
+      // the opening block's self-introductions/LinguABC mention. The
+      // result: a real, large (>60-over) overshoot with zero eligible cut
+      // targets anywhere in the script.
+      const turns: ScriptGenerationOutput["turns"] = [
+        { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+        { speaker: 1, text: "Wait, seriously? That sounds terrifying—" },
+        { speaker: 0, text: "—Anyway, I'm Sarah, and it really did rattle me—" },
+        { speaker: 1, text: "—And I'm Hannah. This is LinguABC, and today we're talking about the strange ways memory can fail us—" },
+      ];
+      const fillerTemplates = [
+        "—and further, [thoughtful] this genuinely matters because it connects to what we discussed earlier and adds real texture to the point, keeping the thread going for quite a while now. [reflective] It really does keep unfolding the same idea from a slightly different angle every time we come back to it, on and on—",
+        "—right, and it is not just about memory either, [curious] it is about how much we trust an ordinary morning without ever questioning it at all, which is strange when you actually sit with it. [amused] People rarely notice until something breaks the pattern entirely, on and on—",
+      ];
+      let i = 0;
+      while (countWords(turns) < 1150) {
+        turns.push({ speaker: ((i + 1) % 2) as 0 | 1, text: fillerTemplates[i % fillerTemplates.length] });
+        i++;
+      }
+      turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+      const noCandidateOutput: ScriptGenerationOutput = { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+
+      // Sanity: this fixture fails ONLY word count (same "word-count-issue-
+      // only" gate every other correction-pass fixture in this suite must
+      // pass), is genuinely a LARGE overshoot, and selectLargeCutTarget()
+      // really does find nothing.
+      const issues = validateGeneratedScript(noCandidateOutput, REQUEST_B2);
+      expect(issues).toHaveLength(1);
+      expect(issues[0].message).toMatch(/^Word count \d+ is outside/);
+      expect(countWords(noCandidateOutput.turns)).toBeGreaterThan(965 + 60);
+      expect(selectLargeCutTarget(noCandidateOutput, REQUEST_B2)).toBeNull();
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(noCandidateOutput).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      // Unmodified fallback text -- IDENTICAL to pre-Fix-#4 behavior.
+      expect(correctionPrompt).toMatch(/find the SINGLE longest turn in the script that is a personal example, story, extended explanation, or other non-essential aside/i);
+      expect(correctionPrompt).toMatch(/never the hook, the self-introductions, the LinguABC mention, or the interruption pair/i);
+      expect(correctionPrompt).not.toMatch(/cut target has ALREADY BEEN IDENTIFIED for you/i);
+      expect(correctionPrompt).not.toMatch(/is the designated cut target/i);
+    });
+
+    it("10a: a small overshoot correction never contains the deterministic large-cut target language -- that's exclusive to the large-cut branch", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(SMALL_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).not.toMatch(/cut target has ALREADY BEEN IDENTIFIED for you/i);
+      expect(correctionPrompt).not.toMatch(/is the designated cut target/i);
+      expect(correctionPrompt).not.toMatch(/Substantially shorten this turn -- remove at least half of it/i);
+    });
+
+    it("10b: a meaningful (near-ceiling) overshoot correction never contains the deterministic large-cut target language either", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(NEAR_CEILING_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).not.toMatch(/cut target has ALREADY BEEN IDENTIFIED for you/i);
+      expect(correctionPrompt).not.toMatch(/is the designated cut target/i);
+      expect(correctionPrompt).not.toMatch(/Substantially shorten this turn -- remove at least half of it/i);
+    });
+
+    it("11a: CEFR guidance inside the correction prompt is untouched by the large-cut fix -- present with identical wording on the large-cut branch", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(LARGE_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toContain("the CEFR-level vocabulary and complexity wherever possible");
+    });
+
+    it("11b: CEFR guidance inside the correction prompt is untouched on the small-cut branch too -- same shared line, not duplicated or reworded per branch", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(SMALL_OVERSHOOT).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toContain("the CEFR-level vocabulary and complexity wherever possible");
+    });
+
+    it("12a: the deterministic large-cut target selection is level-agnostic -- identical turn selection and instruction text for a C1 request", async () => {
+      const requestC1: ScriptGenerationRequest = { ...REQUEST_B2, cefrLevel: "C1" };
+      const largeOvershootC1: ScriptGenerationOutput = { ...LARGE_OVERSHOOT, cefrLevel: "C1" };
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(largeOvershootC1)
+        .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C1" });
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(requestC1);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/cut target has ALREADY BEEN IDENTIFIED for you/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is the designated cut target/i);
+    });
+
+    it("12b: the deterministic large-cut target selection is level-agnostic -- identical turn selection and instruction text for a C2 request", async () => {
+      const requestC2: ScriptGenerationRequest = { ...REQUEST_B2, cefrLevel: "C2" };
+      const largeOvershootC2: ScriptGenerationOutput = { ...LARGE_OVERSHOOT, cefrLevel: "C2" };
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(largeOvershootC2)
+        .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C2" });
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(requestC2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(/cut target has ALREADY BEEN IDENTIFIED for you/i);
+      expect(correctionPrompt).toMatch(/Turn #5 \(Sarah, 32 words\) is the designated cut target/i);
+    });
+
+    /**
+     * FIX #8 (CEFR-REGROWTH RETRY-BUDGET FIX): a real run reached 961 words
+   * (structural PASS), failed authoritative CEFR grading, and Fix #7's
+   * dedicated CEFR-only revision correctly improved the register but
+   * returned 1210 words (+249) -- a large overshoot the existing
+   * word-count-correction pass (bounded to WORD_COUNT_CORRECTION_MAX_ATTEMPTS,
+   * unchanged) could not fully resolve in one invocation. Before this fix,
+   * the next outer attempt fell back to the generic
+   * buildRevisionPreamble()/buildWordCountGuidance() path -- the OLDER,
+   * non-deterministic large-cut instruction, not Fix #4's mechanism -- and
+   * the real run alternated between that and the correction pass for the
+   * rest of MAX_ATTEMPTS without ever recovering. This fix makes the outer
+   * loop skip that generic fallback and go straight back into the SAME,
+   * unmodified runWordCountCorrection() whenever the unresolved state is a
+   * plain word-count overshoot that originated from a genuine pure-CEFR
+   * mismatch -- see generateEpisodeScript()'s own doc comment for the full
+   * mechanism (cefrRecoveryPending).
+   */
+  describe("generateEpisodeScript — Fix #8: CEFR-regrowth recovery routes through the existing word-count correction machinery", () => {
+    it("A: 961 -> CEFR fail -> CEFR revision returns a large overshoot (1210-like) -> recovery skips the generic revision call and goes straight back into word-count correction", async () => {
+      const initialValid = buildValidScriptOutput();
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(initialValid) // attempt 1 [initial] -- structural PASS
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // attempt 2 [CEFR-only revision] -- regrowth, large overshoot (1201 words, word-count-only)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 1 -- no progress
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 2 -- no progress, bound exhausted
+        .mockResolvedValueOnce(buildValidScriptOutput()); // Fix #8 recovery call -- NOT a generic revision, a correction sub-attempt that fully recovers
+      vi.mocked(generateEnrichment)
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" })) // fails after attempt 1
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" })); // passes after recovery
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(countWords(initialValid.turns));
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(5);
+      // Call 2 is the CEFR-only revision (the dedicated preamble).
+      expect((vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string)).toMatch(/This revision failed ONLY the authoritative CEFR grading/i);
+      // Calls 3-4 are the FIRST correction pass's two bounded sub-attempts.
+      expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      expect(vi.mocked(generateStructuredJson).mock.calls[3][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      // Call 5 -- the critical Fix #8 assertion -- is ALSO a correction
+      // call, never a generic "linguabc_podcast_script" revision. No
+      // generic revision call happens anywhere between the exhausted
+      // correction pass and full recovery.
+      expect(vi.mocked(generateStructuredJson).mock.calls[4][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+    });
+
+    it("B: 961 -> CEFR fail -> CEFR revision returns an in-range draft (933-like) -> existing successful behavior is completely unchanged", async () => {
+      const initialValid = buildValidScriptOutput();
+      const inRangeRevision = { ...buildValidScriptOutput(), title: "Revised Title" };
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(initialValid).mockResolvedValueOnce(inRangeRevision);
+      vi.mocked(generateEnrichment)
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }))
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.output.title).toBe("Revised Title");
+      expect(result.attempts).toBe(2);
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(2); // no correction call at all -- never needed
+      expect(vi.mocked(generateEnrichment)).toHaveBeenCalledTimes(2);
+    });
+
+    it("C: CEFR revision already in range -> no extra correction call is ever made", async () => {
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(buildValidScriptOutput()).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment)
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }))
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const schemaNames = vi.mocked(generateStructuredJson).mock.calls.map((call) => call[0].schemaName);
+      expect(schemaNames).not.toContain("linguabc_podcast_script_word_count_correction");
+    });
+
+    it("D: CEFR revision introduces a COMBINED non-word-count issue (e.g. a missing interruption pattern) -> existing combined-issue behavior is preserved, never the correction machinery", async () => {
+      const initialValid = buildValidScriptOutput();
+      // In range on word count, but the interruption pair is broken --
+      // the kind of "CEFR revision touched more than intended" combined
+      // failure this test guards against being mis-routed.
+      const brokenInterruption: ScriptGenerationOutput = {
+        ...buildValidScriptOutput(),
+        turns: buildValidScriptOutput().turns.map((t, i, arr) => (i === arr.length - 4 ? { ...t, text: "...and honestly I think the whole point is that we finish our own sentences." } : t)),
+      };
+      const combinedIssues = validateGeneratedScript(brokenInterruption, REQUEST_B2);
+      expect(combinedIssues.some((i) => /No genuine interruption found/i.test(i.message))).toBe(true);
+      expect(combinedIssues.some((i) => /word count/i.test(i.message))).toBe(false);
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(initialValid).mockResolvedValueOnce(brokenInterruption).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment)
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }))
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      // The attempt AFTER the broken-interruption CEFR revision must be the
+      // EXISTING generic multi-category revision (buildRevisionPreamble +
+      // buildRetryFeedback's interruption guidance) -- never a word-count
+      // correction call, since word count was never the (sole) problem.
+      expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script");
+      const thirdCallPrompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[2].content as string;
+      expect(thirdCallPrompt).toMatch(/structurally REQUIRED/i);
+      expect(thirdCallPrompt).not.toMatch(/This revision failed ONLY the authoritative CEFR grading/i);
+    });
+
+    it("E: once recovery reaches <=965, authoritative CEFR grading runs again", async () => {
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(buildValidScriptOutput())
+        .mockResolvedValueOnce(LARGE_OVERSHOOT)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT)
+        .mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment)
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }))
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(vi.mocked(generateEnrichment)).toHaveBeenCalledTimes(2);
+      expect(result.enrichment.cefrLevelMin).toBe("B2");
+      expect(result.enrichment.cefrLevelMax).toBe("C1");
+    });
+
+    it("F: recovery does not consume an unnecessary outer attempt -- no wasted generic-revision call is inserted", async () => {
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(buildValidScriptOutput()) // outer attempt 1
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 2 (CEFR-only revision)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt (does not consume an outer slot)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt (does not consume an outer slot)
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 3 (Fix #8 recovery, fully succeeds)
+      vi.mocked(generateEnrichment)
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }))
+        .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      // Exactly 3 OUTER attempts: initial, CEFR-only revision, recovery --
+      // never a 4th spent on a wasted generic revision in between.
+      expect(result.attempts).toBe(3);
+    });
+
+    it("G: existing Fix #4/#5/#6 behavior for a NON-CEFR-triggered large overshoot is completely unaffected -- still falls back to the generic revision exactly as before", async () => {
+      // Same fixture/shape as the pre-existing test D above ("if the
+      // correction pass exhausts its 2 bounded attempts...") -- reproduced
+      // here as its own dedicated Fix #8 regression: cefrRecoveryPending
+      // must NEVER activate when the overshoot never involved a pure CEFR
+      // mismatch, so the fallback-to-generic-revision behavior established
+      // long before Fix #8 must be byte-for-byte identical.
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial) -- NOT a CEFR revision
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 1 -- still overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 2 -- still overshoot, bound exhausted
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 -- the EXISTING generic revision mechanism, unchanged
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(950);
+      expect(result.attempts).toBe(2);
+      expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(4);
+      // The 4th call MUST be the generic revision (schemaName
+      // "linguabc_podcast_script", never another correction call) --
+      // proving cefrRecoveryPending never activated for this non-CEFR path.
+      expect(vi.mocked(generateStructuredJson).mock.calls[3][0].schemaName).toBe("linguabc_podcast_script");
+      const fallbackPrompt = vi.mocked(generateStructuredJson).mock.calls[3][0].messages[2].content as string;
+      expect(fallbackPrompt).toContain("PREVIOUS ATTEMPT REJECTED");
+    });
     });
   });
 });
