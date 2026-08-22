@@ -3676,12 +3676,13 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       expect(subAttempt2Prompt).toMatch(/FINAL boundary correction/i);
     });
 
-    it("I: replays today's real trajectory shape -- an insufficient sub-attempt 1 escalates sub-attempt 2 WITHIN the same correction-pass invocation, but the flag does NOT leak into the NEXT invocation (Fix #9 continuation) once it starts fresh", async () => {
-      // Mirrors the real log's calls 3-4 (1189 -> 1150 -> 1143, a -39 cut
-      // against a required ~120) exhausting into Fix #9's continuation
-      // (calls 5-6), which starts its own runWordCountCorrection()
-      // invocation with fresh local state -- exactly like
-      // previousAttemptWasNoOp already does.
+    it("I: Fix #11 -- an insufficient sub-attempt 2 that EXHAUSTS its invocation now carries the escalation into the NEXT invocation's sub-attempt 0 too, not just within one invocation", async () => {
+      // Mirrors the real log's calls 3-4 (1189 -> 1150 -> 1143, a cut far
+      // short of what was required) exhausting into Fix #9's continuation
+      // (calls 5-6). BEFORE Fix #11, the continuation's first sub-attempt
+      // started with fresh state and never saw sub-attempt 2's insufficient
+      // outcome -- this test's ORIGINAL assertion. Fix #11 carries that
+      // outcome across the boundary, so this test's expectation flips.
       const subAttempt1 = withExactTotalWordCount(LARGE_OVERSHOOT, 1166); // 1201 -> 1166, insufficient (required 251)
       const subAttempt2 = withExactTotalWordCount(subAttempt1, 1136); // 1166 -> 1136, still insufficient -- exhausts this invocation
       const continuationSubAttempt1 = withExactTotalWordCount(subAttempt2, 996); // 1136 -> 996, ADEQUATE for its own call (required 1136-950=186, half=93)
@@ -3691,7 +3692,7 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
         .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial)
         .mockResolvedValueOnce(subAttempt1) // outer attempt 1's correction, sub-attempt 1 -- insufficient
         .mockResolvedValueOnce(subAttempt2) // sub-attempt 2 -- exhausted, still overshoot -> cefrRecoveryPending seeds
-        .mockResolvedValueOnce(continuationSubAttempt1) // outer attempt 2 (Fix #9 continuation) -- FRESH invocation, sub-attempt 1
+        .mockResolvedValueOnce(continuationSubAttempt1) // outer attempt 2 (Fix #9 continuation) -- carries Fix #11 state, sub-attempt 1
         .mockResolvedValueOnce(continuationSubAttempt2); // sub-attempt 2 -- resolves
       vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
 
@@ -3699,18 +3700,144 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
 
       const calls = vi.mocked(generateStructuredJson).mock.calls;
       // Call index 2 (outer attempt 1's correction sub-attempt 2) DOES see
-      // the escalation from sub-attempt 1's insufficient cut.
+      // the escalation from sub-attempt 1's insufficient cut -- unaffected
+      // by Fix #11, same as before.
       expect(calls[2][0].messages[0].content as string).toMatch(/YOUR PREVIOUS ATTEMPT MADE ONLY A SMALL, INSUFFICIENT CUT/i);
       // Call index 3 -- the FIRST sub-attempt of the NEW continuation
-      // invocation (Fix #9) -- must NOT carry sub-attempt 2's insufficient
-      // outcome forward: this is a fresh runWordCountCorrection() call,
-      // exactly like previousAttemptWasNoOp already resets per invocation.
-      expect(calls[3][0].messages[0].content as string).not.toMatch(/INSUFFICIENT CUT/i);
+      // invocation (Fix #9) -- Fix #11: NOW carries sub-attempt 2's
+      // insufficient outcome (1166->1136, only -30 of a required 216)
+      // forward, instead of starting cold.
+      const continuationPrompt = calls[3][0].messages[0].content as string;
+      expect(continuationPrompt).toMatch(/YOUR PREVIOUS ATTEMPT MADE ONLY A SMALL, INSUFFICIENT CUT/i);
+      expect(continuationPrompt).toMatch(/it went from 1166 to 1136 words/i);
+      expect(continuationPrompt).toMatch(/an actual reduction of only 30 word\(s\)/i);
+      expect(continuationPrompt).toMatch(/this pass required cutting at least 216 word\(s\)/i);
       // And since continuationSubAttempt1's cut (140 of a required 186) is
-      // adequate, the continuation's own sub-attempt 2 (call index 4) also
-      // carries no escalation of any kind.
+      // adequate, the continuation's own sub-attempt 2 (call index 4)
+      // carries no escalation of any kind -- carried state does not persist
+      // past the sub-attempt it was consumed by.
       expect(calls[4][0].messages[0].content as string).not.toMatch(/INSUFFICIENT CUT/i);
       expect(calls[4][0].messages[0].content as string).not.toMatch(/FAILED TO MAKE A MEANINGFUL CHANGE/i);
+    });
+  });
+
+  /**
+   * FIX #11 (CROSS-INVOCATION CARRY-OVER): a real GitHub Actions failure
+   * (word-count trajectory 1152->1133->1120->1120->1103->1081->1050->1050->
+   * 1050->1038->1015->1006) showed the SAME correction-pass call producing
+   * two DIFFERENT true no-ops (1120->1120, ending one invocation; then
+   * 1050->1050 immediately followed by ANOTHER 1050->1050) even with Fix
+   * #10 already confirmed working. Root cause: Fix #9's continuation starts
+   * every new runWordCountCorrection() invocation with fresh local state
+   * (previousAttemptWasNoOp=false, previousAttemptWasInsufficient=null),
+   * so the SECOND 1050->1050 received NO escalation at all, despite the
+   * FIRST 1050->1050 (from the immediately preceding invocation) being
+   * exactly the kind of outcome the escalation mechanism exists to react
+   * to. This fix carries that final outcome across the boundary via
+   * generateEpisodeScript()'s own carriedNoOp/carriedInsufficient (updated
+   * in lockstep with cefrRecoveryPending) and runWordCountCorrection()'s
+   * new initialWasNoOp/initialWasInsufficient parameters.
+   */
+  describe("generateEpisodeScript — Fix #11: cross-invocation no-op/insufficient-progress carry-over", () => {
+    // Same implementation as the Fix #10 describe block's own helper of the
+    // same name -- that one is local to its own describe's function scope
+    // and not visible here, so this is a local copy rather than a shared
+    // hoist, matching this file's existing per-fix fixture-locality
+    // convention.
+    function withExactTotalWordCount(base: ScriptGenerationOutput, targetTotal: number): ScriptGenerationOutput {
+      const currentTotal = countWords(base.turns);
+      const delta = currentTotal - targetTotal;
+      const turns = base.turns.map((t) => ({ ...t }));
+      if (delta < 0) {
+        const filler = Array.from({ length: -delta }, (_, i) => `extra${i}`).join(" ");
+        turns[5] = { ...turns[5], text: `${turns[5].text} ${filler}` };
+        return { ...base, turns };
+      }
+      const eligibleEnd = turns.length - 5;
+      let remaining = delta;
+      for (let i = 5; i < eligibleEnd && remaining > 0; i++) {
+        const words = turns[i].text.replace(/\[[^\]]*\]/g, " ").split(/\s+/).filter(Boolean);
+        if (words.length <= remaining) {
+          remaining -= words.length;
+          turns[i] = { ...turns[i], text: "" };
+        } else {
+          turns[i] = { ...turns[i], text: words.slice(0, words.length - remaining).join(" ") };
+          remaining = 0;
+        }
+      }
+      if (remaining > 0) throw new Error(`test fixture error: not enough eligible words to remove ${delta} total words from this base script`);
+      return { ...base, turns };
+    }
+
+    it("J: a true no-op that ENDS an invocation carries the generic no-op escalation into the NEXT invocation's sub-attempt 0", async () => {
+      const sub1 = withExactTotalWordCount(LARGE_OVERSHOOT, 1150); // 1201 -> 1150, a real cut
+      // sub2 returns the SAME object as sub1 -- guaranteed byte-identical,
+      // so isSameScript() is true regardless of word-count comparison.
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial)
+        .mockResolvedValueOnce(sub1) // correction sub-attempt 1
+        .mockResolvedValueOnce(sub1) // correction sub-attempt 2 -- byte-identical no-op, exhausts this invocation
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 (Fix #9 continuation) -- carries Fix #11 no-op state, resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const continuationPrompt = vi.mocked(generateStructuredJson).mock.calls[3][0].messages[0].content as string;
+      expect(continuationPrompt).toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+      expect(continuationPrompt).not.toMatch(/INSUFFICIENT CUT/i);
+    });
+
+    it("K: state does not leak once the chain clears for a DIFFERENT reason (the correction pass resolves word count but introduces a new issue) -- a LATER, unrelated correction pass starts completely cold", async () => {
+      const lowProsodyButInRange = buildInRangeLowProsodyOutput();
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial) -- pure overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 1 -- byte-identical no-op
+        .mockResolvedValueOnce(lowProsodyButInRange) // correction sub-attempt 2 -- word count now fine, but a NEW (prosody) issue appears -> clears cefrRecoveryPending/carried state
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 2 (generic revision, since cefrRecoveryPending is now false) -- a FRESH, unrelated overshoot
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2's inline correction, sub-attempt 1 -- resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const calls = vi.mocked(generateStructuredJson).mock.calls;
+      // Call index 3 is the generic revision (proves cefrRecoveryPending
+      // really did clear after the prosody issue appeared).
+      expect(calls[3][0].schemaName).toBe("linguabc_podcast_script");
+      // Call index 4 -- the NEW, unrelated correction pass's sub-attempt 0
+      // -- must NOT carry the earlier byte-identical no-op forward, even
+      // though it occurred earlier in the SAME run.
+      const laterCorrectionPrompt = calls[4][0].messages[0].content as string;
+      expect(laterCorrectionPrompt).not.toMatch(/FAILED TO MAKE A MEANINGFUL CHANGE/i);
+      expect(laterCorrectionPrompt).not.toMatch(/INSUFFICIENT CUT/i);
+    });
+
+    it("L: replays today's real 1081 -> 1050 -> 1050 shape -- the SECOND 1050 (start of a new continuation invocation) now receives the escalation the real run never got", async () => {
+      const initialOvershoot = withExactTotalWordCount(LARGE_OVERSHOOT, 1081); // matches the real run's pre-1050 state exactly
+      expect(validateGeneratedScript(initialOvershoot, REQUEST_B2)).toHaveLength(1);
+      const afterFirstCut = withExactTotalWordCount(initialOvershoot, 1050); // 1081 -> 1050, matches the real -31 cut exactly
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(initialOvershoot) // outer attempt 1 (initial) -- 1081 words, matches real call 7's input
+        .mockResolvedValueOnce(afterFirstCut) // correction sub-attempt 1 -- 1081 -> 1050, matches real call 7's output
+        .mockResolvedValueOnce(afterFirstCut) // correction sub-attempt 2 -- SAME object -> byte-identical no-op, matches real call 8 (1050 -> 1050) exactly, exhausts this invocation
+        // Real run's bug: the next call (real call 9) started cold and
+        // ALSO came back a no-op, with no escalation ever sent. Fix #11:
+        // this call now carries the no-op escalation from the line above.
+        .mockResolvedValueOnce(withExactTotalWordCount(afterFirstCut, 1038)) // outer attempt 2 (Fix #9 continuation), sub-attempt 1 -- 1050 -> 1038, a real cut this time
+        .mockResolvedValueOnce(buildValidScriptOutput()); // sub-attempt 2 -- resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      const calls = vi.mocked(generateStructuredJson).mock.calls;
+      const schemaNames = calls.map((c) => c[0].schemaName);
+      // Fix #9 confirmed intact: every call after the initial is a
+      // correction call, never a generic revision.
+      expect(schemaNames.slice(1)).toEqual(schemaNames.slice(1).map(() => "linguabc_podcast_script_word_count_correction"));
+      // Fix #11: call index 3 -- the exact position of the real run's
+      // second, unescalated 1050->1050 -- now carries the no-op escalation.
+      expect(calls[3][0].messages[0].content as string).toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+      expect(result.wordCount).toBe(950);
     });
   });
   });

@@ -1818,6 +1818,11 @@ interface WordCountCorrectionOutcome {
   output: ScriptGenerationOutput;
   issues: ScriptValidationIssue[];
   entries: WordCountTrajectoryEntry[];
+  /** Fix #11 -- the LAST sub-attempt's own outcome, so the caller can carry
+   * it into the NEXT invocation's sub-attempt 0 across a Fix #9 continuation
+   * boundary. See this function's own doc comment. */
+  finalWasNoOp: boolean;
+  finalWasInsufficient: InsufficientProgressContext | null;
 }
 
 /**
@@ -1894,12 +1899,23 @@ interface WordCountCorrectionOutcome {
  * and a negative cut range on the wasted final sub-attempt. An undershoot
  * belongs to the outer revision path's separate add-words guidance, never
  * to a second call inside this pass.
+ *
+ * CROSS-INVOCATION CARRY-OVER (Fix #11): initialWasNoOp/initialWasInsufficient
+ * seed sub-attempt 0's escalation state instead of the previous hardcoded
+ * false/null -- see generateEpisodeScript()'s own doc comment for the real
+ * evidence (1081->1050->1050->1050) this closes. Both default to
+ * false/null, so every existing caller/test that omits them gets
+ * byte-identical behavior to before this fix. Sub-attempt 1 (index 1) is
+ * completely unaffected either way -- it always uses THIS invocation's own
+ * sub-attempt 0 outcome, exactly as before.
  */
 async function runWordCountCorrection(
   output: ScriptGenerationOutput,
   previousCount: number,
   request: ScriptGenerationRequest,
   startingAttemptNumber: number,
+  initialWasNoOp: boolean = false,
+  initialWasInsufficient: InsufficientProgressContext | null = null,
 ): Promise<WordCountCorrectionOutcome> {
   const entries: WordCountTrajectoryEntry[] = [];
   let currentOutput = output;
@@ -1907,8 +1923,8 @@ async function runWordCountCorrection(
   let currentIssues: ScriptValidationIssue[] = [
     { message: `Word count ${previousCount} is outside the acceptable 920-965 range.` },
   ];
-  let previousAttemptWasNoOp = false;
-  let previousAttemptWasInsufficient: InsufficientProgressContext | null = null;
+  let previousAttemptWasNoOp = initialWasNoOp;
+  let previousAttemptWasInsufficient: InsufficientProgressContext | null = initialWasInsufficient;
 
   for (let i = 0; i < WORD_COUNT_CORRECTION_MAX_ATTEMPTS; i++) {
     const inputOutput = currentOutput;
@@ -1956,7 +1972,7 @@ async function runWordCountCorrection(
     if (wordCount <= WORD_COUNT_HARD_MAX) break;
   }
 
-  return { output: currentOutput, issues: currentIssues, entries };
+  return { output: currentOutput, issues: currentIssues, entries, finalWasNoOp: previousAttemptWasNoOp, finalWasInsufficient: previousAttemptWasInsufficient };
 }
 
 /** Generates and validates in a loop, bounded by MAX_ATTEMPTS. Throws
@@ -2068,6 +2084,15 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
   // exhaustion seeds it regardless of whether it arose from CEFR, a
   // resolved unrelated issue, or a fresh initial draft).
   let cefrRecoveryPending = false;
+  // Fix #11 -- carries the LAST runWordCountCorrection() invocation's final
+  // sub-attempt outcome across a Fix #9 continuation boundary into the
+  // NEXT invocation's sub-attempt 0. Updated in lockstep with
+  // cefrRecoveryPending below (same shared condition), so both are always
+  // false/null whenever cefrRecoveryPending is false -- see that
+  // assignment's own doc comment for the real evidence (1081->1050->1050->
+  // 1050) this closes.
+  let carriedNoOp = false;
+  let carriedInsufficient: InsufficientProgressContext | null = null;
   // Word-count trajectory across the WHOLE run (initial + revision +
   // word-count correction, in the order they actually happened) -- see
   // WordCountTrajectoryEntry's doc comment. Purely diagnostic: read by
@@ -2096,6 +2121,13 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
 
     let attemptOutput: ScriptGenerationOutput;
     let structuralIssues: ScriptValidationIssue[];
+    // Fix #11 -- reset each outer iteration; set below ONLY when a
+    // correction actually ran this iteration. Left at their defaults
+    // (false/null) is correct and harmless when no correction ran, since
+    // the shared condition that would read them (see cefrRecoveryPending's
+    // assignment below) is false in that case too.
+    let lastCorrectionWasNoOp = false;
+    let lastCorrectionWasInsufficient: InsufficientProgressContext | null = null;
 
     if (cefrRecoveryPending && previousOutput !== undefined) {
       // FIX #8: the current state is a plain word-count overshoot that
@@ -2110,11 +2142,13 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
       // a large overshoot deterministically, not the weaker generic
       // large-cut fallback.
       const previousCount = countSpokenWords(previousOutput);
-      const correction = await runWordCountCorrection(previousOutput, previousCount, request, trajectory.length + 1);
+      const correction = await runWordCountCorrection(previousOutput, previousCount, request, trajectory.length + 1, carriedNoOp, carriedInsufficient);
       trajectory.push(...correction.entries);
       attemptOutput = correction.output;
       structuralIssues = correction.issues;
       previousOutput = correction.output;
+      lastCorrectionWasNoOp = correction.finalWasNoOp;
+      lastCorrectionWasInsufficient = correction.finalWasInsufficient;
     } else {
       const revisionPreamble = wasPureCefrMismatch
         ? buildCefrOnlyRevisionPreamble(previousOutput ? countSpokenWords(previousOutput) : undefined)
@@ -2196,7 +2230,7 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
       if (structuralIssues.length === 1 && WORD_COUNT_ISSUE_RE.test(structuralIssues[0].message)) {
         const previousCount = countSpokenWords(output);
         if (previousCount > WORD_COUNT_HARD_MAX) {
-          const correction = await runWordCountCorrection(output, previousCount, request, trajectory.length + 1);
+          const correction = await runWordCountCorrection(output, previousCount, request, trajectory.length + 1, carriedNoOp, carriedInsufficient);
           trajectory.push(...correction.entries);
           attemptOutput = correction.output;
           structuralIssues = correction.issues;
@@ -2205,6 +2239,8 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
           // original overshoot -- same reasoning as previousOutput = output
           // above.
           previousOutput = correction.output;
+          lastCorrectionWasNoOp = correction.finalWasNoOp;
+          lastCorrectionWasInsufficient = correction.finalWasInsufficient;
         }
       }
     }
@@ -2265,6 +2301,23 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
       structuralIssues.length === 1 &&
       WORD_COUNT_ISSUE_RE.test(structuralIssues[0].message) &&
       countSpokenWords(attemptOutput) > WORD_COUNT_HARD_MAX;
+
+    // FIX #11: carriedNoOp/carriedInsufficient are updated in LOCKSTEP with
+    // cefrRecoveryPending, using the exact same condition -- see this
+    // function's own doc comment (CROSS-INVOCATION CARRY-OVER) for the real
+    // evidence (1081->1050->1050->1050) this closes. When the condition is
+    // true, the correction pass that just ran this iteration (lastCorrectionWasNoOp/
+    // lastCorrectionWasInsufficient, set above at whichever call site actually
+    // ran one -- left at their reset defaults otherwise, which is fine
+    // because this branch is only reached when a correction DID run, since
+    // the condition itself requires attemptOutput/structuralIssues to be a
+    // lone overshoot, which only a correction pass produces) becomes what
+    // the NEXT invocation's sub-attempt 0 is seeded with. When false --
+    // full recovery, an undershoot, or a different/combined issue -- both
+    // are cleared, so a fresh continuation or inline-correction invocation
+    // never inherits stale state from an unrelated prior chain.
+    carriedNoOp = cefrRecoveryPending ? lastCorrectionWasNoOp : false;
+    carriedInsufficient = cefrRecoveryPending ? lastCorrectionWasInsufficient : null;
 
     // The real enrichment grading only runs once the structural checks
     // already passed -- a script that's already going to be rejected for
