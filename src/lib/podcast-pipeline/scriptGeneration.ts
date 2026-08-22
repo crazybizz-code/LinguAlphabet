@@ -1911,24 +1911,59 @@ async function runWordCountCorrection(
  *
  * cefrRecoveryPending (declared below, scoped to this function only) tracks
  * whether the CURRENT unresolved state is a plain word-count OVERSHOOT that
- * originated from an actual pure-CEFR-mismatch revision (isPureCefrMismatch(),
- * UNCHANGED) -- never from any other cause. While true, the NEXT outer
- * attempt skips the generic revision call ENTIRELY and calls the SAME,
- * UNMODIFIED runWordCountCorrection() again directly on the existing draft
- * -- reusing Fix #4/#5/#6's deterministic mechanisms repeatedly instead of
- * spending an outer attempt on the weaker generic large-cut path, so more
- * of the bounded MAX_ATTEMPTS budget goes toward the correction mechanism
- * that is actually capable of resolving it. The flag is scoped as narrowly
- * as possible: it can only ever become true immediately after a genuine
- * pure-CEFR-mismatch revision (never a normal overshoot, e.g. from a fresh
- * initial draft -- that scenario's existing fall-back-to-generic-revision
- * behavior, and its regression tests, are completely unaffected), it clears
- * itself the moment the state stops being a plain overshoot (full recovery,
- * an undershoot, or any other/combined issue), and once structural
- * validation clears, the EXISTING, unconditional "grade if zero issues"
- * check below reruns CEFR grading exactly as it always has -- there is
- * nothing to specially "remember" about a CEFR mismatch, only the ordinary,
- * stateless "are there zero structural issues right now" check.
+ * the dedicated correction pass just ran on THIS iteration and did not
+ * fully resolve within its own bounded WORD_COUNT_CORRECTION_MAX_ATTEMPTS.
+ * While true, the NEXT outer attempt skips the generic revision call
+ * ENTIRELY and calls the SAME, UNMODIFIED runWordCountCorrection() again
+ * directly on the existing draft -- reusing Fix #4/#5/#6's deterministic
+ * mechanisms repeatedly instead of spending an outer attempt on the weaker
+ * generic large-cut path, so more of the bounded MAX_ATTEMPTS budget goes
+ * toward the correction mechanism that is actually capable of resolving it.
+ * It clears itself the moment the state stops being a plain overshoot (full
+ * recovery, an undershoot, or any other/combined issue), and once
+ * structural validation clears, the EXISTING, unconditional "grade if zero
+ * issues" check below reruns CEFR grading exactly as it always has -- there
+ * is nothing to specially "remember" about a CEFR mismatch, only the
+ * ordinary, stateless "are there zero structural issues right now" check.
+ *
+ * FIX #9 (GENERALIZED CONTINUATION -- ORIGIN-INDEPENDENT): originally (Fix
+ * #8) this flag could only ever seed from a genuine pure-CEFR-mismatch
+ * revision (isPureCefrMismatch()), deliberately excluding a normal
+ * overshoot from a fresh initial draft or from an unrelated resolved issue
+ * (e.g. the interruption pattern). A real GitHub Actions failure (word-count
+ * trajectory 1226->1245->1230->1207->1197->1191->1155->1135->1110->1084->
+ * 1076->1062->1039->1039->1017->996, exhausting all 6 outer attempts, final
+ * failure at 996 words) proved that exclusion was too narrow: the SAME
+ * weaker-generic-revision-path regression Fix #8 fixed for CEFR also
+ * happens for a plain overshoot with no CEFR involvement anywhere in the
+ * run -- there the overshoot originated from a resolved "interruption"
+ * structural issue (attempt 1 failed on `word count, interruption`
+ * together; the attempt-2 revision fixed the interruption but left a pure
+ * word-count overshoot), so cefrRecoveryPending never activated and every
+ * correction-pass exhaustion fell back to the weaker
+ * buildCutMethodGuidance(true) path, which alternated with the correction
+ * pass at roughly 1/5th its effectiveness across that real run (mean -21.1
+ * words/correction-call vs -3.8 words/generic-revision-call, including one
+ * generic-revision call that made the overshoot WORSE (+19) and one true
+ * no-op (0)).
+ *
+ * The seed condition is now ORIGIN-INDEPENDENT (see the assignment below):
+ * it depends only on THIS iteration's actual resulting state -- whether
+ * that state came from the continuation branch or from the else branch's
+ * inline correction call -- being a lone word-count overshoot, never on
+ * what triggered the correction pass to run. isPureCefrMismatch() and
+ * wasPureCefrMismatch are UNCHANGED and still used, unchanged, to select
+ * buildCefrOnlyRevisionPreamble() above -- this fix only removes
+ * wasPureCefrMismatch from cefrRecoveryPending's OWN seed clause, since the
+ * three conjuncts below already fully and correctly describe "the
+ * correction pass just ran and left a lone overshoot," regardless of what
+ * caused that correction call. Fix #8's own CEFR-triggered cases are a
+ * strict subset of this wider condition and are completely unaffected --
+ * every case that used to set this flag still does (see tests A-F in the
+ * corresponding test file); only the previously-excluded non-CEFR cases
+ * (test G, and the pre-existing "dedicated word-count correction pass"
+ * test D, both updated by this fix) now also continue instead of falling
+ * back to the generic revision.
  */
 export async function generateEpisodeScript(request: ScriptGenerationRequest): Promise<ScriptGenerationResult> {
   const basePrompt = buildPrompt(request);
@@ -1938,8 +1973,10 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
   // tag on the two throws below -- never fed back into lastIssues or
   // buildRetryFeedback(), so it cannot change what the model sees.
   let lastAttemptWasRevision = false;
-  // Fix #8 -- see this function's doc comment. Starts false; can only ever
-  // become true immediately after a genuine pure-CEFR-mismatch revision.
+  // Fix #8/#9 -- see this function's doc comment. Starts false; origin-
+  // independent since Fix #9 (a plain overshoot's correction-pass
+  // exhaustion seeds it regardless of whether it arose from CEFR, a
+  // resolved unrelated issue, or a fresh initial draft).
   let cefrRecoveryPending = false;
   // Word-count trajectory across the WHOLE run (initial + revision +
   // word-count correction, in the order they actually happened) -- see
@@ -2082,39 +2119,59 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
       }
     }
 
-    // FIX #8: decide whether the NEXT outer attempt (if this one doesn't
+    // FIX #8/#9: decide whether the NEXT outer attempt (if this one doesn't
     // already succeed below) should skip the generic revision path and go
-    // straight back into runWordCountCorrection() -- true only when the
-    // CURRENT state is a plain word-count OVERSHOOT (never an undershoot;
-    // runWordCountCorrection() itself is only ever entered for
-    // previousCount > WORD_COUNT_HARD_MAX, matching its existing entry
-    // guard above) that either just came from a pure CEFR mismatch, or was
-    // already in this recovery chain. Any other outcome -- full recovery
+    // straight back into runWordCountCorrection() -- true whenever the
+    // CURRENT state (i.e. whatever this iteration's work -- the
+    // continuation branch above, or the else branch's inline correction
+    // call below -- actually produced) is a plain word-count OVERSHOOT
+    // (never an undershoot; runWordCountCorrection() itself is only ever
+    // entered for previousCount > WORD_COUNT_HARD_MAX, matching its
+    // existing entry guard above). Any other outcome -- full recovery
     // (structuralIssues now empty), an undershoot, or a different/combined
     // issue -- clears it, falling through to ordinary handling next time.
     // The trailing `> WORD_COUNT_HARD_MAX` conjunct is load-bearing, not
-    // decorative -- an adversarial review confirmed it is the ONLY thing
-    // keeping this branch from ever firing on an undershoot (WORD_COUNT_ISSUE_RE
-    // alone matches both directions); do not simplify this condition to
-    // drop it.
+    // decorative: it is the ONLY thing keeping this branch from ever firing
+    // on an undershoot (WORD_COUNT_ISSUE_RE alone matches both directions);
+    // do not simplify this condition to drop it.
+    //
+    // FIX #9 (ORIGIN-INDEPENDENT GENERALIZATION): Fix #8 originally gated
+    // this seed on `wasPureCefrMismatch || cefrRecoveryPending` -- it could
+    // only ever activate immediately after a genuine pure-CEFR-mismatch
+    // revision, deliberately excluding a plain overshoot from a fresh
+    // initial draft or from any other resolved issue. A real GitHub Actions
+    // failure (word-count trajectory 1226->1245->1230->1207->1197->...->996,
+    // exhausting all 6 outer attempts) proved that exclusion was too
+    // narrow: that run's overshoot originated from a resolved
+    // "interruption" structural issue, not CEFR, so this flag never
+    // activated and every correction-pass exhaustion fell back to the
+    // weaker generic buildCutMethodGuidance(true) path -- the SAME
+    // regression Fix #8 fixed for CEFR, just reached through a different
+    // trigger. The origin gate is removed entirely: the three conjuncts
+    // below already fully and correctly describe "the correction pass just
+    // ran (either branch above) and left the script a lone word-count
+    // overshoot," regardless of what caused that correction pass to run.
+    // The old `wasPureCefrMismatch ||` disjunct is also no longer needed to
+    // let the flag persist across a MULTI-attempt recovery chain -- unlike
+    // the old formula (whose seed term went false again the very next
+    // iteration once lastIssues stopped being a pure CEFR issue, requiring
+    // `|| cefrRecoveryPending` to carry it forward), this condition is
+    // recomputed fresh from THIS iteration's actual output/issues every
+    // time, so it is naturally self-sustaining for as long as the state
+    // keeps being a lone overshoot, with no history to carry. Fix #8's own
+    // CEFR-triggered cases (isPureCefrMismatch(), still unmodified, still
+    // used above to select buildCefrOnlyRevisionPreamble()) are an
+    // unaffected strict subset of this wider condition -- every case that
+    // used to set this flag still does.
     //
     // Deliberately no stall/progress detection across repeated recovery
-    // iterations (same review): once this flag is true, every subsequent
-    // outer attempt keeps calling runWordCountCorrection() again for as
-    // long as the result stays a lone overshoot, even if consecutive calls
-    // stop making meaningful progress -- it never "gives up" and falls
-    // back to the generic path mid-chain. Adding that would mean inventing
-    // a new stall-detection heuristic and threshold this fix's explicit
-    // scope does not call for (requirement 5: reuse existing mechanisms,
-    // do not add new ones) and MAX_ATTEMPTS already bounds the total cost.
-    // Also note: isPureCefrMismatch() (unmodified) is already shared by
-    // Fix #7 between an authoritative-grading failure and the rarer
-    // structural self-report mismatch -- this flag inherits that same
-    // surface unchanged; both are "a real CEFR problem needing the
-    // dedicated preamble," and routing either one's regrowth through
-    // correction is equally appropriate.
+    // iterations (per Fix #8's adversarial review, unchanged by Fix #9):
+    // once this flag is true, every subsequent outer attempt keeps calling
+    // runWordCountCorrection() again for as long as the result stays a lone
+    // overshoot, even if consecutive calls stop making meaningful progress
+    // -- it never "gives up" and falls back to the generic path mid-chain.
+    // MAX_ATTEMPTS already bounds the total cost.
     cefrRecoveryPending =
-      (wasPureCefrMismatch || cefrRecoveryPending) &&
       structuralIssues.length === 1 &&
       WORD_COUNT_ISSUE_RE.test(structuralIssues[0].message) &&
       countSpokenWords(attemptOutput) > WORD_COUNT_HARD_MAX;

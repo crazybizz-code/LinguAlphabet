@@ -2315,33 +2315,42 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       expect(Array.isArray(result.output.turns)).toBe(true);
     });
 
-    it("D: if the correction pass exhausts its 2 bounded attempts without reaching the valid range, it falls back honestly to the normal revision mechanism", async () => {
+    it("D: if the correction pass exhausts its 2 bounded attempts without reaching the valid range, Fix #9's generalized continuation keeps using the SAME correction mechanism instead of falling back to the generic revision", async () => {
+      // Before Fix #9, this exact scenario (a plain overshoot from a FRESH
+      // INITIAL draft -- no CEFR, no other issue involved anywhere) fell
+      // back to the generic revision mechanism once the correction pass
+      // exhausted its budget -- that was the pre-Fix-#9 behavior this test
+      // used to assert. A real GitHub Actions failure (word-count
+      // trajectory 1226->1245->...->996, exhausting all 6 outer attempts)
+      // showed that fallback is a real regression regardless of origin, so
+      // Fix #9 removed the CEFR-origin gate from cefrRecoveryPending
+      // entirely -- see generateEpisodeScript()'s own doc comment. This
+      // test's expectation is updated accordingly.
       vi.mocked(generateStructuredJson)
         .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial)
         .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 1 -- still overshoot
         .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 2 -- still overshoot, bound exhausted
-        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 (normal revision) -- succeeds
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 -- Fix #9 continuation (ANOTHER correction call), resolves
       vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
 
       const result = await generateEpisodeScript(REQUEST_B2);
 
       expect(result.wordCount).toBe(950);
-      expect(result.attempts).toBe(2); // only 2 OUTER attempts consumed -- the 2 correction sub-attempts don't count against MAX_ATTEMPTS
+      expect(result.attempts).toBe(2); // only 2 OUTER attempts consumed -- the correction sub-attempts don't count against MAX_ATTEMPTS
       expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(4);
 
-      // Exactly 2 correction sub-attempts were made, never a 3rd.
+      // Exactly 2 correction sub-attempts were made in the FIRST correction pass.
       expect(vi.mocked(generateStructuredJson).mock.calls[1][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
       expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
 
-      // The 4th call is the EXISTING normal revision mechanism, unchanged --
-      // 3-message shape, buildRetryFeedback's real header, referencing the
-      // still-overshooting corrected draft from the exhausted correction pass.
-      const fallbackCall = vi.mocked(generateStructuredJson).mock.calls[3][0];
-      expect(fallbackCall.schemaName).toBe("linguabc_podcast_script");
-      expect(fallbackCall.messages).toHaveLength(3);
-      const fallbackPrompt = fallbackCall.messages[2].content as string;
-      expect(fallbackPrompt).toContain("PREVIOUS ATTEMPT REJECTED");
-      expect(fallbackPrompt).toMatch(/Word count 1201 is outside the acceptable 920-965 range/i);
+      // The 4th call is Fix #9's continuation -- ANOTHER correction call,
+      // single-message shape, never the generic multi-category revision --
+      // even though this overshoot never involved CEFR at all.
+      const continuationCall = vi.mocked(generateStructuredJson).mock.calls[3][0];
+      expect(continuationCall.schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      expect(continuationCall.messages).toHaveLength(1);
+      const continuationPrompt = continuationCall.messages[0].content as string;
+      expect(continuationPrompt).toContain("DEDICATED WORD-COUNT CORRECTION pass");
     });
 
     it("E: if the correction pass fixes word count but the corrected draft fails a DIFFERENT check, existing full validation catches it and normal revision takes over", async () => {
@@ -2389,14 +2398,26 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       const message = thrown!.message;
       expect(message).toContain("Word-count trajectory:");
 
-      // 6 outer attempts, each contributing 1 initial/revision entry + 2
-      // correction entries (the bound), for 18 total trajectory lines.
+      // FIX #9: outer attempt 1 contributes 1 initial entry + 2 correction
+      // entries (its inline correction pass). Since the draft never
+      // converges, cefrRecoveryPending seeds after outer attempt 1 and
+      // stays seeded (origin-independent, recomputed fresh every
+      // iteration) -- so outer attempts 2-6 each go STRAIGHT into
+      // runWordCountCorrection() (2 correction entries each), never a
+      // separate "revision" entry. Total: 1 + 2 + 5*2 = 13 trajectory
+      // lines (down from 18 before this fix, which used to spend a
+      // "revision" entry re-entering the loop on every one of outer
+      // attempts 2-6).
       const trajectoryLines = message.match(/attempt \d+ \[(initial|revision|word-count correction)\]: 1201 words -- word count/g) ?? [];
-      expect(trajectoryLines).toHaveLength(18);
+      expect(trajectoryLines).toHaveLength(13);
       expect(message).toMatch(/attempt 1 \[initial\]: 1201 words -- word count/);
       expect(message).toMatch(/attempt 2 \[word-count correction\]: 1201 words -- word count/);
       expect(message).toMatch(/attempt 3 \[word-count correction\]: 1201 words -- word count/);
-      expect(message).toMatch(/attempt 4 \[revision\]: 1201 words -- word count/);
+      // Attempt 4 begins outer attempt 2's continuation -- still a
+      // correction entry, never "revision", since Fix #9 skips the generic
+      // revision path entirely once cefrRecoveryPending is seeded.
+      expect(message).toMatch(/attempt 4 \[word-count correction\]: 1201 words -- word count/);
+      expect(message).not.toMatch(/\[revision\]/);
 
       // Never the actual generated dialogue or raw JSON, anywhere in the error.
       expect(message).not.toContain("hotel room");
@@ -3329,18 +3350,24 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       expect(result.attempts).toBe(3);
     });
 
-    it("G: existing Fix #4/#5/#6 behavior for a NON-CEFR-triggered large overshoot is completely unaffected -- still falls back to the generic revision exactly as before", async () => {
-      // Same fixture/shape as the pre-existing test D above ("if the
-      // correction pass exhausts its 2 bounded attempts...") -- reproduced
-      // here as its own dedicated Fix #8 regression: cefrRecoveryPending
-      // must NEVER activate when the overshoot never involved a pure CEFR
-      // mismatch, so the fallback-to-generic-revision behavior established
-      // long before Fix #8 must be byte-for-byte identical.
+    it("G: Fix #9 generalizes recovery -- a NON-CEFR-triggered large overshoot from a fresh initial draft ALSO continues via the correction mechanism, never the generic revision", async () => {
+      // Same fixture/shape as the pre-existing "dedicated word-count
+      // correction pass" test D above. BEFORE Fix #9, cefrRecoveryPending
+      // only ever seeded from a genuine pure-CEFR-mismatch revision, so
+      // this exact scenario (a plain initial-draft overshoot, no CEFR
+      // involved anywhere) fell back to the weaker generic revision once
+      // the correction pass exhausted its budget -- that was this test's
+      // ORIGINAL assertion. A real GitHub Actions failure (word-count
+      // trajectory 1226->1245->...->996, exhausting all 6 outer attempts)
+      // proved that fallback is a real regression independent of origin.
+      // Fix #9 removes the CEFR-origin gate entirely, so this test's
+      // expectation is now the opposite of its pre-Fix-#9 version: the
+      // continuation activates here too.
       vi.mocked(generateStructuredJson)
         .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial) -- NOT a CEFR revision
         .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 1 -- still overshoot
         .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 2 -- still overshoot, bound exhausted
-        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 -- the EXISTING generic revision mechanism, unchanged
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 -- Fix #9 continuation, resolves
       vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
 
       const result = await generateEpisodeScript(REQUEST_B2);
@@ -3348,12 +3375,104 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       expect(result.wordCount).toBe(950);
       expect(result.attempts).toBe(2);
       expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(4);
-      // The 4th call MUST be the generic revision (schemaName
-      // "linguabc_podcast_script", never another correction call) --
-      // proving cefrRecoveryPending never activated for this non-CEFR path.
-      expect(vi.mocked(generateStructuredJson).mock.calls[3][0].schemaName).toBe("linguabc_podcast_script");
-      const fallbackPrompt = vi.mocked(generateStructuredJson).mock.calls[3][0].messages[2].content as string;
-      expect(fallbackPrompt).toContain("PREVIOUS ATTEMPT REJECTED");
+      // The 4th call MUST be another correction call (schemaName
+      // "linguabc_podcast_script_word_count_correction"), never the generic
+      // "linguabc_podcast_script" revision -- proving cefrRecoveryPending
+      // now activates for this non-CEFR path too.
+      expect(vi.mocked(generateStructuredJson).mock.calls[3][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      expect(vi.mocked(generateStructuredJson).mock.calls[3][0].messages).toHaveLength(1);
+    });
+
+    it("H (Fix #9): a NON-CEFR overshoot that originates from a RESOLVED INTERRUPTION issue also seeds continuation, mirroring the real production failure (interruption+word-count combined -> revision resolves the interruption but overshoots -> correction exhausts -> continuation, not generic revision)", async () => {
+      const brokenInterruptionOvershoot: ScriptGenerationOutput = {
+        ...LARGE_OVERSHOOT,
+        turns: LARGE_OVERSHOOT.turns.map((t, i, arr) => (i === arr.length - 4 ? { ...t, text: "...and honestly I think the whole point is that we finish our own sentences." } : t)),
+      };
+      const initialIssues = validateGeneratedScript(brokenInterruptionOvershoot, REQUEST_B2);
+      expect(initialIssues).toHaveLength(2);
+      expect(initialIssues.some((i) => /No genuine interruption found/i.test(i.message))).toBe(true);
+      expect(initialIssues.some((i) => /word count/i.test(i.message))).toBe(true);
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(brokenInterruptionOvershoot) // outer attempt 1 (initial) -- interruption + word count, combined
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 2 (generic revision) -- interruption fixed, still a pure overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 1 -- still overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 2 -- still overshoot, bound exhausted
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 3 -- Fix #9 continuation, resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(950);
+      expect(result.attempts).toBe(3);
+      // Call 2 is the EXISTING generic revision (combined interruption +
+      // word-count issue) -- unaffected by Fix #9, since a combined issue
+      // never satisfies cefrRecoveryPending's structuralIssues.length === 1
+      // conjunct, exactly like Fix #8's own test D.
+      expect(vi.mocked(generateStructuredJson).mock.calls[1][0].schemaName).toBe("linguabc_podcast_script");
+      // Calls 3-4 are the first correction pass's bounded sub-attempts.
+      expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      expect(vi.mocked(generateStructuredJson).mock.calls[3][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+      // Call 5 -- the Fix #9 assertion -- is ALSO a correction call, never a
+      // generic revision, even though this chain never involved CEFR.
+      expect(vi.mocked(generateStructuredJson).mock.calls[4][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+    });
+
+    it("I (Fix #9): replays today's real production trajectory shape and verifies EVERY subsequent outer attempt routes into correction, never the generic revision, across MULTIPLE consecutive recovery boundaries", async () => {
+      const brokenInterruptionOvershoot: ScriptGenerationOutput = {
+        ...LARGE_OVERSHOOT,
+        turns: LARGE_OVERSHOOT.turns.map((t, i, arr) => (i === arr.length - 4 ? { ...t, text: "...and honestly I think the whole point is that we finish our own sentences." } : t)),
+      };
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(brokenInterruptionOvershoot) // outer attempt 1 (initial) -- 1226-like: interruption + word count
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 2 (generic revision) -- 1245-like: interruption fixed, still overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt -- 1230-like, still overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt -- 1207-like, still overshoot, bound exhausted
+        // Real run's bug: outer attempt 3 fell back to a generic revision
+        // here. Fix #9: outer attempt 3 must be a correction call instead.
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 3 (Fix #9 continuation) sub-attempt -- 1197-like, still overshoot
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // -- 1191-like, still overshoot, bound exhausted
+        // Real run's bug repeated at outer attempt 4 too -- Fix #9 must not
+        // reset after only one continuation; it keeps chaining.
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 4 (Fix #9 continuation) sub-attempt -- resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      const schemaNames = vi.mocked(generateStructuredJson).mock.calls.map((c) => c[0].schemaName);
+      expect(schemaNames).toEqual([
+        "linguabc_podcast_script", // attempt 1: initial
+        "linguabc_podcast_script", // attempt 2: generic revision (combined interruption + word count)
+        "linguabc_podcast_script_word_count_correction",
+        "linguabc_podcast_script_word_count_correction", // outer attempt 2's correction pass, exhausted
+        "linguabc_podcast_script_word_count_correction", // outer attempt 3 -- continuation, NOT generic revision
+        "linguabc_podcast_script_word_count_correction", // outer attempt 3's correction pass, exhausted
+        "linguabc_podcast_script_word_count_correction", // outer attempt 4 -- continuation, NOT generic revision -- resolves
+      ]);
+      expect(result.wordCount).toBe(950);
+      // Outer attempts consumed: initial, generic revision, 2 continuations = 4 -- well inside MAX_ATTEMPTS (6),
+      // demonstrating the fix converges where the real run exhausted its budget without recovering.
+      expect(result.attempts).toBe(4);
+    });
+
+    it("J (Fix #9): continuation clears when a correction sub-attempt overcorrects into an UNDERSHOOT, and control returns to the normal revision mechanism", async () => {
+      const undershoot = buildCueRichOvershootOutput(800); // lands well under 920 words
+      expect(validateGeneratedScript(undershoot, REQUEST_B2)).toHaveLength(1);
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial) -- pure overshoot
+        .mockResolvedValueOnce(undershoot) // correction sub-attempt 1 -- overcorrects below 920, stops early
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 -- normal revision (add-words path), succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(950);
+      expect(result.attempts).toBe(2);
+      // The 3rd call must be the NORMAL revision mechanism, never another
+      // correction call -- continuation must not seed from an undershoot.
+      expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script");
     });
     });
   });
