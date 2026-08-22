@@ -2711,6 +2711,113 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       expect(subAttempt2Prompt).toMatch(/a HIGHER word count/i);
     });
 
+    /**
+     * FIX #13 (SMALL-BAND DETERMINISTIC TARGETING): a real run got stuck at
+     * exactly 970 words (5 over) for six consecutive correction calls,
+     * despite the no-op escalation and Fix #11's carry-over both firing
+     * correctly on every one of them (confirmed by direct code
+     * re-inspection). Root cause: unlike "large" and "meaningful", the
+     * "small"/final-boundary band never called selectLargeCutTarget() --
+     * it asked the model to search the WHOLE script fresh every retry for
+     * "one short redundant phrase," with only escalating bluntness, never a
+     * concrete location. These tests verify the same, UNMODIFIED
+     * selectLargeCutTarget() now also names a target for this band.
+     */
+    it("Fix #13 (1): a 5-word overshoot (970 words) names a deterministic target turn via the SAME, unmodified selectLargeCutTarget()", async () => {
+      const fiveOver = withExactWordCount(SMALL_OVERSHOOT, 970);
+      expect(validateGeneratedScript(fiveOver, REQUEST_B2)).toHaveLength(1); // sanity: still word-count-only
+      const target = selectLargeCutTarget(fiveOver, REQUEST_B2);
+      expect(target).not.toBeNull();
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(fiveOver).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(correctionPrompt).toMatch(new RegExp(`Turn #${target!.turnIndex} \\(${target!.speakerName}, ${target!.wordCount} words\\) is a good place to look first`, "i"));
+      expect(correctionPrompt).toMatch(/Remove 5 word\(s\) of redundant wording from THIS turn specifically/i);
+      expect(correctionPrompt).toMatch(/do not rewrite or shorten the whole turn, just trim the redundant part/i);
+      // Still the exact-deficit framing, unchanged.
+      expect(correctionPrompt).toMatch(/You are exactly 5 word\(s\) over the 965-word hard maximum/i);
+    });
+
+    it("Fix #13 (2): the FIRST small-band correction call (not just a later, escalated one) already contains the target turn", async () => {
+      const oneOver = withExactWordCount(SMALL_OVERSHOOT, 966);
+      const target = selectLargeCutTarget(oneOver, REQUEST_B2);
+      expect(target).not.toBeNull();
+
+      vi.mocked(generateStructuredJson).mockResolvedValueOnce(oneOver).mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      // Call index 1 is the FIRST correction sub-attempt -- there has been
+      // no no-op yet, so this proves the target is named up front, not only
+      // as part of an escalation.
+      const firstCorrectionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      expect(firstCorrectionPrompt).not.toMatch(/MADE NO PROGRESS/i);
+      expect(firstCorrectionPrompt).toMatch(new RegExp(`Turn #${target!.turnIndex}.*is a good place to look first`, "i"));
+    });
+
+    it("Fix #13 (3): a repeated no-op receives BOTH the target turn AND the existing no-op escalation, referencing the target by number", async () => {
+      const fiveOver = withExactWordCount(SMALL_OVERSHOOT, 970);
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(fiveOver) // outer attempt 1 (initial) -- 970 words
+        .mockResolvedValueOnce(fiveOver) // correction sub-attempt 1 -- byte-identical no-op
+        .mockResolvedValueOnce(buildValidScriptOutput()); // correction sub-attempt 2 -- succeeds
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const target = selectLargeCutTarget(fiveOver, REQUEST_B2)!;
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT AT THIS FINAL BOUNDARY MADE NO PROGRESS/i);
+      expect(subAttempt2Prompt).toMatch(new RegExp(`MUST actually delete words from Turn #${target.turnIndex}`, "i"));
+      expect(subAttempt2Prompt).toMatch(/is a good place to look first/i);
+    });
+
+    it("Fix #13 (4): Fix #11's cross-invocation carry-over still delivers the no-op escalation into a fresh continuation invocation, now alongside the target", async () => {
+      const fiveOver = withExactWordCount(SMALL_OVERSHOOT, 970);
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(fiveOver) // outer attempt 1 (initial) -- 970 words
+        .mockResolvedValueOnce(fiveOver) // correction sub-attempt 1 -- no-op
+        .mockResolvedValueOnce(fiveOver) // correction sub-attempt 2 -- no-op, exhausts this invocation
+        .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 (Fix #9 continuation) -- carries Fix #11 state, resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      // Call index 3 is the FIRST sub-attempt of the NEW continuation
+      // invocation -- Fix #11 seeds it with the previous invocation's final
+      // no-op, so it must carry the escalation despite being "sub-attempt 0"
+      // of a fresh runWordCountCorrection() call.
+      const continuationPrompt = vi.mocked(generateStructuredJson).mock.calls[3][0].messages[0].content as string;
+      expect(continuationPrompt).toMatch(/YOUR PREVIOUS ATTEMPT AT THIS FINAL BOUNDARY MADE NO PROGRESS/i);
+      expect(continuationPrompt).toMatch(/is a good place to look first/i);
+    });
+
+    it("Fix #13 (6): replays the real 970 -> 970 -> 970 shape and recovers to <=965 once the model finally acts on the named target", async () => {
+      const fiveOver = withExactWordCount(SMALL_OVERSHOOT, 970);
+      const finallyComplies = withExactWordCount(SMALL_OVERSHOOT, 963);
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(fiveOver) // outer attempt 1 (initial) -- 970 words
+        .mockResolvedValueOnce(fiveOver) // correction sub-attempt 1 -- no-op (970 -> 970)
+        .mockResolvedValueOnce(fiveOver) // correction sub-attempt 2 -- no-op (970 -> 970), exhausts invocation 1
+        .mockResolvedValueOnce(fiveOver) // outer attempt 2 (Fix #9 continuation), sub-attempt 1 -- no-op again (970 -> 970)
+        .mockResolvedValueOnce(finallyComplies); // sub-attempt 2 -- finally crosses the boundary
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const result = await generateEpisodeScript(REQUEST_B2);
+
+      expect(result.wordCount).toBe(963);
+      expect(result.wordCount).toBeLessThanOrEqual(965);
+      // Fix #9 confirmed intact throughout: every call after the initial is
+      // a correction call, never a generic revision.
+      const schemaNames = vi.mocked(generateStructuredJson).mock.calls.map((c) => c[0].schemaName);
+      expect(schemaNames.slice(1)).toEqual(schemaNames.slice(1).map(() => "linguabc_podcast_script_word_count_correction"));
+    });
+
     it("a final-boundary sub-attempt that already lands at <=965 stops the correction pass immediately -- no second call, even mid-pass", async () => {
       const nowInRange = buildValidScriptOutput(); // a genuinely valid, in-range (950-word) script
       expect(countWords(nowInRange.turns)).toBeLessThanOrEqual(965);

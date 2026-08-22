@@ -1471,12 +1471,35 @@ function wordCountCorrectionTarget(previousCount: number): { min: number; max: n
  * a 967-word script's fix is removing exactly 2 words, not more. Reworded
  * to state the exact deficit as the smallest sufficient cut without
  * inviting extra trimming.
+ *
+ * FIX #13 (SMALL-BAND DETERMINISTIC TARGETING): a real run got stuck at
+ * exactly 970 words (5 over) for six consecutive correction calls straight
+ * through to MAX_ATTEMPTS exhaustion, despite the no-op escalation above and
+ * Fix #11's cross-invocation carry-over both firing correctly on every one
+ * of them (confirmed by direct code re-inspection, not assumed). Root
+ * cause: unlike the "large" and "meaningful" bands, this branch never named
+ * a target turn -- it asked the model to search the WHOLE script fresh
+ * every retry for "one short redundant phrase," with only escalating
+ * bluntness, never a concrete location, as its retry strategy. `target`
+ * (from the SAME, UNMODIFIED selectLargeCutTarget() the other two bands
+ * already use -- no new selection logic) now names one turn to search
+ * within FIRST, closing that gap the same way Fix #4 already closed it for
+ * "large". This is still explicitly NOT a rewrite instruction: the model is
+ * told to remove only `exactWordsOver` words of redundant wording from the
+ * named turn, never the whole turn, and the exact-deficit/no-more-than-
+ * needed framing above is unchanged. Falls back to the ORIGINAL,
+ * target-less text when no eligible turn exists (e.g. a very short script),
+ * matching the same "never invent a fallback target" rule Fix #4
+ * established -- never a different fallback quietly introduced.
  */
-function buildFinalBoundaryCorrectionInstruction(exactWordsOver: number, previousAttemptWasNoOp: boolean): string {
-  const escalation = previousAttemptWasNoOp
-    ? ` YOUR PREVIOUS ATTEMPT AT THIS FINAL BOUNDARY MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. That is not acceptable this close to the limit. This time you MUST actually delete words: pick ONE short redundant phrase, filler aside, or repeated idea and remove it entirely (or shorten one existing sentence), then recount before responding.`
+function buildFinalBoundaryCorrectionInstruction(exactWordsOver: number, previousAttemptWasNoOp: boolean, target: LargeCutTarget | null): string {
+  const targetSentence = target
+    ? ` Turn #${target.turnIndex} (${target.speakerName}, ${target.wordCount} words) is a good place to look first: "${truncatePreview(target.text, 140)}" Remove ${exactWordsOver} word(s) of redundant wording from THIS turn specifically (a short phrase or filler aside) -- do not rewrite or shorten the whole turn, just trim the redundant part, and do not search other turns unless this one genuinely has nothing removable.`
     : "";
-  return `You are exactly ${exactWordsOver} word(s) over the ${WORD_COUNT_HARD_MAX}-word hard maximum. This is the FINAL boundary correction -- the goal is one small, surgical edit, not a rewrite. Remove at least ${exactWordsOver} word(s) from the EXISTING dialogue below -- ${exactWordsOver} is the smallest cut that actually crosses the boundary; removing fewer will not cross it, and removing significantly more is a bigger edit than this fix calls for. Do NOT add, expand, or rephrase any content in a way that could increase the total length -- a same-length paraphrase or a longer "improved" sentence does not satisfy this. Prefer deleting one genuinely redundant short phrase, filler aside, or repeated idea, or shortening one existing phrase -- do not delete or rewrite an entire turn for a cut this small, and do not touch the hook, the self-introductions, the LinguABC mention, or the interruption pair. Make the SMALLEST edit that actually gets the script to ${WORD_COUNT_HARD_MAX} words or fewer, then recount the final spoken word total (excluding bracket prosody cues) before returning your answer.${escalation}`;
+  const escalation = previousAttemptWasNoOp
+    ? ` YOUR PREVIOUS ATTEMPT AT THIS FINAL BOUNDARY MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. That is not acceptable this close to the limit. This time you MUST actually delete words${target ? ` from Turn #${target.turnIndex}` : ""}: pick ONE short redundant phrase, filler aside, or repeated idea and remove it entirely (or shorten one existing sentence), then recount before responding.`
+    : "";
+  return `You are exactly ${exactWordsOver} word(s) over the ${WORD_COUNT_HARD_MAX}-word hard maximum. This is the FINAL boundary correction -- the goal is one small, surgical edit, not a rewrite. Remove at least ${exactWordsOver} word(s) from the EXISTING dialogue below -- ${exactWordsOver} is the smallest cut that actually crosses the boundary; removing fewer will not cross it, and removing significantly more is a bigger edit than this fix calls for.${targetSentence} Do NOT add, expand, or rephrase any content in a way that could increase the total length -- a same-length paraphrase or a longer "improved" sentence does not satisfy this. Prefer deleting one genuinely redundant short phrase, filler aside, or repeated idea, or shortening one existing phrase -- do not delete or rewrite an entire turn for a cut this small, and do not touch the hook, the self-introductions, the LinguABC mention, or the interruption pair. Make the SMALLEST edit that actually gets the script to ${WORD_COUNT_HARD_MAX} words or fewer, then recount the final spoken word total (excluding bracket prosody cues) before returning your answer.${escalation}`;
 }
 
 /**
@@ -1734,7 +1757,7 @@ function buildWordCountCorrectionMessage(
 
   const cutMethod =
     magnitude === "small"
-      ? buildFinalBoundaryCorrectionInstruction(exactWordsOver, previousAttemptWasNoOp)
+      ? buildFinalBoundaryCorrectionInstruction(exactWordsOver, previousAttemptWasNoOp, selectLargeCutTarget(output, request))
       : magnitude === "meaningful"
         ? buildMeaningfulCompressionInstruction(output, request, selectLargeCutTarget(output, request), exactWordsOver, cutMax, previousAttemptWasNoOp, previousAttemptWasInsufficient)
         : buildDeterministicLargeCutInstruction(selectLargeCutTarget(output, request));
