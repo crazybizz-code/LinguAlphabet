@@ -3475,5 +3475,243 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script");
     });
     });
+
+  /**
+   * FIX #10 (INSUFFICIENT-PROGRESS ESCALATION): see
+   * INSUFFICIENT_PROGRESS_RATIO's doc comment on the production module for
+   * the real, directly-captured model call this fix addresses -- input
+   * 1068 words, a correctly-named 141-word target turn, an explicit
+   * "remove at least half of it" instruction (~118-133 words required
+   * overall), and a real model response that cut only 21 words (~18% of
+   * the 118-word minimum) while touching no other turn. The existing
+   * previousAttemptWasNoOp check (same-or-greater count, or a
+   * byte-identical script) cannot see this: the count went down and the
+   * script genuinely changed, so no escalation ever fired for it.
+   */
+  describe("generateEpisodeScript — Fix #10: insufficient-progress escalation for word-count correction", () => {
+    // Adjusts the script to land at EXACTLY `targetTotal` words, by
+    // trimming (or, if growing, extending) consecutive filler turns
+    // starting at index 5 -- never the hook, the self-introductions, the
+    // LinguABC mention (indices 0-4), or the last 5 turns (the
+    // interruption pair and closing). Fix #10's insufficiency check
+    // operates on the TOTAL reduction achieved this call, not on whether
+    // the deterministically-named cut target specifically was edited (that
+    // selection mechanism is selectLargeCutTarget(), untouched by this fix
+    // and already covered by its own tests) -- so an exact, predictable
+    // total is what these tests need. Spans MULTIPLE filler turns (not
+    // just one) because these fixtures' individual filler turns are only
+    // ~30-35 words each, far too small to absorb the 100+ word trims
+    // several of these tests require on their own.
+    function withExactTotalWordCount(base: ScriptGenerationOutput, targetTotal: number): ScriptGenerationOutput {
+      const currentTotal = countWords(base.turns);
+      const delta = currentTotal - targetTotal;
+      const turns = base.turns.map((t) => ({ ...t }));
+      if (delta < 0) {
+        const filler = Array.from({ length: -delta }, (_, i) => `extra${i}`).join(" ");
+        turns[5] = { ...turns[5], text: `${turns[5].text} ${filler}` };
+        return { ...base, turns };
+      }
+      const eligibleEnd = turns.length - 5;
+      let remaining = delta;
+      for (let i = 5; i < eligibleEnd && remaining > 0; i++) {
+        const words = turns[i].text.replace(/\[[^\]]*\]/g, " ").split(/\s+/).filter(Boolean);
+        if (words.length <= remaining) {
+          remaining -= words.length;
+          turns[i] = { ...turns[i], text: "" };
+        } else {
+          turns[i] = { ...turns[i], text: words.slice(0, words.length - remaining).join(" ") };
+          remaining = 0;
+        }
+      }
+      if (remaining > 0) throw new Error(`test fixture error: not enough eligible words to remove ${delta} total words from this base script`);
+      return { ...base, turns };
+    }
+
+    it("A: a real-evidence-shaped insufficient cut (large band, ~14% of the required reduction) escalates the NEXT sub-attempt with the exact numbers", async () => {
+      // LARGE_OVERSHOOT is 1201 words; requiredReduction for the "large"
+      // band is 1201 - 950 = 251, so half is 125.5. A 35-word cut (~14%,
+      // the same order of magnitude as the real 21-of-118, ~18%) is
+      // clearly insufficient.
+      const insufficientCut = withExactTotalWordCount(LARGE_OVERSHOOT, 1166);
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial)
+        .mockResolvedValueOnce(insufficientCut) // correction sub-attempt 1 -- 1201 -> 1166, only -35 of a required 251
+        .mockResolvedValueOnce(buildValidScriptOutput()); // correction sub-attempt 2 -- resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt1Prompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+
+      // Nothing prior to compare against on the first correction call.
+      expect(subAttempt1Prompt).not.toMatch(/INSUFFICIENT CUT/i);
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT MADE ONLY A SMALL, INSUFFICIENT CUT/i);
+      expect(subAttempt2Prompt).toMatch(/it went from 1201 to 1166 words/i);
+      expect(subAttempt2Prompt).toMatch(/an actual reduction of only 35 word\(s\)/i);
+      expect(subAttempt2Prompt).toMatch(/this pass required cutting at least 251 word\(s\)/i);
+      expect(subAttempt2Prompt).toMatch(/leaving the script still 201 word\(s\) over the 965-word hard maximum/i);
+      expect(subAttempt2Prompt).toMatch(/MUST make a MATERIALLY LARGER cut/i);
+      // Mutually exclusive with the generic no-op warning -- this was not a no-op.
+      expect(subAttempt2Prompt).not.toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+    });
+
+    it("B: a genuinely adequate large-band cut does NOT escalate the next sub-attempt", async () => {
+      // 150 of the required 251 (~60%) is a real, substantial cut -- not
+      // full compliance with "at least half of the 141-word turn" alone,
+      // but well past the insufficiency threshold.
+      const adequateCut = withExactTotalWordCount(LARGE_OVERSHOOT, 1051);
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT)
+        .mockResolvedValueOnce(adequateCut) // 1201 -> 1051, -150 of a required 251 -- adequate, still overshoot
+        .mockResolvedValueOnce(buildValidScriptOutput()); // resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).not.toMatch(/INSUFFICIENT CUT/i);
+      expect(subAttempt2Prompt).not.toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+    });
+
+    it("C: a byte-identical no-op in the large band still escalates via the EXISTING generic warning, never the new insufficient-progress one", async () => {
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // byte-identical no-op
+        .mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+      expect(subAttempt2Prompt).not.toMatch(/INSUFFICIENT CUT/i);
+    });
+
+    it("D: an INCREASED word count in the large band still escalates via the EXISTING generic warning, never the new insufficient-progress one", async () => {
+      const increased: ScriptGenerationOutput = { ...LARGE_OVERSHOOT, turns: [...LARGE_OVERSHOOT.turns, { speaker: 0, text: "One more turn that adds several extra spoken words to the total count." }] };
+      expect(countWords(increased.turns)).toBeGreaterThan(countWords(LARGE_OVERSHOOT.turns));
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT)
+        .mockResolvedValueOnce(increased) // word count went UP
+        .mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE/i);
+      expect(subAttempt2Prompt).not.toMatch(/INSUFFICIENT CUT/i);
+    });
+
+    it("E: meaningful-band insufficient progress escalates via the SAME shared insufficient-progress text, not the compression band's own no-op text", async () => {
+      // NEAR_CEILING_OVERSHOOT is 999 words (34 over, "meaningful" band).
+      // requiredReduction = 999 - 960 = 39, half = 19.5 -- a 10-word cut is
+      // clearly insufficient.
+      const insufficientCut = withExactTotalWordCount(NEAR_CEILING_OVERSHOOT, 989);
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(NEAR_CEILING_OVERSHOOT) // outer attempt 1 (initial) -- 999 words
+        .mockResolvedValueOnce(insufficientCut) // correction sub-attempt 1 -- 999 -> 989, only -10 of a required 39
+        .mockResolvedValueOnce(buildValidScriptOutput()); // correction sub-attempt 2 -- resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).toMatch(/YOUR PREVIOUS ATTEMPT MADE ONLY A SMALL, INSUFFICIENT CUT/i);
+      expect(subAttempt2Prompt).toMatch(/it went from 999 to 989 words/i);
+      expect(subAttempt2Prompt).toMatch(/an actual reduction of only 10 word\(s\)/i);
+      expect(subAttempt2Prompt).toMatch(/this pass required cutting at least 39 word\(s\)/i);
+      // Never the compression band's OWN no-op text -- this was not a no-op.
+      expect(subAttempt2Prompt).not.toMatch(/YOUR PREVIOUS ATTEMPT AT THIS COMPRESSION MADE NO PROGRESS/i);
+    });
+
+    it("F: large-band boundary -- exactly half the required reduction does NOT escalate, one word less than half DOES", async () => {
+      // requiredReduction = 1201 - 950 = 251; half = 125.5.
+      const exactlyHalf = withExactTotalWordCount(LARGE_OVERSHOOT, 1075); // 1201 - 126 = 1075, 126 > 125.5 -- sufficient
+      const oneUnderHalf = withExactTotalWordCount(LARGE_OVERSHOOT, 1076); // 1201 - 125 = 1076, 125 < 125.5 -- insufficient
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT)
+        .mockResolvedValueOnce(exactlyHalf)
+        .mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+      await generateEpisodeScript(REQUEST_B2);
+      expect(vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string).not.toMatch(/INSUFFICIENT CUT/i);
+
+      vi.mocked(generateStructuredJson)
+        .mockReset()
+        .mockResolvedValueOnce(LARGE_OVERSHOOT)
+        .mockResolvedValueOnce(oneUnderHalf)
+        .mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+      await generateEpisodeScript(REQUEST_B2);
+      expect(vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string).toMatch(/INSUFFICIENT CUT/i);
+    });
+
+    it("G: small-band behavior is byte-for-byte unchanged -- the new mechanism never reaches buildFinalBoundaryCorrectionInstruction()", async () => {
+      // SMALL_OVERSHOOT is 967 words (2 over, "small" band). A 1-word cut
+      // (967 -> 966, still 1 over) would be a small fraction of a
+      // requested-cut ratio if the small band computed one -- but it
+      // never does, since previousAttemptWasInsufficient is only ever
+      // wired into the "large" and "meaningful" branches.
+      const barelyTrimmed = withExactTotalWordCount(SMALL_OVERSHOOT, 966);
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(SMALL_OVERSHOOT)
+        .mockResolvedValueOnce(barelyTrimmed)
+        .mockResolvedValueOnce(buildValidScriptOutput());
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const subAttempt2Prompt = vi.mocked(generateStructuredJson).mock.calls[2][0].messages[0].content as string;
+      expect(subAttempt2Prompt).not.toMatch(/INSUFFICIENT CUT/i);
+      // The small band's own existing final-boundary escalation is
+      // completely unaffected -- still fires exactly as before this fix,
+      // driven only by previousAttemptWasNoOp (untouched signature).
+      expect(subAttempt2Prompt).toMatch(/FINAL boundary correction/i);
+    });
+
+    it("I: replays today's real trajectory shape -- an insufficient sub-attempt 1 escalates sub-attempt 2 WITHIN the same correction-pass invocation, but the flag does NOT leak into the NEXT invocation (Fix #9 continuation) once it starts fresh", async () => {
+      // Mirrors the real log's calls 3-4 (1189 -> 1150 -> 1143, a -39 cut
+      // against a required ~120) exhausting into Fix #9's continuation
+      // (calls 5-6), which starts its own runWordCountCorrection()
+      // invocation with fresh local state -- exactly like
+      // previousAttemptWasNoOp already does.
+      const subAttempt1 = withExactTotalWordCount(LARGE_OVERSHOOT, 1166); // 1201 -> 1166, insufficient (required 251)
+      const subAttempt2 = withExactTotalWordCount(subAttempt1, 1136); // 1166 -> 1136, still insufficient -- exhausts this invocation
+      const continuationSubAttempt1 = withExactTotalWordCount(subAttempt2, 996); // 1136 -> 996, ADEQUATE for its own call (required 1136-950=186, half=93)
+      const continuationSubAttempt2 = { ...buildValidScriptOutput() }; // resolves
+
+      vi.mocked(generateStructuredJson)
+        .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial)
+        .mockResolvedValueOnce(subAttempt1) // outer attempt 1's correction, sub-attempt 1 -- insufficient
+        .mockResolvedValueOnce(subAttempt2) // sub-attempt 2 -- exhausted, still overshoot -> cefrRecoveryPending seeds
+        .mockResolvedValueOnce(continuationSubAttempt1) // outer attempt 2 (Fix #9 continuation) -- FRESH invocation, sub-attempt 1
+        .mockResolvedValueOnce(continuationSubAttempt2); // sub-attempt 2 -- resolves
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      await generateEpisodeScript(REQUEST_B2);
+
+      const calls = vi.mocked(generateStructuredJson).mock.calls;
+      // Call index 2 (outer attempt 1's correction sub-attempt 2) DOES see
+      // the escalation from sub-attempt 1's insufficient cut.
+      expect(calls[2][0].messages[0].content as string).toMatch(/YOUR PREVIOUS ATTEMPT MADE ONLY A SMALL, INSUFFICIENT CUT/i);
+      // Call index 3 -- the FIRST sub-attempt of the NEW continuation
+      // invocation (Fix #9) -- must NOT carry sub-attempt 2's insufficient
+      // outcome forward: this is a fresh runWordCountCorrection() call,
+      // exactly like previousAttemptWasNoOp already resets per invocation.
+      expect(calls[3][0].messages[0].content as string).not.toMatch(/INSUFFICIENT CUT/i);
+      // And since continuationSubAttempt1's cut (140 of a required 186) is
+      // adequate, the continuation's own sub-attempt 2 (call index 4) also
+      // carries no escalation of any kind.
+      expect(calls[4][0].messages[0].content as string).not.toMatch(/INSUFFICIENT CUT/i);
+      expect(calls[4][0].messages[0].content as string).not.toMatch(/FAILED TO MAKE A MEANINGFUL CHANGE/i);
+    });
+  });
   });
 });

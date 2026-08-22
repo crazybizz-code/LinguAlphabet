@@ -1561,14 +1561,19 @@ function buildMeaningfulCompressionInstruction(
   exactWordsOver: number,
   cutMax: number,
   previousAttemptWasNoOp: boolean,
+  previousAttemptWasInsufficient: InsufficientProgressContext | null = null,
 ): string {
   const deficitContext = `The script needs approximately ${cutMax} word(s) removed at most to reach a safe margin below the ${WORD_COUNT_HARD_MAX}-word hard maximum (it is currently ${exactWordsOver} word(s) past that maximum) -- this needs a deliberate structural compression, not scattered single-word edits.`;
+  // Fix #10: mutually exclusive with previousAttemptWasNoOp by construction
+  // (see INSUFFICIENT_PROGRESS_RATIO's doc comment) -- at most one of
+  // `escalation`/`fallbackEscalation` and this is ever non-empty.
+  const insufficientEscalation = previousAttemptWasInsufficient ? buildInsufficientProgressEscalation(previousAttemptWasInsufficient) : "";
   if (!target) {
     const fallback = `Prefer removing a redundant phrase, a repeated explanation, or a full sentence that restates something already said elsewhere in the script -- not scattered single-word edits spread across many turns. Do not delete an entire turn for a cut this size (that strategy is reserved for much larger overages); compress within existing turns instead.`;
     const fallbackEscalation = previousAttemptWasNoOp
       ? ` YOUR PREVIOUS ATTEMPT MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. This time you MUST make a real, verifiable cut, then recount before responding.`
       : "";
-    return `${deficitContext} ${fallback}${fallbackEscalation}`;
+    return `${deficitContext} ${fallback}${fallbackEscalation}${insufficientEscalation}`;
   }
   const preview = truncatePreview(target.text, 140);
   // Near the top of this band, one turn's worth of redundant phrasing may
@@ -1592,7 +1597,59 @@ function buildMeaningfulCompressionInstruction(
       ? ` YOUR PREVIOUS ATTEMPT AT THIS COMPRESSION MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. That is not acceptable. This time you MUST actually shorten BOTH Turn #${target.turnIndex} and Turn #${second.turnIndex}: cut a specific redundant phrase or sentence from each, then recount before responding.`
       : ` YOUR PREVIOUS ATTEMPT AT THIS COMPRESSION MADE NO PROGRESS -- it returned the same word count, a HIGHER word count, or a script identical to the one you were given. That is not acceptable. This time you MUST actually shorten Turn #${target.turnIndex}: cut a specific redundant phrase or sentence from it, then recount before responding.`
     : "";
-  return `${deficitContext} Turn #${target.turnIndex} (${target.speakerName}, ${target.wordCount} words) is a good compression candidate: "${preview}" COMPRESS this turn -- remove a redundant phrase, a repeated explanation, or one low-value sentence from it. Do NOT delete the entire turn (this cut is not large enough to justify that), and do NOT rewrite the rest of the script beyond the candidate turn(s) named here.${secondCandidateSentence} Do not add any new content, and do not increase vocabulary or grammatical sophistication while compressing -- keep the same CEFR-level complexity. Recount the final spoken word total (excluding bracket prosody cues) before returning your answer; it must be <=${WORD_COUNT_HARD_MAX}.${escalation}`;
+  return `${deficitContext} Turn #${target.turnIndex} (${target.speakerName}, ${target.wordCount} words) is a good compression candidate: "${preview}" COMPRESS this turn -- remove a redundant phrase, a repeated explanation, or one low-value sentence from it. Do NOT delete the entire turn (this cut is not large enough to justify that), and do NOT rewrite the rest of the script beyond the candidate turn(s) named here.${secondCandidateSentence} Do not add any new content, and do not increase vocabulary or grammatical sophistication while compressing -- keep the same CEFR-level complexity. Recount the final spoken word total (excluding bracket prosody cues) before returning your answer; it must be <=${WORD_COUNT_HARD_MAX}.${escalation}${insufficientEscalation}`;
+}
+
+/**
+ * FIX #10 (INSUFFICIENT-PROGRESS ESCALATION): a real, directly-captured
+ * model call proved a gap the existing no-op check cannot see. Input 1068
+ * words (103 over the 965 ceiling), selectLargeCutTarget() (unmodified)
+ * correctly named a 141-word turn, the instruction explicitly said "remove
+ * at least half of it" (~70+ words) as part of an overall required cut of
+ * 118-133 words -- and the real model returned 1047 words: the named turn
+ * went from 141 to 120 (a 21-word trim, ~18% of the 118-word minimum
+ * asked for), and NOT ONE other turn was touched despite being told to
+ * trim elsewhere for the remainder. previousAttemptWasNoOp's check
+ * (`wordCount >= inputCount || isSameScript(...)`) cannot catch this --
+ * 1068 -> 1047 is neither a stall nor an identical script, so no
+ * escalation ever fired, and the next sub-attempt/outer attempt received
+ * no signal that the previous cut was grossly inadequate.
+ *
+ * InsufficientProgressContext/buildInsufficientProgressEscalation() close
+ * that gap for the "large" and "meaningful" bands (the only two whose
+ * requested cut is large enough for "positive but grossly inadequate" to
+ * be a distinct case from a plain no-op -- the "small"/final-boundary
+ * band's deficits are already only 1-10 words, where a partial cut and a
+ * no-op are barely distinguishable, so it is deliberately left unchanged).
+ * This does NOT discard or judge the correction itself (the model's actual
+ * output is still used as-is, exactly like before this fix) -- it only
+ * changes what the NEXT sub-attempt's prompt says, exactly mirroring how
+ * previousAttemptWasNoOp already works, just for a different, previously
+ * invisible condition.
+ */
+interface InsufficientProgressContext {
+  previousCount: number;
+  newCount: number;
+  actualReduction: number;
+  requiredReduction: number;
+}
+
+/**
+ * A cut counts as "insufficient" when it achieved less than half of the
+ * MINIMUM this specific call actually asked for -- derived from the
+ * requested cut itself (via wordCountCorrectionTarget(), reused unchanged,
+ * never a second copy of that arithmetic), not a hardcoded word count, per
+ * this fix's own scope. 0.5 is chosen because the real captured case (21
+ * of a required 118, ~18%) sits far below it, while a genuinely adequate
+ * partial cut -- e.g. 60 of a requested 118 -- should NOT be flagged.
+ */
+const INSUFFICIENT_PROGRESS_RATIO = 0.5;
+
+/** Shared escalation text, reused by both the "large" and "meaningful"
+ * bands -- see INSUFFICIENT_PROGRESS_RATIO's doc comment above. */
+function buildInsufficientProgressEscalation(context: InsufficientProgressContext): string {
+  const remainingDeficit = context.newCount - WORD_COUNT_HARD_MAX;
+  return ` YOUR PREVIOUS ATTEMPT MADE ONLY A SMALL, INSUFFICIENT CUT: it went from ${context.previousCount} to ${context.newCount} words -- an actual reduction of only ${context.actualReduction} word(s) -- but this pass required cutting at least ${context.requiredReduction} word(s), leaving the script still ${remainingDeficit} word(s) over the ${WORD_COUNT_HARD_MAX}-word hard maximum. A cosmetic trim of a phrase or clause is not enough here. This time you MUST make a MATERIALLY LARGER cut -- substantially shorten or remove a much bigger portion of the identified content so the reduction is close to what was actually requested, not a small fraction of it.`;
 }
 
 /**
@@ -1662,7 +1719,13 @@ function buildMeaningfulCompressionInstruction(
  * actual rewrite. Falls back to the ORIGINAL buildCutMethodGuidance(true)
  * text, unmodified, when no eligible turn exists.
  */
-function buildWordCountCorrectionMessage(output: ScriptGenerationOutput, previousCount: number, request: ScriptGenerationRequest, previousAttemptWasNoOp: boolean = false): string {
+function buildWordCountCorrectionMessage(
+  output: ScriptGenerationOutput,
+  previousCount: number,
+  request: ScriptGenerationRequest,
+  previousAttemptWasNoOp: boolean = false,
+  previousAttemptWasInsufficient: InsufficientProgressContext | null = null,
+): string {
   const { min, max } = wordCountCorrectionTarget(previousCount);
   const cutMin = previousCount - max;
   const cutMax = previousCount - min;
@@ -1673,22 +1736,26 @@ function buildWordCountCorrectionMessage(output: ScriptGenerationOutput, previou
     magnitude === "small"
       ? buildFinalBoundaryCorrectionInstruction(exactWordsOver, previousAttemptWasNoOp)
       : magnitude === "meaningful"
-        ? buildMeaningfulCompressionInstruction(output, request, selectLargeCutTarget(output, request), exactWordsOver, cutMax, previousAttemptWasNoOp)
+        ? buildMeaningfulCompressionInstruction(output, request, selectLargeCutTarget(output, request), exactWordsOver, cutMax, previousAttemptWasNoOp, previousAttemptWasInsufficient)
         : buildDeterministicLargeCutInstruction(selectLargeCutTarget(output, request));
 
   // Both "small"/final-boundary and "meaningful"/compression carry their
-  // OWN stronger no-op escalation (embedded in cutMethod above) instead of
-  // this generic one -- stacking both would be redundant. Only "large" is
-  // still unaffected, unchanged since Fix #4.
+  // OWN stronger no-op (and, for "meaningful", insufficient-progress)
+  // escalation embedded in cutMethod above instead of these generic ones --
+  // stacking both would be redundant. Only "large" is still unaffected,
+  // unchanged since Fix #4/#10.
   const noOpWarning = previousAttemptWasNoOp && magnitude === "large"
     ? ` YOUR PREVIOUS ATTEMPT FAILED TO MAKE A MEANINGFUL CHANGE: it returned the same word count, or a script identical to the one you were given. That is not an acceptable response. This time you MUST make a real edit -- identify a specific phrase, clause, or sentence, remove it, and confirm the new word count is actually lower than ${previousCount} before returning your answer.`
     : "";
+  // Fix #10: mutually exclusive with noOpWarning by construction (see
+  // INSUFFICIENT_PROGRESS_RATIO's doc comment) -- at most one is non-empty.
+  const insufficientWarning = previousAttemptWasInsufficient && magnitude === "large" ? buildInsufficientProgressEscalation(previousAttemptWasInsufficient) : "";
 
   return `This is a DEDICATED WORD-COUNT CORRECTION pass, separate from normal script revision. Your ONLY job is to shorten the script below -- do not rewrite the episode, do not change the topic, and do not add any new content.
 
 Current spoken word count: ${previousCount}. Required range: 920-965 words. Target for this correction: ${min}-${max} words.
 
-CUT ONLY. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue below. ${cutMethod}${noOpWarning} Do not add replacement paragraphs or new content to compensate for what you cut. Preserve the meaning, the two speakers and their personalities, the opening block (the hook, both self-introductions, and the LinguABC mention), the interruption pair, the prosody cues, and the CEFR-level vocabulary and complexity wherever possible -- but making the word count correct is this pass's one job, so a cut of this size may require trimming some of these too if there is no other way to reach the range. Return the COMPLETE script as the same JSON structure (title, topic, topicTags, cefrLevel, turns) -- not a diff, not a partial script, not a summary of changes. Before returning, mentally recount the final spoken word total (excluding bracket prosody cues) and confirm it falls within 920-965.
+CUT ONLY. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue below. ${cutMethod}${noOpWarning}${insufficientWarning} Do not add replacement paragraphs or new content to compensate for what you cut. Preserve the meaning, the two speakers and their personalities, the opening block (the hook, both self-introductions, and the LinguABC mention), the interruption pair, the prosody cues, and the CEFR-level vocabulary and complexity wherever possible -- but making the word count correct is this pass's one job, so a cut of this size may require trimming some of these too if there is no other way to reach the range. Return the COMPLETE script as the same JSON structure (title, topic, topicTags, cefrLevel, turns) -- not a diff, not a partial script, not a summary of changes. Before returning, mentally recount the final spoken word total (excluding bracket prosody cues) and confirm it falls within 920-965.
 
 Here is the exact script to shorten, as JSON:
 ${JSON.stringify(output)}`;
@@ -1803,6 +1870,19 @@ interface WordCountCorrectionOutcome {
  * sub-attempt 1's real, observed outcome -- never guessed, never carried
  * over from a different correction-pass invocation or outer attempt.
  *
+ * INSUFFICIENT-PROGRESS ESCALATION (Fix #10, same scoping as the no-op
+ * escalation above -- local to THIS invocation, resets on every fresh
+ * call): a sub-attempt that is NOT a no-op (isNoOp above is false) can
+ * still cut far less than this call actually required -- see
+ * INSUFFICIENT_PROGRESS_RATIO's doc comment for the real captured evidence
+ * (1068 -> 1047, 21 of a required 118 words). requiredReduction reuses
+ * wordCountCorrectionTarget() (the SAME function buildWordCountCorrectionMessage()
+ * already calls for this exact call's cutMin, never a second copy of that
+ * arithmetic) to compute what THIS sub-attempt actually asked for, then
+ * compares the real reduction against it. Mutually exclusive with isNoOp
+ * by construction (isInsufficient requires !isNoOp), so the two escalation
+ * texts never stack.
+ *
  * BOUNDARY FIX: stops the loop as soon as `wordCount <= WORD_COUNT_HARD_MAX`
  * -- deliberately NOT the same condition as "no word-count issue is
  * flagged" (validateGeneratedScript's word-count message fires for BOTH
@@ -1828,6 +1908,7 @@ async function runWordCountCorrection(
     { message: `Word count ${previousCount} is outside the acceptable 920-965 range.` },
   ];
   let previousAttemptWasNoOp = false;
+  let previousAttemptWasInsufficient: InsufficientProgressContext | null = null;
 
   for (let i = 0; i < WORD_COUNT_CORRECTION_MAX_ATTEMPTS; i++) {
     const inputOutput = currentOutput;
@@ -1835,7 +1916,7 @@ async function runWordCountCorrection(
     let corrected: ScriptGenerationOutput;
     try {
       corrected = await generateStructuredJson({
-        messages: [{ role: "user", content: buildWordCountCorrectionMessage(inputOutput, inputCount, request, previousAttemptWasNoOp) }],
+        messages: [{ role: "user", content: buildWordCountCorrectionMessage(inputOutput, inputCount, request, previousAttemptWasNoOp, previousAttemptWasInsufficient) }],
         schema: ScriptGenerationOutputSchema,
         schemaName: "linguabc_podcast_script_word_count_correction",
         retryPolicy: BATCH_RETRY_POLICY,
@@ -1848,7 +1929,16 @@ async function runWordCountCorrection(
 
     const wordCount = countSpokenWords(corrected);
     const issues = validateGeneratedScript(corrected, request);
-    previousAttemptWasNoOp = wordCount >= inputCount || isSameScript(inputOutput, corrected);
+    const isNoOp = wordCount >= inputCount || isSameScript(inputOutput, corrected);
+    // Fix #10: reuses wordCountCorrectionTarget() (unchanged) to recover
+    // what THIS sub-attempt actually asked for -- see this function's own
+    // doc comment above.
+    const actualReduction = inputCount - wordCount;
+    const { max: correctionTargetMax } = wordCountCorrectionTarget(inputCount);
+    const requiredReduction = inputCount - correctionTargetMax;
+    const isInsufficient = !isNoOp && requiredReduction > 0 && actualReduction < requiredReduction * INSUFFICIENT_PROGRESS_RATIO;
+    previousAttemptWasNoOp = isNoOp;
+    previousAttemptWasInsufficient = isInsufficient ? { previousCount: inputCount, newCount: wordCount, actualReduction, requiredReduction } : null;
     currentOutput = corrected;
     currentCount = wordCount;
     currentIssues = issues;
