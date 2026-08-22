@@ -1,23 +1,10 @@
-/**
- * Full Mock Scoring.
- *
- * Converts raw correct-answer counts from a submitted mock into:
- *  - per-section score percentages
- *  - an overall weighted score
- *  - a CEFR level estimate
- *  - an IELTS-band-style estimate
- *
- * The scoring mirrors the placement engine's band mapping so the learner
- * sees a consistent scale across placement and practice mocks.
- */
-
 import type { CefrLevel } from "@/types/content";
-import { CEFR_LEVELS } from "@/lib/assessment/adaptive";
 
 export interface MockSectionResult {
   correct: number;
   total: number;
   scorePct: number;
+  band: number;
 }
 
 export interface MockScoreResult {
@@ -28,52 +15,34 @@ export interface MockScoreResult {
   resultCefrLevel: CefrLevel;
 }
 
-// Score thresholds → CEFR level (approximate, conservative)
-const SCORE_TO_CEFR: Array<{ minPct: number; level: CefrLevel }> = [
-  { minPct: 90, level: "C2" },
-  { minPct: 75, level: "C1" },
-  { minPct: 60, level: "B2" },
-  { minPct: 45, level: "B1" },
-  { minPct: 30, level: "A2" },
-  { minPct: 0, level: "A1" },
+// IELTS Academic Reading/Listening raw-score conversion. Exact test forms can
+// vary slightly, so this is intentionally kept as the app's declared estimate.
+const RAW_TO_BAND: Array<[number, number]> = [
+  [39, 9], [37, 8.5], [35, 8], [33, 7.5], [30, 7],
+  [27, 6.5], [23, 6], [19, 5.5], [15, 5], [13, 4.5],
+  [10, 4], [8, 3.5], [6, 3], [4, 2.5], [2, 2], [0, 1],
 ];
 
-// CEFR level → approximate IELTS band centre (conservative)
-const CEFR_TO_BAND: Record<CefrLevel, number> = {
-  A1: 3.0,
-  A2: 4.0,
-  B1: 5.0,
-  B2: 6.0,
-  C1: 7.0,
-  C2: 8.0,
-};
-
-function scoreToLevel(pct: number): CefrLevel {
-  for (const { minPct, level } of SCORE_TO_CEFR) {
-    if (pct >= minPct) return level;
+function rawToBand(correct: number, total: number): number {
+  if (total <= 0) return 1;
+  const normalized = Math.max(0, Math.min(40, Math.round((correct / total) * 40)));
+  for (const [minimumRaw, band] of RAW_TO_BAND) {
+    if (normalized >= minimumRaw) return band;
   }
-  return CEFR_LEVELS[0] as CefrLevel;
+  return 1;
 }
 
-function levelToBand(level: CefrLevel, pct: number): number {
-  const base = CEFR_TO_BAND[level];
-  // Within-level fraction: map the remaining pct headroom to a 0.5-band adjustment
-  const idx = SCORE_TO_CEFR.findIndex((e) => e.level === level);
-  const minPct = idx >= 0 ? SCORE_TO_CEFR[idx].minPct : 0;
-  const nextMinPct = idx > 0 ? SCORE_TO_CEFR[idx - 1].minPct : 100;
-  const rangeWidth = nextMinPct - minPct;
-  const fraction = rangeWidth > 0 ? (pct - minPct) / rangeWidth : 0;
-  return Math.round((base + fraction * 0.5) * 2) / 2;
+function bandToCefr(band: number): CefrLevel {
+  if (band >= 8.5) return "C2";
+  if (band >= 7) return "C1";
+  if (band >= 5.5) return "B2";
+  if (band >= 4.5) return "B1";
+  if (band >= 3.5) return "A2";
+  return "A1";
 }
 
-/**
- * Percentage → CEFR level → band, exposed for callers that need a per-skill
- * band from an already-computed percentage (e.g. Progress deriving Reading/
- * Listening bands from a mock attempt's stored reading_score_pct/
- * listening_score_pct) without duplicating this mapping.
- */
 export function pctToBand(pct: number): number {
-  return levelToBand(scoreToLevel(pct), pct);
+  return rawToBand((pct / 100) * 40, 40);
 }
 
 export function scoreMock(
@@ -84,27 +53,29 @@ export function scoreMock(
 ): MockScoreResult {
   const readingPct = readingTotal > 0 ? (readingCorrect / readingTotal) * 100 : 0;
   const listeningPct = listeningTotal > 0 ? (listeningCorrect / listeningTotal) * 100 : 0;
-
   const totalCorrect = readingCorrect + listeningCorrect;
   const totalQuestions = readingTotal + listeningTotal;
   const overallPct = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
 
-  const resultLevel = scoreToLevel(overallPct);
-  const estimatedBand = levelToBand(resultLevel, overallPct);
+  const readingBand = rawToBand(readingCorrect, readingTotal);
+  const listeningBand = rawToBand(listeningCorrect, listeningTotal);
+  const estimatedBand = Math.round(((readingBand + listeningBand) / 2) * 2) / 2;
 
   return {
     reading: {
       correct: readingCorrect,
       total: readingTotal,
       scorePct: Math.round(readingPct * 100) / 100,
+      band: readingBand,
     },
     listening: {
       correct: listeningCorrect,
       total: listeningTotal,
       scorePct: Math.round(listeningPct * 100) / 100,
+      band: listeningBand,
     },
     overallScorePct: Math.round(overallPct * 100) / 100,
     estimatedBand,
-    resultCefrLevel: resultLevel,
+    resultCefrLevel: bandToCefr(estimatedBand),
   };
 }
