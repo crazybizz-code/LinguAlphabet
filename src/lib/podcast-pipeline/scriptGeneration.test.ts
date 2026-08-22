@@ -1096,6 +1096,116 @@ describe("buildPrompt — PROSODY section is an explicit hard floor, matching re
 });
 
 /**
+ * FIX #12 (INITIAL-PROMPT SCOPE-VS-LENGTH RECALIBRATION): a read-only audit
+ * confirmed the 920-965 word gate, the 300-360s duration gate, and the real
+ * Fish Audio rate calibration are ALL correct and internally consistent --
+ * the actual root cause of real initial drafts repeatedly landing at
+ * 1150-1230 words was the initial prompt itself asking for too much
+ * qualitative richness (a full multi-part opening, a mandatory interruption,
+ * a six-stage prosody arc, and up to seven "conversational feature"
+ * categories including two ambiguously-worded "at least one" requirements)
+ * to realistically fit inside its own stated 935-950 word target. This fix
+ * touches ONLY buildPrompt()'s LENGTH, CONVERSATIONAL FEATURES, PROSODY, and
+ * ENDING guidance text -- never the 920-965/300-360s constants, the Fish
+ * Audio rate calibration, any correction mechanism (Fix #4-#11), CEFR
+ * grading, audio generation, or publishing.
+ */
+describe("buildPrompt — Fix #12: LENGTH is the dominant constraint, CONVERSATIONAL FEATURES is optional texture", () => {
+  const request: ScriptGenerationRequest = {
+    speaker0Name: "Sarah",
+    speaker1Name: "Hannah",
+    cefrLevel: "B2",
+    usedTitles: [],
+    usedTopicTags: [],
+  };
+
+  it("A: explicitly states that the 935-950 target outranks every optional element, and names it upfront", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/LENGTH: READ THIS FIRST -- IT OUTRANKS EVERY OTHER SECTION/i);
+    expect(prompt).toMatch(/THE 935-950 TARGET OUTRANKS EVERY OPTIONAL ELEMENT IN THIS PROMPT/i);
+    expect(prompt).toMatch(/CONVERSATIONAL FEATURES below is a menu of OPTIONAL texture, not a checklist to complete in full/i);
+    expect(prompt).toMatch(/If including everything in that section would push you past 950 words, include fewer of them/i);
+  });
+
+  it("B: cites the real observed 1150-1230 word overshoot as the concrete failure mode to avoid", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/repeatedly landed at 1150-1230 words/i);
+  });
+
+  it("C: still protects the word-count FLOOR explicitly -- trimming optional content must not cause an undershoot", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/do not cut so much optional texture that you drop under 930/i);
+    expect(prompt).toMatch(/both edges of 920-965 are hard requirements, not just the ceiling/i);
+  });
+
+  it("D: marks CONVERSATIONAL FEATURES as optional texture and caps it at two or three, never all of them", () => {
+    const prompt = buildPrompt(request);
+    expect(prompt).toMatch(/CONVERSATIONAL FEATURES \(OPTIONAL TEXTURE -- SEE LENGTH ABOVE\)/i);
+    expect(prompt).toMatch(/Naturally work in TWO OR THREE of the following.*never all of them/i);
+    // The two most expensive, ambiguously-mandatory-sounding items from the
+    // old wording (personal example/story, callback) are now explicitly
+    // named as the first to cut when near the ceiling.
+    expect(prompt).toMatch(/a personal example\/story and a callback cost the most words, so if you are already near 950 words, drop one of those two first/i);
+  });
+
+  it("E: every genuinely non-negotiable structural requirement is still present and still marked MANDATORY/NON-NEGOTIABLE", () => {
+    const prompt = buildPrompt(request);
+    // Hook + opening block position.
+    expect(prompt).toMatch(/Start with an original, specific hook/i);
+    expect(prompt).toMatch(/MANDATORY, NON-NEGOTIABLE: this entire introduction block .* MUST occur within the FIRST FEW TURNS/i);
+    // Both self-introductions, by exact name.
+    expect(prompt).toContain(`"Sarah: I'm Sarah."`);
+    expect(prompt).toContain(`"Hannah: And I'm Hannah."`);
+    // LinguABC mention (part of the same opening-block MANDATORY rule).
+    expect(prompt).toMatch(/a natural, brief mention that this is LinguABC/i);
+    // Interruption pair.
+    expect(prompt).toMatch(/MANDATORY, NON-NEGOTIABLE: at least one genuine interruption MUST appear somewhere in the script/i);
+    // Closing / sign-off.
+    expect(prompt).toMatch(/Then close with a short, natural LinguABC sign-off/i);
+    // Prosody cues (mechanical density + no-markdown-emphasis rules).
+    expect(prompt).toMatch(/MANDATORY, NON-NEGOTIABLE: target 4-6 meaningful cues per 100 words/i);
+    expect(prompt).toMatch(/MANDATORY, NON-NEGOTIABLE: NEVER wrap a word in asterisks or underscores for emphasis/i);
+    // Requested CEFR level.
+    expect(prompt).toMatch(/This episode MUST be written at genuine CEFR B2 English/i);
+    // Natural conversational (turn-length) structure is untouched.
+    expect(prompt).toMatch(/CRITICAL TURN-STRUCTURE RULE/i);
+    expect(prompt).toMatch(/NEVER alternate speaker after every single sentence like a ping-pong pattern/i);
+  });
+
+  it("F: no longer contains the old instructions that actively encouraged elaboration past the word target", () => {
+    const prompt = buildPrompt(request);
+    // The old floor-protection sentence doubled as a license to keep adding
+    // content past "structural completion" -- directly in tension with the
+    // 965 ceiling. It is gone; floor protection is now handled by test C's
+    // assertions instead, without an open-ended "extend it" instruction.
+    expect(prompt).not.toMatch(/extend the conversation with more genuine content/i);
+    expect(prompt).not.toMatch(/rather than stopping once the structural beats are covered/i);
+    // The old CONVERSATIONAL FEATURES wording made self-correction and the
+    // callback sound individually mandatory ("at least one ... and at least
+    // ONE callback"), on top of five other unbounded items -- replaced by
+    // the explicit two-or-three cap in test D.
+    expect(prompt).not.toMatch(/and at least ONE callback near the end to something specific mentioned earlier/i);
+    // The old six-stage prosody arc implied needing enough turns/duration to
+    // authentically pass through all six named energies.
+    expect(prompt).not.toMatch(/calm -> curious -> amused -> energetic -> reflective -> quiet/i);
+    expect(prompt).toMatch(/two or three genuine shifts are enough/i);
+  });
+
+  it("G: does not remove or weaken any CEFR requirement -- CEFR_LEVEL_GUIDANCE content is untouched for every level", () => {
+    const b2Prompt = buildPrompt(request);
+    expect(b2Prompt).toMatch(/this must clearly clear B1, not sit at its edge/i);
+    expect(b2Prompt).toMatch(/This script is independently graded against that exact bar after generation/i);
+
+    const c1Prompt = buildPrompt({ ...request, cefrLevel: "C1" });
+    expect(c1Prompt).toMatch(/More sophisticated vocabulary and less-common idiomatic expressions used naturally/i);
+
+    const c2Prompt = buildPrompt({ ...request, cefrLevel: "C2" });
+    expect(c2Prompt).toMatch(/Near-native fluency: precise, idiomatic, occasionally playful with language/i);
+    expect(c2Prompt).toMatch(/This is the hardest tier LinguABC produces -- do not pull punches to make it easier/i);
+  });
+});
+
+/**
  * Regression coverage for the architectural fix addressing four straight
  * "prompt-only" iterations that each fixed one dimension while breaking
  * another (833 words -> 1181 words+prosody/interruption -> 1055
