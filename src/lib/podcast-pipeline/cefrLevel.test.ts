@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { chooseCefrLevelForEpisode, isApprovedLinguAbcCefrLevel, LINGUABC_CEFR_LEVELS } from "./cefrLevel";
+import { chooseCefrLevelForEpisode, isApprovedLinguAbcCefrLevel, meetsOrExceedsLinguAbcCefrLevel, LINGUABC_CEFR_LEVELS } from "./cefrLevel";
 
 /**
  * LinguABC AI-generated podcast level policy: B2/C1/C2 only, rotated by
@@ -38,5 +38,33 @@ describe("isApprovedLinguAbcCefrLevel", () => {
     expect(isApprovedLinguAbcCefrLevel("A1")).toBe(false);
     expect(isApprovedLinguAbcCefrLevel("not-a-level")).toBe(false);
     expect(isApprovedLinguAbcCefrLevel(undefined)).toBe(false);
+  });
+});
+
+/**
+ * Fix #14: a real GitHub Actions run requested C2 and the authoritative
+ * grading came back cefrLevelMin=B1/cefrLevelMax=B2 -- already rejected by
+ * isApprovedLinguAbcCefrLevel() alone. This function closes the separate,
+ * real gap that check leaves open: a C2 request graded cefrLevelMin=B2
+ * (an APPROVED level) would previously have silently passed, since nothing
+ * ever compared the grade against what was actually requested.
+ */
+describe("meetsOrExceedsLinguAbcCefrLevel", () => {
+  it("a level meets itself", () => {
+    expect(meetsOrExceedsLinguAbcCefrLevel("B2", "B2")).toBe(true);
+    expect(meetsOrExceedsLinguAbcCefrLevel("C1", "C1")).toBe(true);
+    expect(meetsOrExceedsLinguAbcCefrLevel("C2", "C2")).toBe(true);
+  });
+
+  it("a higher level exceeds a lower minimum", () => {
+    expect(meetsOrExceedsLinguAbcCefrLevel("C1", "B2")).toBe(true);
+    expect(meetsOrExceedsLinguAbcCefrLevel("C2", "B2")).toBe(true);
+    expect(meetsOrExceedsLinguAbcCefrLevel("C2", "C1")).toBe(true);
+  });
+
+  it("a lower level does not meet a higher minimum -- the exact real-world case this fix closes", () => {
+    expect(meetsOrExceedsLinguAbcCefrLevel("B2", "C1")).toBe(false);
+    expect(meetsOrExceedsLinguAbcCefrLevel("B2", "C2")).toBe(false);
+    expect(meetsOrExceedsLinguAbcCefrLevel("C1", "C2")).toBe(false);
   });
 });

@@ -6,7 +6,7 @@ import { generateEnrichment } from "@/lib/content-engine/ai-processing";
 import type { EnrichmentResult } from "@/lib/content-engine/types";
 import type { ScriptLine } from "./types";
 import type { SpeakerName } from "./config";
-import { isApprovedLinguAbcCefrLevel, type LinguAbcCefrLevel } from "./cefrLevel";
+import { isApprovedLinguAbcCefrLevel, meetsOrExceedsLinguAbcCefrLevel, type LinguAbcCefrLevel } from "./cefrLevel";
 import { buildReaderTranscript } from "./transcript";
 
 /**
@@ -509,8 +509,10 @@ export interface ScriptGenerationResult {
    * The REAL, authoritative enrichment result -- generated exactly once,
    * here, via generateAndCheckEnrichment(), before any Fish Audio/
    * alignment spend. Its cefrLevelMin/cefrLevelMax are guaranteed B2/C1/C2
-   * (that grading is what makes generateEpisodeScript() return at all --
-   * see generateAndCheckEnrichment()'s doc comment). The caller MUST reuse
+   * AND cefrLevelMin is guaranteed to be at least the requested
+   * ScriptGenerationRequest.cefrLevel (Fix #14 -- that grading is what
+   * makes generateEpisodeScript() return at all -- see
+   * generateAndCheckEnrichment()'s doc comment). The caller MUST reuse
    * this object as-is for publishing (dailyGenerate.ts does) -- calling
    * generateEnrichment() again would spend tokens re-grading content
    * that's already been judged, and could theoretically re-introduce the
@@ -1112,6 +1114,25 @@ async function generateAndCheckEnrichment(
       issues: [
         {
           message: `Authoritative enrichment graded this script as cefrLevelMin=${enrichment.cefrLevelMin}, cefrLevelMax=${enrichment.cefrLevelMax} -- LinguABC AI-generated podcasts must grade as B2, C1, or C2. This is the SAME grading publishing.ts's quality gate would apply to the published episode, run here instead of after Fish Audio spend. Requested level was ${request.cefrLevel}.`,
+        },
+      ],
+    };
+  }
+  // FIX #14: an approved grade (B2/C1/C2) is not automatically a grade
+  // that satisfies THIS episode's specific request -- cefrLevelMin is the
+  // lowest level that can independently understand ~70% of the content
+  // (see ai-processing.ts's own field documentation), so a genuinely
+  // C2-written script should not be independently understandable by a B2
+  // learner. Without this check, a C2 request graded cefrLevelMin=B2 would
+  // silently pass (B2 is approved) and publish an episode weaker than
+  // requested. This is a stricter check than before, never a looser one --
+  // it can only reject grades the previous check would have accepted, not
+  // accept ones it would have rejected.
+  if (!meetsOrExceedsLinguAbcCefrLevel(enrichment.cefrLevelMin, request.cefrLevel)) {
+    return {
+      issues: [
+        {
+          message: `Authoritative enrichment graded this script as cefrLevelMin=${enrichment.cefrLevelMin}, cefrLevelMax=${enrichment.cefrLevelMax} -- below the requested CEFR ${request.cefrLevel} (cefrLevelMin must be at least ${request.cefrLevel}). The script must genuinely be written at the requested level, not merely graded at LinguABC's B2 floor.`,
         },
       ],
     };
@@ -1741,6 +1762,50 @@ function buildInsufficientProgressEscalation(context: InsufficientProgressContex
  * buildDeterministicLargeCutInstruction(); the model still performs the
  * actual rewrite. Falls back to the ORIGINAL buildCutMethodGuidance(true)
  * text, unmodified, when no eligible turn exists.
+ *
+ * FIX #14 (CEFR EROSION DURING WORD-COUNT CORRECTION): a real GitHub
+ * Actions run requested C2, converged word count correctly through this
+ * exact pass across 10 sub-attempt-shaped steps (992->969->969->968->968->
+ * 967->967->967->967->967->961, entirely inside runWordCountCorrection()'s
+ * Fix #9 continuation loop -- confirmed by the trajectory containing ONLY
+ * word-count values with no other issue category, meaning the generic
+ * multi-issue revision path/buildWordCountGuidance() never ran at any
+ * point), then failed authoritative grading at cefrLevelMin=B1/
+ * cefrLevelMax=B2 -- two full levels below the C2 that was requested and
+ * that the initial generation prompt (buildPrompt(), which DOES name and
+ * enforce the requested level via CEFR_LEVEL_GUIDANCE) asked for.
+ *
+ * Root cause, confirmed by direct reading of this function's own returned
+ * text before this fix: the ONLY CEFR-related instruction in this pass was
+ * "preserve ... the CEFR-level vocabulary and complexity wherever possible
+ * -- but ... a cut of this size may require trimming some of these too" --
+ * generic (never names B2/C1/C2), and explicitly frames CEFR fidelity as
+ * one of several things this pass may sacrifice for word count. Unlike
+ * buildCefrGuidance() (which already has the MIRROR-IMAGE protection --
+ * word-count preservation during a CEFR-driven revision, added after a
+ * real 964->1269 regression), nothing protected the reverse direction:
+ * repeated word-count-only cuts eroding CEFR sophistication. A high-bar
+ * level like C2 (near-native fluency, lower-frequency vocabulary, genuine
+ * abstraction -- see CEFR_LEVEL_GUIDANCE.C2) has the most sophistication to
+ * lose and the most correction rounds in this real run to lose it across.
+ *
+ * Fix: reuses CEFR_LEVEL_GUIDANCE[request.cefrLevel] (the SAME constant
+ * buildPrompt() already uses for the identical purpose -- never a second,
+ * duplicated level description) to explicitly name and restate the
+ * required level's real characteristics, and states the actual failure
+ * mode directly: cutting must mean DELETING words/phrases/sentences, never
+ * REWRITING a sophisticated phrase into a simpler one to hit the target.
+ * Applies uniformly across B2/C1/C2 (parameterized by request.cefrLevel,
+ * not hardcoded to C2) since the missing-reinforcement mechanism is
+ * level-agnostic -- B2 is the platform's floor already, so reinforcing it
+ * cannot newly fail a B2 request, and C1/C2 get the SAME kind of
+ * level-specific reinforcement C2 evidently needed. The existing "wherever
+ * possible ... may require trimming" sentence is left completely
+ * unchanged (four existing tests assert its exact text); this is a pure
+ * addition immediately after it, not a replacement -- and it does not
+ * touch word-count thresholds, correction bands, Fix #10/#11/#13, or the
+ * 920-965 gate, all of which are confirmed working correctly by this same
+ * real run's word-count convergence.
  */
 function buildWordCountCorrectionMessage(
   output: ScriptGenerationOutput,
@@ -1778,7 +1843,7 @@ function buildWordCountCorrectionMessage(
 
 Current spoken word count: ${previousCount}. Required range: 920-965 words. Target for this correction: ${min}-${max} words.
 
-CUT ONLY. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue below. ${cutMethod}${noOpWarning}${insufficientWarning} Do not add replacement paragraphs or new content to compensate for what you cut. Preserve the meaning, the two speakers and their personalities, the opening block (the hook, both self-introductions, and the LinguABC mention), the interruption pair, the prosody cues, and the CEFR-level vocabulary and complexity wherever possible -- but making the word count correct is this pass's one job, so a cut of this size may require trimming some of these too if there is no other way to reach the range. Return the COMPLETE script as the same JSON structure (title, topic, topicTags, cefrLevel, turns) -- not a diff, not a partial script, not a summary of changes. Before returning, mentally recount the final spoken word total (excluding bracket prosody cues) and confirm it falls within 920-965.
+CUT ONLY. Cut approximately ${cutMin}-${cutMax} spoken words from the EXISTING dialogue below. ${cutMethod}${noOpWarning}${insufficientWarning} Do not add replacement paragraphs or new content to compensate for what you cut. Preserve the meaning, the two speakers and their personalities, the opening block (the hook, both self-introductions, and the LinguABC mention), the interruption pair, the prosody cues, and the CEFR-level vocabulary and complexity wherever possible -- but making the word count correct is this pass's one job, so a cut of this size may require trimming some of these too if there is no other way to reach the range. Preserving CEFR level specifically means cutting by DELETING words, phrases, or whole sentences -- never by rewriting a sophisticated phrase into a simpler one to save length. The remaining script must stay genuine CEFR ${request.cefrLevel}: ${CEFR_LEVEL_GUIDANCE[request.cefrLevel]} If no available cut both reaches the target range and keeps the remaining language at genuine ${request.cefrLevel}, cut more from elsewhere rather than simplifying vocabulary or grammar. Return the COMPLETE script as the same JSON structure (title, topic, topicTags, cefrLevel, turns) -- not a diff, not a partial script, not a summary of changes. Before returning, mentally recount the final spoken word total (excluding bracket prosody cues) and confirm it falls within 920-965.
 
 Here is the exact script to shorten, as JSON:
 ${JSON.stringify(output)}`;

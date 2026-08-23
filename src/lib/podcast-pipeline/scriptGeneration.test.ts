@@ -2904,7 +2904,10 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       vi.mocked(generateStructuredJson)
         .mockResolvedValueOnce(smallOvershootC1)
         .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C1" });
-      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+      // Fix #14: see the identical comment in the "meaningful/compression
+      // guidance is level-agnostic" test above -- fakeEnrichment()'s
+      // default B2 grade no longer clears a C1-requested episode.
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C1" }));
 
       await generateEpisodeScript(requestC1);
 
@@ -2918,7 +2921,9 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       vi.mocked(generateStructuredJson)
         .mockResolvedValueOnce(smallOvershootC2)
         .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C2" });
-      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+      // Fix #14: a C2 request needs cefrLevelMin=C2 specifically -- C1
+      // (fakeEnrichment()'s default max) is still below C2.
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
 
       await generateEpisodeScript(requestC2);
 
@@ -3159,7 +3164,13 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       vi.mocked(generateStructuredJson)
         .mockResolvedValueOnce(nearCeilingC1)
         .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C1" });
-      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+      // Fix #14: generateAndCheckEnrichment() now also requires
+      // cefrLevelMin to be at least the REQUESTED level (C1 here), not
+      // merely "an approved LinguABC level" -- fakeEnrichment()'s default
+      // B2 grade no longer satisfies a C1 request, so this test (which is
+      // about the correction PROMPT text, not CEFR grading) must supply a
+      // grade that actually clears the requested level.
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C1" }));
 
       await generateEpisodeScript(requestC1);
 
@@ -3402,7 +3413,9 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       vi.mocked(generateStructuredJson)
         .mockResolvedValueOnce(largeOvershootC1)
         .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C1" });
-      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+      // Fix #14: see the identical comment on the "M"/"meaningful/
+      // compression guidance" tests above.
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C1" }));
 
       await generateEpisodeScript(requestC1);
 
@@ -3417,7 +3430,8 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
       vi.mocked(generateStructuredJson)
         .mockResolvedValueOnce(largeOvershootC2)
         .mockResolvedValueOnce({ ...buildValidScriptOutput(), cefrLevel: "C2" });
-      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+      // Fix #14: see the identical comment on the "M2" test above.
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
 
       await generateEpisodeScript(requestC2);
 
@@ -4381,5 +4395,216 @@ describe("generateEpisodeScript — diagnostic-only word-count-correction teleme
     expect(vi.mocked(generateStructuredJson).mock.calls[1][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
     expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
     expect(vi.mocked(generateStructuredJson).mock.calls[3][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+  });
+});
+
+/**
+ * FIX #14 (CEFR EROSION DURING WORD-COUNT CORRECTION): a real GitHub
+ * Actions run requested C2, converged word count correctly (992->969->
+ * 969->968->968->967->967->967->967->967->961, entirely inside the
+ * dedicated correction pass), then failed authoritative grading at
+ * cefrLevelMin=B1/cefrLevelMax=B2 -- see buildWordCountCorrectionMessage()'s
+ * own "FIX #14" doc comment and generateAndCheckEnrichment()'s own doc
+ * comment for the full root-cause writeup this test suite verifies.
+ *
+ * A separate, self-contained top-level describe block (own fixtures, own
+ * beforeEach), same reasoning as the telemetry describe block above.
+ */
+describe("generateEpisodeScript — Fix #14: CEFR-level enforcement during word-count correction and authoritative grading", () => {
+  const REQUEST_B2: ScriptGenerationRequest = {
+    speaker0Name: "Sarah",
+    speaker1Name: "Hannah",
+    cefrLevel: "B2",
+    usedTitles: [],
+    usedTopicTags: [],
+  };
+  const REQUEST_C2: ScriptGenerationRequest = { ...REQUEST_B2, cefrLevel: "C2" };
+
+  const stripTags = (t: string) => t.replace(/\[[^\]]*\]/g, " ");
+  const countWords = (turns: ScriptGenerationOutput["turns"]) => turns.reduce((sum, t) => sum + stripTags(t.text).split(/\s+/).filter(Boolean).length, 0);
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  function buildValidScriptOutput(cefrLevel: ScriptGenerationOutput["cefrLevel"] = "B2"): ScriptGenerationOutput {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+      { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+      { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+      { speaker: 1, text: "And I'm Hannah." },
+      { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+    ];
+    const fillerTemplates = [
+      "That is a genuinely interesting way to think about it, [curious] and honestly I had never considered it from that angle before. It also makes me wonder what else we take for granted.",
+      "Right, and it is not just about memory either -- it is about how much we trust our own sense of a totally ordinary morning. [amused] People rarely question it until something breaks.",
+      "I read somewhere that this happens more often to people who travel a lot, [thoughtful] which honestly makes a strange kind of sense once you think it through.",
+      "Exactly, and that is the part that surprised me the most. [reflective] It is such a small moment, but it really stuck with me for weeks afterward.",
+    ];
+    for (let i = 0; i < 24; i++) turns.push({ speaker: (i % 2) as 0 | 1, text: fillerTemplates[i % fillerTemplates.length] });
+    turns.push({ speaker: 0, text: "...and honestly I think the whole point is that we—" });
+    turns.push({ speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." });
+    turns.push({ speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." });
+    turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+    while (countWords(turns) < 950) {
+      const last = turns[turns.length - 1];
+      turns[turns.length - 1] = { ...last, text: `${last.text} genuinely` };
+    }
+    return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel, turns };
+  }
+
+  function fakeEnrichment(overrides: Partial<EnrichmentResult> = {}): EnrichmentResult {
+    return {
+      cefrLevelMin: "B2",
+      cefrLevelMax: "C1",
+      topics: [],
+      rawTopics: [],
+      summary: "A concise summary of the episode.",
+      vocabulary: [{ word: "episode", phonetic: "", pos: "noun", translation: "", definition: "One part of a series.", example: "This episode covers a new topic." }],
+      quiz: [{ id: "q1", type: "mc", question: "What is this content?", options: ["An episode", "A book", "A film", "A song"], correct: 0, explanation: "Defined above.", grammarTopic: null, vocabularyWord: null }],
+      takeaways: ["Key takeaway."],
+      reflection: "Reflect on this episode.",
+      keyExpressions: [],
+      discussionQuestions: [],
+      listeningNotes: ["Listen for pacing."],
+      grammarNotes: [],
+      readingDifficulty: null,
+      ...overrides,
+    };
+  }
+
+  /** A small, 967-word (2-over-ceiling, "small" band) overshoot -- enough
+   * to exercise the dedicated correction pass without LARGE_OVERSHOOT's
+   * much larger fixture machinery, since these tests only need the
+   * correction pass to run ONCE and check its prompt text/outcome, not
+   * exercise band-selection edge cases (already covered elsewhere). */
+  function buildSmallOvershootOutput(cefrLevel: ScriptGenerationOutput["cefrLevel"]): ScriptGenerationOutput {
+    const base = buildValidScriptOutput(cefrLevel);
+    const turns = base.turns.map((t) => ({ ...t }));
+    const idx = 5; // first filler turn -- never the protected opening/interruption/closing turns
+    const extra = Array.from({ length: 967 - countWords(base.turns) }, (_, i) => `extra${i}`).join(" ");
+    turns[idx] = { ...turns[idx], text: `${turns[idx].text} ${extra}` };
+    return { ...base, turns };
+  }
+
+  it("fixture sanity check: the small-overshoot fixture is exactly 967 words and fails ONLY word count", () => {
+    const fixture = buildSmallOvershootOutput("C2");
+    expect(countWords(fixture.turns)).toBe(967);
+    const issues = validateGeneratedScript(fixture, REQUEST_C2);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].message).toMatch(/^Word count 967 is outside/);
+  });
+
+  it("C2 remains required for a C2 request: a genuinely C2-graded script passes end to end", async () => {
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(buildValidScriptOutput("C2"));
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
+
+    const result = await generateEpisodeScript(REQUEST_C2);
+
+    expect(result.wordCount).toBe(950);
+    expect(result.enrichment.cefrLevelMin).toBe("C2");
+  });
+
+  it("B1/B2 output is rejected for a C2 request -- replays the exact real production failure (cefrLevelMin=B1/cefrLevelMax=B2)", async () => {
+    // Structurally valid and in-range every attempt -- the ONLY reason
+    // every attempt fails is the authoritative CEFR grade, exactly
+    // matching the real run's shape (word count already resolved, CEFR is
+    // the sole remaining failure).
+    vi.mocked(generateStructuredJson).mockResolvedValue(buildValidScriptOutput("C2"));
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "B1", cefrLevelMax: "B2" }));
+
+    let thrown: Error | undefined;
+    try {
+      await generateEpisodeScript(REQUEST_C2);
+    } catch (error) {
+      thrown = error as Error;
+    }
+    expect(thrown).toBeDefined();
+    expect(thrown!.message).toMatch(/cefrLevelMin=B1, cefrLevelMax=B2/);
+    expect(thrown!.message).toMatch(/Requested level was C2/);
+  });
+
+  it("B2 output is rejected for a C2 request even though B2 is an APPROVED LinguABC level -- the specific gap Fix #14 closes", async () => {
+    // cefrLevelMin=B2/cefrLevelMax=C1 is a perfectly valid, APPROVED
+    // LinguABC grade (isApprovedLinguAbcCefrLevel would have accepted it
+    // before this fix) -- but it does not satisfy a C2 REQUEST specifically.
+    vi.mocked(generateStructuredJson).mockResolvedValue(buildValidScriptOutput("C2"));
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+
+    let thrown: Error | undefined;
+    try {
+      await generateEpisodeScript(REQUEST_C2);
+    } catch (error) {
+      thrown = error as Error;
+    }
+    expect(thrown).toBeDefined();
+    // The NEW, requested-level-specific message -- not the generic
+    // "must grade as B2, C1, or C2" one, since this grade IS approved.
+    expect(thrown!.message).toMatch(/below the requested CEFR C2/);
+    expect(thrown!.message).toMatch(/cefrLevelMin must be at least C2/);
+    expect(thrown!.message).not.toMatch(/must grade as B2, C1, or C2/);
+  });
+
+  it("the corrected C2 path passes: the word-count correction prompt reinforces genuine C2 language, and a genuinely-C2-graded corrected script is accepted", async () => {
+    const overshootC2 = buildSmallOvershootOutput("C2");
+    vi.mocked(generateStructuredJson)
+      .mockResolvedValueOnce(overshootC2) // outer attempt 1 (initial) -- 967 words, word-count-only issue
+      .mockResolvedValueOnce(buildValidScriptOutput("C2")); // correction sub-attempt -- converges to 950 words
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
+
+    const result = await generateEpisodeScript(REQUEST_C2);
+
+    expect(result.wordCount).toBe(950);
+    expect(result.enrichment.cefrLevelMin).toBe("C2");
+
+    const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+    // The Fix #14 reinforcement: names the requested level explicitly,
+    // reuses CEFR_LEVEL_GUIDANCE.C2's own real text (never a duplicated
+    // description), and states the actual failure mode (simplifying
+    // instead of deleting) directly.
+    expect(correctionPrompt).toMatch(/remaining script must stay genuine CEFR C2/i);
+    expect(correctionPrompt).toMatch(/near-native fluency/i); // CEFR_LEVEL_GUIDANCE.C2's own distinctive text
+    expect(correctionPrompt).toMatch(/cutting by DELETING words, phrases, or whole sentences -- never by rewriting a sophisticated phrase into a simpler one/i);
+    // The existing, pre-Fix-#14 preservation sentence is untouched, not replaced.
+    expect(correctionPrompt).toContain("the CEFR-level vocabulary and complexity wherever possible");
+  });
+
+  it("B1 and B2 behavior is unchanged: a B2 request with the default B2 grade still passes exactly as before", async () => {
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(buildValidScriptOutput("B2"));
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment()); // default: cefrLevelMin=B2, cefrLevelMax=C1
+
+    const result = await generateEpisodeScript(REQUEST_B2);
+
+    expect(result.wordCount).toBe(950);
+    expect(result.enrichment.cefrLevelMin).toBe("B2");
+  });
+
+  it("a B2 request graded ABOVE B2 (C1) still passes -- Fix #14 only rejects grades BELOW the request, never ones that exceed it", async () => {
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(buildValidScriptOutput("B2"));
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C1", cefrLevelMax: "C2" }));
+
+    const result = await generateEpisodeScript(REQUEST_B2);
+
+    expect(result.wordCount).toBe(950);
+    expect(result.enrichment.cefrLevelMin).toBe("C1");
+  });
+
+  it("word-count correction behavior is unchanged: exact same cut math and target selection for a B2 request, with the new CEFR text added alongside, not replacing anything", async () => {
+    const overshootB2 = buildSmallOvershootOutput("B2");
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(overshootB2).mockResolvedValueOnce(buildValidScriptOutput("B2"));
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+    await generateEpisodeScript(REQUEST_B2);
+
+    const correctionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[0].content as string;
+    // Every pre-existing "small"/final-boundary band marker, byte-for-byte
+    // unchanged -- this fix touches no threshold, band, or Fix #10/#11/#13
+    // mechanism.
+    expect(correctionPrompt).toMatch(/You are exactly 2 word\(s\) over the 965-word hard maximum/i);
+    expect(correctionPrompt).toMatch(/This is the FINAL boundary correction/i);
+    expect(correctionPrompt).toContain("the CEFR-level vocabulary and complexity wherever possible");
+    // The new reinforcement is present too, for a B2 request as well --
+    // level-agnostic, not hardcoded to C2 only.
+    expect(correctionPrompt).toMatch(/remaining script must stay genuine CEFR B2/i);
   });
 });

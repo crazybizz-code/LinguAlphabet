@@ -50,3 +50,26 @@ export function chooseCefrLevelForEpisode(episodeNumber: number): LinguAbcCefrLe
 export function isApprovedLinguAbcCefrLevel(level: unknown): level is LinguAbcCefrLevel {
   return typeof level === "string" && (LINGUABC_CEFR_LEVELS as readonly string[]).includes(level);
 }
+
+/**
+ * True when `level` is at least as advanced as `minimum` on the B2 < C1 <
+ * C2 ordering above -- e.g. meetsOrExceedsLinguAbcCefrLevel("C1", "B2") is
+ * true, meetsOrExceedsLinguAbcCefrLevel("B2", "C2") is false.
+ *
+ * Added for Fix #14 (scriptGeneration.ts's generateAndCheckEnrichment()):
+ * a real GitHub Actions run requested C2 and the authoritative grading
+ * came back cefrLevelMin=B1 -- already rejected by
+ * isApprovedLinguAbcCefrLevel() alone (B1 isn't an approved level at all).
+ * But isApprovedLinguAbcCefrLevel() only ever checks "is this grade one of
+ * LinguABC's three approved levels", never "does it satisfy what THIS
+ * episode specifically requested" -- so, as a separate and real gap this
+ * fix also closes, a C2 request that came back graded cefrLevelMin=B2
+ * would previously have PASSED silently (B2 is approved), publishing a
+ * weaker episode than requested without ever being caught. This function
+ * lets the caller check the requested-level match as its own, additional
+ * condition, alongside (never instead of) the existing approved-level
+ * check.
+ */
+export function meetsOrExceedsLinguAbcCefrLevel(level: LinguAbcCefrLevel, minimum: LinguAbcCefrLevel): boolean {
+  return LINGUABC_CEFR_LEVELS.indexOf(level) >= LINGUABC_CEFR_LEVELS.indexOf(minimum);
+}
