@@ -1800,6 +1800,34 @@ interface WordCountTrajectoryEntry {
   phase: "initial" | "revision" | "word-count correction";
   wordCount: number;
   issues: ScriptValidationIssue[];
+  /**
+   * DIAGNOSTIC-ONLY (added to distinguish, on a future failure, model
+   * non-compliance with the selected target from an ineffective/exhausted
+   * target -- see the corresponding investigation this closes the gap on).
+   * Reuses selectLargeCutTarget()'s OWN result for this sub-attempt's exact
+   * `output`/`request` -- never a second selection implementation -- and
+   * logs ONLY its numeric turnIndex/wordCount, never target.text or any
+   * other script content, matching this interface's existing "never raw
+   * text" rule above. null when selectLargeCutTarget() found no eligible
+   * turn (e.g. a very short script), regardless of correction band --
+   * every band (small/meaningful/large) already calls that same function
+   * internally when building its prompt text, so this mirrors it exactly
+   * rather than adding band-specific telemetry logic.
+   */
+  targetTurnIndex: number | null;
+  targetTurnWordCount: number | null;
+  /**
+   * DIAGNOSTIC-ONLY, word-count-correction phase only. Both reuse values
+   * ALREADY computed by runWordCountCorrection() for this exact sub-attempt
+   * (actualReduction = inputCount - wordCount; requiredReduction is
+   * wordCountCorrectionTarget()'s own result for this sub-attempt's input)
+   * -- never a second/duplicated calculation. Set to 0 for "initial"/
+   * "revision" phase entries, which have no correction-pass reduction
+   * concept; formatTrajectory() only renders these for the
+   * "word-count correction" phase, so the 0 default is never surfaced.
+   */
+  actualReduction: number;
+  requiredReduction: number;
 }
 
 /** Maps issues to short, fixed-vocabulary category labels ONLY --
@@ -1827,13 +1855,32 @@ function summarizeIssueCategories(issues: ScriptValidationIssue[]): string {
 /** Renders the trajectory as compact, content-free lines, e.g.:
  *   attempt 1 [initial]: 1180 words -- word count, prosody
  *   attempt 2 [revision]: 1172 words -- word count
- *   attempt 3 [word-count correction]: 951 words -- PASS
+ *   attempt 3 [word-count correction]: 951 words -- PASS [target: turn #4 (87 words), reduction: 30/153 required]
  * Appended to generateEpisodeScript()'s two final-failure throws so a
  * real GitHub Actions failure shows the whole run's shape, not just the
- * last attempt. */
+ * last attempt.
+ *
+ * DIAGNOSTIC-ONLY target/reduction suffix (see WordCountTrajectoryEntry's
+ * own doc comment): rendered ONLY for "word-count correction" phase
+ * entries, whose targetTurnIndex/targetTurnWordCount/actualReduction/
+ * requiredReduction fields carry real, sub-attempt-specific values --
+ * "initial"/"revision" entries always carry the type's 0/null defaults for
+ * these fields (there is no correction-pass reduction concept for them),
+ * so the suffix is correctly omitted for those lines rather than printing
+ * a misleading "0/0 required." Only numeric turn index/word count are
+ * ever interpolated here -- never target text or any other script
+ * content, matching this function's existing content-free contract. */
 function formatTrajectory(trajectory: WordCountTrajectoryEntry[]): string {
   return trajectory
-    .map((entry) => `attempt ${entry.attemptNumber} [${entry.phase}]: ${entry.wordCount} words -- ${summarizeIssueCategories(entry.issues)}`)
+    .map((entry) => {
+      const base = `attempt ${entry.attemptNumber} [${entry.phase}]: ${entry.wordCount} words -- ${summarizeIssueCategories(entry.issues)}`;
+      if (entry.phase !== "word-count correction") return base;
+      const target =
+        entry.targetTurnIndex !== null && entry.targetTurnWordCount !== null
+          ? `turn #${entry.targetTurnIndex} (${entry.targetTurnWordCount} words)`
+          : "none";
+      return `${base} [target: ${target}, reduction: ${entry.actualReduction}/${entry.requiredReduction} required]`;
+    })
     .join("\n");
 }
 
@@ -1981,7 +2028,25 @@ async function runWordCountCorrection(
     currentOutput = corrected;
     currentCount = wordCount;
     currentIssues = issues;
-    entries.push({ attemptNumber: startingAttemptNumber + entries.length, phase: "word-count correction", wordCount, issues });
+    // DIAGNOSTIC-ONLY (see WordCountTrajectoryEntry's own doc comment):
+    // reuses selectLargeCutTarget() -- unchanged, not a new selection --
+    // against the SAME inputOutput/request just used above to build this
+    // sub-attempt's prompt, so the logged target is guaranteed to be the
+    // exact one that prompt named (every band calls this same function
+    // internally; this mirrors it rather than adding band-specific
+    // telemetry branching). Only numeric index/word count are kept --
+    // target.text is deliberately never read here.
+    const target = selectLargeCutTarget(inputOutput, request);
+    entries.push({
+      attemptNumber: startingAttemptNumber + entries.length,
+      phase: "word-count correction",
+      wordCount,
+      issues,
+      targetTurnIndex: target?.turnIndex ?? null,
+      targetTurnWordCount: target?.wordCount ?? null,
+      actualReduction,
+      requiredReduction,
+    });
 
     // Stop as soon as the overshoot itself is resolved, whether the result
     // landed in range OR undershot -- NOT merely "no word-count issue is
@@ -2242,6 +2307,15 @@ export async function generateEpisodeScript(request: ScriptGenerationRequest): P
         phase: isRevisionAttempt ? "revision" : "initial",
         wordCount: countSpokenWords(output),
         issues: structuralIssues,
+        // DIAGNOSTIC-ONLY defaults -- see WordCountTrajectoryEntry's own doc
+        // comment: "initial"/"revision" phases have no dedicated-correction
+        // target or reduction concept, and formatTrajectory() only renders
+        // these fields for the "word-count correction" phase, so these
+        // defaults are never surfaced.
+        targetTurnIndex: null,
+        targetTurnWordCount: null,
+        actualReduction: 0,
+        requiredReduction: 0,
       });
 
       // Word-count-overshoot-only failures get a dedicated, narrow

@@ -4059,3 +4059,327 @@ describe("generateEpisodeScript — single authoritative enrichment grading", ()
   });
   });
 });
+
+/**
+ * DIAGNOSTIC-ONLY TELEMETRY for the word-count correction pass (added to
+ * distinguish, on a future failure, model non-compliance with the selected
+ * target from an ineffective/exhausted target -- see the investigation
+ * this closes the gap on). A separate, self-contained top-level describe
+ * block (its own fixtures/helpers, its own beforeEach) rather than
+ * inserted into the existing nested nested describe structure above, so it
+ * carries no dependency on that structure's exact nesting. Reuses the same
+ * module-level vi.mock(...) calls at the top of this file -- no new mocks.
+ *
+ * These tests deliberately drive generateEpisodeScript() to its FINAL
+ * failure throw in every case: the new telemetry fields are only visible
+ * in formatTrajectory()'s output, which is only ever included in that
+ * thrown error message, never in a successful return value.
+ */
+describe("generateEpisodeScript — diagnostic-only word-count-correction telemetry (target/reduction)", () => {
+  const REQUEST_B2: ScriptGenerationRequest = {
+    speaker0Name: "Sarah",
+    speaker1Name: "Hannah",
+    cefrLevel: "B2",
+    usedTitles: [],
+    usedTopicTags: [],
+  };
+
+  const stripTags = (t: string) => t.replace(/\[[^\]]*\]/g, " ");
+  const countWords = (turns: ScriptGenerationOutput["turns"]) => turns.reduce((sum, t) => sum + stripTags(t.text).split(/\s+/).filter(Boolean).length, 0);
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  function buildValidScriptOutput(): ScriptGenerationOutput {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+      { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+      { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+      { speaker: 1, text: "And I'm Hannah." },
+      { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+    ];
+    const fillerTemplates = [
+      "That is a genuinely interesting way to think about it, [curious] and honestly I had never considered it from that angle before. It also makes me wonder what else we take for granted.",
+      "Right, and it is not just about memory either -- it is about how much we trust our own sense of a totally ordinary morning. [amused] People rarely question it until something breaks.",
+      "I read somewhere that this happens more often to people who travel a lot, [thoughtful] which honestly makes a strange kind of sense once you think it through.",
+      "Exactly, and that is the part that surprised me the most. [reflective] It is such a small moment, but it really stuck with me for weeks afterward.",
+    ];
+    for (let i = 0; i < 24; i++) turns.push({ speaker: (i % 2) as 0 | 1, text: fillerTemplates[i % fillerTemplates.length] });
+    turns.push({ speaker: 0, text: "...and honestly I think the whole point is that we—" });
+    turns.push({ speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." });
+    turns.push({ speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." });
+    turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+    while (countWords(turns) < 950) {
+      const last = turns[turns.length - 1];
+      turns[turns.length - 1] = { ...last, text: `${last.text} genuinely` };
+    }
+    return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+  }
+
+  function fakeEnrichment(): EnrichmentResult {
+    return {
+      cefrLevelMin: "B2",
+      cefrLevelMax: "C1",
+      topics: [],
+      rawTopics: [],
+      summary: "A concise summary of the episode.",
+      vocabulary: [{ word: "episode", phonetic: "", pos: "noun", translation: "", definition: "One part of a series.", example: "This episode covers a new topic." }],
+      quiz: [{ id: "q1", type: "mc", question: "What is this content?", options: ["An episode", "A book", "A film", "A song"], correct: 0, explanation: "Defined above.", grammarTopic: null, vocabularyWord: null }],
+      takeaways: ["Key takeaway."],
+      reflection: "Reflect on this episode.",
+      keyExpressions: [],
+      discussionQuestions: [],
+      listeningNotes: ["Listen for pacing."],
+      grammarNotes: [],
+      readingDifficulty: null,
+    };
+  }
+
+  /** Same construction this file's own "dedicated word-count correction
+   * pass" describe block already uses for its LARGE_OVERSHOOT/
+   * NEAR_CEILING_OVERSHOOT fixtures -- copied here (not imported/shared
+   * across describe scopes) so this block stays fully self-contained. */
+  function buildCueRichOvershootOutput(targetMinWords: number): ScriptGenerationOutput {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+      { speaker: 1, text: "Wait, seriously? That sounds terrifying, not just strange." },
+      { speaker: 0, text: "It really was. [break] Anyway, I'm Sarah." },
+      { speaker: 1, text: "And I'm Hannah." },
+      { speaker: 0, text: "This is LinguABC, and today we're talking about the strange ways memory can fail us even when nothing is actually wrong." },
+    ];
+    const fillerTemplates = [
+      "That is a genuinely interesting way to think about it, [curious] and honestly I had never considered it from that angle before. It also makes me wonder what else we take for granted.",
+      "Right, and it is not just about memory either -- it is about how much we trust our own sense of a totally ordinary morning. [amused] People rarely question it until something breaks.",
+      "I read somewhere that this happens more often to people who travel a lot, [thoughtful] which honestly makes a strange kind of sense once you think it through.",
+      "Exactly, and that is the part that surprised me the most. [reflective] It is such a small moment, but it really stuck with me for weeks afterward.",
+    ];
+    let i = 0;
+    while (countWords(turns) < targetMinWords) {
+      turns.push({ speaker: (i % 2) as 0 | 1, text: fillerTemplates[i % fillerTemplates.length] });
+      i++;
+    }
+    turns.push({ speaker: 0, text: "...and honestly I think the whole point is that we—" });
+    turns.push({ speaker: 1, text: "—never actually finish that argument? Yeah, I've noticed." });
+    turns.push({ speaker: 0, text: "[reflective] Well, that gives us a lot to think about before next time." });
+    turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+    return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+  }
+
+  const LARGE_OVERSHOOT = buildCueRichOvershootOutput(1150); // 1201 words -- 236 over the 965 ceiling, "large" band
+  const NEAR_CEILING_OVERSHOOT = buildCueRichOvershootOutput(940); // 999 words -- 34 over, "meaningful" band
+
+  /** Same total-word-count-targeting helper this file's own "Fix #10"
+   * describe block already uses -- copied, not shared, for the same
+   * self-containment reason as buildCueRichOvershootOutput above. */
+  function withExactTotalWordCount(base: ScriptGenerationOutput, targetTotal: number): ScriptGenerationOutput {
+    const currentTotal = countWords(base.turns);
+    const delta = currentTotal - targetTotal;
+    const turns = base.turns.map((t) => ({ ...t }));
+    if (delta < 0) {
+      const filler = Array.from({ length: -delta }, (_, i) => `extra${i}`).join(" ");
+      turns[5] = { ...turns[5], text: `${turns[5].text} ${filler}` };
+      return { ...base, turns };
+    }
+    const eligibleEnd = turns.length - 5;
+    let remaining = delta;
+    for (let i = 5; i < eligibleEnd && remaining > 0; i++) {
+      const words = turns[i].text.replace(/\[[^\]]*\]/g, " ").split(/\s+/).filter(Boolean);
+      if (words.length <= remaining) {
+        remaining -= words.length;
+        turns[i] = { ...turns[i], text: "" };
+      } else {
+        turns[i] = { ...turns[i], text: words.slice(0, words.length - remaining).join(" ") };
+        remaining = 0;
+      }
+    }
+    if (remaining > 0) throw new Error(`test fixture error: not enough eligible words to remove ${delta} total words from this base script`);
+    return { ...base, turns };
+  }
+
+  /**
+   * A small-band overshoot (967 words, 2 over the 965 ceiling) built the
+   * SAME way this file's own "9: when every turn is structurally
+   * protected..." fixture is (a continuous em-dash interruption chain
+   * protects every turn from selectLargeCutTarget()'s candidacy, alongside
+   * the always-protected hook/closing/opening-block turns), just much
+   * shorter -- for proving requirement 3 (null target metadata when none
+   * exists) specifically in the "small" band, which Fix #13 proved CAN
+   * otherwise have a real target (see this file's "Fix #13 (1)" test) --
+   * so this fixture must genuinely have zero eligible turns, not merely be
+   * small-band-sized.
+   */
+  function buildSmallOvershootNoTarget(): ScriptGenerationOutput {
+    const turns: ScriptGenerationOutput["turns"] = [
+      { speaker: 0, text: "[thoughtful] I once forgot my own name for ten seconds after waking up in a strange hotel room, and it genuinely rattled me for the rest of the morning." },
+      { speaker: 1, text: "Wait, seriously? That sounds terrifying—" },
+      { speaker: 0, text: "—Anyway, I'm Sarah, and it really did rattle me—" },
+      { speaker: 1, text: "—And I'm Hannah. This is LinguABC, and today we're talking about the strange ways memory can fail us—" },
+    ];
+    const fillerTemplates = [
+      "—and further, [thoughtful] this genuinely matters because it connects to what we discussed earlier and adds real texture to the point, keeping the thread going for quite a while now. [reflective] It really does keep unfolding the same idea from a slightly different angle every time we come back to it, on and on—",
+      "—right, and it is not just about memory either, [curious] it is about how much we trust an ordinary morning without ever questioning it at all, which is strange when you actually sit with it. [amused] People rarely notice until something breaks the pattern entirely, on and on—",
+    ];
+    let i = 0;
+    while (countWords(turns) < 940) {
+      turns.push({ speaker: ((i + 1) % 2) as 0 | 1, text: fillerTemplates[i % fillerTemplates.length] });
+      i++;
+    }
+    // Pad the last filler turn's word count precisely (inserting whole
+    // words just before its trailing em dash, so the dash-chain protection
+    // is preserved) to land at EXACTLY 967 total -- 2 over the 965
+    // ceiling, "small" band -- calibrated directly against this exact
+    // fixture shape before writing this test, not guessed.
+    const lastIdx = turns.length - 1;
+    const dashMatch = turns[lastIdx].text.match(/(—)\s*$/);
+    const dash = dashMatch ? dashMatch[1] : "";
+    const withoutDash = dash ? turns[lastIdx].text.slice(0, turns[lastIdx].text.length - dashMatch![0].length) : turns[lastIdx].text;
+    turns[lastIdx] = { ...turns[lastIdx], text: `${withoutDash} extra extra extra extra extra${dash}` };
+    turns.push({ speaker: 1, text: "It really does. [warm] That has been LinguABC -- thanks for listening, and we will catch you in the next one." });
+    return { title: "Test Episode", topic: "Testing", topicTags: ["Testing"], cefrLevel: "B2", turns };
+  }
+
+  const SMALL_OVERSHOOT_NO_TARGET = buildSmallOvershootNoTarget();
+
+  it("fixture sanity check: the small-band no-target fixture is exactly 967 words, fails ONLY word count, and selectLargeCutTarget() genuinely finds nothing", () => {
+    expect(countWords(SMALL_OVERSHOOT_NO_TARGET.turns)).toBe(967);
+    const issues = validateGeneratedScript(SMALL_OVERSHOOT_NO_TARGET, REQUEST_B2);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].message).toMatch(/^Word count 967 is outside/);
+    expect(selectLargeCutTarget(SMALL_OVERSHOOT_NO_TARGET, REQUEST_B2)).toBeNull();
+  });
+
+  it("large-band correction logs the selected target turn's index and word count, and no script text ever appears in the trajectory", async () => {
+    // A perpetual no-op (the model always returns the identical 1201-word
+    // draft) so the run exhausts MAX_ATTEMPTS and the trajectory becomes
+    // visible in the final thrown error's message.
+    vi.mocked(generateStructuredJson).mockResolvedValue(LARGE_OVERSHOOT);
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+    // Confirmed directly against selectLargeCutTarget() itself first, not
+    // just inferred from the formatted trajectory text below.
+    const target = selectLargeCutTarget(LARGE_OVERSHOOT, REQUEST_B2);
+    expect(target?.turnIndex).toBe(5);
+    expect(target?.wordCount).toBe(32);
+
+    let thrown: Error | undefined;
+    try {
+      await generateEpisodeScript(REQUEST_B2);
+    } catch (error) {
+      thrown = error as Error;
+    }
+    expect(thrown).toBeDefined();
+    const message = thrown!.message;
+
+    // requiredReduction for a 1201-word input in the "large" band is
+    // wordCountCorrectionTarget(1201).max = 950, so 1201 - 950 = 251 --
+    // the exact same number the existing correction-prompt text already
+    // asserts elsewhere in this file (test A's "Cut approximately
+    // 251-266 spoken words"), never a second/duplicated calculation.
+    // actualReduction is 0 -- a genuine no-op.
+    expect(message).toMatch(/attempt 2 \[word-count correction\]: 1201 words -- word count \[target: turn #5 \(32 words\), reduction: 0\/251 required\]/);
+    expect(message).toMatch(/attempt 3 \[word-count correction\]: 1201 words -- word count \[target: turn #5 \(32 words\), reduction: 0\/251 required\]/);
+
+    // Never the actual generated dialogue, the target turn's own text, or
+    // raw JSON, anywhere in the error -- requirement 2's "NEVER log the
+    // target turn text" and this interface's pre-existing content-free
+    // contract, both still holding with the new fields present.
+    expect(message).not.toContain("hotel room");
+    expect(message).not.toContain("genuinely interesting way to think about it");
+    expect(message).not.toContain('"turns":[');
+    expect(message).not.toContain('{"speaker"');
+  });
+
+  it("meaningful-band correction logs the selected target turn's index and word count", async () => {
+    vi.mocked(generateStructuredJson).mockResolvedValue(NEAR_CEILING_OVERSHOOT);
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+    const target = selectLargeCutTarget(NEAR_CEILING_OVERSHOOT, REQUEST_B2);
+    expect(target?.turnIndex).toBe(5);
+    expect(target?.wordCount).toBe(32);
+
+    let thrown: Error | undefined;
+    try {
+      await generateEpisodeScript(REQUEST_B2);
+    } catch (error) {
+      thrown = error as Error;
+    }
+    expect(thrown).toBeDefined();
+    const message = thrown!.message;
+
+    // requiredReduction for a 999-word input in the "meaningful" band is
+    // wordCountCorrectionTarget(999).max = 960 (NEAR_CEILING_TARGET_MAX),
+    // so 999 - 960 = 39 -- the same number test B elsewhere in this file
+    // already asserts ("Cut approximately 39-44 spoken words").
+    expect(message).toMatch(/attempt 2 \[word-count correction\]: 999 words -- word count \[target: turn #5 \(32 words\), reduction: 0\/39 required\]/);
+  });
+
+  it("small-band correction logs null target metadata when selectLargeCutTarget() genuinely finds no eligible turn", async () => {
+    vi.mocked(generateStructuredJson).mockResolvedValue(SMALL_OVERSHOOT_NO_TARGET);
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+    let thrown: Error | undefined;
+    try {
+      await generateEpisodeScript(REQUEST_B2);
+    } catch (error) {
+      thrown = error as Error;
+    }
+    expect(thrown).toBeDefined();
+    const message = thrown!.message;
+
+    // requiredReduction for a 967-word input in the "small" band is
+    // wordCountCorrectionTarget(967).max = WORD_COUNT_HARD_MAX (965) --
+    // the small band's own target ceiling IS the hard max -- so
+    // 967 - 965 = 2, the exact deficit this band's own prompt text states
+    // directly ("You are exactly 2 word(s) over the 965-word hard
+    // maximum").
+    expect(message).toMatch(/attempt 2 \[word-count correction\]: 967 words -- word count \[target: none, reduction: 0\/2 required\]/);
+  });
+
+  it("actualReduction and requiredReduction match the exact real numbers for a genuine (non-zero, non-no-op) cut", async () => {
+    // Reuses the identical scenario this file's own "Fix #10 test A"
+    // already verifies via the escalation prompt text (1201 -> 1166, an
+    // actual reduction of 35 against a required 251) -- this test checks
+    // the SAME real numbers now also appear in the trajectory telemetry,
+    // never a second/duplicated calculation of either figure.
+    const insufficientCut = withExactTotalWordCount(LARGE_OVERSHOOT, 1166);
+    vi.mocked(generateStructuredJson)
+      .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial)
+      .mockResolvedValueOnce(insufficientCut) // correction sub-attempt 1 -- the entry under test: 1201 -> 1166
+      .mockResolvedValue(insufficientCut); // stalls forever afterward -- guarantees the run eventually fails, exposing the trajectory
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+    let thrown: Error | undefined;
+    try {
+      await generateEpisodeScript(REQUEST_B2);
+    } catch (error) {
+      thrown = error as Error;
+    }
+    expect(thrown).toBeDefined();
+    const message = thrown!.message;
+
+    expect(message).toMatch(/attempt 2 \[word-count correction\]: 1166 words -- word count \[target: turn #5 \(32 words\), reduction: 35\/251 required\]/);
+  });
+
+  it("Fix #9/#10/#11/#13 routing behavior is unaffected: a full run using the SAME real trajectory shape still converges exactly as before, with the new fields simply added alongside", async () => {
+    // Mirrors this file's own pre-existing "D" test (Fix #9's generalized
+    // continuation) byte-for-byte in its mock sequence and assertions on
+    // attempts/call count/schemaName -- proving the new telemetry is
+    // strictly additive and changes no existing routing decision.
+    vi.mocked(generateStructuredJson)
+      .mockResolvedValueOnce(LARGE_OVERSHOOT) // outer attempt 1 (initial)
+      .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 1 -- still overshoot
+      .mockResolvedValueOnce(LARGE_OVERSHOOT) // correction sub-attempt 2 -- still overshoot, bound exhausted
+      .mockResolvedValueOnce(buildValidScriptOutput()); // outer attempt 2 -- Fix #9 continuation, resolves
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+    const result = await generateEpisodeScript(REQUEST_B2);
+
+    expect(result.wordCount).toBe(950);
+    expect(result.attempts).toBe(2);
+    expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(4);
+    expect(vi.mocked(generateStructuredJson).mock.calls[1][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+    expect(vi.mocked(generateStructuredJson).mock.calls[2][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+    expect(vi.mocked(generateStructuredJson).mock.calls[3][0].schemaName).toBe("linguabc_podcast_script_word_count_correction");
+  });
+});
