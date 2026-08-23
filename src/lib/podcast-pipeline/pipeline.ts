@@ -9,7 +9,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildEnrichmentSchema } from "@/lib/content-engine/ai-processing";
 import { ingestPodcastEpisode } from "@/lib/content-engine/podcast-ingestion";
 import { alignSegments, loadWhisperWords, validateAlignmentQuality } from "./alignment";
-import { synthesizeEpisodeAudio } from "./fishAudio";
+import { synthesizeEpisodeAudio, countScriptWords, calculateSynthesisSpeed, distinctSpeakersInScript, wordsPerSecondForPair } from "./fishAudio";
 import { checkExistingEpisode, assertEpisodeNumberSafe } from "./idempotency";
 import { uploadEpisodeAudio, deleteEpisodeAudio } from "./storage";
 import { buildReaderTranscript } from "./transcript";
@@ -63,6 +63,56 @@ function log(entries: PipelineLogEntry[], generationId: string, stage: PipelineL
   console.log(`[podcast-pipeline:${generationId}] ${stage}`, meta ?? "");
 }
 
+/**
+ * ASR TIMEOUT FIX: word-level faster-whisper transcription of a
+ * full-length episode is genuinely slow on CPU/int8, and the previous
+ * 15-minute budget was too tight to be a real ceiling -- a real B2 canary
+ * produced valid 339.93s audio (AUDIO_VALIDATED passed), then died at
+ * exactly 15m00.5s because this timeout, not the ASR, gave up. A measured
+ * control run of the SAME script/model/device/compute-type against a
+ * comparable 338.05s episode completed successfully in 13m08s: correct,
+ * but only ~12% under the old cap, so any slightly longer or denser
+ * episode overran it.
+ *
+ * 30 minutes is not a new number invented here -- it is exactly the
+ * budget content-engine's own ASR path (transcripts/asr.ts's DEFAULTS
+ * .timeoutMs) already uses for this same Python script. Two callers of
+ * one script now agree instead of differing 2x. This is a ceiling, not a
+ * delay: a run that finishes in 13 minutes still returns in 13 minutes.
+ */
+export const ASR_TIMEOUT_MS = 30 * 60 * 1000;
+
+/**
+ * Flattens a failed subprocess into one diagnostic string that keeps what
+ * the previous implementation threw away. `error.message` alone lost the
+ * exit code, the kill signal, and stderr, which is why the canary's
+ * failure could only be attributed to a timeout by matching elapsed wall
+ * time against the configured budget rather than by reading the error.
+ *
+ * Node marks a timeout kill with `killed: true` + the configured signal,
+ * so a timeout is reported as such, with the budget that was exceeded.
+ * Secrets: FISH_API_KEY and every other credential live in the parent
+ * process's env and are never passed as argv here, so the argv/stderr of
+ * this Python ASR call carry none -- only file paths and model flags.
+ * stderr is still tail-truncated (same 20k bound content-engine's runPython
+ * uses) so a pathological dump cannot flood the log.
+ */
+export function describeSubprocessFailure(error: unknown, timeoutMs: number): string {
+  if (!(error instanceof Error)) return String(error);
+  const e = error as NodeJS.ErrnoException & { stderr?: string; signal?: string; killed?: boolean };
+  const parts: string[] = [];
+  if (e.killed) {
+    parts.push(`timed out after ${timeoutMs}ms (killed with ${e.signal ?? "unknown signal"})`);
+  } else if (e.signal) {
+    parts.push(`terminated by signal ${e.signal}`);
+  }
+  if (e.code !== undefined && e.code !== null) parts.push(`exit code ${e.code}`);
+  const stderr = (e.stderr ?? "").trim();
+  if (stderr) parts.push(`stderr: ${stderr.length > 20_000 ? stderr.slice(-20_000) : stderr}`);
+  parts.push(e.message);
+  return parts.join("; ");
+}
+
 async function ffprobeDurationSeconds(filePath: string): Promise<number> {
   const { stdout } = await execFileAsync("ffprobe", [
     "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", filePath,
@@ -97,12 +147,45 @@ export async function generatePodcastEpisode(supabase: SupabaseClient, input: Ep
     audio = input.precomputedAudio;
     log(log_, generationId, "AUDIO_GENERATED", { bytes: audio.length, source: "precomputed" });
   } else {
+    // NATIVE FISH AUDIO SPEED FIX: V2 deliberately has no word-count gate
+    // (see scriptGenerationV2.ts's own doc comment) and nothing else in
+    // this pipeline previously accounted for the real relationship between
+    // script length and real audio duration (a real B2 canary, 1258 words,
+    // produced 519.5s -- 43% over the 300-360s gate below, which is
+    // completely unchanged by this fix). wordCount is read here ONLY as an
+    // input to this synthesis-time calculation -- the script itself is
+    // never rejected, revised, or regenerated because of it; that
+    // "telemetry only, never a gate" contract is exactly what
+    // countScriptWords()/calculateSynthesisSpeed() (fishAudio.ts) are
+    // built to preserve. See their own doc comments for the full
+    // calibration rationale and Fish Audio's documented prosody.speed
+    // bounds (0.5-2.0).
+    //
+    // PAIR-SPECIFIC CALIBRATION: a second real canary (Ben+Hannah, 1141
+    // words, requested speed 1.22 from the single global rate) still
+    // landed at 369.9s -- 9.9s over the ceiling -- because that global
+    // rate was calibrated from Sarah+Hannah specifically and applied to
+    // every pair. wordsPerSecondForPair() (fishAudio.ts) looks up this
+    // exact pair's own real, measured rate instead, falling back to the
+    // same global constant for any pair with no measurement on record yet
+    // (e.g. Ben+Leo) -- never a change for a pair this fix has no real
+    // data for.
+    const wordCount = countScriptWords(input.script);
+    const speakers = distinctSpeakersInScript(input.script);
+    const speedResult = calculateSynthesisSpeed(wordCount, undefined, wordsPerSecondForPair(speakers));
     try {
-      audio = await synthesizeEpisodeAudio(input.script);
+      audio = await synthesizeEpisodeAudio(input.script, undefined, speedResult.requestedSpeed);
     } catch (error) {
       return fail("STARTED", `Fish Audio synthesis failed: ${error instanceof Error ? error.message : String(error)}`);
     }
-    log(log_, generationId, "AUDIO_GENERATED", { bytes: audio.length });
+    log(log_, generationId, "AUDIO_GENERATED", {
+      bytes: audio.length,
+      wordCount,
+      speakers,
+      requestedSpeed: speedResult.requestedSpeed,
+      estimatedUnadjustedDurationSeconds: speedResult.estimatedUnadjustedDurationSeconds,
+      speedWasClamped: speedResult.wasClamped,
+    });
   }
 
   // --- Audio validation ---
@@ -145,15 +228,16 @@ export async function generatePodcastEpisode(supabase: SupabaseClient, input: Ep
       // killSignal SIGKILL, not the execFile default SIGTERM: observed on
       // this Windows machine that a timed-out faster-whisper child process
       // did not reliably terminate on SIGTERM (one run continued for 58
-      // minutes past this 15-minute budget before eventually erroring) --
-      // SIGKILL is the forceful, non-ignorable equivalent.
-      { timeout: 15 * 60 * 1000, killSignal: "SIGKILL" },
+      // minutes past the then-15-minute budget before eventually erroring)
+      // -- SIGKILL is the forceful, non-ignorable equivalent. Unchanged by
+      // the ASR_TIMEOUT_MS increase; only the budget moved.
+      { timeout: ASR_TIMEOUT_MS, killSignal: "SIGKILL" },
     );
   } catch (error) {
     await rm(workDir, { recursive: true, force: true });
     return fail(
       "TRANSCRIPT_ALIGNED",
-      `faster-whisper transcription failed (requires Python + .venv-asr locally -- not available in a Vercel serverless function): ${error instanceof Error ? error.message : String(error)}`,
+      `faster-whisper transcription failed (requires Python + .venv-asr locally -- not available in a Vercel serverless function): ${describeSubprocessFailure(error, ASR_TIMEOUT_MS)}`,
     );
   }
 
