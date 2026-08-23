@@ -410,8 +410,25 @@ function isPureCefrMismatchV2(issues: ScriptValidationIssueV2[]): boolean {
   return issues.length === 1 && /cefr/i.test(issues[0].message);
 }
 
-function buildCefrOnlyRevisionPreambleV2(): string {
-  return "The assistant message directly above is the EXACT script you wrote last time. Your ONLY job this time is to raise its CEFR sophistication to genuinely reach the requested level -- preserve the facts, topic, meaning, structure, opening block, interruption pattern, and every other passing element exactly as they already are, including its overall length. Do NOT add any new facts, examples, explanations, or content of any kind, and do NOT change the topic -- only upgrade the vocabulary and grammar used to express the SAME content.";
+/**
+ * FIX #15 (CEFR-ONLY REVISION NEVER NAMED THE TARGET LEVEL): a real V2
+ * canary (C2 request) confirmed by direct code audit that this preamble
+ * previously took no parameters -- it never named the requested level and
+ * never repeated CEFR_LEVEL_GUIDANCE_V2's level-specific content, unlike
+ * buildPodcastScriptPromptV2()'s initial-generation prompt, which does
+ * both. The real run's attempt 1 (with the full CEFR_LEVEL_GUIDANCE_V2.C2
+ * text) failed CEFR grading once; the next 5 revision attempts then ran
+ * on a preamble that never restated what "C2" specifically requires
+ * (near-native fluency, lower-frequency vocabulary, wordplay/dry humor) --
+ * every retry after the first was effectively asking the model to "raise
+ * sophistication" toward an unnamed target. This fix closes exactly that
+ * gap: the requested level is now named explicitly and
+ * CEFR_LEVEL_GUIDANCE_V2[cefrLevel] is repeated here, the same way the
+ * initial prompt already does it -- no other change to this preamble's
+ * content-preservation/no-new-content framing, which is untouched.
+ */
+function buildCefrOnlyRevisionPreambleV2(cefrLevel: LinguAbcCefrLevel): string {
+  return `The assistant message directly above is the EXACT script you wrote last time. Your ONLY job this time is to raise its CEFR sophistication to genuinely reach the requested level, CEFR ${cefrLevel} -- preserve the facts, topic, meaning, structure, opening block, interruption pattern, and every other passing element exactly as they already are, including its overall length. Do NOT add any new facts, examples, explanations, or content of any kind, and do NOT change the topic -- only upgrade the vocabulary and grammar used to express the SAME content. This is what genuine CEFR ${cefrLevel} specifically requires: ${CEFR_LEVEL_GUIDANCE_V2[cefrLevel]}`;
 }
 
 // ── CEFR grading (Phase 5 — a hard requirement, never weakened) ────────────
@@ -501,7 +518,7 @@ export async function generatePodcastScriptV2(request: ScriptGenerationRequest):
       ? [
           { role: "user", content: basePrompt },
           { role: "assistant", content: JSON.stringify(previousOutput) },
-          { role: "user", content: `${wasPureCefrMismatch ? buildCefrOnlyRevisionPreambleV2() : buildRevisionPreambleV2()}${buildRevisionFeedbackV2(lastIssues)}` },
+          { role: "user", content: `${wasPureCefrMismatch ? buildCefrOnlyRevisionPreambleV2(request.cefrLevel) : buildRevisionPreambleV2()}${buildRevisionFeedbackV2(lastIssues)}` },
         ]
       : [{ role: "user", content: basePrompt }];
 

@@ -430,6 +430,97 @@ describe("generatePodcastScriptV2 — Phase 4/6: real structural validation is p
     expect(revisionPrompt).not.toMatch(/Raise vocabulary sophistication, use real conditional/i);
   });
 
+  it("Fix #15: the C2 CEFR-only revision prompt explicitly names C2 and reuses CEFR_LEVEL_GUIDANCE_V2.C2's own text", async () => {
+    vi.mocked(generateStructuredJson)
+      .mockResolvedValueOnce(buildValidScriptAtWordCount(950, "C2"))
+      .mockResolvedValueOnce(buildValidScriptAtWordCount(950, "C2"));
+    vi.mocked(generateEnrichment)
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }))
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
+
+    await generatePodcastScriptV2(REQUEST_C2);
+
+    const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+    expect(revisionPrompt).toMatch(/genuinely reach the requested level, CEFR C2/i);
+    // CEFR_LEVEL_GUIDANCE_V2.C2's own distinctive text, verbatim -- not a
+    // paraphrase or a second, duplicated description.
+    expect(revisionPrompt).toMatch(/Near-native fluency/i);
+    expect(revisionPrompt).toMatch(/wordplay, understatement, dry humor/i);
+  });
+
+  it("Fix #15: the C1 CEFR-only revision prompt explicitly names C1 and reuses CEFR_LEVEL_GUIDANCE_V2.C1's own text", async () => {
+    vi.mocked(generateStructuredJson)
+      .mockResolvedValueOnce(buildValidScriptAtWordCount(950, "C1"))
+      .mockResolvedValueOnce(buildValidScriptAtWordCount(950, "C1"));
+    vi.mocked(generateEnrichment)
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "B2" }))
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "C1", cefrLevelMax: "C1" }));
+
+    await generatePodcastScriptV2(REQUEST_C1);
+
+    const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+    expect(revisionPrompt).toMatch(/genuinely reach the requested level, CEFR C1/i);
+    expect(revisionPrompt).toMatch(/less-common idiomatic expressions/i);
+  });
+
+  it("Fix #15: the B2 CEFR-only revision prompt explicitly names B2 and reuses CEFR_LEVEL_GUIDANCE_V2.B2's own text", async () => {
+    // A B2 request's grade floor (B2) is the easiest to satisfy, so a
+    // PURE CEFR-only revision is reached here via a structural self-report
+    // mismatch instead (attempt 1's script is otherwise fully valid at 950
+    // words, just self-reports "C1") -- isPureCefrMismatchV2() treats this
+    // the same as an authoritative-grading failure (both are a single
+    // "cefr"-flavored issue), so attempt 2 still goes through
+    // buildCefrOnlyRevisionPreambleV2(request.cefrLevel), the exact code
+    // path under test.
+    const mismatched: ScriptGenerationOutput = { ...buildValidScriptAtWordCount(950, "B2"), cefrLevel: "C1" };
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(mismatched).mockResolvedValueOnce(buildValidScriptAtWordCount(950, "B2"));
+    vi.mocked(generateEnrichment).mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "B2" }));
+
+    await generatePodcastScriptV2(REQUEST_B2);
+
+    const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+    expect(revisionPrompt).toMatch(/genuinely reach the requested level, CEFR B2/i);
+    expect(revisionPrompt).toMatch(/clearly clear B1, not sit at its edge/i);
+  });
+
+  it("Fix #15: the requested level is genuinely passed through from generatePodcastScriptV2() -- a C2 revision never contains B2's or C1's level-specific text, and vice versa", async () => {
+    vi.mocked(generateStructuredJson)
+      .mockResolvedValueOnce(buildValidScriptAtWordCount(950, "C2"))
+      .mockResolvedValueOnce(buildValidScriptAtWordCount(950, "C2"));
+    vi.mocked(generateEnrichment)
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }))
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
+
+    await generatePodcastScriptV2(REQUEST_C2);
+
+    const c2RevisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+    expect(c2RevisionPrompt).not.toMatch(/clearly clear B1, not sit at its edge/i); // B2's text
+    expect(c2RevisionPrompt).not.toMatch(/less-common idiomatic expressions/i); // C1's text
+  });
+
+  it("Fix #15: a long (1500-word) script's CEFR-only revision is unaffected by word count -- the fix adds no length coupling of any kind", async () => {
+    const longScript = buildValidScriptAtWordCount(1500, "C2");
+    vi.mocked(generateStructuredJson).mockResolvedValueOnce(longScript).mockResolvedValueOnce(longScript);
+    vi.mocked(generateEnrichment)
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }))
+      .mockResolvedValueOnce(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
+
+    const result = await generatePodcastScriptV2(REQUEST_C2);
+
+    // The script is returned exactly as generated -- Fix #15 changes only
+    // the CEFR-revision prompt text, never the word count, at any length.
+    expect(result.wordCount).toBe(1500);
+    const revisionPrompt = vi.mocked(generateStructuredJson).mock.calls[1][0].messages[2].content as string;
+    expect(revisionPrompt).toMatch(/genuinely reach the requested level, CEFR C2/i);
+    // Fix #15's own two additions (the level name and CEFR_LEVEL_GUIDANCE_V2.C2's
+    // text) introduce no word-count language -- the pre-existing "no
+    // word-count target" reassurance sentence elsewhere in the message is
+    // untouched by this fix and legitimately mentions "shorten"/"lengthen",
+    // so this checks ONLY the new preamble text, not the whole message.
+    const preambleOnly = revisionPrompt.split("=====================")[0];
+    expect(preambleOnly).not.toMatch(/word count|words long/i);
+  });
+
   it("scriptGenerationV2.ts's only import FROM scriptGeneration.ts (V1) is the one line naming checkOpeningStructure/toScriptLines/shared request-response types -- never generateEpisodeScript or any word-count export", () => {
     const v2Source = readFileSync(path.join(__dirname, "scriptGenerationV2.ts"), "utf8");
     const v1ImportLine = v2Source.split("\n").find((line) => line.includes('from "./scriptGeneration"'));
