@@ -2,7 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { checkProviderConfiguration } from "@/ai/providers";
 import { checkExistingEpisode, nextEpisodeNumber, checkForOrphanedDraft } from "./idempotency";
 import { chooseVoicesForEpisode, chooseVoicesForCombination, voiceMetadata, type VoiceCombination } from "./voiceRotation";
-import { generateEpisodeScript, toScriptLines, type ScriptGenerationRequest, type OpeningStructureCheck } from "./scriptGeneration";
+// toScriptLines is a pure turns->ScriptLine[] converter with zero
+// word-count/CEFR logic of its own -- shared, stable utility, imported
+// directly from V1 the same way scriptGenerationV2.ts itself already does.
+// Script GENERATION itself now goes through V2 (generatePodcastScriptV2)
+// exclusively -- the old word-count-correction generator is no longer the
+// production path.
+import { toScriptLines, type ScriptGenerationRequest, type OpeningStructureCheck } from "./scriptGeneration";
+import { generatePodcastScriptV2 } from "./scriptGenerationV2";
 import { generatePodcastEpisode } from "./pipeline";
 import { chooseCefrLevelForEpisode, type LinguAbcCefrLevel } from "./cefrLevel";
 import type { PipelineOutcome } from "./types";
@@ -65,13 +72,13 @@ export type DailyGenerationOutcome =
       openingStructure: OpeningStructureCheck;
       /** Which level the script generator was ASKED to target -- not
        * necessarily identical to the achieved level, though the achieved
-       * level is now guaranteed B2/C1/C2: generateEpisodeScript() only
-       * returns once the real generateEnrichment() call (run inside its
-       * own retry loop, before any Fish Audio spend) has graded the
-       * script that way -- see scriptGeneration.ts's
-       * generateAndCheckEnrichment(). publishing.ts's quality gate
-       * re-checks that SAME already-computed result, not a second
-       * independent one. Surfaced here for operator visibility only. */
+       * level is now guaranteed to meet or exceed it: generatePodcastScriptV2()
+       * only returns once the real generateEnrichment() call (run inside
+       * its own retry loop, before any Fish Audio spend) has graded the
+       * script that way -- see scriptGenerationV2.ts's checkCefrGradeV2().
+       * publishing.ts's quality gate re-checks that SAME already-computed
+       * result, not a second independent one. Surfaced here for operator
+       * visibility only. */
       targetCefrLevel: LinguAbcCefrLevel;
     });
 
@@ -158,18 +165,32 @@ export async function generateDailyEpisode(
     usedTopicTags = (items ?? []).flatMap((r) => (r.tags as string[] | null) ?? []);
   }
 
-  // --- CEFR level (stateless, derived from episodeNumber -- same pattern
-  //     as voice rotation) ---
-  const cefrLevel = chooseCefrLevelForEpisode(episodeNumber);
+  // --- CEFR level (stateless, derived from the CURRENT DAY -- deliberately
+  //     NOT from episodeNumber). nextEpisodeNumber() only advances once an
+  //     episode actually PUBLISHES (see its own doc comment) -- if level
+  //     selection were tied to episodeNumber instead, a level that keeps
+  //     failing (e.g. a persistent C2 failure) would freeze episodeNumber
+  //     forever, and since chooseCefrLevelForEpisode(n) is a pure function
+  //     of n, EVERY other level downstream of that stuck slot would be
+  //     starved too -- one level's failure would silently block every
+  //     other level's turn forever, violating "each CEFR level is an
+  //     independent generation job." Rotating by day instead means
+  //     tomorrow's run tries the NEXT level for the SAME still-unpublished
+  //     slot, regardless of what failed today. Reuses
+  //     chooseCefrLevelForEpisode() completely unchanged (cefrLevel.ts and
+  //     its own tests are untouched) -- only the INPUT changes here. ---
+  const dayIndex = Math.floor(Date.now() / 86_400_000);
+  const cefrLevel = chooseCefrLevelForEpisode(dayIndex);
 
-  // --- Script generation (LLM, self-validating, bounded retries). This
-  //     now includes the REAL, authoritative enrichment grading -- see
-  //     scriptGeneration.ts's generateAndCheckEnrichment(). scriptResult
-  //     only exists once that grading has already confirmed B2/C1/C2, so
-  //     there is no separate enrichment-generation stage here anymore;
-  //     regenerating it would spend tokens re-grading already-judged
-  //     content and could reintroduce the exact precheck/authoritative
-  //     disagreement this design eliminates. ---
+  // --- Script generation (LLM, self-validating, bounded retries), via V2
+  //     (scriptGenerationV2.ts's generatePodcastScriptV2()) -- the
+  //     production path for B2/C1/C2 alike, no word-count gate. This
+  //     includes the REAL, authoritative enrichment grading -- see
+  //     checkCefrGradeV2() inside scriptGenerationV2.ts. scriptResult only
+  //     exists once that grading has already confirmed the script meets or
+  //     exceeds the REQUESTED level, so there is no separate
+  //     enrichment-generation stage here anymore; regenerating it would
+  //     spend tokens re-grading already-judged content. ---
   const scriptRequest: ScriptGenerationRequest = {
     speaker0Name: speaker0,
     speaker1Name: speaker1,
@@ -180,7 +201,7 @@ export async function generateDailyEpisode(
   };
   let scriptResult;
   try {
-    scriptResult = await generateEpisodeScript(scriptRequest);
+    scriptResult = await generatePodcastScriptV2(scriptRequest);
   } catch (error) {
     return { status: "failed", stage: "SCRIPT_GENERATION", reason: error instanceof Error ? error.message : String(error) };
   }
