@@ -86,15 +86,29 @@ export const ASSUMED_NATURAL_WORDS_PER_SECOND = 2.835;
  * below -- adding a real measurement for a new pair means adding ONE
  * entry here, nothing else.
  *
- *   "Hannah,Sarah": Sarah+Hannah's own observed 2.72-2.95 wps range,
- *     midpoint -- unchanged value from the prior global default, now
- *     correctly scoped to just this pair.
+ *   "Hannah,Sarah": 2.455, from the real V2 production-equivalent GitHub
+ *     Actions run #39 -- 1040 words, requested speed 1.112, actual ffprobe
+ *     duration 381.0s, implying a natural rate of
+ *     1040 / (381.0 x 1.112) = 2.4547 wps. This REPLACES 2.835, which was
+ *     never a real measurement of this pair under V2: it was the midpoint
+ *     of a V1-era 2.72-2.95 wps range (scriptGeneration.ts's own
+ *     word-count-ceiling comment, whose 2.72 datapoint is
+ *     podcast-test/episode-002-v2 -- 832 words / 306.18s, synthesized
+ *     before prosody.speed existed). Applied to a V2 script it
+ *     over-estimated the rate by 15.5% and under-requested the speed-up,
+ *     so run #39 produced 381.0s and failed the 300-360s gate (which is
+ *     unchanged, and correctly rejected it). Note the real split is V1 vs
+ *     V2 SCRIPT CONTENT, not the voice pair: all five V2-era measurements
+ *     across BOTH pairs cluster at 2.408-2.528 (mean 2.4516), while the
+ *     V1-era figures for this same pair sit at 2.72-2.95.
  *   "Ben,Hannah": midpoint of this pair's own two precise, real
  *     measurements this session (2.4216 wps, 2.529 wps) -- see this
- *     constant's sibling doc comment above for the exact runs.
+ *     constant's sibling doc comment above for the exact runs. Left
+ *     unchanged: two real V2 canaries at this value landed at 339.93s and
+ *     334.58s, both inside the gate.
  */
 const PAIR_SPECIFIC_WORDS_PER_SECOND: Record<string, number> = {
-  "Hannah,Sarah": 2.835,
+  "Hannah,Sarah": 2.455,
   "Ben,Hannah": 2.48,
 };
 

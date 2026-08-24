@@ -135,8 +135,13 @@ describe("distinctSpeakersInScript / wordsPerSecondForPair -- pair-specific cali
   });
 
   it("wordsPerSecondForPair looks up Sarah+Hannah's calibrated rate, order-independent", () => {
-    expect(wordsPerSecondForPair(["Sarah", "Hannah"])).toBe(2.835);
-    expect(wordsPerSecondForPair(["Hannah", "Sarah"])).toBe(2.835);
+    expect(wordsPerSecondForPair(["Sarah", "Hannah"])).toBe(2.455);
+    expect(wordsPerSecondForPair(["Hannah", "Sarah"])).toBe(2.455);
+  });
+
+  it("Sarah+Hannah is no longer the V1-era 2.835, and is no longer a silent alias of the fallback", () => {
+    expect(wordsPerSecondForPair(["Sarah", "Hannah"])).not.toBe(2.835);
+    expect(wordsPerSecondForPair(["Sarah", "Hannah"])).not.toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
   });
 
   it("wordsPerSecondForPair looks up Ben+Hannah's calibrated rate, order-independent", () => {
@@ -146,6 +151,59 @@ describe("distinctSpeakersInScript / wordsPerSecondForPair -- pair-specific cali
 
   it("wordsPerSecondForPair falls back to ASSUMED_NATURAL_WORDS_PER_SECOND for a pair with no real measurement (Ben+Leo)", () => {
     expect(wordsPerSecondForPair(["Ben", "Leo"])).toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
+  });
+
+  it("the Sarah+Hannah recalibration leaves Ben+Hannah and the Ben+Leo fallback untouched", () => {
+    // Ben+Hannah keeps the value two real canaries validated (339.93s, 334.58s).
+    expect(wordsPerSecondForPair(["Ben", "Hannah"])).toBe(2.48);
+    // Ben+Leo still has no real measurement, so it still falls back -- and
+    // the fallback constant itself is still the unchanged 2.835.
+    expect(ASSUMED_NATURAL_WORDS_PER_SECOND).toBe(2.835);
+    expect(wordsPerSecondForPair(["Ben", "Leo"])).toBe(2.835);
+  });
+
+  /**
+   * REGRESSION -- real GitHub Actions run #39 (the first production
+   * dailyGenerate run): Sarah+Hannah, 1040 words. The old 2.835 constant
+   * requested speed 1.112 and produced 381.0s of real audio, 21s past the
+   * 300-360s gate. Back-calculating that run's true natural rate gives
+   * 1040 / (381.0 x 1.112) = 2.4547 wps.
+   *
+   * The duration model these assertions rely on is
+   * `actual = target x (assumed / true)`, which reproduces run #39 to
+   * within 0.03% (330 x 2.835/2.4547 = 381.12s vs the real 381.0s).
+   */
+  describe("run #39 regression — Sarah+Hannah, 1040 words", () => {
+    const WORDS = 1040;
+    const OBSERVED_TRUE_WPS = 1040 / (381.0 * 1.112);
+    /** What the pipeline really measures, given the speed it requested. */
+    const predictedActualSeconds = (assumedWps: number) =>
+      TARGET_DURATION_SECONDS * (assumedWps / OBSERVED_TRUE_WPS);
+
+    it("the observed true rate back-calculates to ~2.455, matching the new calibration", () => {
+      expect(OBSERVED_TRUE_WPS).toBeCloseTo(2.455, 3);
+      expect(wordsPerSecondForPair(["Sarah", "Hannah"])).toBeCloseTo(OBSERVED_TRUE_WPS, 2);
+    });
+
+    it("the OLD 2.835 constant predicts the ~381s overshoot that really happened", () => {
+      const old = calculateSynthesisSpeed(WORDS, undefined, 2.835);
+      expect(old.estimatedUnadjustedDurationSeconds).toBeCloseTo(366.843, 3);
+      expect(old.requestedSpeed).toBe(1.112);
+      expect(predictedActualSeconds(2.835)).toBeCloseTo(381.0, 0);
+      // ...which is exactly what the unchanged 300-360s gate rejected.
+      expect(predictedActualSeconds(2.835)).toBeGreaterThan(360);
+    });
+
+    it("the NEW 2.455 constant targets ~330s and lands inside the 300-360s gate", () => {
+      const fixed = calculateSynthesisSpeed(WORDS, undefined, wordsPerSecondForPair(["Sarah", "Hannah"]));
+      expect(fixed.requestedSpeed).toBeGreaterThan(1.112);
+      expect(fixed.wasClamped).toBe(false);
+
+      const predicted = predictedActualSeconds(wordsPerSecondForPair(["Sarah", "Hannah"]));
+      expect(predicted).toBeCloseTo(330, 0);
+      expect(predicted).toBeGreaterThan(300);
+      expect(predicted).toBeLessThan(360);
+    });
   });
 
   it("regression: canary 2's real numbers (1141 words, Ben+Hannah) -- pair-specific calculation requests a higher speed than the old global-only calculation did", () => {
