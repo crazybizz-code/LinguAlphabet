@@ -33,7 +33,15 @@ permissions:
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # 60, not 45: a real end-to-end run measured 17m43s of pipeline on a
+    # 12-core dev machine, of which faster-whisper alone was 15m12.7s --
+    # and a hosted runner has fewer cores than that, so ASR is slower here,
+    # not faster. Adding ~3-6 min of setup (npm ci, venv, pip, ffmpeg) and
+    # a cold 1.5 GB model download left the old 45-minute ceiling with too
+    # little margin above the pipeline's own 30-minute ASR budget. Matches
+    # ingest-podcasts.yml, which already uses 60 for the same ASR work.
+    # This is a ceiling, not a delay -- a fast run still finishes fast.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -55,8 +63,34 @@ jobs:
           .venv-asr/bin/pip install --upgrade pip
           .venv-asr/bin/pip install faster-whisper
 
+      # Whisper model weights (~1.5 GB for medium.en, measured). Without
+      # this the model is re-downloaded on every run, and that download
+      # happens INSIDE the pipeline's own 30-minute ASR subprocess budget
+      # (pipeline.ts's ASR_TIMEOUT_MS, deliberately unchanged here), so a
+      # cold fetch eats time the transcription itself needs. Same path and
+      # naming as ingest-podcasts.yml's equivalent step. The key is static
+      # because the weights for a given model name never change -- bump the
+      # -v1 suffix to force a re-download. A miss simply downloads as
+      # before, so this is purely additive.
+      - name: Restore Whisper model weights
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: whisper-model-medium-en-v1
+
+      # Precedence fix: `a || b && c` parses as `(a || b) && c`, so the
+      # previous one-liner ran apt-get install on EVERY run, including when
+      # ffmpeg was already present. An explicit guard installs only when
+      # ffmpeg is genuinely missing. ffprobe (which the duration gate uses)
+      # ships in the same package.
       - name: Ensure ffmpeg is present
-        run: ffmpeg -version || sudo apt-get update && sudo apt-get install -y ffmpeg
+        run: |
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          ffmpeg -version
+          ffprobe -version
 
       - name: Run the daily generation pipeline
         env:
