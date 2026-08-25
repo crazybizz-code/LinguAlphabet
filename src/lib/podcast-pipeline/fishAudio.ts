@@ -80,11 +80,12 @@ export const ASSUMED_NATURAL_WORDS_PER_SECOND = 2.835;
  * globally (see ASSUMED_NATURAL_WORDS_PER_SECOND's own doc comment for
  * why that was wrong for Ben+Hannah). Keyed by the pair's two speaker
  * names, sorted and comma-joined (pairCalibrationKey()) so order never
- * matters. A pair with no entry here (e.g. Ben+Leo, which has zero real
- * measurements anywhere in this project's history) intentionally falls
- * back to ASSUMED_NATURAL_WORDS_PER_SECOND via wordsPerSecondForPair()
- * below -- adding a real measurement for a new pair means adding ONE
- * entry here, nothing else.
+ * matters. A pair with no entry here intentionally falls back to
+ * ASSUMED_NATURAL_WORDS_PER_SECOND via wordsPerSecondForPair() below --
+ * adding a real measurement for a new pair means adding ONE entry here,
+ * nothing else. All three currently-approved pairs (voiceRotation.ts's
+ * PAIR_FOR_COMBINATION) now have a real measured entry, so the fallback is
+ * reached only by a pair that does not exist yet.
  *
  *   "Hannah,Sarah": 2.455, from the real V2 production-equivalent GitHub
  *     Actions run #39 -- 1040 words, requested speed 1.112, actual ffprobe
@@ -97,19 +98,36 @@ export const ASSUMED_NATURAL_WORDS_PER_SECOND = 2.835;
  *     before prosody.speed existed). Applied to a V2 script it
  *     over-estimated the rate by 15.5% and under-requested the speed-up,
  *     so run #39 produced 381.0s and failed the 300-360s gate (which is
- *     unchanged, and correctly rejected it). Note the real split is V1 vs
- *     V2 SCRIPT CONTENT, not the voice pair: all five V2-era measurements
- *     across BOTH pairs cluster at 2.408-2.528 (mean 2.4516), while the
- *     V1-era figures for this same pair sit at 2.72-2.95.
+ *     unchanged, and correctly rejected it). Validated afterwards by a real
+ *     canary at this value: 1253 words, requested speed 1.547, actual
+ *     337.03s -- inside the gate.
  *   "Ben,Hannah": midpoint of this pair's own two precise, real
  *     measurements this session (2.4216 wps, 2.529 wps) -- see this
  *     constant's sibling doc comment above for the exact runs. Left
  *     unchanged: two real V2 canaries at this value landed at 339.93s and
  *     334.58s, both inside the gate.
+ *   "Ben,Leo": 3.282, from the real C1 daily-production canary --
+ *     1218 words, requested speed 1.302 (computed from the 2.835 fallback,
+ *     since this pair had no entry yet), actual ffprobe duration 285.0s,
+ *     implying 1218 / (285.0 x 1.302) = 3.2824 wps. The fallback was 13.6%
+ *     too SLOW for this pair, so the pipeline over-sped the audio and the
+ *     run UNDERSHOT the 300s floor (285.0s) -- the opposite direction to
+ *     every previous miscalibration, which all overshot the 360s ceiling.
+ *
+ * WHAT THE THREE ENTRIES TOGETHER SHOW: an earlier version of this comment
+ * concluded the rate was driven by V1-vs-V2 script content rather than by
+ * the voice pair, because the only two pairs measured then (Hannah+Sarah
+ * 2.455, Ben+Hannah 2.48) sat within 1% of each other. Ben+Leo at 3.282 --
+ * ~34% faster, and the first male_male pair measured -- falsifies that.
+ * Voice pair is a real, large factor, so a new pair must never inherit
+ * another pair's number or be assumed close to the fallback; it needs its
+ * own real measurement, which is exactly what the fallback + one-entry
+ * workflow above is for.
  */
 const PAIR_SPECIFIC_WORDS_PER_SECOND: Record<string, number> = {
   "Hannah,Sarah": 2.455,
   "Ben,Hannah": 2.48,
+  "Ben,Leo": 3.282,
 };
 
 function pairCalibrationKey(speakers: readonly SpeakerName[]): string {

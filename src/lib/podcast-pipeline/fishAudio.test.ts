@@ -149,17 +149,30 @@ describe("distinctSpeakersInScript / wordsPerSecondForPair -- pair-specific cali
     expect(wordsPerSecondForPair(["Hannah", "Ben"])).toBe(2.48);
   });
 
-  it("wordsPerSecondForPair falls back to ASSUMED_NATURAL_WORDS_PER_SECOND for a pair with no real measurement (Ben+Leo)", () => {
-    expect(wordsPerSecondForPair(["Ben", "Leo"])).toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
+  it("wordsPerSecondForPair looks up Ben+Leo's calibrated rate, order-independent", () => {
+    expect(wordsPerSecondForPair(["Ben", "Leo"])).toBe(3.282);
+    expect(wordsPerSecondForPair(["Leo", "Ben"])).toBe(3.282);
   });
 
-  it("the Sarah+Hannah recalibration leaves Ben+Hannah and the Ben+Leo fallback untouched", () => {
-    // Ben+Hannah keeps the value two real canaries validated (339.93s, 334.58s).
-    expect(wordsPerSecondForPair(["Ben", "Hannah"])).toBe(2.48);
-    // Ben+Leo still has no real measurement, so it still falls back -- and
-    // the fallback constant itself is still the unchanged 2.835.
+  it("wordsPerSecondForPair still falls back to ASSUMED_NATURAL_WORDS_PER_SECOND for a pair with no real measurement", () => {
+    // Ben+Leo used to be the example here; it now has a real measurement, so
+    // the fallback is exercised with Maya+Alex -- registered speakers that
+    // are not part of any approved rotation pair (voiceRotation.ts's
+    // PAIR_FOR_COMBINATION) and have never been measured under V2.
+    expect(wordsPerSecondForPair(["Maya", "Alex"])).toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
     expect(ASSUMED_NATURAL_WORDS_PER_SECOND).toBe(2.835);
-    expect(wordsPerSecondForPair(["Ben", "Leo"])).toBe(2.835);
+  });
+
+  it("adding Ben+Leo leaves the other two calibrations and the fallback constant untouched", () => {
+    expect(wordsPerSecondForPair(["Sarah", "Hannah"])).toBe(2.455);
+    expect(wordsPerSecondForPair(["Ben", "Hannah"])).toBe(2.48);
+    expect(ASSUMED_NATURAL_WORDS_PER_SECOND).toBe(2.835);
+  });
+
+  it("every approved rotation pair now has a real calibration, none silently on the fallback", () => {
+    for (const pair of [["Sarah", "Hannah"], ["Ben", "Leo"], ["Ben", "Hannah"]] as const) {
+      expect(wordsPerSecondForPair(pair)).not.toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
+    }
   });
 
   /**
@@ -203,6 +216,53 @@ describe("distinctSpeakersInScript / wordsPerSecondForPair -- pair-specific cali
       expect(predicted).toBeCloseTo(330, 0);
       expect(predicted).toBeGreaterThan(300);
       expect(predicted).toBeLessThan(360);
+    });
+  });
+
+  /**
+   * REGRESSION -- the real C1 daily-production canary: Ben+Leo, 1218 words.
+   * With no table entry this pair fell back to 2.835, which requested speed
+   * 1.302 and produced 285.0s of real audio -- 15s BELOW the 300s floor, the
+   * opposite direction to every previous miscalibration. Back-calculating:
+   * 1218 / (285.0 x 1.302) = 3.2824 wps, i.e. the fallback was 13.6% too
+   * slow for this pair.
+   */
+  describe("Ben+Leo C1 canary regression — 1218 words, undershoot", () => {
+    const WORDS = 1218;
+    const OBSERVED_TRUE_WPS = 1218 / (285.0 * 1.302);
+    const predictedActualSeconds = (assumedWps: number) =>
+      TARGET_DURATION_SECONDS * (assumedWps / OBSERVED_TRUE_WPS);
+
+    it("the observed true rate back-calculates to ~3.282, matching the new calibration", () => {
+      expect(OBSERVED_TRUE_WPS).toBeCloseTo(3.282, 3);
+      expect(wordsPerSecondForPair(["Ben", "Leo"])).toBeCloseTo(OBSERVED_TRUE_WPS, 2);
+    });
+
+    it("the OLD 2.835 fallback reproduces the real 285.0s undershoot", () => {
+      const old = calculateSynthesisSpeed(WORDS, undefined, ASSUMED_NATURAL_WORDS_PER_SECOND);
+      expect(old.estimatedUnadjustedDurationSeconds).toBeCloseTo(429.63, 2);
+      expect(old.requestedSpeed).toBe(1.302);
+      expect(predictedActualSeconds(2.835)).toBeCloseTo(285.0, 0);
+      // ...which the unchanged 300-360s gate correctly rejected, from below.
+      expect(predictedActualSeconds(2.835)).toBeLessThan(300);
+    });
+
+    it("the NEW 3.282 calibration targets ~330s and lands inside the 300-360s gate", () => {
+      const fixed = calculateSynthesisSpeed(WORDS, undefined, wordsPerSecondForPair(["Ben", "Leo"]));
+      expect(fixed.wasClamped).toBe(false);
+      // A faster true rate needs LESS speed-up than the old fallback demanded.
+      expect(fixed.requestedSpeed).toBeLessThan(1.302);
+
+      const predicted = predictedActualSeconds(wordsPerSecondForPair(["Ben", "Leo"]));
+      expect(predicted).toBeCloseTo(330, 0);
+      expect(predicted).toBeGreaterThan(300);
+      expect(predicted).toBeLessThan(360);
+    });
+
+    it("the corrected speed stays inside Fish Audio's documented range", () => {
+      const fixed = calculateSynthesisSpeed(WORDS, undefined, wordsPerSecondForPair(["Ben", "Leo"]));
+      expect(fixed.requestedSpeed).toBeGreaterThanOrEqual(FISH_PROSODY_SPEED_MIN);
+      expect(fixed.requestedSpeed).toBeLessThanOrEqual(FISH_PROSODY_SPEED_MAX);
     });
   });
 
