@@ -440,12 +440,39 @@ type CefrGradingResultV2 = { enrichment: EnrichmentResult } | { issues: ScriptVa
  * (ai-processing.ts) call V1's generateAndCheckEnrichment() uses, reused
  * here as a fresh, independent implementation (that function is not
  * exported from scriptGeneration.ts). Requested CEFR remains a HARD
- * requirement: an approved grade (B2/C1/C2) that is still below the
- * REQUESTED level is rejected, not just an unapproved one (reuses
+ * requirement: an approved grade (B2/C1/C2) that does not actually reach
+ * the REQUESTED level is rejected, not just an unapproved one (reuses
  * meetsOrExceedsLinguAbcCefrLevel() from cefrLevel.ts, same as V1's Fix
- * #14) — so a C2 request graded C1 or B2 fails here exactly as it should,
- * while a C2 request graded C2 passes, a C1 request graded C1 or C2
- * passes, and a B2 request graded B2, C1, or C2 all pass.
+ * #14) — so a C2 request graded B2-C1 fails here exactly as it should,
+ * while a C2 request reaching C2 passes, a C1 request reaching C1 or C2
+ * passes, and a B2 request reaching B2, C1, or C2 all pass.
+ *
+ * WHICH BOUND THE REQUEST IS COMPARED AGAINST: cefrLevelMax, not
+ * cefrLevelMin. Fix #14 originally compared cefrLevelMin on the reasoning
+ * that "a genuinely C2-written script should not be independently
+ * understandable by a B2 learner" (see scriptGeneration.ts's own comment).
+ * That inference does not hold for THIS content type. ai-processing.ts
+ * defines cefrLevelMin as the lowest level that can independently
+ * understand ~70% of the content -- an ACCESSIBILITY FLOOR, not a
+ * difficulty rating. A two-speaker conversational podcast built (by this
+ * module's own prompt) from everyday topics, personal anecdotes, humour and
+ * one-word reactions is ~70% followable by a B2 learner almost by
+ * construction, so cefrLevelMin=B2 is structural rather than evidence of
+ * weak writing. Comparing the request against that floor demanded "write a
+ * conversation a B2 learner cannot follow", which a real C1 daily run
+ * failed six times in a row on (every attempt graded B2-C1, i.e. the
+ * grader DID see C1-level content) and which a real C2 canary had already
+ * failed the same way before it.
+ *
+ * cefrLevelMax is the level the content genuinely reaches, and it is what
+ * the REST of this project already treats as "the levels this content
+ * serves": articleGeneration.ts's own grading gate checks the requested
+ * target against the whole [min, max] range, and ExploreView's learner-
+ * facing filter surfaces an item to any level inside that range. This gate
+ * was the only place treating the pair as a floor assertion.
+ *
+ * Under-delivery is still caught, which was Fix #14's actual purpose: a C1
+ * request graded B2-B2, or a C2 request graded B2-C1, still fails here.
  */
 async function checkCefrGradeV2(output: ScriptGenerationOutput, request: ScriptGenerationRequest): Promise<CefrGradingResultV2> {
   const readerText = buildReaderTranscript(toScriptLines(output, request))
@@ -463,11 +490,11 @@ async function checkCefrGradeV2(output: ScriptGenerationOutput, request: ScriptG
       ],
     };
   }
-  if (!meetsOrExceedsLinguAbcCefrLevel(enrichment.cefrLevelMin, request.cefrLevel)) {
+  if (!meetsOrExceedsLinguAbcCefrLevel(enrichment.cefrLevelMax, request.cefrLevel)) {
     return {
       issues: [
         {
-          message: `Authoritative enrichment graded this script as cefrLevelMin=${enrichment.cefrLevelMin}, cefrLevelMax=${enrichment.cefrLevelMax} -- below the requested CEFR ${request.cefrLevel} (cefrLevelMin must be at least ${request.cefrLevel}). The script must genuinely be written at the requested level, not merely graded at LinguABC's B2 floor.`,
+          message: `Authoritative enrichment graded this script as cefrLevelMin=${enrichment.cefrLevelMin}, cefrLevelMax=${enrichment.cefrLevelMax} -- below the requested CEFR ${request.cefrLevel} (cefrLevelMax must be at least ${request.cefrLevel}). The script must genuinely reach the requested level, not merely stay within LinguABC's approved B2-C2 band.`,
         },
       ],
     };

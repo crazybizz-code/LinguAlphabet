@@ -310,6 +310,104 @@ describe("generatePodcastScriptV2 — Phase 5: requested CEFR is a hard requirem
     expect(thrown!.message).toMatch(/must grade as B2, C1, or C2/);
   });
 
+  /**
+   * CEFR GATE BOUND — the request is compared against cefrLevelMax, not
+   * cefrLevelMin.
+   *
+   * A real C1 daily run failed SCRIPT_GENERATION on all 6 V2 attempts, every
+   * one graded B2-C1: the grader did recognise C1-level content, but the gate
+   * read cefrLevelMin, which ai-processing.ts defines as an ACCESSIBILITY
+   * FLOOR ("the lowest level that can independently understand ~70% of this
+   * content"), not a difficulty rating. For a conversational two-speaker
+   * podcast that floor sits at B2 structurally, so the old gate demanded a
+   * conversation a B2 learner cannot follow. Note the same B2-C1 grade
+   * already SHIPPED as published Episode 9 under a B2 request.
+   *
+   * cefrLevelMax is what the rest of the project treats as "the levels this
+   * content serves" (articleGeneration.ts's range gate, ExploreView's filter).
+   * Under-delivery is still rejected -- see the FAIL cases below.
+   */
+  describe("the requested level is compared against cefrLevelMax", () => {
+    async function grade(request: ScriptGenerationRequest, cefrLevelMin: string, cefrLevelMax: string) {
+      vi.mocked(generateStructuredJson).mockResolvedValue(
+        buildValidScriptAtWordCount(950, request.cefrLevel as ScriptGenerationOutput["cefrLevel"]),
+      );
+      vi.mocked(generateEnrichment).mockResolvedValue(
+        fakeEnrichment({
+          cefrLevelMin: cefrLevelMin as EnrichmentResult["cefrLevelMin"],
+          cefrLevelMax: cefrLevelMax as EnrichmentResult["cefrLevelMax"],
+        }),
+      );
+      try {
+        const result = await generatePodcastScriptV2(request);
+        return { passed: true as const, result };
+      } catch (error) {
+        return { passed: false as const, message: (error as Error).message };
+      }
+    }
+
+    it("B2-B2 requested B2 -> PASS (unchanged by this fix)", async () => {
+      const outcome = await grade(REQUEST_B2, "B2", "B2");
+      expect(outcome.passed).toBe(true);
+    });
+
+    it("B2-C1 requested C1 -> PASS (the exact grade the real 6-attempt C1 failure produced)", async () => {
+      const outcome = await grade(REQUEST_C1, "B2", "C1");
+      expect(outcome.passed).toBe(true);
+      if (outcome.passed) {
+        expect(outcome.result.enrichment.cefrLevelMax).toBe("C1");
+      }
+    });
+
+    it("B2-C2 requested C1 -> PASS (reaches beyond the requested level)", async () => {
+      const outcome = await grade(REQUEST_C1, "B2", "C2");
+      expect(outcome.passed).toBe(true);
+    });
+
+    it("B2-C1 requested C2 -> FAIL (under-delivery is still caught)", async () => {
+      const outcome = await grade(REQUEST_C2, "B2", "C1");
+      expect(outcome.passed).toBe(false);
+      if (!outcome.passed) {
+        expect(outcome.message).toMatch(/below the requested CEFR C2/);
+        expect(outcome.message).toMatch(/cefrLevelMax must be at least C2/);
+      }
+    });
+
+    it("B2-B2 requested C1 -> FAIL (never reaches C1 at all)", async () => {
+      const outcome = await grade(REQUEST_C1, "B2", "B2");
+      expect(outcome.passed).toBe(false);
+      if (!outcome.passed) expect(outcome.message).toMatch(/below the requested CEFR C1/);
+    });
+
+    it("C1-C1 requested C1 -> PASS", async () => {
+      const outcome = await grade(REQUEST_C1, "C1", "C1");
+      expect(outcome.passed).toBe(true);
+    });
+
+    it("B1-C1 -> FAIL through the EXISTING approved-range check, not the level comparison", async () => {
+      const outcome = await grade(REQUEST_C1, "B1", "C1");
+      expect(outcome.passed).toBe(false);
+      if (!outcome.passed) {
+        // Must be rejected by the untouched approved-range gate (B1 is never
+        // an approved LinguABC level), NOT by the cefrLevelMax comparison --
+        // which on its own would have accepted this grade for a C1 request.
+        expect(outcome.message).toMatch(/must grade as B2, C1, or C2/);
+        expect(outcome.message).not.toMatch(/cefrLevelMax must be at least/);
+      }
+    });
+
+    it("the failure message names cefrLevelMax, not cefrLevelMin, as the bound that must be met", async () => {
+      const outcome = await grade(REQUEST_C2, "B2", "C1");
+      expect(outcome.passed).toBe(false);
+      if (!outcome.passed) {
+        expect(outcome.message).not.toMatch(/cefrLevelMin must be at least/);
+        // Both values are still REPORTED for diagnostics.
+        expect(outcome.message).toMatch(/cefrLevelMin=B2/);
+        expect(outcome.message).toMatch(/cefrLevelMax=C1/);
+      }
+    });
+  });
+
   it("I: a C2 request with a genuine authoritative C2 grade passes", async () => {
     vi.mocked(generateStructuredJson).mockResolvedValueOnce(buildValidScriptAtWordCount(950, "C2"));
     vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "C2", cefrLevelMax: "C2" }));
@@ -319,9 +417,16 @@ describe("generatePodcastScriptV2 — Phase 5: requested CEFR is a hard requirem
     expect(result.enrichment.cefrLevelMin).toBe("C2");
   });
 
-  it("a C1 request: B1/B2 fail, C1 and C2 both pass -- existing intended semantics", async () => {
+  it("a C1 request: a grade that never reaches C1 fails, C1 and C2 both pass", async () => {
+    // Was cefrLevelMin=B2/cefrLevelMax=C1 when this gate compared
+    // cefrLevelMin. That grade DOES reach C1 (see the cefrLevelMax describe
+    // block above for why it is now a PASS, and for the real 6-attempt
+    // production failure it caused), so the "too weak" case is now expressed
+    // as a grade whose ceiling genuinely never reaches C1. The rest of this
+    // test's intent -- C1 and C2 grades both satisfy a C1 request -- is
+    // unchanged.
     vi.mocked(generateStructuredJson).mockResolvedValue(buildValidScriptAtWordCount(950, "C1"));
-    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "C1" }));
+    vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment({ cefrLevelMin: "B2", cefrLevelMax: "B2" }));
     let thrown: Error | undefined;
     try {
       await generatePodcastScriptV2(REQUEST_C1);
