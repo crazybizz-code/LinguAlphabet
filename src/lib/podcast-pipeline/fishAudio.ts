@@ -83,9 +83,8 @@ export const ASSUMED_NATURAL_WORDS_PER_SECOND = 2.835;
  * matters. A pair with no entry here intentionally falls back to
  * ASSUMED_NATURAL_WORDS_PER_SECOND via wordsPerSecondForPair() below --
  * adding a real measurement for a new pair means adding ONE entry here,
- * nothing else. All three currently-approved pairs (voiceRotation.ts's
- * PAIR_FOR_COMBINATION) now have a real measured entry, so the fallback is
- * reached only by a pair that does not exist yet.
+ * nothing else. Ben+Leo (male_male) deliberately has NO entry and reaches
+ * the fallback -- see its own note below.
  *
  *   "Hannah,Sarah": 2.455, from the real V2 production-equivalent GitHub
  *     Actions run #39 -- 1040 words, requested speed 1.112, actual ffprobe
@@ -106,28 +105,58 @@ export const ASSUMED_NATURAL_WORDS_PER_SECOND = 2.835;
  *     constant's sibling doc comment above for the exact runs. Left
  *     unchanged: two real V2 canaries at this value landed at 339.93s and
  *     334.58s, both inside the gate.
- *   "Ben,Leo": 3.282, from the real C1 daily-production canary --
- *     1218 words, requested speed 1.302 (computed from the 2.835 fallback,
- *     since this pair had no entry yet), actual ffprobe duration 285.0s,
- *     implying 1218 / (285.0 x 1.302) = 3.2824 wps. The fallback was 13.6%
- *     too SLOW for this pair, so the pipeline over-sped the audio and the
- *     run UNDERSHOT the 300s floor (285.0s) -- the opposite direction to
- *     every previous miscalibration, which all overshot the 360s ceiling.
+ *   "Ben,Leo": DELIBERATELY ABSENT -- do not add one from the numbers
+ *     below without reading this note first.
  *
- * WHAT THE THREE ENTRIES TOGETHER SHOW: an earlier version of this comment
- * concluded the rate was driven by V1-vs-V2 script content rather than by
- * the voice pair, because the only two pairs measured then (Hannah+Sarah
- * 2.455, Ben+Hannah 2.48) sat within 1% of each other. Ben+Leo at 3.282 --
- * ~34% faster, and the first male_male pair measured -- falsifies that.
- * Voice pair is a real, large factor, so a new pair must never inherit
- * another pair's number or be assumed close to the fallback; it needs its
- * own real measurement, which is exactly what the fallback + one-entry
- * workflow above is for.
+ *     A commit briefly added "Ben,Leo": 3.282, back-calculated from a
+ *     single local run (1218 words, requested speed 1.302, ffprobe 285.0s
+ *     -> 1218 / (285.0 x 1.302) = 3.2824 wps). Applied in production it
+ *     immediately overshot: GitHub Actions run #42 (1126 words, requested
+ *     speed 1.040) produced 447.5s, 87.5s past the 360s ceiling. That run
+ *     back-calculates to 2.4194 wps for the SAME pair -- a 36% disagreement
+ *     between two measurements of one pair.
+ *
+ *     The 285.0s datapoint is treated as ANOMALOUS -- most likely truncated
+ *     or otherwise incomplete audio -- and must never be used to calibrate:
+ *       - Its file was internally consistent (4,559,851 bytes / 285.0s =
+ *         exactly 128 kbps), so a truncated MP3 would look perfectly valid
+ *         here; byte/duration agreement does NOT prove the audio is
+ *         complete.
+ *       - At the rate every other run shows, 1218 words at speed 1.302
+ *         should have produced ~383s. The observed audio is ~26% short.
+ *       - Synthesis wall-time was 79s for 285.0s of audio (~3.6x realtime)
+ *         versus 119s for 447.5s in run #42 (~3.8x realtime) -- essentially
+ *         the same generation throughput, i.e. the local call stopped
+ *         producing early rather than generating faster.
+ *       - Neither audio file survives (pipeline.ts deletes workDir on
+ *         failure; the CI runner is destroyed), so this is a strong
+ *         inference from the numbers, not a direct inspection.
+ *
+ *     Ben+Leo therefore has no trustworthy calibration yet and uses the
+ *     fallback until a second, corroborating real measurement exists. Note
+ *     the fallback is NOT expected to pass for this pair either: 2.835
+ *     against a true rate near 2.42 predicts ~387s, over the ceiling. This
+ *     is a deliberate choice to fail with a known-wrong shared default
+ *     rather than ship a constant derived from one unverified run.
+ *
+ * WHAT THE REAL MEASUREMENTS SHOW: across every V2-era run to date -- 3
+ * pairs, both local and GitHub Actions, 7 different scripts, requested
+ * speeds from 1.0 to 1.547 -- the implied rate clusters tightly at
+ * 2.403-2.528 wps (mean ~2.44, sd ~0.04, a 5.1% spread). That includes
+ * Ben+Leo's own run #42 at 2.4194. An earlier revision of this comment
+ * claimed the 3.282 outlier proved voice pair was "a real, large factor";
+ * that claim was based solely on the anomalous datapoint above and is
+ * withdrawn. The pairs measured so far do NOT differ materially from one
+ * another, and 3.282 sits ~21 standard deviations outside the cluster.
+ *
+ * PRACTICAL RULE: a single run is not a calibration. Before adding any
+ * entry here, check the new number against the ~2.4-2.5 cluster -- a value
+ * far outside it is far more likely to be a bad measurement than a genuinely
+ * unusual voice pair.
  */
 const PAIR_SPECIFIC_WORDS_PER_SECOND: Record<string, number> = {
   "Hannah,Sarah": 2.455,
   "Ben,Hannah": 2.48,
-  "Ben,Leo": 3.282,
 };
 
 function pairCalibrationKey(speakers: readonly SpeakerName[]): string {
@@ -203,6 +232,47 @@ export function calculateSynthesisSpeed(
     requestedSpeed: Math.round(requestedSpeed * 1000) / 1000,
     estimatedUnadjustedDurationSeconds,
     wasClamped: rawSpeed !== requestedSpeed,
+  };
+}
+
+/**
+ * DURATION FEEDBACK: the exact speed that would have produced
+ * `targetDurationSeconds`, derived from what a real synthesis actually
+ * measured -- no words-per-second constant is involved at all.
+ *
+ * Fish Audio's prosody.speed scales duration linearly, so a single real
+ * measurement fully determines the correction:
+ *
+ *   naturalDuration = measuredDurationSeconds x requestedSpeed   (invariant)
+ *   correctedSpeed  = naturalDuration / targetDurationSeconds
+ *
+ * Linearity is not assumed -- it is measured. Across the 7 trustworthy
+ * production runs, spanning requested speeds 1.0 to 1.547, the correlation
+ * between requested speed and implied words-per-second is r = -0.15, i.e.
+ * effectively none; a non-linear scaler would make implied rate drift with
+ * speed. Replaying the three real failures through this function gives
+ * 381.0s@1.112 -> 1.284, 447.5s@1.040 -> 1.410, 285.0s@1.302 -> 1.124, each
+ * predicting ~330s on the retry.
+ *
+ * This is why the correction is exact rather than iterative, and why ONE
+ * retry is the right bound: a second miss means an assumption broke (see
+ * pipeline.ts), not that another guess would help.
+ *
+ * Clamped to Fish Audio's documented range using the SAME bounds
+ * calculateSynthesisSpeed() uses. Pure and deterministic -- no I/O.
+ */
+export function correctedSynthesisSpeed(
+  measuredDurationSeconds: number,
+  requestedSpeed: number,
+  targetDurationSeconds: number = TARGET_DURATION_SECONDS,
+): SynthesisSpeedResult {
+  const estimatedUnadjustedDurationSeconds = measuredDurationSeconds * requestedSpeed;
+  const rawSpeed = estimatedUnadjustedDurationSeconds / targetDurationSeconds;
+  const correctedSpeed = Math.min(FISH_PROSODY_SPEED_MAX, Math.max(FISH_PROSODY_SPEED_MIN, rawSpeed));
+  return {
+    requestedSpeed: Math.round(correctedSpeed * 1000) / 1000,
+    estimatedUnadjustedDurationSeconds,
+    wasClamped: rawSpeed !== correctedSpeed,
   };
 }
 

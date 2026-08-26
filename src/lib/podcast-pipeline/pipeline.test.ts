@@ -23,7 +23,9 @@ describe("pipeline.ts — duration validation is completely unchanged by the spe
   const source = readFileSync(path.join(__dirname, "pipeline.ts"), "utf8");
 
   it("still imports MIN_DURATION_SECONDS/MAX_DURATION_SECONDS from config.ts, unchanged", () => {
-    expect(source).toMatch(/import\s*\{\s*MAX_DURATION_SECONDS,\s*MIN_DURATION_SECONDS\s*\}\s*from\s*"\.\/config"/);
+    // `type SpeakerName` was added to this import for the feedback loop's
+    // firstAttempt record; the two duration constants themselves are unchanged.
+    expect(source).toMatch(/import\s*\{\s*MAX_DURATION_SECONDS,\s*MIN_DURATION_SECONDS,\s*type SpeakerName\s*\}\s*from\s*"\.\/config"/);
   });
 
   it("the duration-gate condition itself is byte-for-byte the same as before this fix", () => {
@@ -44,7 +46,7 @@ describe("pipeline.ts — native speed calculation is wired into real synthesis 
 
   it("imports countScriptWords, calculateSynthesisSpeed, distinctSpeakersInScript, and wordsPerSecondForPair from fishAudio.ts", () => {
     expect(source).toMatch(
-      /import\s*\{\s*synthesizeEpisodeAudio,\s*countScriptWords,\s*calculateSynthesisSpeed,\s*distinctSpeakersInScript,\s*wordsPerSecondForPair\s*\}\s*from\s*"\.\/fishAudio"/,
+      /import\s*\{\s*synthesizeEpisodeAudio,\s*countScriptWords,\s*calculateSynthesisSpeed,\s*correctedSynthesisSpeed,\s*distinctSpeakersInScript,\s*wordsPerSecondForPair\s*\}\s*from\s*"\.\/fishAudio"/,
     );
   });
 
@@ -266,5 +268,118 @@ describe("upstream audio validation behavior is unchanged by the ASR timeout fix
     for (const forbidden of ["atempo", "timeStretch", "time_stretch", "asrRetries", "retryTranscription"]) {
       expect(source).not.toContain(forbidden);
     }
+  });
+});
+
+/**
+ * DURATION FEEDBACK LOOP — structural verification.
+ *
+ * A full behavioural test would need to mock Fish Audio, ffprobe, the
+ * faster-whisper subprocess and Supabase; disproportionate for a change that
+ * adds one bounded retry around calls the pipeline already makes. This file's
+ * established approach is to verify the real source directly (see its header),
+ * and the corrective arithmetic itself is behaviourally tested in
+ * fishAudio.test.ts's correctedSynthesisSpeed suite, including replays of all
+ * three real production failures.
+ */
+describe("pipeline.ts — duration feedback loop", () => {
+  const source = readFileSync(path.join(__dirname, "pipeline.ts"), "utf8");
+
+  /** The single retry block, isolated so assertions can't accidentally match
+   * the first-attempt code above it. */
+  // Ends at the gate's own `if` (which starts "if (durationSeconds <", not
+  // "if (firstAttempt &&"), so the gate's cleanup is not counted as the
+  // retry's.
+  const retryBlock = source.slice(
+    source.indexOf("if (firstAttempt && (durationSeconds <"),
+    source.indexOf("if (durationSeconds < MIN_DURATION_SECONDS || durationSeconds > MAX_DURATION_SECONDS) {"),
+  );
+
+  it("derives the corrective speed from the MEASURED duration, not from any words-per-second constant", () => {
+    expect(retryBlock).toContain("correctedSynthesisSpeed(durationSeconds, firstAttempt.requestedSpeed)");
+    // No rate constant may participate in the correction.
+    expect(retryBlock).not.toContain("wordsPerSecondForPair");
+    expect(retryBlock).not.toContain("calculateSynthesisSpeed");
+  });
+
+  it("re-synthesizes with the corrected speed", () => {
+    expect(retryBlock).toContain("retryAudio = await synthesizeEpisodeAudio(input.script, undefined, corrected.requestedSpeed);");
+  });
+
+  it("re-measures with the same real ffprobe function", () => {
+    expect(retryBlock).toContain("durationSeconds = await ffprobeDurationSeconds(audioPath);");
+  });
+
+  it("fires ONLY when the first measurement is outside the gate", () => {
+    expect(retryBlock.startsWith("if (firstAttempt && (durationSeconds < MIN_DURATION_SECONDS || durationSeconds > MAX_DURATION_SECONDS))")).toBe(true);
+  });
+
+  it("is bounded to exactly one retry -- no loop, no third synthesis", () => {
+    // Two synthesis call sites in the whole file: attempt 1 and this retry.
+    expect(source.match(/await synthesizeEpisodeAudio\(/g)).toHaveLength(2);
+    // The retry is a plain `if`, never a loop.
+    expect(retryBlock).not.toMatch(/\b(for|while)\s*\(/);
+    expect(source).not.toContain("MAX_SYNTHESIS_ATTEMPTS");
+  });
+
+  it("precomputed audio bypasses the retry -- firstAttempt stays null on that path", () => {
+    const precomputedBranch = source.slice(source.indexOf("if (input.precomputedAudio)"), source.indexOf("} else {"));
+    expect(precomputedBranch).not.toContain("firstAttempt =");
+    expect(precomputedBranch).not.toContain("correctedSynthesisSpeed");
+    // The guard is what enforces it.
+    expect(retryBlock).toContain("firstAttempt &&");
+  });
+
+  it("reuses the SAME workDir and audio path -- a retry cannot leak a second temp directory", () => {
+    expect(source.match(/await mkdtemp\(/g)).toHaveLength(1);
+    expect(retryBlock).toContain("await writeFile(audioPath, audio);");
+    expect(retryBlock).not.toContain("mkdtemp");
+  });
+
+  it("cleans up the work dir on every retry failure path", () => {
+    // Both the synthesis-failure and ffprobe-failure exits inside the retry.
+    const cleanups = retryBlock.match(/await rm\(workDir, \{ recursive: true, force: true \}\);/g);
+    expect(cleanups).toHaveLength(2);
+  });
+
+  it("records attempt/correction telemetry without leaking script or learner content", () => {
+    expect(retryBlock).toContain("attempt: 2,");
+    expect(retryBlock).toContain("correctedFromSpeed: firstAttempt.requestedSpeed,");
+    expect(retryBlock).toContain("measuredDurationSeconds:");
+    expect(retryBlock).toContain("expectedDurationSeconds:");
+    // Never the script text, transcript, or a key.
+    expect(retryBlock).not.toMatch(/input\.script\.map|transcript|FISH_API_KEY|apiKey/);
+  });
+
+  it("attempt 1 telemetry is labelled and carries the expected duration", () => {
+    expect(source).toContain("attempt: 1,");
+    expect(source).toContain("expectedDurationSeconds: speedResult.estimatedUnadjustedDurationSeconds / speedResult.requestedSpeed,");
+  });
+});
+
+describe("pipeline.ts — the 300-360s gate is preserved as the sole authority", () => {
+  const source = readFileSync(path.join(__dirname, "pipeline.ts"), "utf8");
+
+  it("the gate condition and failure message are byte-for-byte unchanged", () => {
+    expect(source).toContain("if (durationSeconds < MIN_DURATION_SECONDS || durationSeconds > MAX_DURATION_SECONDS) {");
+    expect(source).toContain('return fail("AUDIO_VALIDATED", `Duration ${durationSeconds.toFixed(1)}s is outside the ${MIN_DURATION_SECONDS}-${MAX_DURATION_SECONDS}s target window`);');
+  });
+
+  it("the gate still runs AFTER the feedback loop, so it judges the final measurement", () => {
+    const retryIndex = source.indexOf("if (firstAttempt && (durationSeconds <");
+    const gateIndex = source.indexOf('return fail("AUDIO_VALIDATED", `Duration ${durationSeconds.toFixed(1)}s');
+    expect(retryIndex).toBeGreaterThan(-1);
+    expect(gateIndex).toBeGreaterThan(retryIndex);
+  });
+
+  it("the feedback loop never widens the window -- MIN/MAX are only ever read, never redefined", () => {
+    expect(source).not.toMatch(/MIN_DURATION_SECONDS\s*=/);
+    expect(source).not.toMatch(/MAX_DURATION_SECONDS\s*=/);
+  });
+
+  it("a second failed attempt falls through to that same unchanged gate", () => {
+    // Exactly one place returns the duration-window failure.
+    const failures = source.match(/is outside the \$\{MIN_DURATION_SECONDS\}-\$\{MAX_DURATION_SECONDS\}s target window/g);
+    expect(failures).toHaveLength(1);
   });
 });

@@ -9,11 +9,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildEnrichmentSchema } from "@/lib/content-engine/ai-processing";
 import { ingestPodcastEpisode } from "@/lib/content-engine/podcast-ingestion";
 import { alignSegments, loadWhisperWords, validateAlignmentQuality } from "./alignment";
-import { synthesizeEpisodeAudio, countScriptWords, calculateSynthesisSpeed, distinctSpeakersInScript, wordsPerSecondForPair } from "./fishAudio";
+import { synthesizeEpisodeAudio, countScriptWords, calculateSynthesisSpeed, correctedSynthesisSpeed, distinctSpeakersInScript, wordsPerSecondForPair } from "./fishAudio";
 import { checkExistingEpisode, assertEpisodeNumberSafe } from "./idempotency";
 import { uploadEpisodeAudio, deleteEpisodeAudio } from "./storage";
 import { buildReaderTranscript } from "./transcript";
-import { MAX_DURATION_SECONDS, MIN_DURATION_SECONDS } from "./config";
+import { MAX_DURATION_SECONDS, MIN_DURATION_SECONDS, type SpeakerName } from "./config";
 import type { EpisodeInput, PipelineLogEntry, PipelineOutcome, PipelineStage } from "./types";
 
 const execFileAsync = promisify(execFile);
@@ -143,6 +143,11 @@ export async function generatePodcastEpisode(supabase: SupabaseClient, input: Ep
   //     precomputedAudio doc comment) -- then that call is skipped
   //     entirely and these exact bytes are used, unchanged. ---
   let audio: Buffer;
+  /** Attempt 1's inputs, kept so the duration-feedback retry below can derive
+   * a correction from them. Stays null on the precomputedAudio path, which is
+   * exactly what makes that path skip the retry: there is no script to
+   * re-synthesize and no requested speed to correct. */
+  let firstAttempt: { requestedSpeed: number; wordCount: number; speakers: SpeakerName[] } | null = null;
   if (input.precomputedAudio) {
     audio = input.precomputedAudio;
     log(log_, generationId, "AUDIO_GENERATED", { bytes: audio.length, source: "precomputed" });
@@ -178,12 +183,15 @@ export async function generatePodcastEpisode(supabase: SupabaseClient, input: Ep
     } catch (error) {
       return fail("STARTED", `Fish Audio synthesis failed: ${error instanceof Error ? error.message : String(error)}`);
     }
+    firstAttempt = { requestedSpeed: speedResult.requestedSpeed, wordCount, speakers };
     log(log_, generationId, "AUDIO_GENERATED", {
+      attempt: 1,
       bytes: audio.length,
       wordCount,
       speakers,
       requestedSpeed: speedResult.requestedSpeed,
       estimatedUnadjustedDurationSeconds: speedResult.estimatedUnadjustedDurationSeconds,
+      expectedDurationSeconds: speedResult.estimatedUnadjustedDurationSeconds / speedResult.requestedSpeed,
       speedWasClamped: speedResult.wasClamped,
     });
   }
@@ -200,6 +208,63 @@ export async function generatePodcastEpisode(supabase: SupabaseClient, input: Ep
     await rm(workDir, { recursive: true, force: true });
     return fail("AUDIO_VALIDATED", `ffprobe failed to read the generated audio: ${error instanceof Error ? error.message : String(error)}`);
   }
+
+  // --- DURATION FEEDBACK: exactly one corrective re-synthesis ---
+  //
+  // The per-pair words-per-second table is only ever an ESTIMATE of how long
+  // a script will take; it cannot know a specific script's cue density or
+  // pacing, which a real calibration experiment showed moves effective rate
+  // far more (~13%) than the voice pair itself does (~2.4%). Rather than
+  // chase better constants, this uses the one authoritative number the
+  // pipeline already has -- the real ffprobe duration -- to compute the exact
+  // speed that would have hit the target, and spends ONE more synthesis on
+  // it. correctedSynthesisSpeed() (fishAudio.ts) involves no rate constant at
+  // all, so a wrong or missing table entry costs an extra call, never a
+  // failed episode.
+  //
+  // Bounded at one retry deliberately: the correction is exact, not
+  // iterative, so a second miss means an assumption broke (most likely a
+  // truncated/incomplete first measurement, which would poison the
+  // correction) and a third guess would not help.
+  //
+  // The 300-360s gate below is UNCHANGED and remains the sole authority --
+  // this loop only reduces how often that gate is reached, and if the retry
+  // also misses, the gate rejects the final measurement exactly as before.
+  // The precomputedAudio path never enters here (firstAttempt is null).
+  if (firstAttempt && (durationSeconds < MIN_DURATION_SECONDS || durationSeconds > MAX_DURATION_SECONDS)) {
+    const corrected = correctedSynthesisSpeed(durationSeconds, firstAttempt.requestedSpeed);
+    let retryAudio: Buffer;
+    try {
+      retryAudio = await synthesizeEpisodeAudio(input.script, undefined, corrected.requestedSpeed);
+    } catch (error) {
+      await rm(workDir, { recursive: true, force: true });
+      return fail("STARTED", `Fish Audio synthesis failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    // Same workDir and same file path as attempt 1 -- the corrected audio
+    // replaces it, so a retry can never leak a second temp directory and the
+    // single existing cleanup below still covers everything.
+    audio = retryAudio;
+    await writeFile(audioPath, audio);
+    try {
+      durationSeconds = await ffprobeDurationSeconds(audioPath);
+    } catch (error) {
+      await rm(workDir, { recursive: true, force: true });
+      return fail("AUDIO_VALIDATED", `ffprobe failed to read the generated audio: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    log(log_, generationId, "AUDIO_GENERATED", {
+      attempt: 2,
+      bytes: audio.length,
+      wordCount: firstAttempt.wordCount,
+      speakers: firstAttempt.speakers,
+      correctedFromSpeed: firstAttempt.requestedSpeed,
+      requestedSpeed: corrected.requestedSpeed,
+      measuredDurationSeconds: corrected.estimatedUnadjustedDurationSeconds / firstAttempt.requestedSpeed,
+      estimatedUnadjustedDurationSeconds: corrected.estimatedUnadjustedDurationSeconds,
+      expectedDurationSeconds: corrected.estimatedUnadjustedDurationSeconds / corrected.requestedSpeed,
+      speedWasClamped: corrected.wasClamped,
+    });
+  }
+
   if (durationSeconds < MIN_DURATION_SECONDS || durationSeconds > MAX_DURATION_SECONDS) {
     await rm(workDir, { recursive: true, force: true });
     return fail("AUDIO_VALIDATED", `Duration ${durationSeconds.toFixed(1)}s is outside the ${MIN_DURATION_SECONDS}-${MAX_DURATION_SECONDS}s target window`);

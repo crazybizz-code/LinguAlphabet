@@ -3,6 +3,7 @@ import {
   synthesizeEpisodeAudio,
   countScriptWords,
   calculateSynthesisSpeed,
+  correctedSynthesisSpeed,
   distinctSpeakersInScript,
   wordsPerSecondForPair,
   FishAudioError,
@@ -149,29 +150,47 @@ describe("distinctSpeakersInScript / wordsPerSecondForPair -- pair-specific cali
     expect(wordsPerSecondForPair(["Hannah", "Ben"])).toBe(2.48);
   });
 
-  it("wordsPerSecondForPair looks up Ben+Leo's calibrated rate, order-independent", () => {
-    expect(wordsPerSecondForPair(["Ben", "Leo"])).toBe(3.282);
-    expect(wordsPerSecondForPair(["Leo", "Ben"])).toBe(3.282);
-  });
-
-  it("wordsPerSecondForPair still falls back to ASSUMED_NATURAL_WORDS_PER_SECOND for a pair with no real measurement", () => {
-    // Ben+Leo used to be the example here; it now has a real measurement, so
-    // the fallback is exercised with Maya+Alex -- registered speakers that
-    // are not part of any approved rotation pair (voiceRotation.ts's
-    // PAIR_FOR_COMBINATION) and have never been measured under V2.
+  it("wordsPerSecondForPair falls back to ASSUMED_NATURAL_WORDS_PER_SECOND for a pair with no trustworthy measurement", () => {
+    expect(wordsPerSecondForPair(["Ben", "Leo"])).toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
+    expect(wordsPerSecondForPair(["Leo", "Ben"])).toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
     expect(wordsPerSecondForPair(["Maya", "Alex"])).toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
     expect(ASSUMED_NATURAL_WORDS_PER_SECOND).toBe(2.835);
   });
 
-  it("adding Ben+Leo leaves the other two calibrations and the fallback constant untouched", () => {
+  it("removing Ben+Leo leaves the other two calibrations and the fallback constant untouched", () => {
     expect(wordsPerSecondForPair(["Sarah", "Hannah"])).toBe(2.455);
     expect(wordsPerSecondForPair(["Ben", "Hannah"])).toBe(2.48);
     expect(ASSUMED_NATURAL_WORDS_PER_SECOND).toBe(2.835);
   });
 
-  it("every approved rotation pair now has a real calibration, none silently on the fallback", () => {
-    for (const pair of [["Sarah", "Hannah"], ["Ben", "Leo"], ["Ben", "Hannah"]] as const) {
-      expect(wordsPerSecondForPair(pair)).not.toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
+  /**
+   * ANTI-REGRESSION: Ben+Leo must not silently re-acquire a calibration from
+   * the anomalous local datapoint. A commit briefly set it to 3.282,
+   * back-calculated from one run whose audio was ~26% shorter than every
+   * other run predicts (most likely truncated). Applied in production it
+   * overshot the ceiling by 87.5s on GitHub Actions run #42, whose own
+   * back-calculation for the SAME pair was 2.4194 -- inside the cluster.
+   */
+  it("Ben+Leo must never be calibrated from the anomalous 3.282 measurement", () => {
+    expect(wordsPerSecondForPair(["Ben", "Leo"])).not.toBe(3.282);
+  });
+
+  it("any Ben+Leo calibration added in future must sit inside the observed 2.4-2.5 cluster", () => {
+    // Guards the real failure mode: not "an entry exists" but "an entry
+    // wildly outside every real measurement exists". If a future entry is
+    // added it must be plausible; until then the fallback is expected.
+    const rate = wordsPerSecondForPair(["Ben", "Leo"]);
+    const isFallback = rate === ASSUMED_NATURAL_WORDS_PER_SECOND;
+    const isPlausible = rate >= 2.3 && rate <= 2.7;
+    expect(isFallback || isPlausible).toBe(true);
+  });
+
+  it("every calibrated entry sits inside the observed V2 cluster -- no outlier may be committed", () => {
+    // All 7 trustworthy V2 measurements span 2.403-2.528 (mean ~2.44).
+    for (const pair of [["Sarah", "Hannah"], ["Ben", "Hannah"]] as const) {
+      const rate = wordsPerSecondForPair(pair);
+      expect(rate).toBeGreaterThanOrEqual(2.3);
+      expect(rate).toBeLessThanOrEqual(2.7);
     }
   });
 
@@ -220,49 +239,53 @@ describe("distinctSpeakersInScript / wordsPerSecondForPair -- pair-specific cali
   });
 
   /**
-   * REGRESSION -- the real C1 daily-production canary: Ben+Leo, 1218 words.
-   * With no table entry this pair fell back to 2.835, which requested speed
-   * 1.302 and produced 285.0s of real audio -- 15s BELOW the 300s floor, the
-   * opposite direction to every previous miscalibration. Back-calculating:
-   * 1218 / (285.0 x 1.302) = 3.2824 wps, i.e. the fallback was 13.6% too
-   * slow for this pair.
+   * The two Ben+Leo runs and why neither yields a calibration yet.
+   *
+   * Local run:   1218 words, speed 1.302, ffprobe 285.0s -> 3.2824 wps
+   * GHA run #42: 1126 words, speed 1.040, ffprobe 447.5s -> 2.4194 wps
+   *
+   * A 36% disagreement for one pair. The 3.282 figure was briefly committed
+   * and immediately overshot the ceiling by 87.5s in production; it is
+   * treated as an anomalous (likely truncated-audio) measurement. These
+   * tests pin the arithmetic of both runs so the numbers stay checkable,
+   * and assert the pair is on the fallback rather than either figure.
    */
-  describe("Ben+Leo C1 canary regression — 1218 words, undershoot", () => {
-    const WORDS = 1218;
-    const OBSERVED_TRUE_WPS = 1218 / (285.0 * 1.302);
-    const predictedActualSeconds = (assumedWps: number) =>
-      TARGET_DURATION_SECONDS * (assumedWps / OBSERVED_TRUE_WPS);
+  describe("Ben+Leo — two disagreeing measurements, no calibration adopted", () => {
+    const LOCAL_IMPLIED_WPS = 1218 / (285.0 * 1.302);
+    const GHA_IMPLIED_WPS = 1126 / (447.5 * 1.040);
 
-    it("the observed true rate back-calculates to ~3.282, matching the new calibration", () => {
-      expect(OBSERVED_TRUE_WPS).toBeCloseTo(3.282, 3);
-      expect(wordsPerSecondForPair(["Ben", "Leo"])).toBeCloseTo(OBSERVED_TRUE_WPS, 2);
+    it("the two runs really do disagree by ~36%", () => {
+      expect(LOCAL_IMPLIED_WPS).toBeCloseTo(3.2824, 3);
+      expect(GHA_IMPLIED_WPS).toBeCloseTo(2.4194, 3);
+      expect((LOCAL_IMPLIED_WPS - GHA_IMPLIED_WPS) / GHA_IMPLIED_WPS).toBeGreaterThan(0.3);
     });
 
-    it("the OLD 2.835 fallback reproduces the real 285.0s undershoot", () => {
-      const old = calculateSynthesisSpeed(WORDS, undefined, ASSUMED_NATURAL_WORDS_PER_SECOND);
-      expect(old.estimatedUnadjustedDurationSeconds).toBeCloseTo(429.63, 2);
-      expect(old.requestedSpeed).toBe(1.302);
-      expect(predictedActualSeconds(2.835)).toBeCloseTo(285.0, 0);
-      // ...which the unchanged 300-360s gate correctly rejected, from below.
-      expect(predictedActualSeconds(2.835)).toBeLessThan(300);
+    it("the GHA measurement sits inside the observed V2 cluster; the local one is a far outlier", () => {
+      // All 7 trustworthy V2 measurements span 2.403-2.528.
+      expect(GHA_IMPLIED_WPS).toBeGreaterThanOrEqual(2.4);
+      expect(GHA_IMPLIED_WPS).toBeLessThanOrEqual(2.53);
+      expect(LOCAL_IMPLIED_WPS).toBeGreaterThan(2.53);
     });
 
-    it("the NEW 3.282 calibration targets ~330s and lands inside the 300-360s gate", () => {
-      const fixed = calculateSynthesisSpeed(WORDS, undefined, wordsPerSecondForPair(["Ben", "Leo"]));
-      expect(fixed.wasClamped).toBe(false);
-      // A faster true rate needs LESS speed-up than the old fallback demanded.
-      expect(fixed.requestedSpeed).toBeLessThan(1.302);
-
-      const predicted = predictedActualSeconds(wordsPerSecondForPair(["Ben", "Leo"]));
-      expect(predicted).toBeCloseTo(330, 0);
-      expect(predicted).toBeGreaterThan(300);
-      expect(predicted).toBeLessThan(360);
+    it("the local run's audio is ~26% shorter than the cluster rate predicts -- the truncation signal", () => {
+      const CLUSTER_WPS = 2.44;
+      const expectedSeconds = 1218 / CLUSTER_WPS / 1.302;
+      expect(expectedSeconds).toBeCloseTo(383, 0);
+      expect(1 - 285.0 / expectedSeconds).toBeGreaterThan(0.2);
     });
 
-    it("the corrected speed stays inside Fish Audio's documented range", () => {
-      const fixed = calculateSynthesisSpeed(WORDS, undefined, wordsPerSecondForPair(["Ben", "Leo"]));
-      expect(fixed.requestedSpeed).toBeGreaterThanOrEqual(FISH_PROSODY_SPEED_MIN);
-      expect(fixed.requestedSpeed).toBeLessThanOrEqual(FISH_PROSODY_SPEED_MAX);
+    it("Ben+Leo currently uses the fallback, matching neither measurement", () => {
+      const rate = wordsPerSecondForPair(["Ben", "Leo"]);
+      expect(rate).toBe(ASSUMED_NATURAL_WORDS_PER_SECOND);
+      expect(rate).not.toBeCloseTo(LOCAL_IMPLIED_WPS, 2);
+      expect(rate).not.toBeCloseTo(GHA_IMPLIED_WPS, 2);
+    });
+
+    it("the fallback still produces a valid, in-range speed for this pair even though it is not calibrated", () => {
+      const result = calculateSynthesisSpeed(1126, undefined, wordsPerSecondForPair(["Ben", "Leo"]));
+      expect(result.wasClamped).toBe(false);
+      expect(result.requestedSpeed).toBeGreaterThanOrEqual(FISH_PROSODY_SPEED_MIN);
+      expect(result.requestedSpeed).toBeLessThanOrEqual(FISH_PROSODY_SPEED_MAX);
     });
   });
 
@@ -338,5 +361,89 @@ describe("synthesizeEpisodeAudio — payload shape", () => {
   it("throws FishAudioError when FISH_API_KEY is missing, exactly as before this fix", async () => {
     delete process.env.FISH_API_KEY;
     await expect(synthesizeEpisodeAudio(SCRIPT)).rejects.toThrow(FishAudioError);
+  });
+});
+
+/**
+ * DURATION FEEDBACK — the corrective speed derived from a real measurement.
+ *
+ * Replaces "trust the words-per-second constant" with "trust the ffprobe
+ * number we already have". No rate constant participates in this function,
+ * which is the whole point: a wrong or missing PAIR_SPECIFIC_WORDS_PER_SECOND
+ * entry costs one extra synthesis, never a failed episode.
+ */
+describe("correctedSynthesisSpeed — exact correction from a real measurement", () => {
+  it("replays run #39 (Sarah+Hannah): 381.0s at speed 1.112 -> ~1.284", () => {
+    expect(correctedSynthesisSpeed(381.0, 1.112).requestedSpeed).toBeCloseTo(1.284, 3);
+  });
+
+  it("replays run #42 (Ben+Leo): 447.5s at speed 1.040 -> ~1.410", () => {
+    expect(correctedSynthesisSpeed(447.5, 1.040).requestedSpeed).toBeCloseTo(1.410, 3);
+  });
+
+  it("replays the local Ben+Leo run: 285.0s at speed 1.302 -> ~1.124", () => {
+    expect(correctedSynthesisSpeed(285.0, 1.302).requestedSpeed).toBeCloseTo(1.124, 3);
+  });
+
+  it("each replayed correction predicts ~330s on the retry", () => {
+    for (const [measured, speed] of [[381.0, 1.112], [447.5, 1.040], [285.0, 1.302]] as const) {
+      const corrected = correctedSynthesisSpeed(measured, speed);
+      // naturalDuration is invariant under speed, so the retry's duration is
+      // naturalDuration / correctedSpeed.
+      expect((measured * speed) / corrected.requestedSpeed).toBeCloseTo(TARGET_DURATION_SECONDS, 0);
+    }
+  });
+
+  it("corrects DOWNWARD when the first attempt overshot, and UPWARD when it undershot", () => {
+    expect(correctedSynthesisSpeed(447.5, 1.040).requestedSpeed).toBeGreaterThan(1.040);
+    expect(correctedSynthesisSpeed(285.0, 1.302).requestedSpeed).toBeLessThan(1.302);
+  });
+
+  it("an already-on-target measurement corrects to (approximately) the same speed", () => {
+    const corrected = correctedSynthesisSpeed(TARGET_DURATION_SECONDS, 1.25);
+    expect(corrected.requestedSpeed).toBeCloseTo(1.25, 3);
+    expect(corrected.wasClamped).toBe(false);
+  });
+
+  it("clamps to FISH_PROSODY_SPEED_MAX and flags it", () => {
+    // A wildly long first result would demand a speed past 2.0.
+    const corrected = correctedSynthesisSpeed(900, 1.5);
+    expect(corrected.requestedSpeed).toBe(FISH_PROSODY_SPEED_MAX);
+    expect(corrected.wasClamped).toBe(true);
+  });
+
+  it("clamps to FISH_PROSODY_SPEED_MIN and flags it", () => {
+    const corrected = correctedSynthesisSpeed(60, 1.0);
+    expect(corrected.requestedSpeed).toBe(FISH_PROSODY_SPEED_MIN);
+    expect(corrected.wasClamped).toBe(true);
+  });
+
+  it("never returns a speed outside Fish Audio's documented range, across a wide sweep", () => {
+    for (const measured of [30, 120, 285, 330, 400, 447.5, 600, 900, 1500]) {
+      for (const speed of [0.5, 1.0, 1.302, 1.547, 2.0]) {
+        const r = correctedSynthesisSpeed(measured, speed);
+        expect(r.requestedSpeed).toBeGreaterThanOrEqual(FISH_PROSODY_SPEED_MIN);
+        expect(r.requestedSpeed).toBeLessThanOrEqual(FISH_PROSODY_SPEED_MAX);
+      }
+    }
+  });
+
+  it("uses NO words-per-second constant -- identical measurement gives identical correction regardless of pair", () => {
+    // Same measured duration + same requested speed must correct identically
+    // whether the episode was Sarah+Hannah, Ben+Hannah or an uncalibrated pair.
+    const a = correctedSynthesisSpeed(447.5, 1.040);
+    const b = correctedSynthesisSpeed(447.5, 1.040);
+    expect(a).toEqual(b);
+    expect(a.estimatedUnadjustedDurationSeconds).toBeCloseTo(447.5 * 1.040, 6);
+  });
+
+  it("is deterministic and pure", () => {
+    expect(correctedSynthesisSpeed(400, 1.2)).toEqual(correctedSynthesisSpeed(400, 1.2));
+  });
+
+  it("respects a custom target duration", () => {
+    const at330 = correctedSynthesisSpeed(400, 1.2, 330).requestedSpeed;
+    const at400 = correctedSynthesisSpeed(400, 1.2, 400).requestedSpeed;
+    expect(at400).toBeLessThan(at330);
   });
 });
