@@ -41,10 +41,47 @@
 
 export type LinguAbcCefrLevel = "B2" | "C1" | "C2";
 
+/**
+ * Every level an AI-generated LinguABC episode may legitimately GRADE as.
+ * Unchanged, and deliberately still includes C2: this list backs
+ * isApprovedLinguAbcCefrLevel() (what counts as an acceptable grade) and
+ * supplies the B2 < C1 < C2 ordering meetsOrExceedsLinguAbcCefrLevel()
+ * indexes into. A C2-graded script must still be approved and must still
+ * compare correctly -- narrowing this list would silently change the
+ * grading gate, which is a different concern from what the scheduler asks
+ * for.
+ */
 export const LINGUABC_CEFR_LEVELS: readonly LinguAbcCefrLevel[] = ["B2", "C1", "C2"];
 
+/**
+ * The levels the daily scheduler actually REQUESTS -- B2 and C1 only.
+ *
+ * C2 is excluded because it is not reachable, not merely hard. The
+ * authoritative grader defines cefrLevelMax as "the HIGHEST CEFR level this
+ * content still meaningfully serves", and its own rubric puts C2 at
+ * "mastery ... only near-native speakers reach 70% independently" -- a bar
+ * English-learning content essentially cannot clear by construction.
+ *
+ * Measured, not assumed. A controlled two-arm experiment generated 8 C2
+ * scripts through the real prompt and the real authoritative grader: 4 with
+ * the production content brief and 4 with an enriched brief explicitly
+ * demanding competing interpretations, causal reasoning, cultural framing
+ * and genuine abstraction. All 8 graded B2-C1; the enriched brief changed
+ * nothing. Checking every graded row in the database then showed the grader
+ * has returned cefrLevelMax=C2 exactly ZERO times across 285 items, of any
+ * content type. A real C2 daily run (Actions #43) had already burned all 6
+ * attempts against the same wall.
+ *
+ * So this is a scheduling change ONLY. Nothing about grading moves: the
+ * cefrLevelMax gate, the approved-level check, the guidance text and the
+ * prompts are all untouched, and C2 stays a valid grade in
+ * LINGUABC_CEFR_LEVELS above. If the grading contract is ever redefined so
+ * C2 becomes attainable, restoring it here is a one-element edit.
+ */
+export const LINGUABC_ROTATION_CEFR_LEVELS: readonly LinguAbcCefrLevel[] = ["B2", "C1"];
+
 export function chooseCefrLevelForEpisode(episodeNumber: number): LinguAbcCefrLevel {
-  return LINGUABC_CEFR_LEVELS[(episodeNumber - 1) % LINGUABC_CEFR_LEVELS.length];
+  return LINGUABC_ROTATION_CEFR_LEVELS[(episodeNumber - 1) % LINGUABC_ROTATION_CEFR_LEVELS.length];
 }
 
 export function isApprovedLinguAbcCefrLevel(level: unknown): level is LinguAbcCefrLevel {

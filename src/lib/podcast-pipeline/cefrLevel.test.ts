@@ -1,28 +1,57 @@
 import { describe, it, expect } from "vitest";
-import { chooseCefrLevelForEpisode, isApprovedLinguAbcCefrLevel, meetsOrExceedsLinguAbcCefrLevel, LINGUABC_CEFR_LEVELS } from "./cefrLevel";
+import { chooseCefrLevelForEpisode, isApprovedLinguAbcCefrLevel, meetsOrExceedsLinguAbcCefrLevel, LINGUABC_CEFR_LEVELS, LINGUABC_ROTATION_CEFR_LEVELS } from "./cefrLevel";
 
 /**
- * LinguABC AI-generated podcast level policy: B2/C1/C2 only, rotated by
- * episode number the same way voiceRotation.ts rotates voice pairs. B1 is
- * reserved for external content and must never be selectable here.
+ * LinguABC AI-generated podcast level policy. Two separate lists, on
+ * purpose: LINGUABC_CEFR_LEVELS is every level a script may legitimately
+ * GRADE as (still B2/C1/C2), while LINGUABC_ROTATION_CEFR_LEVELS is what the
+ * daily scheduler REQUESTS (B2/C1 only). B1 is reserved for external content
+ * and must never be selectable by either.
  */
 describe("chooseCefrLevelForEpisode", () => {
-  it("cycles deterministically: B2, C1, C2, then repeats", () => {
+  it("cycles deterministically: B2, C1, then repeats", () => {
     expect(chooseCefrLevelForEpisode(1)).toBe("B2");
     expect(chooseCefrLevelForEpisode(2)).toBe("C1");
-    expect(chooseCefrLevelForEpisode(3)).toBe("C2");
-    expect(chooseCefrLevelForEpisode(4)).toBe("B2");
+    expect(chooseCefrLevelForEpisode(3)).toBe("B2");
+    expect(chooseCefrLevelForEpisode(4)).toBe("C1");
   });
 
-  it("episode #006 (the true next production episode) resolves to C2", () => {
-    // (6-1) % 3 === 2 -> C2, per the deterministic sequence above.
-    expect(chooseCefrLevelForEpisode(6)).toBe("C2");
+  /**
+   * C2 is unreachable, not merely hard: 8 controlled C2 generations through
+   * the real prompt and real grader all returned B2-C1 (an enriched content
+   * brief changed nothing), and the grader has never returned cefrLevelMax=C2
+   * across 285 graded items. Requesting it guaranteed a failed day.
+   */
+  it("never selects C2 -- the scheduler must not request an unreachable level", () => {
+    for (let episodeNumber = 1; episodeNumber <= 100; episodeNumber++) {
+      expect(chooseCefrLevelForEpisode(episodeNumber)).not.toBe("C2");
+    }
+    expect(LINGUABC_ROTATION_CEFR_LEVELS).not.toContain("C2");
   });
 
-  it("never selects B1 or any level outside B2/C1/C2, across many episode numbers", () => {
+  it("alternates strictly between B2 and C1 -- both levels stay in rotation", () => {
+    const selected = new Set(Array.from({ length: 20 }, (_, i) => chooseCefrLevelForEpisode(i + 1)));
+    expect([...selected].sort()).toEqual(["B2", "C1"]);
+  });
+
+  it("never selects B1 or any level outside the approved set, across many episode numbers", () => {
     for (let episodeNumber = 1; episodeNumber <= 30; episodeNumber++) {
       expect(LINGUABC_CEFR_LEVELS).toContain(chooseCefrLevelForEpisode(episodeNumber));
     }
+  });
+
+  /**
+   * The grading side must be untouched by this scheduling change: C2 remains
+   * a valid GRADE (isApprovedLinguAbcCefrLevel) and remains in the ordering
+   * meetsOrExceedsLinguAbcCefrLevel() indexes into. Narrowing the shared list
+   * instead of adding a rotation-only one would have broken both.
+   */
+  it("C2 is still an approved grade and still orders correctly, even though it is never requested", () => {
+    expect(LINGUABC_CEFR_LEVELS).toContain("C2");
+    expect(isApprovedLinguAbcCefrLevel("C2")).toBe(true);
+    expect(meetsOrExceedsLinguAbcCefrLevel("C2", "C1")).toBe(true);
+    expect(meetsOrExceedsLinguAbcCefrLevel("C2", "C2")).toBe(true);
+    expect(meetsOrExceedsLinguAbcCefrLevel("C1", "C2")).toBe(false);
   });
 });
 
