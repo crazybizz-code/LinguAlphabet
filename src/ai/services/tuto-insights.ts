@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { generateStructuredJson } from "./generate-structured-json";
 import { formatLearnerEvidence, type LearnerEvidence } from "@/ai/data/learner-evidence";
+import { MODEL_ROUTING, MAX_TOKENS } from "@/ai/models";
 
 export const TutoInsightsResponseSchema = z.object({
   assessment: z.string(),
@@ -38,5 +39,7 @@ export async function generateTutoInsights(evidence: LearnerEvidence): Promise<T
     ],
     schema: TutoInsightsResponseSchema,
     schemaName: "tuto_insights",
+    model: MODEL_ROUTING.tutoChat,
+    maxTokens: MAX_TOKENS.tutoInsights,
   });
 }

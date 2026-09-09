@@ -2,26 +2,31 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { z } from "zod";
 import { generateStructuredJson } from "./generate-structured-json";
 import { AIProviderError, getDefaultProvider, registerProvider } from "@/ai/providers";
-import type { AIProvider, AIProviderCompletionResult } from "@/ai/providers";
+import type { AIProvider, AIProviderCompletionInput, AIProviderCompletionResult } from "@/ai/providers";
 import { BATCH_RETRY_POLICY } from "@/ai/retry";
 
 const Schema = z.object({ answer: z.string(), score: z.number() });
 
 /** Registered under the id getDefaultProvider() resolves to, so the real lookup path is exercised. */
-function install(complete: () => Promise<AIProviderCompletionResult>): { calls: () => number } {
+function install(complete: (input: AIProviderCompletionInput) => Promise<AIProviderCompletionResult>): {
+  calls: () => number;
+  inputs: AIProviderCompletionInput[];
+} {
   let calls = 0;
+  const inputs: AIProviderCompletionInput[] = [];
   const provider: AIProvider = {
     id: "openrouter",
-    complete: async () => {
+    complete: async (input) => {
       calls += 1;
-      return complete();
+      inputs.push(input);
+      return complete(input);
     },
     stream: async function* () {
       yield { delta: "", done: true };
     },
   };
   registerProvider(provider);
-  return { calls: () => calls };
+  return { calls: () => calls, inputs };
 }
 
 function ok(content: string): AIProviderCompletionResult {
@@ -55,6 +60,50 @@ async function runWithTimers<T>(promise: Promise<T>): Promise<T> {
 }
 
 describe("generateStructuredJson", () => {
+  it("forwards the selected model and token ceiling to the provider", async () => {
+    const spy = install(async () => ok('{"answer":"yes","score":7}'));
+
+    await runWithTimers(
+      generateStructuredJson({
+        messages: [{ role: "user", content: "hi" }],
+        schema: Schema,
+        schemaName: "test",
+        model: "google/gemini-2.5-flash-lite",
+        maxTokens: 321,
+      }),
+    );
+
+    expect(spy.inputs).toHaveLength(1);
+    expect(spy.inputs[0]).toMatchObject({
+      model: "google/gemini-2.5-flash-lite",
+      maxTokens: 321,
+    });
+  });
+
+  it("preserves the selected model and token ceiling across retry attempts", async () => {
+    let attempt = 0;
+    const spy = install(async () => {
+      attempt += 1;
+      if (attempt === 1) throw new AIProviderError("upstream", 503, true);
+      return ok('{"answer":"yes","score":7}');
+    });
+
+    await runWithTimers(
+      generateStructuredJson({
+        messages: [],
+        schema: Schema,
+        schemaName: "test",
+        retryPolicy: BATCH_RETRY_POLICY,
+        model: "google/gemini-2.5-flash",
+        maxTokens: 4000,
+      }),
+    );
+
+    expect(spy.inputs).toHaveLength(2);
+    expect(spy.inputs.every((input) => input.model === "google/gemini-2.5-flash")).toBe(true);
+    expect(spy.inputs.every((input) => input.maxTokens === 4000)).toBe(true);
+  });
+
   it("returns typed, schema-validated data", async () => {
     install(async () => ok('{"answer":"yes","score":7}'));
 
@@ -226,6 +275,20 @@ describe("generateStructuredJson", () => {
         generateStructuredJson({ messages: [], schema: Schema, schemaName: "test", retryPolicy: BATCH_RETRY_POLICY }),
       ),
     ).rejects.toThrow(/bad request/);
+    expect(spy.calls()).toBe(1);
+  });
+
+  it.each([401, 402, 403])("fails fast on fatal provider status %i", async (status) => {
+    const error = new AIProviderError(`fatal ${status}`, status, false);
+    const spy = install(async () => {
+      throw error;
+    });
+
+    await expect(
+      runWithTimers(
+        generateStructuredJson({ messages: [], schema: Schema, schemaName: "test", retryPolicy: BATCH_RETRY_POLICY }),
+      ),
+    ).rejects.toBe(error);
     expect(spy.calls()).toBe(1);
   });
 

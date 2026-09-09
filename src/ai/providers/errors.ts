@@ -28,3 +28,28 @@ export class AIProviderError extends Error {
     this.retryAfterMs = retryAfterMs;
   }
 }
+
+/**
+ * Statuses that mean "this request cannot succeed however many times it is
+ * sent": the account is out of credit (402), the key is wrong (401), or the
+ * key is not permitted to do this (403).
+ *
+ * WHY THIS EXISTS. `retryable` already tells the retry CONTROLLER not to
+ * re-send a call, and it correctly refuses to. But the batch pipelines wrap
+ * their generation call in their own outer attempt loop, and those loops
+ * treated any thrown error as "this draft was bad, make another one". A single
+ * 402 therefore regenerated a whole podcast script six times, paying for every
+ * script and re-hitting the same unaffordable grading call each round.
+ *
+ * A budget or credential failure is not a quality problem, so the outer loops
+ * ask this and abort instead of paying to rediscover the same answer.
+ */
+const FATAL_PROVIDER_STATUSES: ReadonlySet<number> = new Set([401, 402, 403]);
+
+export function isFatalProviderError(error: unknown): error is AIProviderError {
+  return (
+    error instanceof AIProviderError &&
+    error.status !== undefined &&
+    FATAL_PROVIDER_STATUSES.has(error.status)
+  );
+}

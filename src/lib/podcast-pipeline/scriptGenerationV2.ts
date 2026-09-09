@@ -7,6 +7,8 @@ import type { EnrichmentResult } from "@/lib/content-engine/types";
 import { isApprovedLinguAbcCefrLevel, meetsOrExceedsLinguAbcCefrLevel, type LinguAbcCefrLevel } from "./cefrLevel";
 import { buildReaderTranscript } from "./transcript";
 import { checkOpeningStructure, toScriptLines, type ScriptGenerationRequest, type ScriptGenerationOutput, type OpeningStructureCheck } from "./scriptGeneration";
+import { MODEL_ROUTING, ENRICHMENT_MAX_TOKENS } from "@/ai/models";
+import { isFatalProviderError } from "@/ai/providers/errors";
 
 /**
  * PODCAST SCRIPT GENERATION — V2.
@@ -177,7 +179,7 @@ const MAX_ATTEMPTS_V2 = 6;
  * SCRIPT_JSON_MAX_TOKENS (6000, calibrated for a ~965-word/100-turn
  * ceiling) proportionally for a ~1500-word/140-turn ceiling, so a
  * genuinely long, valid script's JSON response is never truncated. */
-const SCRIPT_JSON_MAX_TOKENS_V2 = 9000;
+export const SCRIPT_JSON_MAX_TOKENS_V2 = 9000;
 
 function sleepV2(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -540,6 +542,19 @@ export async function generatePodcastScriptV2(request: ScriptGenerationRequest):
   const attemptLog: string[] = [];
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS_V2; attempt++) {
+    // Attempt-level cost visibility.
+    //
+    // ai_usage_events already records model, tokens and estimated cost per
+    // CALL, but it has no notion of which retry a call belonged to, so a run
+    // that quietly took five attempts is indistinguishable from five separate
+    // one-attempt runs when reading the table. This line is what ties the two
+    // together: pair it with the usage rows for the same window to see what a
+    // single episode actually cost. Logged rather than written to the usage
+    // table, which would mean a schema change.
+    console.info(
+      `[podcast-v2] attempt ${attempt}/${MAX_ATTEMPTS_V2} — script model=${MODEL_ROUTING.podcastScriptV2} maxTokens=${SCRIPT_JSON_MAX_TOKENS_V2}` +
+      (previousOutput ? " (revision of previous draft)" : " (initial draft)"),
+    );
     const wasPureCefrMismatch = isPureCefrMismatchV2(lastIssues);
     const messages: AIProviderMessage[] = previousOutput
       ? [
@@ -556,12 +571,19 @@ export async function generatePodcastScriptV2(request: ScriptGenerationRequest):
         schema: ScriptGenerationOutputSchemaV2,
         schemaName: "linguabc_podcast_script_v2",
         retryPolicy: BATCH_RETRY_POLICY,
+        model: MODEL_ROUTING.podcastScriptV2,
         temperature: 0.9,
         maxTokens: SCRIPT_JSON_MAX_TOKENS_V2,
       });
     } catch (error) {
+      // A budget or credential failure is deterministic: the next attempt
+      // sends the same unaffordable request and fails identically. Retrying it
+      // as though the draft were at fault is what turned one 402 into six full
+      // script generations. Abort so the run fails once, loudly and cheaply.
+      if (isFatalProviderError(error)) throw error;
       lastIssues = [{ message: error instanceof Error ? error.message : String(error) }];
       attemptLog.push(`attempt ${attempt}: parse/generation error`);
+      console.warn(`[podcast-v2] attempt ${attempt} failed: generation/parse error — retrying`);
       await sleepV2(3000 * attempt);
       continue;
     }
@@ -572,6 +594,7 @@ export async function generatePodcastScriptV2(request: ScriptGenerationRequest):
     if (structuralIssues.length > 0) {
       lastIssues = structuralIssues;
       attemptLog.push(`attempt ${attempt}: structural issues (wordCount: ${wordCount})`);
+      console.warn(`[podcast-v2] attempt ${attempt} rejected: ${structuralIssues.length} structural issue(s) — regenerating (no grading call spent)`);
       continue;
     }
 
@@ -580,9 +603,18 @@ export async function generatePodcastScriptV2(request: ScriptGenerationRequest):
     // "don't spend a paid grading call on a script that's already going
     // to be rejected" reasoning V1 uses.
     let graded: CefrGradingResultV2;
+    console.info(
+      `[podcast-v2] attempt ${attempt}/${MAX_ATTEMPTS_V2} — structural checks passed (wordCount ${wordCount}); ` +
+      `calling enrichment/CEFR grading model=${MODEL_ROUTING.enrichment} maxTokens=${ENRICHMENT_MAX_TOKENS}`,
+    );
     try {
       graded = await checkCefrGradeV2(output, request);
     } catch (error) {
+      // A budget or credential failure is deterministic: the next attempt
+      // sends the same unaffordable request and fails identically. Retrying it
+      // as though the draft were at fault is what turned one 402 into six full
+      // script generations. Abort so the run fails once, loudly and cheaply.
+      if (isFatalProviderError(error)) throw error;
       lastIssues = [{ message: `Enrichment/CEFR grading failed: ${error instanceof Error ? error.message : String(error)}` }];
       attemptLog.push(`attempt ${attempt}: CEFR grading call failed (wordCount: ${wordCount})`);
       continue;
@@ -590,6 +622,7 @@ export async function generatePodcastScriptV2(request: ScriptGenerationRequest):
     if ("issues" in graded) {
       lastIssues = graded.issues;
       attemptLog.push(`attempt ${attempt}: CEFR grade rejected (wordCount: ${wordCount})`);
+      console.warn(`[podcast-v2] attempt ${attempt} rejected by CEFR grading — regenerating (script + grading call both spent)`);
       continue;
     }
 

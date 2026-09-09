@@ -5,6 +5,7 @@ import { BATCH_RETRY_POLICY } from "@/ai/retry";
 import { CONTROLLED_TOPICS } from "@/lib/constants/topics";
 import { cefrIndex } from "@/lib/learning-brain/cefr";
 import type { ContentModality, EnrichmentResult } from "./types";
+import { MODEL_ROUTING, ENRICHMENT_MAX_TOKENS } from "@/ai/models";
 
 /**
  * 3. AI Processing — the first real AI-based content enrichment in the
@@ -171,6 +172,15 @@ export async function generateEnrichment(
     schema: buildEnrichmentSchema(modality),
     schemaName: "content_enrichment",
     retryPolicy: BATCH_RETRY_POLICY,
+    // Pinned rather than inherited: this call grades CEFR, and the podcast
+    // loop regenerates a whole script when grading rejects it. A cheaper
+    // grader that judges differently would change how often that loop runs,
+    // so switching it is a benchmarking exercise, not a config tweak.
+    model: MODEL_ROUTING.enrichment,
+    // First ceiling on this call -- it previously ran with no cap at all and
+    // inherited the model's default. See ENRICHMENT_MAX_TOKENS for how the
+    // number was sized against the prompt's own item limits.
+    maxTokens: ENRICHMENT_MAX_TOKENS,
   });
 
   // Ordering invariant: cefrLevelMin must be ≤ cefrLevelMax. The Zod enum

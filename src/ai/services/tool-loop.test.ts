@@ -5,6 +5,7 @@ import { registerTool } from "@/ai/tools";
 import type { AIProvider, AIProviderCompletionInput, AIProviderCompletionResult } from "@/ai/providers";
 import { buildLearningContext } from "@/ai/context";
 import { estimateTokens } from "./token-budget";
+import { MAX_TOKENS } from "@/ai/models";
 
 /** A deliberately enormous transcript — the exact shape that was being re-sent in full on every iteration. */
 const HUGE_SEGMENTS = Array.from({ length: 900 }, (_, i) => ({
@@ -130,5 +131,25 @@ describe("runToolLoop token budget", () => {
 
     expect(calls.length).toBeGreaterThan(1);
     expect(calls.every((call) => call.feature === "chat")).toBe(true);
+  });
+
+  it("forwards one model and token ceiling through every tool iteration and the forced final call", async () => {
+    const { provider, calls } = scriptedProvider(4);
+    await runToolLoop(provider, [{ role: "system", content: "sys" }], buildLearningContext(), {
+      feature: "chat",
+      model: "google/gemini-2.5-flash",
+      maxTokens: 1777,
+    });
+
+    expect(calls).toHaveLength(5);
+    expect(calls.every((call) => call.model === "google/gemini-2.5-flash")).toBe(true);
+    expect(calls.every((call) => call.maxTokens === 1777)).toBe(true);
+  });
+
+  it("uses the bounded Tuto chat ceiling when a caller does not override it", async () => {
+    const { provider, calls } = scriptedProvider(1);
+    await runToolLoop(provider, [{ role: "system", content: "sys" }], buildLearningContext(), { feature: "chat" });
+
+    expect(calls.every((call) => call.maxTokens === MAX_TOKENS.tutoChat)).toBe(true);
   });
 });

@@ -163,16 +163,22 @@ function toWireResponseFormat(responseFormat?: AIProviderResponseFormat) {
 
 /**
  * Server-only: OPENROUTER_API_KEY must never reach a Client Component,
- * same convention as GEMINI_API_KEY (docs/coding-standards.md). Model is
- * never hardcoded — OPENROUTER_MODEL is read fresh on every call so
- * changing it is a config change, not a deploy.
+ * same convention as GEMINI_API_KEY (docs/coding-standards.md). No model name
+ * is hardcoded here: a call either names its own model (see src/ai/models.ts)
+ * or inherits OPENROUTER_MODEL, which is read fresh on every call so changing
+ * it stays a config change rather than a deploy.
  *
  * `responseFormat` (Sprint 4) only ever constrains `content` — a turn
  * where the model calls a tool instead still returns `toolCalls` exactly
  * as it would without one.
  */
 async function complete(input: AIProviderCompletionInput): Promise<AIProviderCompletionResult> {
-  const { apiKey, model } = getConfig();
+  const { apiKey, model: fallbackModel } = getConfig();
+  // Per-call override wins; OPENROUTER_MODEL is the fallback. Resolved once so
+  // the request body and every telemetry row agree on which model actually ran
+  // -- attributing a Flash-Lite call to Flash would silently corrupt the cost
+  // breakdown the routing decisions are made from.
+  const model = input.model ?? fallbackModel;
   const startedAt = performance.now();
 
   const response = await fetch(OPENROUTER_ENDPOINT, {
@@ -247,7 +253,8 @@ async function complete(input: AIProviderCompletionInput): Promise<AIProviderCom
  * note for the tradeoff this implies.
  */
 async function* stream(input: AIProviderCompletionInput): AsyncGenerator<AIProviderStreamChunk> {
-  const { apiKey, model } = getConfig();
+  const { apiKey, model: fallbackModel } = getConfig();
+  const model = input.model ?? fallbackModel;
   const startedAt = performance.now();
 
   const response = await fetch(OPENROUTER_ENDPOINT, {

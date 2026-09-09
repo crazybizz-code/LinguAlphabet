@@ -1,5 +1,6 @@
 import type { AIProvider } from "@/ai/providers";
 import type { ConversationMessage } from "@/ai/schemas";
+import { MAX_TOKENS, MODEL_ROUTING } from "@/ai/models";
 
 /**
  * How many of the most recent user/assistant turns are always sent to the
@@ -62,8 +63,9 @@ export async function summarizeOverflow(overflow: ConversationMessage[], provide
         },
         { role: "user", content: formatForSummary(overflow) },
       ],
+      model: MODEL_ROUTING.conversationSummariser,
       temperature: 0.3,
-      maxTokens: 200,
+      maxTokens: MAX_TOKENS.conversationSummariser,
       feature: "conversation_summary",
     });
     const summary = result.content.trim();

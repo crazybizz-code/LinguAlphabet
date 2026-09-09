@@ -70,6 +70,61 @@ describe("OpenRouter provider telemetry", () => {
     expect(event.streamed).toBe(false);
   });
 
+  it("sends a per-call model override and ceiling, and records that resolved model", async () => {
+    const events = captureSink();
+    const fetchMock = vi.fn().mockResolvedValue(okResponse({ prompt_tokens: 20, completion_tokens: 5, total_tokens: 25 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await createOpenRouterProvider().complete({
+      messages: [{ role: "user", content: "hi" }],
+      model: "google/gemini-2.5-flash-lite",
+      maxTokens: 123,
+      feature: "turn_classifier",
+    });
+
+    const request = fetchMock.mock.calls[0][1] as RequestInit;
+    const body = JSON.parse(request.body as string) as { model: string; max_tokens: number };
+    expect(body).toMatchObject({ model: "google/gemini-2.5-flash-lite", max_tokens: 123 });
+    expect(events).toHaveLength(1);
+    expect(events[0].model).toBe("google/gemini-2.5-flash-lite");
+    expect(events[0].estimatedCostUsd).toBeGreaterThan(0);
+  });
+
+  it("uses the resolved model and ceiling for streamed requests and telemetry", async () => {
+    const events = captureSink();
+    const encoder = new TextEncoder();
+    const response = {
+      ok: true,
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode('data: {"choices":[{"delta":{"content":"hello"}}]}\n'));
+          controller.enqueue(encoder.encode('data: {"choices":[],"usage":{"prompt_tokens":20,"completion_tokens":5,"total_tokens":25}}\n'));
+          controller.enqueue(encoder.encode("data: [DONE]\n"));
+          controller.close();
+        },
+      }),
+    };
+    const fetchMock = vi.fn().mockResolvedValue(response);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const chunks = [];
+    for await (const chunk of createOpenRouterProvider().stream({
+      messages: [{ role: "user", content: "hi" }],
+      model: "google/gemini-2.5-flash-lite",
+      maxTokens: 200,
+      feature: "conversation_summary",
+    })) {
+      chunks.push(chunk);
+    }
+
+    const request = fetchMock.mock.calls[0][1] as RequestInit;
+    const body = JSON.parse(request.body as string) as { model: string; max_tokens: number; stream: boolean };
+    expect(body).toMatchObject({ model: "google/gemini-2.5-flash-lite", max_tokens: 200, stream: true });
+    expect(chunks.some((chunk) => chunk.delta === "hello")).toBe(true);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ model: "google/gemini-2.5-flash-lite", streamed: true });
+  });
+
   it("labels an unattributed call rather than dropping the row", async () => {
     const events = captureSink();
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(okResponse({ prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 })));

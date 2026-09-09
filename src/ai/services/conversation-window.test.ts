@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { CONTEXT_WINDOW_MESSAGES, splitConversationWindow, summarizeOverflow } from "./conversation-window";
 import type { ConversationMessage } from "@/ai/schemas";
 import type { AIProvider, AIProviderCompletionInput, AIProviderCompletionResult, AIProviderStreamChunk } from "@/ai/providers";
+import { MAX_TOKENS, MODEL_ROUTING } from "@/ai/models";
 
 function fakeProvider(respond: (input: AIProviderCompletionInput) => AIProviderCompletionResult): AIProvider {
   return {
@@ -56,6 +57,22 @@ describe("summarizeOverflow", () => {
     const provider = fakeProvider(() => ({ content: "  Learner practiced past tense and asked about irregular verbs.  ", finishReason: "stop" }));
     const summary = await summarizeOverflow(turns(4), provider);
     expect(summary).toBe("Learner practiced past tense and asked about irregular verbs.");
+  });
+
+  it("uses the summariser route and its bounded output ceiling", async () => {
+    let capturedInput: AIProviderCompletionInput | undefined;
+    const provider = fakeProvider((input) => {
+      capturedInput = input;
+      return { content: "Summary", finishReason: "stop" };
+    });
+
+    await summarizeOverflow(turns(4), provider);
+
+    expect(capturedInput).toMatchObject({
+      model: MODEL_ROUTING.conversationSummariser,
+      maxTokens: MAX_TOKENS.conversationSummariser,
+      feature: "conversation_summary",
+    });
   });
 
   it("returns null (never guesses or throws) when the provider fails", async () => {

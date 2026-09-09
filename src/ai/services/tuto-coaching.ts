@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { generateStructuredJson } from "./generate-structured-json";
 import { formatLearnerEvidence, type LearnerEvidence } from "@/ai/data/learner-evidence";
+import { MODEL_ROUTING, MAX_TOKENS } from "@/ai/models";
 
 const TipSchema = z.object({
   /** Short lead-in, e.g. "Daily immersion" — null when a bare sentence reads better. */
@@ -41,5 +42,7 @@ export async function generateTutoCoaching(evidence: LearnerEvidence): Promise<T
     ],
     schema: TutoCoachingResponseSchema,
     schemaName: "tuto_coaching",
+    model: MODEL_ROUTING.tutoChat,
+    maxTokens: MAX_TOKENS.tutoCoaching,
   });
 }

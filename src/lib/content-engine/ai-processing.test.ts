@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { computeReadingDifficulty, estimateReadingTimeMinutes, generateEnrichment, buildPrompt } from "./ai-processing";
 import { getDefaultProvider, registerProvider } from "@/ai/providers";
+import type { AIProviderCompletionInput } from "@/ai/providers";
+import { ENRICHMENT_MAX_TOKENS, MODEL_ROUTING } from "@/ai/models";
 
 describe("computeReadingDifficulty", () => {
   it("scores simple, short-sentence prose as easier than dense academic prose", () => {
@@ -71,11 +73,14 @@ describe("generateEnrichment", () => {
     listeningNotes: ["Listen for linking."],
   };
 
-  function installProvider(content: unknown) {
+  function installProvider(content: unknown, calls?: AIProviderCompletionInput[]) {
     getDefaultProvider();
     registerProvider({
       id: "openrouter",
-      complete: async () => ({ content: JSON.stringify(content), finishReason: "stop" }),
+      complete: async (input) => {
+        calls?.push(input);
+        return { content: JSON.stringify(content), finishReason: "stop" };
+      },
       stream: async function* () {
         yield { delta: "", done: true };
       },
@@ -93,6 +98,20 @@ describe("generateEnrichment", () => {
 
     expect(result.topics).toEqual(["Science"]);
     expect(result.rawTopics).toEqual(["Science", "Not A Real Topic"]);
+  });
+
+  it("uses the quality-preserving enrichment model and bounded output ceiling", async () => {
+    const calls: AIProviderCompletionInput[] = [];
+    installProvider(MODEL_OUTPUT, calls);
+
+    await generateEnrichment("Title", "Body", "audio");
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({
+      model: MODEL_ROUTING.enrichment,
+      maxTokens: ENRICHMENT_MAX_TOKENS,
+      feature: "content_enrichment",
+    });
   });
 
   it("assigns quiz ids deterministically rather than trusting the model", async () => {

@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { estimateCostUsd, getModelPricing } from "./pricing";
+import { MODEL_ROUTING } from "@/ai/models";
 
 const ORIGINAL = process.env.AI_MODEL_PRICING;
 afterEach(() => {
@@ -8,6 +9,12 @@ afterEach(() => {
 });
 
 describe("estimateCostUsd", () => {
+  it("has pricing metadata for every explicitly routed model", () => {
+    for (const model of new Set(Object.values(MODEL_ROUTING))) {
+      expect(getModelPricing(model), `missing pricing for ${model}`).not.toBeNull();
+    }
+  });
+
   it("prices a known model from its input and output tokens", () => {
     // 1M input @ $0.30 + 1M output @ $2.50
     expect(estimateCostUsd("google/gemini-2.5-flash", 1_000_000, 1_000_000)).toBe(2.8);

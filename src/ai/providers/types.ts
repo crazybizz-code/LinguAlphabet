@@ -36,6 +36,14 @@ export interface AIProviderResponseFormat {
 
 export interface AIProviderCompletionInput {
   messages: AIProviderMessage[];
+  /**
+   * Overrides the provider's configured model for this call only.
+   *
+   * Omit to use OPENROUTER_MODEL, which remains the global default. Features
+   * that name a model do so through src/ai/models.ts rather than inlining a
+   * slug, so routing stays auditable in one table.
+   */
+  model?: string;
   temperature?: number;
   maxTokens?: number;
   /** Tools the provider may call this turn. Omitted or empty means "no tools available". */

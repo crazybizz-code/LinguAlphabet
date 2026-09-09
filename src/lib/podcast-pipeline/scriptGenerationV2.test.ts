@@ -5,12 +5,15 @@ import {
   generatePodcastScriptV2,
   validatePodcastScriptV2,
   buildPodcastScriptPromptV2,
+  SCRIPT_JSON_MAX_TOKENS_V2,
   type ScriptGenerationOutput,
   type ScriptGenerationRequest,
 } from "./scriptGenerationV2";
 import { generateStructuredJson } from "@/ai/services/generate-structured-json";
 import { generateEnrichment } from "@/lib/content-engine/ai-processing";
 import type { EnrichmentResult } from "@/lib/content-engine/types";
+import { AIProviderError } from "@/ai/providers";
+import { MODEL_ROUTING } from "@/ai/models";
 
 // Same mocking pattern scriptGeneration.test.ts already uses -- no paid
 // API/model calls anywhere in this file.
@@ -176,6 +179,10 @@ describe("generatePodcastScriptV2 — F/M: no word-count correction is ever trig
 
     expect(result.attempts).toBe(1);
     expect(vi.mocked(generateStructuredJson)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(generateStructuredJson).mock.calls[0][0]).toMatchObject({
+      model: MODEL_ROUTING.podcastScriptV2,
+      maxTokens: SCRIPT_JSON_MAX_TOKENS_V2,
+    });
   });
 
   it("M: a valid 1500-word script is returned exactly as generated -- never shortened to satisfy an artificial word limit", async () => {
@@ -220,6 +227,51 @@ describe("generatePodcastScriptV2 — F/M: no word-count correction is ever trig
     // must NOT shorten, which is exactly what we want present.
     expect(revisionPrompt).toMatch(/do NOT shorten or lengthen/i);
     expect(revisionPrompt).not.toMatch(/cut approximately|reduce word count|target \d+ words/i);
+  });
+});
+
+describe("generatePodcastScriptV2 — provider failure safety", () => {
+  it.each([401, 402, 403])("fails fast on fatal generation status %i without entering the outer retry loop", async (status) => {
+    const error = new AIProviderError(`fatal ${status}`, status, false);
+    vi.mocked(generateStructuredJson).mockRejectedValue(error);
+
+    await expect(generatePodcastScriptV2(REQUEST_C2)).rejects.toBe(error);
+
+    expect(generateStructuredJson).toHaveBeenCalledTimes(1);
+    expect(generateEnrichment).not.toHaveBeenCalled();
+  });
+
+  it.each([401, 402, 403])("fails fast on fatal grading status %i without regenerating the script", async (status) => {
+    const error = new AIProviderError(`fatal ${status}`, status, false);
+    vi.mocked(generateStructuredJson).mockResolvedValue(buildValidScriptAtWordCount(950));
+    vi.mocked(generateEnrichment).mockRejectedValue(error);
+
+    await expect(generatePodcastScriptV2(REQUEST_C2)).rejects.toBe(error);
+
+    expect(generateStructuredJson).toHaveBeenCalledTimes(1);
+    expect(generateEnrichment).toHaveBeenCalledTimes(1);
+  });
+
+  it("retains a bounded outer retry for a non-provider generation failure", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.mocked(generateStructuredJson)
+        .mockRejectedValueOnce(new Error("malformed generated JSON"))
+        .mockResolvedValueOnce(buildValidScriptAtWordCount(950));
+      vi.mocked(generateEnrichment).mockResolvedValue(fakeEnrichment());
+
+      const pending = generatePodcastScriptV2(REQUEST_C2);
+      await vi.runAllTimersAsync();
+      const result = await pending;
+
+      expect(result.attempts).toBe(2);
+      expect(generateStructuredJson).toHaveBeenCalledTimes(2);
+      expect(vi.mocked(generateStructuredJson).mock.calls.every(([input]) =>
+        input.model === MODEL_ROUTING.podcastScriptV2 && input.maxTokens === SCRIPT_JSON_MAX_TOKENS_V2,
+      )).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

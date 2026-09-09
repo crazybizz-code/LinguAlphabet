@@ -4,6 +4,7 @@ import { generateEnrichment } from "./ai-processing";
 import type { RawContentItem, ContentProvider, ProviderDraft, EnrichmentResult } from "./types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import { AIProviderError } from "@/ai/providers";
 
 vi.mock("./ai-processing", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./ai-processing")>();
@@ -528,6 +529,36 @@ describe("runIngestionPipeline: autoPublish behavior", () => {
     expect(result.itemsRejected).toBe(1);
     expect(mock.captures.contentItemUpserts).toHaveLength(0);
     expect(mock.captures.contentItemUpdates).toHaveLength(0);
+  });
+
+  it.each([401, 402, 403])("fatal enrichment status %i stops the run before the next item", async (status) => {
+    vi.mocked(generateEnrichment).mockRejectedValue(new AIProviderError(`fatal ${status}`, status, false));
+    const mock = makeFullPipelineMock();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      makePodcastProvider([fakePodcastItem("ep-1"), fakePodcastItem("ep-2")]),
+      { sourceId: "src", sourceConfig: {}, autoPublish: true, normalize: () => makePodcastDraft() },
+    );
+
+    expect(result.status).toBe("failed");
+    expect(generateEnrichment).toHaveBeenCalledTimes(1);
+    expect(result.itemsRejected).toBe(1);
+  });
+
+  it("an ordinary enrichment failure remains item-scoped and processing continues", async () => {
+    vi.mocked(generateEnrichment).mockRejectedValue(new Error("temporary item failure"));
+    const mock = makeFullPipelineMock();
+
+    const result = await runIngestionPipeline(
+      mock as unknown as SupabaseClient<Database>,
+      makePodcastProvider([fakePodcastItem("ep-1"), fakePodcastItem("ep-2")]),
+      { sourceId: "src", sourceConfig: {}, autoPublish: true, normalize: () => makePodcastDraft() },
+    );
+
+    expect(result.status).toBe("completed");
+    expect(generateEnrichment).toHaveBeenCalledTimes(2);
+    expect(result.itemsRejected).toBe(2);
   });
 
   it("transcript resolution failure → content_items not written, enrichment never called", async () => {

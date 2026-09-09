@@ -3,6 +3,7 @@ import { getDefaultProvider } from "@/ai/providers";
 import type { AIProvider } from "@/ai/providers";
 import { TURN_SIGNAL_OUTCOMES } from "./types";
 import type { TurnSignal, ClassifyTurnInput } from "./types";
+import { MODEL_ROUTING, MAX_TOKENS } from "@/ai/models";
 
 const TURN_SIGNAL_SCHEMA = z.object({
   outcome: z.enum(TURN_SIGNAL_OUTCOMES),
@@ -55,6 +56,8 @@ export async function classifyTurn(input: ClassifyTurnInput, provider: AIProvide
         { role: "system", content: CLASSIFIER_SYSTEM_PROMPT },
         { role: "user", content: userContent },
       ],
+      model: MODEL_ROUTING.turnClassifier,
+      maxTokens: MAX_TOKENS.turnClassifier,
       temperature: 0,
       responseFormat: { name: "turn_signal", schema: z.toJSONSchema(TURN_SIGNAL_SCHEMA) },
       feature: "turn_classifier",

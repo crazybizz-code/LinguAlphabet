@@ -22,6 +22,7 @@ import type { TurnSignal } from "@/ai/turn-classifier";
 import { classifyTurn } from "@/ai/turn-classifier";
 import { runToolLoop } from "./tool-loop";
 import { extractQuickActions } from "./quick-actions";
+import { MODEL_ROUTING, MAX_TOKENS } from "@/ai/models";
 
 export interface GenerateResponseInput {
   /** User/assistant turns only — a client-supplied "system" message is rejected before this point (src/app/api/ai/chat). */
@@ -324,6 +325,7 @@ export async function generateResponse(input: GenerateResponseInput): Promise<As
   const { completion, toolResults } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision, window), learningContext, {
     dependencies: input.dependencies,
     feature: "chat",
+    model: MODEL_ROUTING.tutoToolLoop,
   });
 
   await persistConversationMemory(input, learningContext, completion.content, orchestratorDecision);
@@ -361,7 +363,7 @@ export async function* streamResponse(
 
   if (listTools().length === 0) {
     const [memory, window] = await Promise.all([resolveMemory(input), resolveConversationWindow(input, provider)]);
-    for await (const chunk of provider.stream({ messages: toProviderMessages(input, memory, NO_TEACHING, null, window), feature: "chat_stream" })) {
+    for await (const chunk of provider.stream({ messages: toProviderMessages(input, memory, NO_TEACHING, null, window), model: MODEL_ROUTING.tutoChat, maxTokens: MAX_TOKENS.tutoChat, feature: "chat_stream" })) {
       if (chunk.delta) yield chunk.delta;
     }
     return { orchestratorDecision: null, quickActions: [] };
@@ -378,6 +380,7 @@ export async function* streamResponse(
   const { completion } = await runToolLoop(provider, toProviderMessages(input, memory, teaching, orchestratorDecision, window), learningContext, {
     dependencies: input.dependencies,
     feature: "chat",
+    model: MODEL_ROUTING.tutoToolLoop,
   });
 
   const { content, quickActions } = extractQuickActions(completion.content);
@@ -419,6 +422,7 @@ export async function generateStructuredResponse<T>(input: GenerateStructuredRes
     // The structured feature's own name ("vocabulary_explanation",
     // "article_summary", ...) doubles as its telemetry attribution.
     feature: input.responseFormatName,
+    model: MODEL_ROUTING.tutoChat,
   });
 
   let parsed: unknown;

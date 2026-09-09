@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { classifyTurn } from "./classifier";
 import type { AIProvider, AIProviderCompletionInput, AIProviderCompletionResult, AIProviderStreamChunk } from "@/ai/providers";
+import { MAX_TOKENS, MODEL_ROUTING } from "@/ai/models";
 
 function fakeProvider(respond: (input: AIProviderCompletionInput) => AIProviderCompletionResult): AIProvider {
   return {
@@ -31,6 +32,11 @@ describe("classifyTurn", () => {
     const userMessage = capturedInput!.messages.find((message) => message.role === "user");
     expect(userMessage?.content).toContain("got it, thanks!");
     expect(userMessage?.content).toContain("Try using 'used to' here.");
+    expect(capturedInput).toMatchObject({
+      model: MODEL_ROUTING.turnClassifier,
+      maxTokens: MAX_TOKENS.turnClassifier,
+      feature: "turn_classifier",
+    });
   });
 
   it("returns null when the provider's response isn't valid JSON", async () => {

@@ -42,6 +42,11 @@ export interface GenerateStructuredJsonInput<T> {
   schemaName: string;
   /** Omit for no retries. Pass BATCH_RETRY_POLICY for ingestion-style work. */
   retryPolicy?: RetryPolicy;
+  /**
+   * Overrides the configured model for this call only. Omit to inherit
+   * OPENROUTER_MODEL. Callers name models through src/ai/models.ts.
+   */
+  model?: string;
   temperature?: number;
   maxTokens?: number;
 }
@@ -68,6 +73,7 @@ export async function generateStructuredJson<T>(input: GenerateStructuredJsonInp
 
   const completionInput = {
     messages: input.messages,
+    model: input.model,
     temperature: input.temperature,
     maxTokens: input.maxTokens,
     responseFormat: { name: input.schemaName, schema: toStrictJsonSchema(input.schema) },

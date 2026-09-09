@@ -4,6 +4,7 @@ import type { Database, Json } from "@/types/supabase";
 import type { TranscriptSegment } from "@/types/content";
 import { generateEnrichment, estimateReadingTimeMinutes, enrichmentToDetailsColumns } from "./ai-processing";
 import { isRateLimitError } from "@/ai/providers";
+import { isFatalProviderError } from "@/ai/providers/errors";
 import { runQualityGate, publishContentItem } from "./publishing";
 import { resolveDescription } from "./description";
 import { isFetchableImage } from "./thumbnails";
@@ -488,6 +489,13 @@ export async function runIngestionPipeline(
           rejectionReason: `AI enrichment failed: ${errorMessage(error)}`,
           geminiError: errorMessage(error),
         });
+
+        // Credentials, permission, and exhausted-credit failures apply to the
+        // whole provider account, not to this one content item. Stop the run
+        // after recording the current item's failure so the outer handler can
+        // mark the ingestion run failed instead of repeating the same 401,
+        // 402, or 403 for every remaining item.
+        if (isFatalProviderError(error)) throw error;
 
         // Circuit breaker. A per-call retry budget bounds one item, but
         // not the run: if the quota is genuinely exhausted, EVERY item

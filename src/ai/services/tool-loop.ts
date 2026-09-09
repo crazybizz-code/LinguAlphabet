@@ -9,6 +9,7 @@ import { listTools, executeToolCall, bootstrapTools, type ToolExecutionContext, 
 import type { LearningContext } from "@/ai/context";
 import type { AIDependencies } from "@/ai/data";
 import { fitToolResultToBudget, getToolLoopTokenBudget, getToolResultTokenBudget } from "./token-budget";
+import { MAX_TOKENS } from "@/ai/models";
 
 const MAX_TOOL_ITERATIONS = 4;
 
@@ -52,6 +53,15 @@ export interface RunToolLoopOptions {
   dependencies?: AIDependencies;
   /** Attribution label forwarded to usage telemetry (src/ai/telemetry) so spend can be broken down per feature. */
   feature?: string;
+  /** Model for every turn of this loop. Omit to inherit OPENROUTER_MODEL. */
+  model?: string;
+  /**
+   * Output ceiling for every turn of this loop. Defaults to the Tuto chat
+   * ceiling, which also covers the structured features that share this loop.
+   * Overridable so a future feature with a genuinely larger payload can raise
+   * it rather than being silently truncated.
+   */
+  maxTokens?: number;
 }
 
 /**
@@ -80,11 +90,12 @@ export async function runToolLoop(
   learningContext: LearningContext,
   options: RunToolLoopOptions = {},
 ): Promise<ToolLoopResult> {
-  const { responseFormat, dependencies, feature } = options;
+  const { responseFormat, dependencies, feature, model } = options;
+  const maxTokens = options.maxTokens ?? MAX_TOKENS.tutoChat;
   const tools = toProviderToolSpecs();
 
   if (tools.length === 0) {
-    return { completion: await provider.complete({ messages: initialMessages, responseFormat, feature }), toolResults: [] };
+    return { completion: await provider.complete({ messages: initialMessages, model, maxTokens, responseFormat, feature }), toolResults: [] };
   }
 
   const context: ToolExecutionContext = { learningContext, dependencies };
@@ -99,7 +110,7 @@ export async function runToolLoop(
   let remainingLoopBudget = getToolLoopTokenBudget();
 
   for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
-    const result = await provider.complete({ messages, tools, responseFormat, feature });
+    const result = await provider.complete({ messages, model, maxTokens, tools, responseFormat, feature });
 
     if (!result.toolCalls || result.toolCalls.length === 0) {
       return { completion: result, toolResults };
@@ -125,6 +136,6 @@ export async function runToolLoop(
     messages = [...messages, assistantTurn, ...toolMessages];
   }
 
-  const finalCompletion = await provider.complete({ messages, responseFormat, feature });
+  const finalCompletion = await provider.complete({ messages, model, maxTokens, responseFormat, feature });
   return { completion: finalCompletion, toolResults };
 }
