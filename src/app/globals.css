@@ -161,3 +161,29 @@ img {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Reading Mock passage highlighting (see docs/reading-ielts-reference-audit.md §6).
+   Two colours, matching the audited reference's interaction model. Kept in
+   globals.css because the spans are created imperatively at runtime and so
+   cannot carry Tailwind utility classes. */
+.labc-highlight {
+  border-radius: 2px;
+  cursor: pointer;
+  background-color: #ffeb3b;
+  color: #1a1a1a;
+}
+
+.labc-highlight--green {
+  background-color: #a5d6a7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .labc-highlight {
+    background-color: #f9a825;
+    color: #1a1a1a;
+  }
+  :root:not([data-theme="light"]) .labc-highlight--green {
+    background-color: #66bb6a;
+    color: #1a1a1a;
+  }
+}

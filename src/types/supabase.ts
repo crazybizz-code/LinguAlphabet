@@ -551,7 +551,13 @@ export interface Database {
         Row: {
           id: string;
           skill: "reading" | "listening" | "vocabulary" | "grammar";
-          type: "mc" | "tf" | "fill";
+          /** 'mc'/'tf'/'fill' are the original Placement/Practice types. The rest are the real IELTS type names the Mock content validator supports — see supabase/mock-question-content-schema.sql and src/lib/mock/content/types.ts. */
+          type:
+            | "mc" | "tf" | "fill"
+            | "multiple_choice" | "true_false_not_given" | "yes_no_not_given"
+            | "matching_headings" | "matching_information" | "matching_features" | "matching_sentence_endings"
+            | "sentence_completion" | "summary_completion" | "note_completion"
+            | "matching" | "plan_map_diagram_labeling" | "form_note_table_flowchart_summary_completion";
           difficulty: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
           passage: string | null;
           passage_title: string | null;
@@ -571,6 +577,25 @@ export interface Database {
           deprecated: boolean;
           source: string;
           created_at: string;
+          /** Structural parent for the Full Mock's real IELTS layout — see supabase/mock-structure-schema.sql. Null for every Placement/Practice-only question. */
+          mock_passage_id: string | null;
+          /** Structural parent for the Full Mock's real IELTS layout — see supabase/mock-structure-schema.sql. Null for every Placement/Practice-only question. */
+          mock_listening_section_id: string | null;
+          /** Alternate correct-answer spellings/forms for a completion-type question — see supabase/mock-question-content-schema.sql. */
+          accepted_answers: Json | null;
+          /** Completion-type word-limit declaration — see supabase/mock-question-content-schema.sql. */
+          answer_word_limit:
+            | "ONE_WORD" | "TWO_WORDS" | "THREE_WORDS"
+            | "ONE_WORD_AND_OR_A_NUMBER" | "TWO_WORDS_AND_OR_A_NUMBER" | "THREE_WORDS_AND_OR_A_NUMBER"
+            | null;
+          /** Shared valid-option pool for a matching/labelling-family question — see supabase/mock-question-content-schema.sql. */
+          option_pool: Json | null;
+          /** Groups several questions under one shared task within the same passage/section — see supabase/mock-question-content-schema.sql. */
+          mock_group_id: string | null;
+          /** Task instruction shared by every question in this mock_group_id ("Questions 1–4: Which paragraph contains …"). Denormalized onto each row like option_pool — see supabase/mock-group-instructions-schema.sql. */
+          mock_group_instructions: string | null;
+          /** This question's explicit 1-based position within its structural parent — see supabase/mock-question-content-schema.sql. */
+          mock_sequence: number | null;
         };
         Insert: {
           id?: string;
@@ -592,8 +617,68 @@ export interface Database {
           deprecated?: boolean;
           source?: string;
           created_at?: string;
+          mock_passage_id?: string | null;
+          mock_listening_section_id?: string | null;
+          accepted_answers?: Json | null;
+          answer_word_limit?: Database["public"]["Tables"]["assessment_questions"]["Row"]["answer_word_limit"];
+          option_pool?: Json | null;
+          mock_group_id?: string | null;
+          mock_group_instructions?: string | null;
+          mock_sequence?: number | null;
         };
         Update: Partial<Database["public"]["Tables"]["assessment_questions"]["Insert"]>;
+        Relationships: [];
+      };
+      /** IELTS Full Mock reading passages — see supabase/mock-structure-schema.sql. */
+      mock_passages: {
+        Row: {
+          id: string;
+          title: string | null;
+          body_text: string;
+          difficulty: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null;
+          approved: boolean;
+          deprecated: boolean;
+          source: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title?: string | null;
+          body_text: string;
+          difficulty?: Database["public"]["Tables"]["mock_passages"]["Row"]["difficulty"];
+          approved?: boolean;
+          deprecated?: boolean;
+          source?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["mock_passages"]["Insert"]>;
+        Relationships: [];
+      };
+      /** IELTS Full Mock listening sections — see supabase/mock-structure-schema.sql. */
+      mock_listening_sections: {
+        Row: {
+          id: string;
+          title: string | null;
+          audio_url: string | null;
+          transcript: string | null;
+          difficulty: "A1" | "A2" | "B1" | "B2" | "C1" | "C2" | null;
+          approved: boolean;
+          deprecated: boolean;
+          source: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title?: string | null;
+          audio_url?: string | null;
+          transcript?: string | null;
+          difficulty?: Database["public"]["Tables"]["mock_listening_sections"]["Row"]["difficulty"];
+          approved?: boolean;
+          deprecated?: boolean;
+          source?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["mock_listening_sections"]["Insert"]>;
         Relationships: [];
       };
       /** Placement assessment attempts — see supabase/assessment-schema.sql. */
@@ -819,6 +904,10 @@ export interface Database {
           target_cefr_level: "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
           reading_question_ids: string[];
           listening_question_ids: string[];
+          /** Exactly 3 mock_passages ids, or null for an attempt that predates supabase/mock-attempt-structure.sql. */
+          reading_passage_ids: string[] | null;
+          /** Exactly 4 mock_listening_sections ids, or null for an attempt that predates supabase/mock-attempt-structure.sql. */
+          listening_section_ids: string[] | null;
           reading_time_limit_seconds: number;
           listening_time_limit_seconds: number;
           reading_started_at: string | null;
@@ -843,6 +932,8 @@ export interface Database {
           target_cefr_level: Database["public"]["Tables"]["full_mock_attempts"]["Row"]["target_cefr_level"];
           reading_question_ids?: string[];
           listening_question_ids?: string[];
+          reading_passage_ids?: string[] | null;
+          listening_section_ids?: string[] | null;
           reading_time_limit_seconds?: number;
           listening_time_limit_seconds?: number;
           reading_started_at?: string | null;

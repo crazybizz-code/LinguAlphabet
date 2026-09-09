@@ -22,7 +22,10 @@ export function MockStartButton({ targetCefrLevel, disabled, fullWidth }: Props)
       const res = await fetch("/api/mock/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetCefrLevel }),
+        // Reading-only for this milestone: no Listening content exists in the
+        // bank yet, and a full mock would fail assembly. The API defaults to
+        // "full", so this is the only caller opting into Reading-only.
+        body: JSON.stringify({ targetCefrLevel, sections: "reading_only" }),
       });
       const data = await res.json() as { attemptId?: string; error?: string };
       if (!res.ok) throw new Error(data.error ?? "Failed to start mock");
@@ -50,7 +53,7 @@ export function MockStartButton({ targetCefrLevel, disabled, fullWidth }: Props)
       </button>
       {!disabled && (
         <p className="text-[11px] text-text-tertiary">
-          ~55 minutes · answers auto-saved
+          60 minutes · answers auto-saved
         </p>
       )}
     </div>

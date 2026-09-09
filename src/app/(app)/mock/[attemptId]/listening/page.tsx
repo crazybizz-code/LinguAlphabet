@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service-client";
 import { MockListeningClient } from "@/components/mock/MockListeningClient";
 import type { ClientQuestion } from "@/components/mock/types";
+import { isReadingOnlyAttempt } from "@/lib/mock/engine";
 
 interface Props {
   params: Promise<{ attemptId: string }>;
@@ -25,6 +26,12 @@ export default async function MockListeningPage({ params }: Props) {
 
   if (!attempt || attempt.user_id !== user.id) redirect("/mock");
   if (attempt.status !== "in_progress") redirect(`/mock/${attemptId}/result`);
+  // A Reading-only attempt has no listening section. Without this guard,
+  // navigating here directly would render an empty timed listening test with
+  // no questions and no way to finish.
+  if (isReadingOnlyAttempt(attempt.listening_question_ids as string[] | null)) {
+    redirect(`/mock/${attemptId}/result`);
+  }
 
   const questionIds = (attempt.listening_question_ids ?? []) as string[];
 
@@ -69,6 +76,13 @@ export default async function MockListeningPage({ params }: Props) {
       question: q.question,
       options: Array.isArray(q.options) ? (q.options as string[]) : null,
       sequenceNumber: i + 1,
+      passageId: null,
+      sectionId: null,
+      optionPool: null,
+      wordLimit: null,
+      groupId: null,
+      groupInstructions: null,
+      mockSequence: null,
       // section_instruction/question_instruction/audio_instruction don't
       // exist in the live DB — see src/lib/assessment/engine.ts.
       sectionInstruction: null,

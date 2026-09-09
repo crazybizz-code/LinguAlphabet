@@ -31,8 +31,13 @@ export async function POST(req: Request) {
     // If mock score dropped significantly, trigger plan adaptation
     if (result.overallScorePct < 50) {
       const weakAreas: string[] = [];
-      if (result.readingCorrect / (result.readingTotal || 1) < 0.5) weakAreas.push("reading_comprehension");
-      if (result.listeningCorrect / (result.listeningTotal || 1) < 0.5) weakAreas.push("listening_comprehension");
+      if (result.readingTotal > 0 && result.readingCorrect / result.readingTotal < 0.5) weakAreas.push("reading_comprehension");
+      // listeningTotal > 0 guard: a Reading-only attempt reports 0/0, and the
+      // previous `|| 1` fallback made that evaluate to 0 < 0.5 -- silently
+      // flagging listening as weak on a mock that never tested listening, and
+      // feeding that false signal into adaptActivePlan(). A section that was
+      // not sat can never be evidence of weakness.
+      if (result.listeningTotal > 0 && result.listeningCorrect / result.listeningTotal < 0.5) weakAreas.push("listening_comprehension");
       if (weakAreas.length > 0) {
         await adaptActivePlan({ userId: user.id, weakAreas });
       }

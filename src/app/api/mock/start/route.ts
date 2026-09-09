@@ -8,6 +8,9 @@ export const runtime = "nodejs";
 const schema = z.object({
   targetCefrLevel: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
   planTaskId: z.string().uuid().nullable().optional(),
+  /** Omitted means "full" -- every existing caller keeps the unchanged
+   * Reading+Listening behaviour. */
+  sections: z.enum(["full", "reading_only"]).optional(),
 });
 
 export async function POST(req: Request) {

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MockResultClient } from "@/components/mock/MockResultClient";
+import { isReadingOnlyAttempt } from "@/lib/mock/engine";
 
 interface Props {
   params: Promise<{ attemptId: string }>;
@@ -26,7 +27,7 @@ export default async function MockResultPage({ params }: Props) {
     supabase
       .from("full_mock_attempts")
       .select(
-        "id, user_id, status, target_cefr_level, reading_correct, reading_total, reading_score_pct, listening_correct, listening_total, listening_score_pct, overall_score_pct, estimated_band, result_cefr_level, submitted_at",
+        "id, user_id, status, target_cefr_level, listening_question_ids, reading_correct, reading_total, reading_score_pct, listening_correct, listening_total, listening_score_pct, overall_score_pct, estimated_band, result_cefr_level, submitted_at",
       )
       .eq("id", attemptId)
       .single(),
@@ -46,9 +47,12 @@ export default async function MockResultPage({ params }: Props) {
 
   if (!attempt || attempt.user_id !== user.id) redirect("/mock");
 
-  // If not yet submitted, send them back to finish the listening section
+  // If not yet submitted, send them back to the section they still have to
+  // finish -- listening for a full mock, reading for a Reading-only attempt
+  // (which has no listening section to return to).
   if (attempt.status === "in_progress") {
-    redirect(`/mock/${attemptId}/listening`);
+    const unfinishedSection = isReadingOnlyAttempt(attempt.listening_question_ids as string[] | null) ? "reading" : "listening";
+    redirect(`/mock/${attemptId}/${unfinishedSection}`);
   }
 
   // Weak areas from recent signals

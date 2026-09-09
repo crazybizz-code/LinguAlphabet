@@ -12,28 +12,152 @@ import type { AssessmentQuestion } from "@/types/assessment";
 import type { CefrLevel } from "@/types/content";
 import {
   assembleMock,
-  READING_QUESTION_COUNT,
   LISTENING_QUESTION_COUNT,
+  READING_QUESTION_COUNT,
   READING_TIME_LIMIT_SECONDS,
   LISTENING_TIME_LIMIT_SECONDS,
 } from "./assembler";
 import { scoreMock } from "./scoring";
+import {
+  ALLOWED_TYPES_BY_SKILL,
+  familyOf,
+  isKnownMockQuestionType,
+  isMockOptionPool,
+  isStringArray,
+  wordLimitFromDbLabel,
+  WORD_LIMIT_DB_LABELS,
+  type MockOptionPoolItem,
+  type MockQuestionType,
+  type WordLimit,
+  type WordLimitDbLabel,
+} from "./content/types";
+import { answersMatch, violatesWordLimit } from "./content/normalization";
+
+/** Any type a persisted Mock/legacy question may carry -- the contract's 13
+ * plus the three legacy generic values, matching the DB's widened CHECK
+ * (supabase/mock-question-content-schema.sql). No new type names invented. */
+type MockRuntimeQuestionType = MockQuestionType | AssessmentQuestion["type"];
+
+/** Decodes assessment_questions.answer_word_limit using the contract's OWN
+ * label set + converter -- never a re-implementation. An unrecognised or
+ * absent label yields null (the normal state for non-completion questions). */
+export function decodeWordLimit(label: string | null): WordLimit | null {
+  if (!label) return null;
+  return (WORD_LIMIT_DB_LABELS as readonly string[]).includes(label)
+    ? wordLimitFromDbLabel(label as WordLimitDbLabel)
+    : null;
+}
+
+/** True when this question is graded as a completion answer (free text with
+ * accepted alternates), per the contract's own family mapping. Legacy
+ * 'mc'/'tf'/'fill' are NOT contract types, so they fall through to the
+ * pre-existing exact-match path exactly as before. */
+function isCompletionType(type: string): boolean {
+  return isKnownMockQuestionType(type) && familyOf(type) === "completion";
+}
+
+interface ReadingGradingRow {
+  correct_answer: string;
+  type: string;
+  accepted_answers: unknown;
+  answer_word_limit: string | null;
+  option_pool: unknown;
+}
+
+/** Server-side Reading grader. Contract question types all use the same
+ * conservative normalization rules. Free-text completion additionally fails
+ * closed when its declared word limit is absent, invalid, or exceeded. */
+export function gradeReadingAnswer(row: ReadingGradingRow, userAnswer: string | null): boolean {
+  if (userAnswer === null || typeof row.correct_answer !== "string") return false;
+
+  // Preserve legacy Placement/Practice-shaped Mock rows exactly as before.
+  if (!isKnownMockQuestionType(row.type)) {
+    return userAnswer.trim().toLowerCase() === row.correct_answer.trim().toLowerCase();
+  }
+  if (!ALLOWED_TYPES_BY_SKILL.reading.includes(row.type)) return false;
+
+  const family = familyOf(row.type);
+  if (family !== "completion") return answersMatch(userAnswer, row.correct_answer);
+
+  if (row.option_pool !== null && row.option_pool !== undefined) {
+    if (!isMockOptionPool(row.option_pool) || row.option_pool.length === 0) return false;
+    return answersMatch(userAnswer, row.correct_answer);
+  }
+
+  const limit = decodeWordLimit(row.answer_word_limit);
+  if (!limit || violatesWordLimit(userAnswer, limit)) return false;
+  if (row.accepted_answers !== null && row.accepted_answers !== undefined && !isStringArray(row.accepted_answers)) return false;
+  return answersMatch(userAnswer, row.correct_answer, row.accepted_answers ?? []);
+}
+
+/** A question as returned by fetchQuestionsForIds(), extended with its
+ * structural parent -- see supabase/mock-structure-schema.sql. Every
+ * question assembleMock() selects always has exactly one of these set,
+ * since the assembler only ever selects grouped questions; both are
+ * exposed (rather than one skill-specific field) so callers never have to
+ * guess which one applies. */
+interface StructuralQuestion extends Omit<AssessmentQuestion, "type"> {
+  /** Widened from AssessmentQuestion's legacy 'mc'|'tf'|'fill' -- Omit+redeclare
+   * because TypeScript cannot widen an inherited member. AssessmentQuestion
+   * itself is untouched, so Placement/Practice are unaffected. */
+  type: MockRuntimeQuestionType;
+  passageId: string | null;
+  sectionId: string | null;
+  /** Shared pool for matching/labelling-family questions. Client-safe: it is
+   * the set of choices the learner picks FROM, not the answer. */
+  optionPool: MockOptionPoolItem[] | null;
+  wordLimit: WordLimit | null;
+  groupId: string | null;
+  mockSequence: number | null;
+}
+
+/** Which sections this attempt covers. "full" is the unchanged
+ * Reading+Listening mock and stays the default, so every existing caller
+ * behaves exactly as before. */
+export type MockSections = "full" | "reading_only";
 
 export interface MockStartInput {
   userId: string;
   targetCefrLevel: CefrLevel;
   planTaskId?: string | null;
+  sections?: MockSections;
 }
 
-export interface MockQuestion extends AssessmentQuestion {
+/**
+ * True when an attempt recorded no listening questions at all -- i.e. it was
+ * assembled as Reading-only. Derived from the attempt's OWN persisted
+ * structure rather than a separate mode column, so no migration is needed and
+ * there is no way for a stored flag to disagree with the stored question ids.
+ */
+export function isReadingOnlyAttempt(listeningQuestionIds: readonly string[] | null | undefined): boolean {
+  return (listeningQuestionIds ?? []).length === 0;
+}
+
+export interface MockQuestion extends Omit<AssessmentQuestion, "type"> {
+  /** See StructuralQuestion.type -- the contract's 13 types plus the legacy three. */
+  type: MockRuntimeQuestionType;
   section: "reading" | "listening";
   sequenceNumber: number;
+  /** The passage this question belongs to (reading) -- null for a listening question. */
+  passageId: string | null;
+  /** The section this question belongs to (listening) -- null for a reading question. */
+  sectionId: string | null;
+  /** Shared choice pool for matching/labelling questions -- never the answer. */
+  optionPool: MockOptionPoolItem[] | null;
+  /** Word-limit guidance for completion questions; shown to the learner, exactly as real IELTS does. */
+  wordLimit: WordLimit | null;
+  groupId: string | null;
+  mockSequence: number | null;
 }
 
 export interface MockSession {
   attemptId: string;
   readingQuestions: MockQuestion[];
   listeningQuestions: MockQuestion[];
+  /** Exactly READING_PASSAGE_COUNT ids, in the order assembleMock() selected them. */
+  readingPassageIds: string[];
+  /** Exactly LISTENING_SECTION_COUNT ids, in the order assembleMock() selected them. */
+  listeningSectionIds: string[];
   readingTimeLimitSeconds: number;
   listeningTimeLimitSeconds: number;
 }
@@ -65,20 +189,29 @@ export interface MockSubmitResult {
 
 // ── Question hydration ────────────────────────────────────────────────────────
 
-async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]> {
+async function fetchQuestionsForIds(ids: string[]): Promise<StructuralQuestion[]> {
   if (ids.length === 0) return [];
   const supabase = createServiceClient();
   const { data } = await supabase
     .from("assessment_questions")
-    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation")
+    .select("id, skill, type, difficulty, passage, passage_title, audio_url, question, options, correct_answer, explanation, mock_passage_id, mock_listening_section_id, option_pool, answer_word_limit, mock_group_id, mock_sequence")
     .in("id", ids);
 
   if (!data) return [];
 
+  // NOTE: accepted_answers is deliberately NOT selected here. This function
+  // hydrates the CLIENT-facing question set (startMock's return value is
+  // serialized straight to the browser), and accepted_answers is answer data
+  // -- shipping it would defeat the same anti-cheat rule that already forces
+  // correctAnswer/explanation to be blanked below. submitMock() reads it
+  // separately, server-side only, at grading time.
   type QRow = {
     id: string; skill: string; type: string; difficulty: string;
     passage: string | null; passage_title: string | null; audio_url: string | null;
     question: string; options: unknown; correct_answer: string; explanation: string | null;
+    mock_passage_id: string | null; mock_listening_section_id: string | null;
+    option_pool: unknown; answer_word_limit: string | null;
+    mock_group_id: string | null; mock_sequence: number | null;
   };
   const byId = new Map((data as QRow[]).map((q) => [q.id, q]));
 
@@ -89,7 +222,7 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
     .map((q) => ({
       id: q.id,
       skill: q.skill as AssessmentQuestion["skill"],
-      type: q.type as AssessmentQuestion["type"],
+      type: q.type as MockRuntimeQuestionType,
       difficulty: q.difficulty as CefrLevel,
       passage: q.passage ?? null,
       passageTitle: q.passage_title ?? null,
@@ -103,6 +236,12 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
       sectionInstruction: null,
       questionInstruction: null,
       audioInstruction: null,
+      passageId: q.mock_passage_id ?? null,
+      sectionId: q.mock_listening_section_id ?? null,
+      optionPool: Array.isArray(q.option_pool) ? (q.option_pool as MockOptionPoolItem[]) : null,
+      wordLimit: decodeWordLimit(q.answer_word_limit),
+      groupId: q.mock_group_id ?? null,
+      mockSequence: q.mock_sequence ?? null,
     }));
 }
 
@@ -111,13 +250,24 @@ async function fetchQuestionsForIds(ids: string[]): Promise<AssessmentQuestion[]
 export async function startMock(input: MockStartInput): Promise<MockSession> {
   const supabase = createServiceClient();
 
-  const { readingIds, listeningIds } = await assembleMock(input.userId, input.targetCefrLevel);
+  // assembleMock() is the ONLY source of truth for structure: it already
+  // guarantees exactly 3 reading passages / exactly 40 reading questions
+  // and, for a FULL mock, exactly 4 listening sections / exactly 40
+  // listening questions, or throws (see assembler.ts) -- there is no
+  // partial/flat fallback left to handle here. In "reading_only" mode the
+  // listening half is skipped entirely; the Reading guarantees are identical.
+  const readingOnly = input.sections === "reading_only";
+  const { readingIds, listeningIds, readingPassageIds, listeningSectionIds } = await assembleMock(
+    input.userId,
+    input.targetCefrLevel,
+    { includeListening: !readingOnly },
+  );
 
-  if (readingIds.length === 0 && listeningIds.length === 0) {
-    throw new Error("No questions available for mock assembly");
-  }
-
-  // Create attempt row
+  // Create attempt row. reading_passage_ids/listening_section_ids are
+  // persisted here, once, from the server's own assembly result -- never
+  // from client input (there is none at this point in the flow) -- so the
+  // Reading/Listening pages can reconstruct the exact same structure on
+  // every future load without re-running selection logic.
   const { data: attempt, error } = await supabase
     .from("full_mock_attempts")
     .insert({
@@ -126,6 +276,13 @@ export async function startMock(input: MockStartInput): Promise<MockSession> {
       target_cefr_level: input.targetCefrLevel,
       reading_question_ids: readingIds,
       listening_question_ids: listeningIds,
+      reading_passage_ids: readingPassageIds,
+      // NULL, never [] -- full_mock_attempts_listening_section_count_check is
+      // "IS NULL OR cardinality = 4" (mock-attempt-structure.sql), so an empty
+      // array would violate it. NULL is the schema's own representation of
+      // "this attempt has no listening structure", which is exactly the
+      // reading-only case and needs no migration.
+      listening_section_ids: readingOnly ? null : listeningSectionIds,
       reading_time_limit_seconds: READING_TIME_LIMIT_SECONDS,
       listening_time_limit_seconds: LISTENING_TIME_LIMIT_SECONDS,
     })
@@ -177,6 +334,8 @@ export async function startMock(input: MockStartInput): Promise<MockSession> {
       section: "listening" as const,
       sequenceNumber: i + 1,
     })),
+    readingPassageIds,
+    listeningSectionIds,
     readingTimeLimitSeconds: READING_TIME_LIMIT_SECONDS,
     listeningTimeLimitSeconds: LISTENING_TIME_LIMIT_SECONDS,
   };
@@ -188,20 +347,30 @@ export async function saveAnswer(input: SaveAnswerInput): Promise<void> {
   // Verify ownership
   const { data: attempt } = await supabase
     .from("full_mock_attempts")
-    .select("id, user_id, status")
+    .select("id, user_id, status, reading_question_ids, listening_question_ids")
     .eq("id", input.attemptId)
     .single();
 
   if (!attempt || attempt.user_id !== input.userId) throw new Error("Attempt not found");
   if (attempt.status !== "in_progress") throw new Error("Attempt already submitted");
 
-  // Upsert the response row
-  await supabase
+  const recordedIds = input.section === "reading"
+    ? (attempt.reading_question_ids as string[] | null) ?? []
+    : (attempt.listening_question_ids as string[] | null) ?? [];
+  const recordedIndex = recordedIds.indexOf(input.questionId);
+  if (recordedIndex < 0 || input.sequenceNumber !== recordedIndex + 1) {
+    throw new Error("Question does not belong to this attempt at the supplied section and sequence");
+  }
+
+  // Update the placeholder created by startMock(); client input can never add
+  // a new question to the attempt's authoritative structure.
+  const { error } = await supabase
     .from("full_mock_responses")
     .update({ user_answer: input.userAnswer, answered_at: new Date().toISOString() })
     .eq("attempt_id", input.attemptId)
     .eq("question_id", input.questionId)
     .eq("section", input.section);
+  if (error) throw new Error(`Failed to save mock answer: ${error.message}`);
 }
 
 export async function submitMock(input: MockSubmitInput): Promise<MockSubmitResult> {
@@ -218,25 +387,61 @@ export async function submitMock(input: MockSubmitInput): Promise<MockSubmitResu
   if (attempt.status !== "in_progress") throw new Error("Attempt already submitted");
 
   // Fetch all responses
-  const { data: responses } = await supabase
+  const { data: responses, error: responsesError } = await supabase
     .from("full_mock_responses")
     .select("question_id, section, user_answer")
     .eq("attempt_id", input.attemptId);
+  if (responsesError) throw new Error(`Mock submission failed: could not load responses (${responsesError.message}).`);
 
+  const recordedReadingIds = (attempt.reading_question_ids as string[] | null) ?? [];
+  const recordedListeningIds = (attempt.listening_question_ids as string[] | null) ?? [];
   const allQuestionIds = [
-    ...(attempt.reading_question_ids as string[]),
-    ...(attempt.listening_question_ids as string[]),
+    ...recordedReadingIds,
+    ...recordedListeningIds,
   ];
+  const responseRows = (responses ?? []) as { question_id: string; section: string; user_answer: string | null }[];
+  const expectedReadingIds = new Set(recordedReadingIds);
+  const expectedListeningIds = new Set(recordedListeningIds);
+  if (recordedReadingIds.length !== READING_QUESTION_COUNT || expectedReadingIds.size !== READING_QUESTION_COUNT
+    || (recordedListeningIds.length !== 0 && recordedListeningIds.length !== LISTENING_QUESTION_COUNT)
+    || expectedListeningIds.size !== recordedListeningIds.length) {
+    throw new Error("Mock submission failed: the attempt's recorded question structure is invalid.");
+  }
+  const readingResponseCount = responseRows.filter((response) => response.section === "reading").length;
+  const listeningResponseCount = responseRows.filter((response) => response.section === "listening").length;
+  const expectedListeningTotal = expectedListeningIds.size;
+  if (readingResponseCount !== READING_QUESTION_COUNT || listeningResponseCount !== expectedListeningTotal) {
+    throw new Error(
+      `Mock submission failed: expected exactly ${READING_QUESTION_COUNT} reading and ${expectedListeningTotal} listening responses, found ${readingResponseCount} and ${listeningResponseCount}.`,
+    );
+  }
 
-  // Fetch correct answers
-  const { data: questions } = await supabase
+  const seenResponseIds = new Set<string>();
+  for (const response of responseRows) {
+    const belongsToRecordedSection = response.section === "reading"
+      ? expectedReadingIds.has(response.question_id)
+      : response.section === "listening" && expectedListeningIds.has(response.question_id);
+    if (!belongsToRecordedSection || seenResponseIds.has(response.question_id)) {
+      throw new Error(`Mock submission failed: response structure does not match the attempt's recorded question ids (${response.question_id}).`);
+    }
+    seenResponseIds.add(response.question_id);
+  }
+
+  // Fetch correct answers. accepted_answers/type are read HERE (server-side,
+  // grading time) and never in the client-facing hydration path above.
+  const { data: questions, error: questionsError } = await supabase
     .from("assessment_questions")
-    .select("id, correct_answer")
+    .select("id, correct_answer, type, accepted_answers, answer_word_limit, option_pool")
     .in("id", allQuestionIds);
+  if (questionsError) throw new Error(`Mock submission failed: could not load grading metadata (${questionsError.message}).`);
 
+  type GradingRow = ReadingGradingRow & { id: string };
   const answerMap = new Map(
-    (questions ?? []).map((q: { id: string; correct_answer: string }) => [q.id, q.correct_answer])
+    (questions ?? []).map((q) => [(q as GradingRow).id, q as GradingRow])
   );
+  if (answerMap.size !== new Set(allQuestionIds).size || allQuestionIds.some((id) => !answerMap.has(id))) {
+    throw new Error("Mock submission failed: grading metadata is missing for one or more recorded questions.");
+  }
 
   // Grade
   let readingCorrect = 0, listeningCorrect = 0;
@@ -244,10 +449,18 @@ export async function submitMock(input: MockSubmitInput): Promise<MockSubmitResu
 
   const gradedResponses: Array<{ question_id: string; is_correct: boolean }> = [];
 
-  for (const r of (responses ?? []) as { question_id: string; section: string; user_answer: string | null }[]) {
-    const correct = answerMap.get(r.question_id);
-    const isCorrect = correct != null && r.user_answer != null
-      ? r.user_answer.trim().toLowerCase() === correct.trim().toLowerCase()
+  for (const r of responseRows) {
+    const row = answerMap.get(r.question_id);
+    const correct = row?.correct_answer;
+    // Reading contract types use gradeReadingAnswer(), including word limits
+    // and conservative normalization. Listening and legacy behavior remains
+    // on its pre-existing path in this Reading-only hardening task.
+    const isCorrect = row != null && correct != null && r.user_answer != null
+      ? r.section === "reading"
+        ? gradeReadingAnswer(row, r.user_answer)
+        : isCompletionType(row.type)
+          ? answersMatch(r.user_answer, correct, Array.isArray(row.accepted_answers) ? (row.accepted_answers as string[]) : [])
+          : r.user_answer.trim().toLowerCase() === correct.trim().toLowerCase()
       : false;
 
     if (r.section === "reading") {
@@ -259,6 +472,29 @@ export async function submitMock(input: MockSubmitInput): Promise<MockSubmitResu
     }
     gradedResponses.push({ question_id: r.question_id, is_correct: isCorrect });
   }
+
+  // Security/integrity guarantee: grading must cover EXACTLY the structure
+  // this attempt was assembled with -- never more, never fewer, and never
+  // influenced by anything the client sent (the client only ever supplies
+  // userAnswer via saveAnswer(), which upserts an EXISTING pre-inserted
+  // response row and can neither create a response for a foreign question
+  // id nor delete one). If this ever fails, full_mock_responses has drifted
+  // from full_mock_attempts's own recorded structure -- a data-integrity
+  // bug, not a normal scoring outcome, so this fails loudly rather than
+  // silently publishing a score computed over the wrong question set.
+  // Reading is ALWAYS exactly READING_QUESTION_COUNT, in every mode -- this
+  // requirement is unchanged and deliberately still expressed against the
+  // constant, not the recorded array.
+  //
+  // Listening is checked against this attempt's OWN recorded question ids
+  // rather than the constant. For a FULL mock that array holds exactly
+  // LISTENING_QUESTION_COUNT ids, so the check is exactly as strict as
+  // before; for a reading-only attempt it is empty, so 0 responses is the
+  // correct expectation rather than a failure. This is if anything stronger
+  // than the old constant comparison: it now also catches an attempt whose
+  // responses drifted from its own structure for any reason, in any mode.
+  // Counts and exact question-id/section membership were checked before any
+  // answer keys were loaded or grades were calculated above.
 
   const scored = scoreMock(readingCorrect, readingTotal, listeningCorrect, listeningTotal);
 
