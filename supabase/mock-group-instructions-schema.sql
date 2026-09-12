@@ -1,0 +1,73 @@
+-- IELTS Mock group-level instruction text — additive only.
+--
+-- NOT YET APPLIED. Awaiting explicit approval before running against any
+-- environment.
+--
+-- WHY THIS IS NEEDED
+--
+-- A real IELTS Reading task is introduced by instruction text that belongs to
+-- the GROUP, not to any single question:
+--
+--   "Questions 1-4: Which paragraph contains the following information?"
+--   "NB You may use any letter more than once."
+--   "Questions 5-10: Complete the summary below."
+--   "Choose NO MORE THAN TWO WORDS from the passage."
+--
+-- The authoring contract has carried this since day one
+-- (MockQuestionGroupContract.instructions in src/lib/mock/content/types.ts),
+-- but there is nowhere to persist it, so the DB -> contract rehydration in
+-- validator.ts had to hardcode `instructions: ""`. The round trip was
+-- lossy at exactly that line: authored instructions were silently dropped on
+-- insert and could never reach the runtime renderer.
+--
+-- WHY NO EXISTING COLUMN CAN CARRY IT
+--
+-- Verified against the live database by read-only introspection, not assumed:
+--
+--   * There is no `metadata` (or any other free-form jsonb) column on
+--     assessment_questions. Probe returned 42703.
+--   * section_instruction / question_instruction / audio_instruction appear in
+--     the hand-written TypeScript Database type but DO NOT EXIST in the live
+--     database -- they were never migrated. All three probes returned 42703.
+--     (This is the same gap that forced the hardcoded nulls documented in
+--     src/lib/assessment/engine.ts.) They are also per-question/per-section,
+--     not per-group, so they would be the wrong grain even if they existed.
+--   * option_pool is jsonb and does exist, but it is the wrong home: it is
+--     strictly an array of {id, text} choices enforced by the validator, and
+--     it is null for exactly the groups that still need instructions
+--     (True/False/Not Given, free-text completion). It cannot cover them.
+--   * accepted_answers is per-question answer variants -- wrong grain and
+--     wrong semantics.
+--   * tags is a text[] used by Placement/Practice for filtering; storing
+--     prose in it would corrupt that use.
+--
+-- WHY A COLUMN AND NOT A question_groups TABLE
+--
+-- mock-question-content-schema.sql's header reserved the right to build a
+-- relational question_groups table "once group-level metadata is actually
+-- needed by a real consumer". That moment has arrived -- but the same file
+-- already established the cheaper pattern it should follow: option_pool is
+-- ALSO group-level data, denormalized onto every row in the group, with the
+-- validator enforcing that the copies agree. Group instructions are one text
+-- field with identical semantics, so they follow the identical, already-proven
+-- pattern. A new table would add a foreign key, an RLS policy and a join to
+-- every Mock hydration query to carry a single string.
+--
+-- The consistency guarantee is enforced in code, exactly as it is for
+-- option_pool: rowsToGroups() raises INCONSISTENT_GROUP_INSTRUCTIONS if two
+-- rows in one mock_group_id disagree.
+
+ALTER TABLE assessment_questions
+  -- The task instruction shared by every question in this mock_group_id, e.g.
+  -- 'Questions 1-4: Which paragraph contains the following information? NB You
+  -- may use any letter more than once.' Every row in the same group carries an
+  -- identical copy -- enforced by src/lib/mock/content/validator.ts, not by
+  -- this column alone. Null for a standalone question that has no shared task.
+  ADD COLUMN IF NOT EXISTS mock_group_instructions text;
+
+-- No RLS change needed: this is an additional column on an existing table
+-- whose SELECT policy (assessment-schema.sql) already covers the whole row.
+--
+-- No backfill: every existing row is legitimately null. Placement, Practice
+-- and the Initial Assessment never read or write this column and are
+-- unaffected.
