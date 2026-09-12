@@ -48,6 +48,7 @@ const READING_PASSAGE_COUNT = 3;
 const READING_QUESTION_COUNT = 40;
 const LISTENING_SECTION_COUNT = 4;
 const LISTENING_QUESTION_COUNT = 40;
+const LISTENING_QUESTIONS_PER_SECTION = 10;
 
 const TFNG_ANSWERS = ["true", "false", "not given"];
 const YNNG_ANSWERS = ["yes", "no", "not given"];
@@ -69,7 +70,12 @@ function normalizeText(s: string): string {
  */
 export function validateQuestion(
   question: MockQuestionContract,
-  context: { expectedParentId: string; expectedSkill: "reading" | "listening"; optionPool?: MockOptionPoolItem[] },
+  context: {
+    expectedParentId: string;
+    expectedSkill: "reading" | "listening";
+    optionPool?: MockOptionPoolItem[];
+    chooseTwo?: boolean;
+  },
   path: string,
 ): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -121,7 +127,9 @@ export function validateQuestion(
   }
 
   if (family === "multiple_choice") {
-    errors.push(...validateMultipleChoice(question, path, loc));
+    errors.push(...(context.chooseTwo
+      ? validateChooseTwoQuestion(question, context.optionPool, path, loc)
+      : validateMultipleChoice(question, path, loc)));
   } else if (family === "true_false_style") {
     errors.push(...validateTrueFalseStyle(question, path, loc));
   } else if (family === "matching_style") {
@@ -137,6 +145,22 @@ export function validateQuestion(
     }
   }
 
+  return errors;
+}
+
+function validateChooseTwoQuestion(
+  question: MockQuestionContract,
+  optionPool: MockOptionPoolItem[] | undefined,
+  path: string,
+  loc: Partial<ValidationError>,
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+  if ((question.options?.length ?? 0) > 0) {
+    errors.push(err("CHOOSE_TWO_MIXED_REPRESENTATION", path, "Choose-two rows must use the group's shared option_pool, not per-row options.", loc));
+  }
+  if (!optionPool || !optionPool.some((option) => option.id === question.correctAnswer)) {
+    errors.push(err("INVALID_CHOOSE_TWO_ANSWER", path, `Correct answer "${question.correctAnswer}" is not one of the shared option pool's ids.`, loc));
+  }
   return errors;
 }
 
@@ -240,6 +264,12 @@ export function isWordBankGroup(group: { taskType: MockQuestionType; optionPool?
   return familyOf(group.taskType) === "completion" && !!group.optionPool && group.optionPool.length > 0;
 }
 
+/** Listening choose-two needs no new database discriminator: it is the one
+ * multiple-choice representation that uses a group-level option_pool. */
+export function isListeningChooseTwoGroup(group: { taskType: MockQuestionType; optionPool?: MockOptionPoolItem[] }): boolean {
+  return group.taskType === "multiple_choice" && !!group.optionPool && group.optionPool.length > 0;
+}
+
 export function validateQuestionGroup(
   group: MockQuestionGroupContract,
   context: { expectedParentId: string; expectedSkill: "reading" | "listening" },
@@ -248,6 +278,7 @@ export function validateQuestionGroup(
   const errors: ValidationError[] = [];
   const family = familyOf(group.taskType);
   const groupLoc = { groupId: group.groupId };
+  const chooseTwo = context.expectedSkill === "listening" && isListeningChooseTwoGroup(group);
 
   for (const question of group.questions) {
     if (question.type !== group.taskType) {
@@ -324,6 +355,30 @@ export function validateQuestionGroup(
         errors.push(err("MATCHING_COUNT_MISMATCH", path, `Group "${group.groupId}" uses ${distinctAnswers.size} distinct option(s) but its pool contains only ${group.optionPool.length}.`, groupLoc));
       }
     }
+  } else if (chooseTwo) {
+    if (!group.groupId || group.groupId.trim().length === 0) {
+      errors.push(err("INVALID_CHOOSE_TWO_GROUP_ID", path, "Choose-two groups require a non-empty shared group id.", groupLoc));
+    }
+    if (group.questions.length !== 2) {
+      errors.push(err("INVALID_CHOOSE_TWO_GROUP_SIZE", path, `Choose-two group "${group.groupId}" must contain exactly 2 question rows (found ${group.questions.length}).`, groupLoc));
+    }
+    if (!group.optionPool || group.optionPool.length < 3) {
+      errors.push(err("INVALID_CHOOSE_TWO_OPTION_POOL", path, `Choose-two group "${group.groupId}" must contain at least 3 shared options.`, groupLoc));
+    }
+    for (const question of group.questions) {
+      if (!question.groupId || question.groupId !== group.groupId) {
+        errors.push(err("INVALID_CHOOSE_TWO_GROUP_ID", path, `Choose-two question "${question.id}" must reference shared group "${group.groupId}".`, { ...groupLoc, questionId: question.id }));
+      }
+    }
+    const correctAnswers = group.questions.map((question) => normalizeText(question.correctAnswer));
+    if (group.questions.length === 2 && new Set(correctAnswers).size !== 2) {
+      errors.push(err("DUPLICATE_CHOOSE_TWO_CORRECT_ANSWER", path, `Choose-two group "${group.groupId}" must contain two distinct correct answers.`, groupLoc));
+    }
+    const orders = group.questions.map((question) => question.order).sort((a, b) => a - b);
+    if (orders.some((order) => !Number.isInteger(order) || order <= 0)
+      || orders.slice(1).some((order, index) => order !== orders[index] + 1)) {
+      errors.push(err("NON_CONSECUTIVE_CHOOSE_TWO_SEQUENCE", path, `Choose-two group "${group.groupId}" must use consecutive deterministic sequence values.`, groupLoc));
+    }
   } else if (group.optionPool && group.optionPool.length > 0) {
     errors.push(err("UNEXPECTED_OPTION_POOL", path, `Group "${group.groupId}" (${group.taskType}) cannot carry an option pool.`, groupLoc));
   }
@@ -342,7 +397,12 @@ export function validateQuestionGroup(
   }
 
   group.questions.forEach((question, i) => {
-    errors.push(...validateQuestion(question, { expectedParentId: context.expectedParentId, expectedSkill: context.expectedSkill, optionPool: group.optionPool }, `${path}.questions[${i}]`));
+    errors.push(...validateQuestion(question, {
+      expectedParentId: context.expectedParentId,
+      expectedSkill: context.expectedSkill,
+      optionPool: group.optionPool,
+      chooseTwo,
+    }, `${path}.questions[${i}]`));
   });
 
   return errors;
@@ -404,6 +464,28 @@ export function validateListeningSection(section: MockListeningSectionContract, 
   // 17: listening section with zero questions.
   if (questions.length === 0) {
     errors.push(err("EMPTY_SECTION", path, `Listening section "${section.id}" has no questions.`, loc));
+  }
+  if (questions.length !== LISTENING_QUESTIONS_PER_SECTION) {
+    errors.push(err(
+      "WRONG_LISTENING_SECTION_QUESTION_COUNT",
+      path,
+      `Listening section "${section.id}" must contain exactly ${LISTENING_QUESTIONS_PER_SECTION} questions (found ${questions.length}).`,
+      loc,
+    ));
+  }
+
+  const seenOrders = new Map<number, string>();
+  for (const question of questions) {
+    if (!Number.isInteger(question.order) || question.order <= 0) {
+      errors.push(err("INVALID_MOCK_SEQUENCE", path, `Question "${question.id}" has invalid order=${question.order}; expected a positive integer.`, { ...loc, questionId: question.id }));
+      continue;
+    }
+    const previous = seenOrders.get(question.order);
+    if (previous) {
+      errors.push(err("DUPLICATE_MOCK_SEQUENCE", path, `Questions "${previous}" and "${question.id}" both use order=${question.order} within one Listening section.`, { ...loc, questionId: question.id }));
+    } else {
+      seenOrders.set(question.order, question.id);
+    }
   }
 
   errors.push(...checkDuplicateIdsAndText(questions, path));
@@ -529,11 +611,16 @@ function compareRowsBySequence(a: AssembledQuestionRow, b: AssembledQuestionRow)
   return a.id.localeCompare(b.id);
 }
 
-function validateSequences(rows: AssembledQuestionRow[], path: string): ValidationError[] {
+function validateSequences(rows: AssembledQuestionRow[], path: string, requireEverySequence = false): ValidationError[] {
   const errors: ValidationError[] = [];
   const seen = new Map<number, string>();
   for (const row of rows) {
-    if (row.mock_sequence === null) continue;
+    if (row.mock_sequence === null) {
+      if (requireEverySequence) {
+        errors.push(err("MISSING_MOCK_SEQUENCE", path, `Question "${row.id}" has no mock_sequence; every persisted Listening question requires a positive sequence.`, { questionId: row.id }));
+      }
+      continue;
+    }
     if (!Number.isInteger(row.mock_sequence) || row.mock_sequence <= 0) {
       errors.push(err("INVALID_MOCK_SEQUENCE", path, `Question "${row.id}" has invalid mock_sequence=${row.mock_sequence}; expected a positive integer.`, { questionId: row.id }));
       continue;
@@ -553,7 +640,14 @@ function rowsToGroups(rows: AssembledQuestionRow[], skill: "reading" | "listenin
   const byGroupKey = new Map<string, AssembledQuestionRow[]>();
   // A row with no mock_group_id is its own standalone group, keyed by its own id.
   for (const row of rows) {
-    const key = row.mock_group_id ?? `__standalone__${row.id}`;
+    const hasMalformedGroupId = row.mock_group_id !== null
+      && (typeof row.mock_group_id !== "string" || row.mock_group_id.trim().length === 0);
+    if (hasMalformedGroupId) {
+      errors.push(err("INVALID_GROUP_ID", `${skill}.groups`, `Question "${row.id}" has a malformed mock_group_id; expected a non-empty string or null.`, { questionId: row.id }));
+    }
+    const key = typeof row.mock_group_id === "string" && row.mock_group_id.length > 0 && !hasMalformedGroupId
+      ? row.mock_group_id
+      : `__standalone__${row.id}`;
     const list = byGroupKey.get(key) ?? [];
     list.push(row);
     byGroupKey.set(key, list);
@@ -643,7 +737,7 @@ export function buildListeningContractFromRows(sections: AssembledParentRow[], r
   const errors: ValidationError[] = [];
   const contractSections: MockListeningSectionContract[] = sections.map((s) => {
     const sectionRows = rows.filter((r) => r.mock_listening_section_id === s.id);
-    errors.push(...validateSequences(sectionRows, `listening.sections[${s.id}]`));
+    errors.push(...validateSequences(sectionRows, `listening.sections[${s.id}]`, true));
     const { groups, errors: groupErrors } = rowsToGroups(sectionRows, "listening");
     errors.push(...groupErrors);
     return {
@@ -662,11 +756,8 @@ export function buildListeningContractFromRows(sections: AssembledParentRow[], r
  * The assembly-time safety check: re-hydrates already-persisted rows into
  * the SAME content contract used before insertion, then runs the SAME
  * validateReadingMock()/validateListeningMock() functions. Intended to be
- * called as a final guard right after (or instead of trusting) an
- * assembleMock() result — NOT YET wired into assembler.ts's own runtime
- * path; that wiring is a deliberate follow-up, out of scope for this task
- * (see this project's own task history: "STOP after the validator/schema
- * layer").
+ * called as a final guard over an assembleMock() result. The assembler wires
+ * the skill-specific guards before startMock() can create an attempt.
  */
 export function validateAssembledMock(
   readingPassages: AssembledParentRow[],
@@ -682,9 +773,20 @@ export function validateAssembledMock(
     return { valid: errors.length === 0, errors };
   }
 
-  const { contract: listening, errors: listeningAdapterErrors } = buildListeningContractFromRows(listeningSections, listeningRows);
-  const listeningResult = validateListeningMock(listening);
+  const listeningResult = validateAssembledListening(listeningSections, listeningRows);
 
-  const errors = [...readingAdapterErrors, ...readingResult.errors, ...listeningAdapterErrors, ...listeningResult.errors];
+  const errors = [...readingAdapterErrors, ...readingResult.errors, ...listeningResult.errors];
+  return { valid: errors.length === 0, errors };
+}
+
+/** Listening-only persisted-content guard used by the assembler before an
+ * attempt is created. Reading validation remains independent and unchanged. */
+export function validateAssembledListening(
+  listeningSections: AssembledParentRow[],
+  listeningRows: AssembledQuestionRow[],
+): ValidationResult {
+  const { contract, errors: adapterErrors } = buildListeningContractFromRows(listeningSections, listeningRows);
+  const result = validateListeningMock(contract);
+  const errors = [...adapterErrors, ...result.errors];
   return { valid: errors.length === 0, errors };
 }

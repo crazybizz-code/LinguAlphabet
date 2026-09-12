@@ -3,7 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service-client";
 import { MockListeningClient } from "@/components/mock/MockListeningClient";
 import type { ClientQuestion } from "@/components/mock/types";
-import { isReadingOnlyAttempt } from "@/lib/mock/engine";
+import { buildListeningSections } from "@/components/mock/listening-state";
+import { decodeWordLimit, isReadingOnlyAttempt } from "@/lib/mock/engine";
+import type { MockOptionPoolItem } from "@/lib/mock/content/types";
 
 interface Props {
   params: Promise<{ attemptId: string }>;
@@ -20,7 +22,7 @@ export default async function MockListeningPage({ params }: Props) {
 
   const { data: attempt } = await supabase
     .from("full_mock_attempts")
-    .select("id, user_id, status, listening_question_ids, listening_time_limit_seconds")
+    .select("id, user_id, status, listening_question_ids, listening_section_ids, listening_time_limit_seconds")
     .eq("id", attemptId)
     .single();
 
@@ -34,12 +36,23 @@ export default async function MockListeningPage({ params }: Props) {
   }
 
   const questionIds = (attempt.listening_question_ids ?? []) as string[];
+  // Persisted once by startMock() from the server's own assembly result --
+  // reconstructing the section structure on every load/reload reads THIS,
+  // never re-runs selection logic and never trusts anything from the client.
+  const sectionIds = (attempt.listening_section_ids ?? []) as string[];
 
   const service = createServiceClient();
-  const { data: rawQuestions } = await service
-    .from("assessment_questions")
-    .select("id, skill, type, difficulty, audio_url, question, options")
-    .in("id", questionIds);
+  const [{ data: rawQuestions }, { data: rawSections }] = await Promise.all([
+    service
+      .from("assessment_questions")
+      // accepted_answers deliberately NOT selected -- answer data never enters
+      // the client payload; submitMock() reads it server-side at grading time.
+      .select("id, skill, type, difficulty, audio_url, question, options, mock_listening_section_id, option_pool, answer_word_limit, mock_group_id, mock_group_instructions, mock_sequence")
+      .in("id", questionIds),
+    sectionIds.length > 0
+      ? service.from("mock_listening_sections").select("id, title, audio_url").in("id", sectionIds)
+      : Promise.resolve({ data: [] as { id: string; title: string | null; audio_url: string | null }[] }),
+  ]);
 
   const { data: responses } = await supabase
     .from("full_mock_responses")
@@ -59,41 +72,64 @@ export default async function MockListeningPage({ params }: Props) {
   type RawQ = {
     id: string; skill: string; type: string; difficulty: string;
     audio_url: string | null; question: string; options: unknown;
+    mock_listening_section_id: string | null;
+    option_pool: unknown; answer_word_limit: string | null;
+    mock_group_id: string | null; mock_group_instructions: string | null;
+    mock_sequence: number | null;
   };
 
   const questions: ClientQuestion[] = questionIds
     .map((id) => byId.get(id) as RawQ | undefined)
     .filter((q): q is RawQ => q !== undefined)
-    .map((q, i) => ({
-      id: q.id,
-      skill: q.skill as "reading" | "listening",
-      type: q.type as "mc" | "tf" | "fill",
-      difficulty: q.difficulty,
-      // Listening: never send transcript to client
-      passage: null,
-      passageTitle: null,
-      audioUrl: q.audio_url ?? null,
-      question: q.question,
-      options: Array.isArray(q.options) ? (q.options as string[]) : null,
-      sequenceNumber: i + 1,
-      passageId: null,
-      sectionId: null,
-      optionPool: null,
-      wordLimit: null,
-      groupId: null,
-      groupInstructions: null,
-      mockSequence: null,
-      // section_instruction/question_instruction/audio_instruction don't
-      // exist in the live DB — see src/lib/assessment/engine.ts.
-      sectionInstruction: null,
-      questionInstruction: null,
-      audioInstruction: null,
-    }));
+    .map((q, i) => {
+      // Real IELTS structure: one recording per section, referenced via
+      // mock_listening_section_id -- NOT this row's own audio_url (see
+      // supabase/mock-structure-schema.sql). The section's transcript is
+      // NEVER sent to the client, matching the existing anti-cheat rule for
+      // this row's own (legacy) transcript field.
+      return {
+        id: q.id,
+        skill: q.skill as "reading" | "listening",
+        type: q.type as ClientQuestion["type"],
+        difficulty: q.difficulty,
+        // Listening: never send transcript to client
+        passage: null,
+        passageTitle: null,
+        // Kept only as a legacy fallback while the runtime consumes the
+        // section-level audioUrl assembled below.
+        audioUrl: q.audio_url ?? null,
+        question: q.question,
+        options: Array.isArray(q.options) ? (q.options as string[]) : null,
+        sequenceNumber: i + 1,
+        passageId: null,
+        sectionId: q.mock_listening_section_id ?? null,
+        optionPool: Array.isArray(q.option_pool) ? (q.option_pool as MockOptionPoolItem[]) : null,
+        wordLimit: decodeWordLimit(q.answer_word_limit),
+        groupId: q.mock_group_id ?? null,
+        groupInstructions: q.mock_group_instructions ?? null,
+        mockSequence: q.mock_sequence ?? null,
+        // section_instruction/question_instruction/audio_instruction don't
+        // exist in the live DB — see src/lib/assessment/engine.ts.
+        sectionInstruction: null,
+        questionInstruction: null,
+        audioInstruction: null,
+      };
+    });
+
+  const sections = buildListeningSections(
+    sectionIds,
+    questions,
+    (rawSections ?? []).map((section) => ({
+      id: section.id,
+      title: section.title,
+      audioUrl: section.audio_url,
+    })),
+  );
 
   return (
     <MockListeningClient
       attemptId={attemptId}
-      questions={questions}
+      sections={sections}
       savedAnswers={savedAnswers}
       timeLimitSeconds={attempt.listening_time_limit_seconds ?? 1500}
     />

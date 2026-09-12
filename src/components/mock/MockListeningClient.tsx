@@ -1,18 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Flag, Headphones, Monitor, ChevronLeft, ChevronRight } from "lucide-react";
+import { Headphones, Monitor, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { ListeningAudioPlayer } from "@/components/assessment/ListeningAudioPlayer";
-import { ListeningInstructions } from "@/components/assessment/ListeningInstructions";
+import { ListeningSectionPanel } from "./ListeningSectionPanel";
 import { QuestionPalette } from "./QuestionPalette";
-import { QuestionRenderer } from "./QuestionRenderer";
-import type { ClientQuestion } from "./types";
+import {
+  flattenListeningQuestions,
+  getListeningLocation,
+  type ClientListeningQuestionGroup,
+  type ClientListeningSection,
+} from "./listening-state";
+import { encodeChooseTwoResponses } from "./listening-choose-two";
 
 interface Props {
   attemptId: string;
-  questions: ClientQuestion[];
+  sections: ClientListeningSection[];
   savedAnswers: Record<string, string | null>;
   timeLimitSeconds: number;
 }
@@ -23,15 +27,18 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function MockListeningClient({ attemptId, questions, savedAnswers, timeLimitSeconds }: Props) {
+export function MockListeningClient({ attemptId, sections, savedAnswers, timeLimitSeconds }: Props) {
   const router = useRouter();
+  const questions = useMemo(() => flattenListeningQuestions(sections), [sections]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | null>>(savedAnswers);
   const [timeLeft, setTimeLeft] = useState(timeLimitSeconds);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // Track which questions' audio has already been played (one-play-only per question)
-  const [playedAudioIds, setPlayedAudioIds] = useState<Set<string>>(new Set());
+  // This intentionally lives only for the mounted exam session. It preserves
+  // one-play behavior while moving between sections, but a browser refresh
+  // resets it because Checkpoint 2 adds no server/database persistence.
+  const [playedAudioSectionIds, setPlayedAudioSectionIds] = useState<Set<string>>(new Set());
   // Mark-for-review flags — session-only (sessionStorage), no schema change; mirrors the
   // existing timer-anchor persistence pattern below.
   const [flagged, setFlagged] = useState<Record<string, boolean>>(() => {
@@ -45,6 +52,7 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
   });
   const startTimeRef = useRef<number | null>(null);
   const timedOutRef = useRef(false);
+  const chooseTwoSaveQueuesRef = useRef<Map<string, Promise<void>>>(new Map());
 
   // Timer
   useEffect(() => {
@@ -75,10 +83,10 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
   }, [attemptId, timeLimitSeconds]);
 
   const saveAnswer = useCallback(
-    (questionId: string, answer: string) => {
+    (questionId: string, answer: string | null) => {
       const q = questions.find((q) => q.id === questionId);
       if (!q) return;
-      fetch("/api/mock/answer", {
+      return fetch("/api/mock/answer", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -88,14 +96,14 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
           userAnswer: answer,
           sequenceNumber: q.sequenceNumber,
         }),
-      }).catch(console.error);
+      }).then(() => undefined).catch(console.error);
     },
     [attemptId, questions],
   );
 
   function handleSelect(questionId: string, answer: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-    saveAnswer(questionId, answer);
+    void saveAnswer(questionId, answer);
   }
 
   async function handleSubmit() {
@@ -129,10 +137,39 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
     });
   }
 
-  const currentQuestion = questions[currentIndex];
+  const currentLocation = getListeningLocation(sections, currentIndex);
+  const currentQuestion = currentLocation?.question;
+  const activeSection = currentLocation?.section;
   const answeredCount = questions.filter((q) => Boolean(answers[q.id])).length;
   const isLowTime = timeLeft <= 300;
-  const hasAudio = Boolean(currentQuestion?.audioUrl);
+
+  function navigateToQuestion(questionId: string) {
+    const index = questions.findIndex((question) => question.id === questionId);
+    if (index >= 0) setCurrentIndex(index);
+  }
+
+  function handleChooseTwoChange(group: ClientListeningQuestionGroup, selections: string[]) {
+    const updates = encodeChooseTwoResponses(group, selections);
+    setAnswers((previous) => {
+      const next = { ...previous };
+      for (const update of updates) next[update.questionId] = update.answer;
+      return next;
+    });
+    // Queue whole group snapshots so rapid toggles cannot let an older null
+    // response arrive after a newer selection. Each snapshot still uses the
+    // existing one-row API and response schema.
+    const queueKey = updates.map((update) => update.questionId).join(":");
+    const previousSave = chooseTwoSaveQueuesRef.current.get(queueKey) ?? Promise.resolve();
+    const nextSave = previousSave.then(async () => {
+      await Promise.all(updates.map((update) => saveAnswer(update.questionId, update.answer)));
+    });
+    chooseTwoSaveQueuesRef.current.set(queueKey, nextSave);
+    void nextSave.finally(() => {
+      if (chooseTwoSaveQueuesRef.current.get(queueKey) === nextSave) {
+        chooseTwoSaveQueuesRef.current.delete(queueKey);
+      }
+    });
+  }
 
   return (
     <>
@@ -190,79 +227,21 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
         </header>
 
         {/* Content */}
-        {currentQuestion && (
+        {currentQuestion && activeSection && currentLocation && (
           <div className="flex min-h-0 flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-2xl px-8 py-6">
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
-                  Question {currentQuestion.sequenceNumber} of {questions.length}
-                </p>
-                <button
-                  onClick={() => toggleFlag(currentQuestion.id)}
-                  className={[
-                    "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all",
-                    flagged[currentQuestion.id]
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-text-secondary hover:bg-bg-muted",
-                  ].join(" ")}
-                >
-                  <Flag
-                    className="h-3.5 w-3.5"
-                    aria-hidden="true"
-                    fill={flagged[currentQuestion.id] ? "currentColor" : "none"}
-                  />
-                  {flagged[currentQuestion.id] ? "Flagged" : "Flag"}
-                </button>
-              </div>
-
-              {/* Listening instructions + audio player — real audio, no fake timer */}
-              {hasAudio && (
-                <div className="mb-6 space-y-4">
-                  <ListeningInstructions
-                    sectionInstruction={currentQuestion.sectionInstruction}
-                    audioInstruction={currentQuestion.audioInstruction}
-                  />
-                  <ListeningAudioPlayer
-                    key={currentQuestion.id}
-                    audioUrl={currentQuestion.audioUrl!}
-                    instruction={currentQuestion.audioInstruction}
-                    initiallyPlayed={playedAudioIds.has(currentQuestion.id)}
-                    onPlay={() => setPlayedAudioIds((prev) => new Set([...prev, currentQuestion.id]))}
-                  />
-                </div>
-              )}
-
-              {/* Question-level instruction (content-driven, null until authored) */}
-              {currentQuestion.questionInstruction && (
-                <p className="mb-3 text-xs text-text-secondary">{currentQuestion.questionInstruction}</p>
-              )}
-
-              <QuestionRenderer
-                question={currentQuestion}
-                selectedAnswer={answers[currentQuestion.id] ?? null}
-                onSelect={handleSelect}
-              />
-
-              {/* Prev / Next */}
-              <div className="mt-6 flex items-center justify-between">
-                <button
-                  onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-                  disabled={currentIndex === 0}
-                  className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-secondary transition-all hover:border-primary/40 disabled:opacity-40"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                  Previous
-                </button>
-                <button
-                  onClick={() => setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))}
-                  disabled={currentIndex === questions.length - 1}
-                  className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-text-secondary transition-all hover:border-primary/40 disabled:opacity-40"
-                >
-                  Next
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
+            <ListeningSectionPanel
+              section={activeSection}
+              sectionNumber={currentLocation.sectionIndex + 1}
+              currentQuestionId={currentQuestion.id}
+              answers={answers}
+              flags={flagged}
+              audioAlreadyPlayed={playedAudioSectionIds.has(activeSection.sectionId)}
+              onAudioPlay={() => setPlayedAudioSectionIds((prev) => new Set([...prev, activeSection.sectionId]))}
+              onSelect={handleSelect}
+              onChooseTwoChange={handleChooseTwoChange}
+              onNavigate={navigateToQuestion}
+              onToggleFlag={toggleFlag}
+            />
           </div>
         )}
 
@@ -274,6 +253,8 @@ export function MockListeningClient({ attemptId, questions, savedAnswers, timeLi
             answers={answers}
             flags={flagged}
             onNavigate={setCurrentIndex}
+            onPrev={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+            onNext={() => setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))}
           />
         </footer>
       </div>

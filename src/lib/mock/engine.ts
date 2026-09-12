@@ -31,7 +31,7 @@ import {
   type WordLimit,
   type WordLimitDbLabel,
 } from "./content/types";
-import { answersMatch, violatesWordLimit } from "./content/normalization";
+import { answersMatch, normalizeAnswer, violatesWordLimit } from "./content/normalization";
 
 /** Any type a persisted Mock/legacy question may carry -- the contract's 13
  * plus the three legacy generic values, matching the DB's widened CHECK
@@ -46,14 +46,6 @@ export function decodeWordLimit(label: string | null): WordLimit | null {
   return (WORD_LIMIT_DB_LABELS as readonly string[]).includes(label)
     ? wordLimitFromDbLabel(label as WordLimitDbLabel)
     : null;
-}
-
-/** True when this question is graded as a completion answer (free text with
- * accepted alternates), per the contract's own family mapping. Legacy
- * 'mc'/'tf'/'fill' are NOT contract types, so they fall through to the
- * pre-existing exact-match path exactly as before. */
-function isCompletionType(type: string): boolean {
-  return isKnownMockQuestionType(type) && familyOf(type) === "completion";
 }
 
 interface ReadingGradingRow {
@@ -88,6 +80,83 @@ export function gradeReadingAnswer(row: ReadingGradingRow, userAnswer: string | 
   if (!limit || violatesWordLimit(userAnswer, limit)) return false;
   if (row.accepted_answers !== null && row.accepted_answers !== undefined && !isStringArray(row.accepted_answers)) return false;
   return answersMatch(userAnswer, row.correct_answer, row.accepted_answers ?? []);
+}
+
+/** Listening keeps its existing single-answer comparison, while completion
+ * rows now enforce the same authored word-limit and accepted-answer contract
+ * as Reading. */
+export function gradeListeningAnswer(row: ReadingGradingRow, userAnswer: string | null): boolean {
+  if (userAnswer === null || typeof row.correct_answer !== "string") return false;
+
+  if (!isKnownMockQuestionType(row.type)) {
+    return userAnswer.trim().toLowerCase() === row.correct_answer.trim().toLowerCase();
+  }
+  if (!ALLOWED_TYPES_BY_SKILL.listening.includes(row.type)) return false;
+
+  if (familyOf(row.type) !== "completion") {
+    return userAnswer.trim().toLowerCase() === row.correct_answer.trim().toLowerCase();
+  }
+  if (row.option_pool !== null && row.option_pool !== undefined) {
+    if (!isMockOptionPool(row.option_pool) || row.option_pool.length === 0) return false;
+    return answersMatch(userAnswer, row.correct_answer);
+  }
+
+  const limit = decodeWordLimit(row.answer_word_limit);
+  if (!limit || violatesWordLimit(userAnswer, limit)) return false;
+  if (row.accepted_answers !== null && row.accepted_answers !== undefined && !isStringArray(row.accepted_answers)) return false;
+  return answersMatch(userAnswer, row.correct_answer, row.accepted_answers ?? []);
+}
+
+export interface ListeningChooseTwoGradingItem {
+  questionId: string;
+  type: string;
+  groupId: string | null;
+  mockSequence: number | null;
+  optionPool: unknown;
+  correctAnswer: string;
+  userAnswer: string | null;
+}
+
+/** Returns one boolean per persisted response row. Correct selections earn
+ * one mark each regardless of row order; a repeated selection can earn at
+ * most one mark. Malformed groups fail closed. */
+export function gradeListeningChooseTwoGroup(
+  items: ListeningChooseTwoGradingItem[],
+): Array<{ questionId: string; isCorrect: boolean }> {
+  const orderedItems = [...items].sort((left, right) => (left.mockSequence ?? 0) - (right.mockSequence ?? 0));
+  const failClosed = () => orderedItems.map((item) => ({ questionId: item.questionId, isCorrect: false }));
+  if (orderedItems.length !== 2) return failClosed();
+
+  const groupId = orderedItems[0].groupId;
+  const pools = orderedItems.map((item) => item.optionPool);
+  if (!groupId
+    || orderedItems.some((item) => item.type !== "multiple_choice" || item.groupId !== groupId)
+    || !pools.every((pool) => isMockOptionPool(pool) && pool.length >= 3)
+    || JSON.stringify(pools[0]) !== JSON.stringify(pools[1])) {
+    return failClosed();
+  }
+
+  const sequences = orderedItems.map((item) => item.mockSequence);
+  if (sequences.some((sequence) => !Number.isInteger(sequence) || (sequence ?? 0) <= 0)
+    || sequences[1]! !== sequences[0]! + 1) {
+    return failClosed();
+  }
+
+  const poolIds = new Set((pools[0] as MockOptionPoolItem[]).map((option) => normalizeAnswer(option.id)));
+  const correctAnswers = orderedItems.map((item) => normalizeAnswer(item.correctAnswer));
+  if (new Set(correctAnswers).size !== 2 || correctAnswers.some((answer) => !poolIds.has(answer))) {
+    return failClosed();
+  }
+
+  const correctSet = new Set(correctAnswers);
+  const creditedSelections = new Set<string>();
+  return orderedItems.map((item) => {
+    if (item.userAnswer === null) return { questionId: item.questionId, isCorrect: false };
+    const selected = normalizeAnswer(item.userAnswer);
+    const isCorrect = !creditedSelections.has(selected) && correctSet.has(selected);
+    creditedSelections.add(selected);
+    return { questionId: item.questionId, isCorrect };
+  });
 }
 
 /** A question as returned by fetchQuestionsForIds(), extended with its
@@ -431,11 +500,16 @@ export async function submitMock(input: MockSubmitInput): Promise<MockSubmitResu
   // grading time) and never in the client-facing hydration path above.
   const { data: questions, error: questionsError } = await supabase
     .from("assessment_questions")
-    .select("id, correct_answer, type, accepted_answers, answer_word_limit, option_pool")
+    .select("id, correct_answer, type, accepted_answers, answer_word_limit, option_pool, mock_group_id, mock_sequence, mock_listening_section_id")
     .in("id", allQuestionIds);
   if (questionsError) throw new Error(`Mock submission failed: could not load grading metadata (${questionsError.message}).`);
 
-  type GradingRow = ReadingGradingRow & { id: string };
+  type GradingRow = ReadingGradingRow & {
+    id: string;
+    mock_group_id: string | null;
+    mock_sequence: number | null;
+    mock_listening_section_id: string | null;
+  };
   const answerMap = new Map(
     (questions ?? []).map((q) => [(q as GradingRow).id, q as GradingRow])
   );
@@ -449,19 +523,40 @@ export async function submitMock(input: MockSubmitInput): Promise<MockSubmitResu
 
   const gradedResponses: Array<{ question_id: string; is_correct: boolean }> = [];
 
+  const chooseTwoGrades = new Map<string, boolean>();
+  const listeningGroups = new Map<string, ListeningChooseTwoGradingItem[]>();
+  for (const response of responseRows.filter((item) => item.section === "listening")) {
+    const row = answerMap.get(response.question_id);
+    if (!row?.mock_group_id || !row.mock_listening_section_id) continue;
+    const scopedGroupId = `${row.mock_listening_section_id}:${row.mock_group_id}`;
+    const group = listeningGroups.get(scopedGroupId) ?? [];
+    group.push({
+      questionId: row.id,
+      type: row.type,
+      groupId: row.mock_group_id,
+      mockSequence: row.mock_sequence,
+      optionPool: row.option_pool,
+      correctAnswer: row.correct_answer,
+      userAnswer: response.user_answer,
+    });
+    listeningGroups.set(scopedGroupId, group);
+  }
+  for (const group of listeningGroups.values()) {
+    if (!group.some((item) => item.type === "multiple_choice" && item.optionPool != null)) continue;
+    for (const grade of gradeListeningChooseTwoGroup(group)) {
+      chooseTwoGrades.set(grade.questionId, grade.isCorrect);
+    }
+  }
+
   for (const r of responseRows) {
     const row = answerMap.get(r.question_id);
     const correct = row?.correct_answer;
-    // Reading contract types use gradeReadingAnswer(), including word limits
-    // and conservative normalization. Listening and legacy behavior remains
-    // on its pre-existing path in this Reading-only hardening task.
-    const isCorrect = row != null && correct != null && r.user_answer != null
+    const groupedGrade = chooseTwoGrades.get(r.question_id);
+    const isCorrect = groupedGrade ?? (row != null && correct != null
       ? r.section === "reading"
-        ? gradeReadingAnswer(row, r.user_answer)
-        : isCompletionType(row.type)
-          ? answersMatch(r.user_answer, correct, Array.isArray(row.accepted_answers) ? (row.accepted_answers as string[]) : [])
-          : r.user_answer.trim().toLowerCase() === correct.trim().toLowerCase()
-      : false;
+        ? gradeReadingAnswer(row, r.user_answer ?? null)
+        : gradeListeningAnswer(row, r.user_answer ?? null)
+      : false);
 
     if (r.section === "reading") {
       readingTotal++;

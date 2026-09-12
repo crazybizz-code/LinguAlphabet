@@ -49,7 +49,7 @@
 
 import { createServiceClient } from "@/lib/supabase/service-client";
 import type { CefrLevel } from "@/types/content";
-import { validateAssembledMock, type AssembledQuestionRow } from "./content/validator";
+import { validateAssembledListening, validateAssembledMock, type AssembledQuestionRow } from "./content/validator";
 
 export const READING_PASSAGE_COUNT = 3;
 export const READING_QUESTION_COUNT = 40;
@@ -92,10 +92,6 @@ function candidateLevels(level: CefrLevel): CefrLevel[] {
   ].filter((v, i, a) => a.indexOf(v) === i) as CefrLevel[];
 }
 
-function shuffle<T>(arr: T[]): T[] {
-  return [...arr].sort(() => Math.random() - 0.5);
-}
-
 function compareQuestionRows(a: QuestionRow, b: QuestionRow): number {
   const aSequence = Number.isInteger(a.mock_sequence) && (a.mock_sequence ?? 0) > 0 ? a.mock_sequence : null;
   const bSequence = Number.isInteger(b.mock_sequence) && (b.mock_sequence ?? 0) > 0 ? b.mock_sequence : null;
@@ -107,6 +103,20 @@ function compareQuestionRows(a: QuestionRow, b: QuestionRow): number {
 }
 
 function compareReadingGroups(a: QuestionGroup, b: QuestionGroup): number {
+  if (a.firstSequence !== null && b.firstSequence !== null) {
+    return a.firstSequence - b.firstSequence || a.groupId.localeCompare(b.groupId);
+  }
+  if (a.firstSequence !== null && b.firstSequence === null) return -1;
+  if (a.firstSequence === null && b.firstSequence !== null) return 1;
+  const byCreatedAt = (a.firstCreatedAt ?? "").localeCompare(b.firstCreatedAt ?? "");
+  return byCreatedAt || a.groupId.localeCompare(b.groupId);
+}
+
+/** Listening order is authored data too. A section whose questions begin at
+ * 1/11/21/31 sorts naturally; banks using section-local 1-10 numbering retain
+ * a stable id fallback. The same ordered group objects drive both section ids
+ * and question blocks, so those two arrays cannot drift apart. */
+function compareListeningGroups(a: QuestionGroup, b: QuestionGroup): number {
   if (a.firstSequence !== null && b.firstSequence !== null) {
     return a.firstSequence - b.firstSequence || a.groupId.localeCompare(b.groupId);
   }
@@ -224,6 +234,11 @@ async function loadGroups(
     // combination and is dropped here rather than passed through as an
     // empty, useless candidate.
     if (!questions || questions.length === 0) continue;
+    // IELTS Listening has exactly ten marks per section. Invalid-sized
+    // sections never enter the combinatorial search, so a 9+11 combination
+    // cannot masquerade as a valid 20-question pair merely because its total
+    // happens to balance.
+    if (skill === "listening" && questions.length !== 10) continue;
     questions.sort(compareQuestionRows);
     groups.push({
       groupId: parentId,
@@ -263,6 +278,11 @@ async function assembleSection(
 
     if (!combo) {
       if (widened.length < groupsNeeded) {
+        if (skill === "listening") {
+          throw new Error(
+            `Mock assembly failed: only ${widened.length} approved Listening section(s) with exactly 10 approved questions exist, but a full mock requires exactly ${groupsNeeded}. Add or correct approved Listening sections before this mock can be assembled.`,
+          );
+        }
         throw new Error(
           `Mock assembly failed: only ${widened.length} approved ${skill} group(s) with at least one approved question exist, but a full mock requires exactly ${groupsNeeded}. Add more approved ${skill} passages/sections before this mock can be assembled.`,
         );
@@ -273,13 +293,11 @@ async function assembleSection(
     }
   }
 
-  // Reading order is authored data, not presentation randomisation. Keep the
-  // selected passages and their questions in the exact same deterministic
-  // order. Listening retains its existing shuffled section-id behaviour.
-  const orderedCombo = skill === "reading" ? [...combo].sort(compareReadingGroups) : combo;
-  const groupIds = skill === "reading"
-    ? orderedCombo.map((g) => g.groupId)
-    : shuffle(combo.map((g) => g.groupId));
+  // Both skills use authored, deterministic ordering. Derive parent ids and
+  // flattened question blocks from the SAME ordered objects so alignment is
+  // guaranteed by construction.
+  const orderedCombo = [...combo].sort(skill === "reading" ? compareReadingGroups : compareListeningGroups);
+  const groupIds = orderedCombo.map((g) => g.groupId);
   const questionIds = orderedCombo.flatMap((g) => g.questionIds);
 
   if (new Set(questionIds).size !== questionIds.length) {
@@ -291,6 +309,8 @@ async function assembleSection(
 
 const READING_VALIDATION_COLUMNS =
   "id, skill, type, question, options, correct_answer, accepted_answers, answer_word_limit, option_pool, mock_group_id, mock_sequence, difficulty, mock_passage_id, mock_listening_section_id";
+const LISTENING_VALIDATION_COLUMNS =
+  `${READING_VALIDATION_COLUMNS}, mock_group_instructions`;
 
 function isMissingColumnError(error: { code?: string; message?: string } | null | undefined, column: string): boolean {
   return !!error && (error.code === "42703" || error.code === "PGRST204") && (error.message?.includes(column) ?? true);
@@ -351,6 +371,48 @@ async function validateReadingSelection(reading: { groupIds: string[]; questionI
   }
 }
 
+/** Final, read-only guard over the exact Listening structure selected above.
+ * It runs before startMock() can create an attempt or exposure rows. */
+async function validateListeningSelection(listening: { groupIds: string[]; questionIds: string[] }): Promise<void> {
+  const supabase = createServiceClient();
+  const parentResult = await supabase
+    .from("mock_listening_sections")
+    .select("id, title, difficulty, transcript")
+    .in("id", listening.groupIds);
+  if (parentResult.error) {
+    throw new Error(`Listening mock assembly failed: could not hydrate selected sections (${parentResult.error.message}).`);
+  }
+
+  const questionResult = await supabase
+    .from("assessment_questions")
+    .select(LISTENING_VALIDATION_COLUMNS)
+    .in("id", listening.questionIds);
+  if (questionResult.error) {
+    throw new Error(`Listening mock assembly failed: could not hydrate selected questions (${questionResult.error.message}).`);
+  }
+
+  const parentsById = new Map((parentResult.data ?? []).map((row) => [row.id, row]));
+  const orderedParents = listening.groupIds
+    .map((id) => parentsById.get(id))
+    .filter((row): row is NonNullable<typeof row> => row !== undefined)
+    .map((row) => ({
+      id: row.id,
+      title: row.title,
+      difficulty: row.difficulty,
+      bodyText: row.transcript,
+    }));
+
+  const result = validateAssembledListening(
+    orderedParents,
+    (questionResult.data ?? []) as AssembledQuestionRow[],
+  );
+  if (!result.valid) {
+    const visibleErrors = result.errors.slice(0, 6).map((error) => `${error.code} at ${error.path}: ${error.message}`);
+    const remainder = result.errors.length > visibleErrors.length ? ` (+${result.errors.length - visibleErrors.length} more)` : "";
+    throw new Error(`Listening mock assembly failed runtime validation: ${visibleErrors.join("; ")}${remainder}`);
+  }
+}
+
 /**
  * READING-ONLY MODE: `includeListening: false` assembles the Reading half
  * ONLY and returns empty listening arrays. Everything about Reading is
@@ -392,6 +454,7 @@ export async function assembleMock(userId: string, level: CefrLevel, options: As
   ]);
 
   await validateReadingSelection(reading);
+  if (includeListening) await validateListeningSelection(listening);
 
   return {
     readingIds: reading.questionIds,

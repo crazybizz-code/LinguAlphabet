@@ -2,10 +2,14 @@ import { describe, it, expect } from "vitest";
 import {
   validateQuestionGroup,
   isWordBankGroup,
+  isListeningChooseTwoGroup,
   validateReadingMock,
+  validateListeningSection,
   validateListeningMock,
   validateFullMockContent,
   buildReadingContractFromRows,
+  buildListeningContractFromRows,
+  validateAssembledListening,
   validateAssembledMock,
   type AssembledQuestionRow,
 } from "./validator";
@@ -18,6 +22,97 @@ import type {
   MockReadingContentContract,
   MockListeningContentContract,
 } from "./types";
+
+describe("Listening choose-two group contract", () => {
+  const optionPool = ["A", "B", "C", "D", "E"].map((id) => ({ id, text: `Option ${id}` }));
+
+  function chooseTwoGroup(overrides: Partial<MockQuestionGroupContract> = {}): MockQuestionGroupContract {
+    return {
+      groupId: "listen-two",
+      taskType: "multiple_choice",
+      instructions: "Choose TWO letters, A-E.",
+      optionPool,
+      questions: [
+        {
+          id: "l11", skill: "listening", type: "multiple_choice", order: 1,
+          questionText: "First mark", correctAnswer: "B", difficulty: "B2",
+          structuralParentId: "s2", groupId: "listen-two",
+        },
+        {
+          id: "l12", skill: "listening", type: "multiple_choice", order: 2,
+          questionText: "Second mark", correctAnswer: "D", difficulty: "B2",
+          structuralParentId: "s2", groupId: "listen-two",
+        },
+      ],
+      ...overrides,
+    };
+  }
+
+  function persistedRow(overrides: Partial<AssembledQuestionRow>): AssembledQuestionRow {
+    return {
+      id: "l11",
+      skill: "listening",
+      type: "multiple_choice",
+      question: "Choose-two mark",
+      options: null,
+      correct_answer: "B",
+      accepted_answers: null,
+      answer_word_limit: null,
+      option_pool: optionPool,
+      mock_group_id: "listen-two",
+      mock_group_instructions: "Choose TWO letters, A-E.",
+      mock_sequence: 1,
+      difficulty: "B2",
+      mock_passage_id: null,
+      mock_listening_section_id: "s2",
+      ...overrides,
+    };
+  }
+
+  it("recognizes and accepts the supported two-row shared-pool representation", () => {
+    const group = chooseTwoGroup();
+    expect(isListeningChooseTwoGroup(group)).toBe(true);
+    expect(validateQuestionGroup(group, { expectedParentId: "s2", expectedSkill: "listening" }, "p")).toEqual([]);
+  });
+
+  it("rejects malformed sizes, sequences, group references, and mixed options", () => {
+    const malformed = chooseTwoGroup({
+      questions: [
+        { ...chooseTwoGroup().questions[0], order: 1, options: ["A", "B", "C"] },
+        { ...chooseTwoGroup().questions[1], order: 3, groupId: "different" },
+        { ...chooseTwoGroup().questions[1], id: "l13", order: 4, correctAnswer: "E" },
+      ],
+    });
+    const codes = validateQuestionGroup(malformed, { expectedParentId: "s2", expectedSkill: "listening" }, "p").map((error) => error.code);
+    expect(codes).toEqual(expect.arrayContaining([
+      "INVALID_CHOOSE_TWO_GROUP_SIZE",
+      "NON_CONSECUTIVE_CHOOSE_TWO_SEQUENCE",
+      "INVALID_CHOOSE_TWO_GROUP_ID",
+      "CHOOSE_TWO_MIXED_REPRESENTATION",
+    ]));
+  });
+
+  it("requires two distinct correct answers", () => {
+    const group = chooseTwoGroup();
+    group.questions[1] = { ...group.questions[1], correctAnswer: "B" };
+    const codes = validateQuestionGroup(group, { expectedParentId: "s2", expectedSkill: "listening" }, "p").map((error) => error.code);
+    expect(codes).toContain("DUPLICATE_CHOOSE_TWO_CORRECT_ANSWER");
+  });
+
+  it("requires every persisted row to carry the same shared option pool", () => {
+    const rows = [
+      persistedRow({ id: "l11", mock_sequence: 1, correct_answer: "B" }),
+      persistedRow({
+        id: "l12",
+        mock_sequence: 2,
+        correct_answer: "D",
+        option_pool: optionPool.map((option) => option.id === "E" ? { ...option, text: "Different" } : option),
+      }),
+    ];
+    const result = buildListeningContractFromRows([{ id: "s2", title: "S2", difficulty: "B2" }], rows);
+    expect(result.errors.map((error) => error.code)).toContain("INCONSISTENT_OPTION_POOL");
+  });
+});
 
 // ── Fixture builders ───────────────────────────────────────────────────────
 // Deliberately explicit (no shared "valid base" mutated in place per-test)
@@ -235,6 +330,64 @@ describe("valid content passes", () => {
       const errors = validateReadingMock({ passages: [passage, validPassage("p2", 13), validPassage("p3", 14)] }).errors;
       expect(errors.some((e) => e.path.startsWith("reading.passages[0]"))).toBe(false);
     }
+  });
+});
+
+describe("Listening section invariants", () => {
+  it("requires exactly 10 questions in every section", () => {
+    expect(codesOf(validateListeningSection(validSection("s9", 9), "listening.sections[0]"))).toContain("WRONG_LISTENING_SECTION_QUESTION_COUNT");
+    expect(codesOf(validateListeningSection(validSection("s11", 11), "listening.sections[0]"))).toContain("WRONG_LISTENING_SECTION_QUESTION_COUNT");
+    expect(validateListeningSection(validSection("s10", 10), "listening.sections[0]")).toEqual([]);
+  });
+
+  it("rejects duplicate and non-positive authored orders", () => {
+    const duplicate = validSection("s1", 10);
+    duplicate.questionGroups[0].questions[1].order = duplicate.questionGroups[0].questions[0].order;
+    expect(codesOf(validateListeningSection(duplicate, "listening.sections[0]"))).toContain("DUPLICATE_MOCK_SEQUENCE");
+
+    const nonPositive = validSection("s1", 10);
+    nonPositive.questionGroups[0].questions[0].order = 0;
+    expect(codesOf(validateListeningSection(nonPositive, "listening.sections[0]"))).toContain("INVALID_MOCK_SEQUENCE");
+  });
+
+  it("keeps the current Section 1 two-group completion shape valid", () => {
+    const section: MockListeningSectionContract = {
+      id: "listening-s1-riverford-craft-fair",
+      title: "Riverford Craft Fair — stall booking enquiry",
+      difficulty: "B1",
+      transcript: "A two-speaker transactional recording.",
+      audioUrl: null,
+      questionGroups: [
+        {
+          groupId: "ls1-form",
+          taskType: "form_note_table_flowchart_summary_completion",
+          instructions: "Questions 1–7\nComplete the form below.\nWrite ONE WORD AND/OR A NUMBER for each answer.",
+          questions: fillerQuestions(7, 1, "listening-s1-riverford-craft-fair", "listening").map((q) => ({
+            ...q,
+            type: "form_note_table_flowchart_summary_completion" as const,
+            options: undefined,
+            correctAnswer: "answer",
+            wordLimit: { maxWords: 1 as const, allowNumber: true },
+            groupId: "ls1-form",
+          })),
+        },
+        {
+          groupId: "ls1-table",
+          taskType: "form_note_table_flowchart_summary_completion",
+          instructions: "Questions 8–10\nComplete the table below.\nWrite NO MORE THAN TWO WORDS for each answer.",
+          questions: fillerQuestions(3, 8, "listening-s1-riverford-craft-fair", "listening").map((q) => ({
+            ...q,
+            type: "form_note_table_flowchart_summary_completion" as const,
+            options: undefined,
+            correctAnswer: "valid answer",
+            wordLimit: { maxWords: 2 as const, allowNumber: false },
+            groupId: "ls1-table",
+          })),
+        },
+      ],
+    };
+
+    expect(validateListeningSection(section, "listening.sections[0]")).toEqual([]);
   });
 });
 
@@ -481,6 +634,15 @@ describe("assembly-time adapter (validateAssembledMock)", () => {
     );
   }
 
+  function listeningRows(count: number, parentId: string, startSequence = 1): AssembledQuestionRow[] {
+    return fillerRows(count, parentId, startSequence).map((row) => ({
+      ...row,
+      skill: "listening" as const,
+      mock_passage_id: null,
+      mock_listening_section_id: parentId,
+    }));
+  }
+
   it("re-hydrates flat rows into the same contract shape and validates a complete mock as valid", () => {
     const passages = [
       { id: "p1", title: "P1", difficulty: "B2" as const },
@@ -573,6 +735,49 @@ describe("assembly-time adapter (validateAssembledMock)", () => {
 
     expect(codesOf(errors)).not.toContain("INVALID_MOCK_SEQUENCE");
     expect(contract.passages[0].questionGroups.map((group) => group.questions[0].id)).toEqual(["r-a", "r-z"]);
+  });
+
+  it("requires every persisted Listening row to have a unique positive mock_sequence", () => {
+    const sections = ["s1", "s2", "s3", "s4"].map((id) => ({ id, title: id, difficulty: "B2" as const }));
+    const rows = sections.flatMap((section, index) => listeningRows(10, section.id, index * 10 + 1));
+    rows[0].mock_sequence = null;
+    rows[10].mock_sequence = 0;
+    rows[21].mock_sequence = rows[20].mock_sequence;
+
+    const result = validateAssembledListening(sections, rows);
+
+    expect(codesOf(result.errors)).toContain("MISSING_MOCK_SEQUENCE");
+    expect(codesOf(result.errors)).toContain("INVALID_MOCK_SEQUENCE");
+    expect(codesOf(result.errors)).toContain("DUPLICATE_MOCK_SEQUENCE");
+  });
+
+  it("rehydrates valid shared Listening group metadata and rejects malformed copies", () => {
+    const sections = [{ id: "s1", title: "S1", difficulty: "B2" as const }];
+    const pool = [{ id: "A", text: "Activity A" }, { id: "B", text: "Activity B" }];
+    const rows = listeningRows(10, "s1").map((row, index) => ({
+      ...row,
+      type: "matching",
+      correct_answer: index % 2 === 0 ? "A" : "B",
+      option_pool: pool,
+      mock_group_id: "s1-matching",
+      mock_group_instructions: "Choose the correct letter, A or B.",
+    }));
+
+    const valid = buildListeningContractFromRows(sections, rows);
+    expect(valid.errors).toEqual([]);
+    expect(valid.contract.sections[0].questionGroups[0].instructions).toBe("Choose the correct letter, A or B.");
+    expect(valid.contract.sections[0].questionGroups[0].optionPool).toEqual(pool);
+    expect(validateListeningSection(valid.contract.sections[0], "listening.sections[0]")).toEqual([]);
+
+    rows[1].option_pool = [{ id: "A", text: "Different" }];
+    rows[2].mock_group_instructions = "Different instructions";
+    rows[3].mock_group_id = "";
+    const malformed = buildListeningContractFromRows(sections, rows);
+    expect(codesOf(malformed.errors)).toEqual(expect.arrayContaining([
+      "INCONSISTENT_OPTION_POOL",
+      "INCONSISTENT_GROUP_INSTRUCTIONS",
+      "INVALID_GROUP_ID",
+    ]));
   });
 });
 

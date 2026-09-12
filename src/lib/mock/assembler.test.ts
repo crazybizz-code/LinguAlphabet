@@ -92,6 +92,7 @@ function seedGroup(
     groupApproved?: boolean;
     groupDeprecated?: boolean;
     difficulty?: string | null;
+    sequenceStart?: number;
     questionOverrides?: Record<number, { approved?: boolean; deprecated?: boolean }>;
   } = {},
 ): string[] {
@@ -102,6 +103,7 @@ function seedGroup(
     id: groupId,
     title: groupId,
     body_text: kind === "reading" ? `Passage ${groupId}` : null,
+    transcript: kind === "listening" ? `Transcript ${groupId}` : null,
     approved: opts.groupApproved ?? true,
     deprecated: opts.groupDeprecated ?? false,
     difficulty: opts.difficulty === undefined ? "B2" : opts.difficulty,
@@ -128,22 +130,23 @@ function seedGroup(
       answer_word_limit: null,
       option_pool: null,
       mock_group_id: `${groupId}-group`,
-      mock_sequence: i + 1,
+      mock_sequence: (opts.sequenceStart ?? 1) + i,
       created_at: new Date(2024, 0, 1, 0, i).toISOString(),
     });
   }
   return ids;
 }
 
-/** A valid, minimal, exactly-40/40 structure: 3 reading passages (15+12+13), 4 listening sections (11+10+10+9). Sizes are deliberately non-uniform to prove the algorithm doesn't assume a fixed per-group count. */
+/** A valid, minimal, exactly-40/40 structure: 3 Reading passages (15+12+13),
+ * plus the IELTS Listening invariant of 4 sections with exactly 10 each. */
 function seedValidStructure() {
   seedGroup("reading", "p1", 15);
   seedGroup("reading", "p2", 12);
   seedGroup("reading", "p3", 13);
-  seedGroup("listening", "s1", 11);
+  seedGroup("listening", "s1", 10);
   seedGroup("listening", "s2", 10);
   seedGroup("listening", "s3", 10);
-  seedGroup("listening", "s4", 9);
+  seedGroup("listening", "s4", 10);
 }
 
 describe("assembleMock — exact counts and passage/section structure (A, B, C, D)", () => {
@@ -154,7 +157,7 @@ describe("assembleMock — exact counts and passage/section structure (A, B, C, 
     expect(result.readingIds).toHaveLength(40);
   });
 
-  it("B: returns exactly 40 listening questions from non-uniform section sizes (11+10+10+9)", async () => {
+  it("B: returns exactly 40 listening questions from four 10-question sections", async () => {
     seedValidStructure();
     const result = await assembleMock("user-1", "B2" as CefrLevel);
     expect(LISTENING_QUESTION_COUNT).toBe(40);
@@ -177,6 +180,55 @@ describe("assembleMock — exact counts and passage/section structure (A, B, C, 
     expect(result.listeningSectionIds).toHaveLength(4);
     expect(new Set(result.listeningSectionIds).size).toBe(4);
     expect(new Set(result.listeningSectionIds)).toEqual(new Set(["s1", "s2", "s3", "s4"]));
+  });
+});
+
+describe("assembleMock — Listening production safeguards", () => {
+  function seedReading() {
+    seedGroup("reading", "p1", 15);
+    seedGroup("reading", "p2", 12);
+    seedGroup("reading", "p3", 13);
+  }
+
+  it("selects only sections with exactly 10 approved questions", async () => {
+    seedReading();
+    seedGroup("listening", "s-invalid-9", 9);
+    seedGroup("listening", "s-invalid-11", 11);
+    for (const id of ["s1", "s2", "s3", "s4"]) seedGroup("listening", id, 10);
+
+    const result = await assembleMock("user-1", "B2" as CefrLevel);
+
+    expect(result.listeningSectionIds).toEqual(["s1", "s2", "s3", "s4"]);
+    expect(result.listeningIds).toHaveLength(40);
+    expect(result.listeningIds.some((id) => id.startsWith("s-invalid"))).toBe(false);
+  });
+
+  it("orders sections deterministically and keeps every question block aligned", async () => {
+    seedReading();
+    seedGroup("listening", "s3", 10, { sequenceStart: 21 });
+    seedGroup("listening", "s1", 10, { sequenceStart: 1 });
+    seedGroup("listening", "s4", 10, { sequenceStart: 31 });
+    seedGroup("listening", "s2", 10, { sequenceStart: 11 });
+
+    const first = await assembleMock("user-1", "B2" as CefrLevel);
+    const second = await assembleMock("user-1", "B2" as CefrLevel);
+
+    expect(first.listeningSectionIds).toEqual(["s1", "s2", "s3", "s4"]);
+    expect(second.listeningSectionIds).toEqual(first.listeningSectionIds);
+    for (const [index, sectionId] of first.listeningSectionIds.entries()) {
+      expect(first.listeningIds.slice(index * 10, index * 10 + 10).every((id) => id.startsWith(`${sectionId}-q`))).toBe(true);
+    }
+    expect(second.listeningIds).toEqual(first.listeningIds);
+  });
+
+  it("runtime-validates selected Listening group metadata before returning", async () => {
+    seedReading();
+    for (const id of ["s1", "s2", "s3", "s4"]) seedGroup("listening", id, 10);
+    const s1 = store.assessment_questions.filter((row) => row.mock_listening_section_id === "s1");
+    s1[0].mock_group_instructions = "Questions 1-10";
+    s1[1].mock_group_instructions = "Different instructions";
+
+    await expect(assembleMock("user-1", "B2" as CefrLevel)).rejects.toThrow(/INCONSISTENT_GROUP_INSTRUCTIONS/i);
   });
 });
 
@@ -317,10 +369,10 @@ describe("assembleMock — explicit failure on insufficient structural content (
     seedGroup("reading", "p1", 15);
     seedGroup("reading", "p2", 12);
     seedGroup("reading", "p3", 13);
-    seedGroup("listening", "s1", 15);
-    seedGroup("listening", "s2", 15);
+    seedGroup("listening", "s1", 10);
+    seedGroup("listening", "s2", 10);
 
-    await expect(assembleMock("user-1", "B2" as CefrLevel)).rejects.toThrow(/only 2 approved listening group\(s\)/i);
+    await expect(assembleMock("user-1", "B2" as CefrLevel)).rejects.toThrow(/only 2 approved Listening section\(s\).*exactly 10/i);
   });
 
   it("L: throws when enough groups exist but NO combination of exactly 3 sums to exactly 40 (no partial/truncated fallback)", async () => {

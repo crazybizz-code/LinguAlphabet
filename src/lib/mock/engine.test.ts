@@ -110,7 +110,15 @@ vi.mock("./assembler", async (importOriginal) => {
   return { ...actual, assembleMock: vi.fn() };
 });
 
-const { startMock, saveAnswer, submitMock, isReadingOnlyAttempt, gradeReadingAnswer } = await import("./engine");
+const {
+  startMock,
+  saveAnswer,
+  submitMock,
+  isReadingOnlyAttempt,
+  gradeReadingAnswer,
+  gradeListeningAnswer,
+  gradeListeningChooseTwoGroup,
+} = await import("./engine");
 const assemblerModule = await import("./assembler");
 const mockAssembleMock = vi.mocked(assemblerModule.assembleMock);
 
@@ -449,6 +457,102 @@ describe("startMock — client-facing question mapping carries the new contract 
       expect(q).not.toHaveProperty("acceptedAnswers");
       expect(q).not.toHaveProperty("accepted_answers");
     }
+  });
+});
+
+describe("Listening choose-two and completion grading", () => {
+  const optionPool = ["A", "B", "C", "D", "E"].map((id) => ({ id, text: `Option ${id}` }));
+
+  function chooseTwoItems(userAnswers: [string | null, string | null]) {
+    return [
+      {
+        questionId: "l11", type: "multiple_choice", groupId: "g-two", mockSequence: 1,
+        optionPool, correctAnswer: "B", userAnswer: userAnswers[0],
+      },
+      {
+        questionId: "l12", type: "multiple_choice", groupId: "g-two", mockSequence: 2,
+        optionPool, correctAnswer: "D", userAnswer: userAnswers[1],
+      },
+    ];
+  }
+
+  it("awards full credit when the two correct selections are persisted in either order", () => {
+    expect(gradeListeningChooseTwoGroup(chooseTwoItems(["D", "B"]))).toEqual([
+      { questionId: "l11", isCorrect: true },
+      { questionId: "l12", isCorrect: true },
+    ]);
+  });
+
+  it("awards one mark for one correct and one wrong selection", () => {
+    expect(gradeListeningChooseTwoGroup(chooseTwoItems(["B", "C"]))).toEqual([
+      { questionId: "l11", isCorrect: true },
+      { questionId: "l12", isCorrect: false },
+    ]);
+  });
+
+  it("never awards duplicate credit for the same selected value", () => {
+    expect(gradeListeningChooseTwoGroup(chooseTwoItems(["B", "B"]))).toEqual([
+      { questionId: "l11", isCorrect: true },
+      { questionId: "l12", isCorrect: false },
+    ]);
+  });
+
+  it("applies grouped unordered marks through submitMock", async () => {
+    const session = await startMock({ userId: "user-1", targetCefrLevel: "B2" as CefrLevel });
+    const first = table("assessment_questions").rows.find((row) => row.id === LISTENING_IDS[0])!;
+    const second = table("assessment_questions").rows.find((row) => row.id === LISTENING_IDS[4])!;
+    Object.assign(first, {
+      type: "multiple_choice", correct_answer: "B", option_pool: optionPool,
+      mock_group_id: "g-two", mock_sequence: 1,
+    });
+    Object.assign(second, {
+      type: "multiple_choice", correct_answer: "D", option_pool: optionPool,
+      mock_group_id: "g-two", mock_sequence: 2,
+    });
+    const firstResponse = table("full_mock_responses").rows.find((row) => row.question_id === LISTENING_IDS[0])!;
+    const secondResponse = table("full_mock_responses").rows.find((row) => row.question_id === LISTENING_IDS[4])!;
+    firstResponse.user_answer = "D";
+    secondResponse.user_answer = "B";
+
+    const result = await submitMock({ attemptId: session.attemptId, userId: "user-1" });
+    expect(result.listeningCorrect).toBe(2);
+    expect(firstResponse.is_correct).toBe(true);
+    expect(secondResponse.is_correct).toBe(true);
+  });
+
+  it("enforces Listening completion word limits without weakening accepted answers", () => {
+    const row = {
+      type: "sentence_completion",
+      correct_answer: "natural succession",
+      accepted_answers: ["ecological succession"],
+      answer_word_limit: "ONE_WORD",
+      option_pool: null,
+    };
+    expect(gradeListeningAnswer(row, "natural succession")).toBe(false);
+    expect(gradeListeningAnswer({ ...row, answer_word_limit: "TWO_WORDS" }, "ecological succession")).toBe(true);
+  });
+
+  it("preserves ordinary single-answer Listening grading", () => {
+    const row = {
+      type: "multiple_choice",
+      correct_answer: "Option A",
+      accepted_answers: null,
+      answer_word_limit: null,
+      option_pool: null,
+    };
+    expect(gradeListeningAnswer(row, " option a ")).toBe(true);
+    expect(gradeListeningAnswer(row, "Option B")).toBe(false);
+  });
+
+  it("preserves Reading grading behavior", () => {
+    const row = {
+      type: "sentence_completion",
+      correct_answer: "colour",
+      accepted_answers: ["color"],
+      answer_word_limit: "ONE_WORD",
+      option_pool: null,
+    };
+    expect(gradeReadingAnswer(row, "color")).toBe(true);
   });
 });
 
