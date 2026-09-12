@@ -1,0 +1,74 @@
+{
+  "title": "IELTS Listening Section 2 — answer key",
+  "totalMarks": 10,
+  "groups": [
+    {
+      "groupId": "ls2-improvements-choose-two",
+      "range": "11–12",
+      "answers": [
+        {
+          "number": 11,
+          "id": "ls2-q11",
+          "answer": "B"
+        },
+        {
+          "number": 12,
+          "id": "ls2-q12",
+          "answer": "D"
+        }
+      ]
+    },
+    {
+      "groupId": "ls2-booking-choose-two",
+      "range": "13–14",
+      "answers": [
+        {
+          "number": 13,
+          "id": "ls2-q13",
+          "answer": "C"
+        },
+        {
+          "number": 14,
+          "id": "ls2-q14",
+          "answer": "E"
+        }
+      ]
+    },
+    {
+      "groupId": "ls2-locations-matching",
+      "range": "15–20",
+      "answers": [
+        {
+          "number": 15,
+          "id": "ls2-q15",
+          "answer": "A"
+        },
+        {
+          "number": 16,
+          "id": "ls2-q16",
+          "answer": "H"
+        },
+        {
+          "number": 17,
+          "id": "ls2-q17",
+          "answer": "D"
+        },
+        {
+          "number": 18,
+          "id": "ls2-q18",
+          "answer": "I"
+        },
+        {
+          "number": 19,
+          "id": "ls2-q19",
+          "answer": "E"
+        },
+        {
+          "number": 20,
+          "id": "ls2-q20",
+          "answer": "F"
+        }
+      ]
+    }
+  ]
+}

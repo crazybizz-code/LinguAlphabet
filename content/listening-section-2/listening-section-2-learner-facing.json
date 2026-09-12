@@ -1,0 +1,152 @@
+{
+  "title": "IELTS Listening — Section 2",
+  "context": "You will hear the manager of a community centre giving information about an open weekend.",
+  "totalQuestions": 10,
+  "tasks": [
+    {
+      "groupId": "ls2-improvements-choose-two",
+      "instructions": "Questions 11–12\nWhich TWO improvements have been made at Millbrook Community Hub since last year's open weekend?\nChoose TWO letters, A–E.",
+      "answerMode": "choose exactly two",
+      "optionPool": [
+        {
+          "id": "A",
+          "text": "more spaces for cars"
+        },
+        {
+          "id": "B",
+          "text": "secure indoor bicycle storage"
+        },
+        {
+          "id": "C",
+          "text": "longer café opening hours"
+        },
+        {
+          "id": "D",
+          "text": "web-based activity reservations"
+        },
+        {
+          "id": "E",
+          "text": "sheltered outdoor tables"
+        }
+      ],
+      "questionNumbers": [
+        11,
+        12
+      ]
+    },
+    {
+      "groupId": "ls2-booking-choose-two",
+      "instructions": "Questions 13–14\nWhich TWO activities must be booked before the open weekend begins?\nChoose TWO letters, A–E.",
+      "answerMode": "choose exactly two",
+      "optionPool": [
+        {
+          "id": "A",
+          "text": "bread-making demonstration"
+        },
+        {
+          "id": "B",
+          "text": "guided garden walk"
+        },
+        {
+          "id": "C",
+          "text": "pottery workshop"
+        },
+        {
+          "id": "D",
+          "text": "local-history talk"
+        },
+        {
+          "id": "E",
+          "text": "children's drama session"
+        }
+      ],
+      "questionNumbers": [
+        13,
+        14
+      ]
+    },
+    {
+      "groupId": "ls2-locations-matching",
+      "instructions": "Questions 15–20\nWhere should visitors go for each of the following purposes?\nChoose the correct letter, A–I.\nEach letter may be used once only.",
+      "answerMode": "choose one letter for each question",
+      "optionPool": [
+        {
+          "id": "A",
+          "text": "reception desk"
+        },
+        {
+          "id": "B",
+          "text": "Studio One"
+        },
+        {
+          "id": "C",
+          "text": "Studio Two"
+        },
+        {
+          "id": "D",
+          "text": "community kitchen"
+        },
+        {
+          "id": "E",
+          "text": "library"
+        },
+        {
+          "id": "F",
+          "text": "courtyard"
+        },
+        {
+          "id": "G",
+          "text": "garden pavilion"
+        },
+        {
+          "id": "H",
+          "text": "sports hall"
+        },
+        {
+          "id": "I",
+          "text": "upstairs meeting room"
+        }
+      ],
+      "questionNumbers": [
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "questions": [
+        {
+          "number": 15,
+          "id": "ls2-q15",
+          "text": "Receive the pass needed for a reserved session"
+        },
+        {
+          "number": 16,
+          "id": "ls2-q16",
+          "text": "Store coats and other personal belongings"
+        },
+        {
+          "number": 17,
+          "id": "ls2-q17",
+          "text": "Buy a warm drink"
+        },
+        {
+          "number": 18,
+          "id": "ls2-q18",
+          "text": "Discuss becoming a regular helper"
+        },
+        {
+          "number": 19,
+          "id": "ls2-q19",
+          "text": "View images showing the area's past"
+        },
+        {
+          "number": 20,
+          "id": "ls2-q20",
+          "text": "Join the final music event"
+        }
+      ]
+    }
+  ]
+}

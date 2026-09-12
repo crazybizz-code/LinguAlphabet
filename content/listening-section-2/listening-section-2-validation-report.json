@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-09-12T09:05:55.973Z",
+  "scope": "Listening Section 2 only. Transcript-first; no audio, upload, database write or paid call.",
+  "validators": {
+    "contract": {
+      "entryPoint": "validateListeningSection",
+      "valid": true,
+      "errors": []
+    },
+    "persistedRows": {
+      "entryPoint": "buildListeningContractFromRows + validateListeningSection",
+      "valid": true,
+      "errors": []
+    }
+  },
+  "independentQA": {
+    "valid": true,
+    "failures": [],
+    "warnings": [],
+    "informational": [
+      {
+        "check": "recording-order",
+        "severity": "info",
+        "detail": "Answer offsets: Q11@427 Q12@800 Q13@1370 Q14@1576 Q15@1906 Q16@2280 Q17@2452 Q18@2686 Q19@2993 Q20@3087"
+      },
+      {
+        "check": "register",
+        "severity": "info",
+        "detail": "One-speaker social-context monologue; 649 spoken words; difficulty {\"B1\":3,\"B2\":7}."
+      },
+      {
+        "check": "paid-call-safety",
+        "severity": "info",
+        "detail": "Artifact generation is local-only; no Supabase, network, AI or TTS client is invoked."
+      }
+    ]
+  },
+  "counts": {
+    "questions": 10,
+    "numbering": "11–20",
+    "transcriptWordCount": 649,
+    "speakers": [
+      "MAYA"
+    ],
+    "difficulty": {
+      "B1": 3,
+      "B2": 7
+    },
+    "chooseTwoGroups": 2,
+    "matchingRows": 6,
+    "audioUrl": null
+  },
+  "databaseSideEffects": "none",
+  "paidCalls": "none"
+}
