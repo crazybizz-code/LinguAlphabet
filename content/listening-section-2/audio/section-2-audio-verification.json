@@ -1,0 +1,347 @@
+{
+  "valid": true,
+  "audioFile": "D:/Podcat app/content/listening-section-2/audio/section-2.mp3",
+  "asrModel": "faster-whisper base.en (CPU int8)",
+  "audioDurationSeconds": 290.773,
+  "asrReportedDurationSeconds": 290.773,
+  "sourceTokens": 624,
+  "heardTokens": 624,
+  "asrFidelity": 0.998397,
+  "asrDifferences": [
+    {
+      "operation": "replace",
+      "source": "for",
+      "heard": "four"
+    }
+  ],
+  "answerEvidence": [
+    {
+      "q": 11,
+      "evidence": "we've turned the old repair workshop by the east gate into a locked room where bikes can be left under cover",
+      "heardExactly": true,
+      "tokenIndex": 72
+    },
+    {
+      "q": 12,
+      "evidence": "The change people seem happiest about is the new booking page on our website.",
+      "heardExactly": true,
+      "tokenIndex": 138
+    },
+    {
+      "q": 13,
+      "evidence": "you do need to reserve the pottery class by six o'clock on Friday evening",
+      "heardExactly": true,
+      "tokenIndex": 239
+    },
+    {
+      "q": 14,
+      "evidence": "we also need children's names in advance for the drama session",
+      "heardExactly": true,
+      "tokenIndex": 274
+    },
+    {
+      "q": 15,
+      "evidence": "Start at the reception desk, immediately inside the main doors. The team there will check your name and give you a coloured wristband.",
+      "heardExactly": true,
+      "tokenIndex": 328
+    },
+    {
+      "q": 16,
+      "evidence": "we've made a supervised cloakroom in the far corner of the sports hall",
+      "heardExactly": true,
+      "tokenIndex": 390
+    },
+    {
+      "q": 17,
+      "evidence": "tea, coffee and hot chocolate will come from the serving hatch in the community kitchen",
+      "heardExactly": true,
+      "tokenIndex": 419
+    },
+    {
+      "q": 18,
+      "evidence": "The volunteer team will be based in the upstairs meeting room",
+      "heardExactly": true,
+      "tokenIndex": 457
+    },
+    {
+      "q": 19,
+      "evidence": "The complete display is in the library",
+      "heardExactly": true,
+      "tokenIndex": 509
+    },
+    {
+      "q": 20,
+      "evidence": "the community choir will lead a sing-along in the courtyard",
+      "heardExactly": true,
+      "tokenIndex": 525
+    }
+  ],
+  "answersHeardExactlyInOrder": true,
+  "distractors": [
+    {
+      "q": 11,
+      "evidence": "The council did discuss adding another row of parking spaces, but the ground was too wet and that plan has been shelved.",
+      "audible": true,
+      "tokenIndex": 97
+    },
+    {
+      "q": 12,
+      "evidence": "Its hours are unchanged this weekend",
+      "audible": true,
+      "tokenIndex": 132
+    },
+    {
+      "q": 12,
+      "evidence": "the contractor can't start that job until spring",
+      "audible": true,
+      "tokenIndex": 180
+    },
+    {
+      "q": 13,
+      "evidence": "you can simply join the next one with space",
+      "audible": true,
+      "tokenIndex": 204
+    },
+    {
+      "q": 13,
+      "evidence": "collect a free ticket from the guide when you arrive",
+      "audible": true,
+      "tokenIndex": 219
+    },
+    {
+      "q": 14,
+      "evidence": "the library holds nearly eighty people, so just turn up",
+      "audible": true,
+      "tokenIndex": 263
+    },
+    {
+      "q": 15,
+      "evidence": "don't head directly to the pottery or drama rooms",
+      "audible": true,
+      "tokenIndex": 319
+    },
+    {
+      "q": 16,
+      "evidence": "don't use the old cloakroom beside reception; that's closed while the heating is repaired",
+      "audible": true,
+      "tokenIndex": 375
+    },
+    {
+      "q": 17,
+      "evidence": "the café counter in the entrance passage has sandwiches, fruit and cold drinks",
+      "audible": true,
+      "tokenIndex": 405
+    },
+    {
+      "q": 18,
+      "evidence": "there are leaflets on the reception desk, but don't try to discuss roles with the staff working there",
+      "audible": true,
+      "tokenIndex": 439
+    },
+    {
+      "q": 19,
+      "evidence": "One photograph is on the noticeboard near Studio One",
+      "audible": true,
+      "tokenIndex": 484
+    },
+    {
+      "q": 19,
+      "evidence": "That's only a sign pointing you onwards.",
+      "audible": true,
+      "tokenIndex": 502
+    },
+    {
+      "q": 20,
+      "evidence": "If it rains heavily we'll move into the sports hall",
+      "audible": true,
+      "tokenIndex": 552
+    },
+    {
+      "q": 20,
+      "evidence": "the courtyard is the planned location",
+      "audible": true,
+      "tokenIndex": 568
+    }
+  ],
+  "pauseChecks": [
+    {
+      "planned": {
+        "id": "leading",
+        "startSeconds": 0,
+        "durationSeconds": 1.5,
+        "endSeconds": 1.5
+      },
+      "detected": {
+        "startSeconds": 0.0,
+        "endSeconds": 1.6,
+        "durationSeconds": 1.6
+      },
+      "withinTolerance": true
+    },
+    {
+      "planned": {
+        "id": "after-intro",
+        "startSeconds": 23.723,
+        "durationSeconds": 2.5,
+        "endSeconds": 26.223
+      },
+      "detected": {
+        "startSeconds": 23.62,
+        "endSeconds": 26.32,
+        "durationSeconds": 2.7
+      },
+      "withinTolerance": true
+    },
+    {
+      "planned": {
+        "id": "after-improvements",
+        "startSeconds": 84.064,
+        "durationSeconds": 5,
+        "endSeconds": 89.064
+      },
+      "detected": {
+        "startSeconds": 83.96,
+        "endSeconds": 89.16,
+        "durationSeconds": 5.2
+      },
+      "withinTolerance": true
+    },
+    {
+      "planned": {
+        "id": "after-booking",
+        "startSeconds": 139.163,
+        "durationSeconds": 6,
+        "endSeconds": 145.163
+      },
+      "detected": {
+        "startSeconds": 139.06,
+        "endSeconds": 145.26,
+        "durationSeconds": 6.2
+      },
+      "withinTolerance": true
+    },
+    {
+      "planned": {
+        "id": "after-matching",
+        "startSeconds": 287.773,
+        "durationSeconds": 3,
+        "endSeconds": 290.773
+      },
+      "detected": {
+        "startSeconds": 287.62,
+        "endSeconds": 290.78,
+        "durationSeconds": 3.16
+      },
+      "withinTolerance": true
+    }
+  ],
+  "unexplainedLongSilences": [],
+  "signal": {
+    "clippedSamples": 0,
+    "maximumAdjacentSampleDelta": 0.478035,
+    "clickCandidates": 0,
+    "integratedLufs": -16.3,
+    "loudnessRangeLu": 3.5,
+    "truePeakDbtp": -1.8
+  },
+  "q20": {
+    "requiredOrderRecovered": true,
+    "manualReview": "Confirm that sports hall sounds conditional and that the final courtyard confirmation carries the decisive falling cadence."
+  },
+  "pronunciationReview": [
+    {
+      "term": "Maya Shah",
+      "target": "MY-uh SHAH /ˈmaɪ.ə ʃɑː/",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "Millbrook",
+      "target": "MILL-brook /ˈmɪl.brʊk/",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "café",
+      "target": "CAF-ay",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "cloakroom",
+      "target": "CLOKE-room",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "courtyard",
+      "target": "clear first-syllable stress",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "pavilion",
+      "target": "puh-VIL-yən",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "pottery",
+      "target": "British pronunciation",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "eight / eighty",
+      "target": "clearly distinguished",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "lead a sing-along",
+      "target": "lead pronounced /liːd/",
+      "status": "manual-review-required"
+    },
+    {
+      "term": "Studio One / Studio Two",
+      "target": "numbers spoken as words",
+      "status": "manual-review-required"
+    }
+  ],
+  "findings": [
+    {
+      "check": "duration",
+      "severity": "info",
+      "detail": "290.77s is inside the 285–325s gate."
+    },
+    {
+      "check": "internal-silence",
+      "severity": "info",
+      "detail": "No unexplained internal silence exceeds 1.5s."
+    },
+    {
+      "check": "clicks",
+      "severity": "info",
+      "detail": "No extreme sample discontinuities; maximum delta 0.4780."
+    },
+    {
+      "check": "asr-fidelity",
+      "severity": "info",
+      "detail": "Token-sequence fidelity is 0.9984."
+    },
+    {
+      "check": "answer-order",
+      "severity": "info",
+      "detail": "Q11–Q20 evidence was recovered exactly in strict order."
+    },
+    {
+      "check": "q20-contrast",
+      "severity": "info",
+      "detail": "Q20 conditional backup and final courtyard confirmation occur in the required order; prosodic subordination still needs human review."
+    },
+    {
+      "check": "duplicate-joins",
+      "severity": "info",
+      "detail": "No duplicated 10-word joins were detected."
+    },
+    {
+      "check": "pronunciation",
+      "severity": "manual",
+      "detail": "Human review is required for all pronunciation-sensitive terms and for Q20 prosody."
+    }
+  ],
+  "failureCount": 0,
+  "verdict": "PASS (machine checks) — awaiting human listening"
+}

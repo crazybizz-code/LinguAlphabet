@@ -1,0 +1,61 @@
+{
+  "generatedAt": "2026-09-13T10:24:25.0010792Z",
+  "audioFile": "content/listening-section-2/audio/section-2.mp3",
+  "sourceCandidate": "content/listening-section-2/audio/section-2-candidate-v3.mp3",
+  "sourceRevision": "v3",
+  "audioSha256": "00FE143A16AB0011978A08BAA0D59349093DCDB82A342DFAFBC11CB7ACAC055C",
+  "promoted": true,
+  "transcriptChanged": false,
+  "provider": "Microsoft Edge neural read-aloud via edge-tts (no paid API key)",
+  "voice": "en-GB-SoniaNeural",
+  "rate": "-20%",
+  "format": {
+    "codec": "mp3",
+    "sampleRateHz": 44100,
+    "channels": 1,
+    "bitrate": "192k"
+  },
+  "durationSeconds": 290.773,
+  "loudness": {
+    "integratedLufs": -16.3,
+    "truePeakDbtp": -1.8
+  },
+  "pauseMap": [
+    {
+      "id": "leading",
+      "startSeconds": 0,
+      "durationSeconds": 1.5,
+      "endSeconds": 1.5
+    },
+    {
+      "id": "after-intro",
+      "startSeconds": 23.723,
+      "durationSeconds": 2.5,
+      "endSeconds": 26.223
+    },
+    {
+      "id": "after-improvements",
+      "startSeconds": 84.064,
+      "durationSeconds": 5,
+      "endSeconds": 89.064
+    },
+    {
+      "id": "after-booking",
+      "startSeconds": 139.163,
+      "durationSeconds": 6,
+      "endSeconds": 145.163
+    },
+    {
+      "id": "after-matching",
+      "startSeconds": 287.773,
+      "durationSeconds": 3,
+      "endSeconds": 290.773
+    }
+  ],
+  "roomTone": {
+    "targetDbfs": -62,
+    "appliedGainDb": -41.03
+  },
+  "verificationFile": "content/listening-section-2/audio/section-2-audio-verification.json",
+  "verdict": "PASS (machine checks) — revision 3 selected for production after human pace comparison; pronunciation and Q20 prosody review remain manual"
+}
