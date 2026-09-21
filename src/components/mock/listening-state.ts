@@ -83,6 +83,29 @@ export function flattenListeningQuestions(sections: ClientListeningSection[]): C
   return sections.flatMap((section) => section.orderedQuestions);
 }
 
+/** Fail-closed guard for the production Full Listening client payload. */
+export function assertProductionListeningSections(sections: ClientListeningSection[]): void {
+  if (sections.length !== 4 || new Set(sections.map((section) => section.sectionId)).size !== 4) {
+    throw new Error("Listening runtime requires exactly four distinct sections.");
+  }
+  for (const section of sections) {
+    if (section.orderedQuestions.length !== 10) {
+      throw new Error(`Listening section ${section.sectionId} must contain exactly 10 questions.`);
+    }
+    if (!section.audioUrl?.trim()) {
+      throw new Error(`Listening section ${section.sectionId} has no production audio URL.`);
+    }
+    if (section.orderedQuestions.some((question) => question.sectionId !== section.sectionId)) {
+      throw new Error(`Listening section ${section.sectionId} contains a misaligned question block.`);
+    }
+  }
+  const questions = flattenListeningQuestions(sections);
+  const expected = Array.from({ length: 40 }, (_, index) => index + 1);
+  if (questions.length !== 40 || questions.some((question, index) => question.sequenceNumber !== expected[index])) {
+    throw new Error("Listening runtime requires one aligned global Q1-Q40 sequence.");
+  }
+}
+
 export function getListeningLocation(
   sections: ClientListeningSection[],
   globalQuestionIndex: number,

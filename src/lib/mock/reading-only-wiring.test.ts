@@ -69,12 +69,13 @@ describe("reading-only — API surface", () => {
     expect(startRoute).toContain('sections: z.enum(["full", "reading_only"]).optional()');
   });
 
-  it("the start button opts into reading-only", () => {
-    expect(startButton).toContain('sections: "reading_only"');
+  it("the production start button requests the full Reading + Listening mock", () => {
+    expect(startButton).toContain('sections: "full"');
+    expect(startButton).not.toContain('sections: "reading_only"');
   });
 
-  it("the Reading-only start surface states the 60-minute duration", () => {
-    expect(startButton).toContain("60 minutes · answers auto-saved");
+  it("the production start surface states the combined 85-minute duration", () => {
+    expect(startButton).toContain("85 minutes · answers auto-saved");
     expect(startButton).not.toContain("~55 minutes");
   });
 });

@@ -107,6 +107,7 @@ function seedGroup(
     approved: opts.groupApproved ?? true,
     deprecated: opts.groupDeprecated ?? false,
     difficulty: opts.difficulty === undefined ? "B2" : opts.difficulty,
+    audio_url: kind === "listening" ? `https://example.test/${groupId}.mp3` : undefined,
   });
 
   const ids: string[] = [];
@@ -130,7 +131,11 @@ function seedGroup(
       answer_word_limit: null,
       option_pool: null,
       mock_group_id: `${groupId}-group`,
-      mock_sequence: (opts.sequenceStart ?? 1) + i,
+      mock_sequence: (opts.sequenceStart ?? (
+        kind === "listening" && /^s[1-4]$/.test(groupId)
+          ? (Number(groupId.slice(1)) - 1) * 10 + 1
+          : 1
+      )) + i,
       created_at: new Date(2024, 0, 1, 0, i).toISOString(),
     });
   }
@@ -230,6 +235,25 @@ describe("assembleMock — Listening production safeguards", () => {
 
     await expect(assembleMock("user-1", "B2" as CefrLevel)).rejects.toThrow(/INCONSISTENT_GROUP_INSTRUCTIONS/i);
   });
+
+  it("fails closed when an otherwise valid selected section has no production audio URL", async () => {
+    seedReading();
+    for (const id of ["s1", "s2", "s3", "s4"]) seedGroup("listening", id, 10);
+    const section = store.mock_listening_sections.find((row) => row.id === "s3");
+    if (section) section.audio_url = null;
+
+    await expect(assembleMock("user-1", "B2" as CefrLevel)).rejects.toThrow(/only 3 approved Listening section\(s\)/i);
+  });
+
+  it("fails closed when the selected four sections do not form global Q1-Q40 sequence", async () => {
+    seedReading();
+    seedGroup("listening", "s1", 10, { sequenceStart: 1 });
+    seedGroup("listening", "s2", 10, { sequenceStart: 11 });
+    seedGroup("listening", "s3", 10, { sequenceStart: 21 });
+    seedGroup("listening", "s4", 10, { sequenceStart: 32 });
+
+    await expect(assembleMock("user-1", "B2" as CefrLevel)).rejects.toThrow(/gap-free global mock_sequence run from 1 through 40/i);
+  });
 });
 
 describe("assembleMock — no duplicates (E, F)", () => {
@@ -295,7 +319,9 @@ describe("assembleMock — content-quality gate, INSIDE a selected group (I, J)"
     seedGroup("reading", "p2", 12);
     seedGroup("reading", "p3", 13);
     const s1Ids = seedGroup("listening", "s1", 12, {
-      questionOverrides: { 0: { deprecated: true }, 1: { deprecated: true } },
+      // Keep the ten approved production rows at global Q1-Q10; the two
+      // deprecated authoring leftovers sit outside the runnable sequence.
+      questionOverrides: { 10: { deprecated: true }, 11: { deprecated: true } },
     });
     seedGroup("listening", "s2", 10);
     seedGroup("listening", "s3", 10);
@@ -303,7 +329,7 @@ describe("assembleMock — content-quality gate, INSIDE a selected group (I, J)"
 
     const result = await assembleMock("user-1", "B2" as CefrLevel);
 
-    const deprecatedIds = [s1Ids[0], s1Ids[1]];
+    const deprecatedIds = [s1Ids[10], s1Ids[11]];
     for (const id of deprecatedIds) expect(result.listeningIds).not.toContain(id);
     expect(result.listeningIds).toHaveLength(40); // 10 + 10 + 10 + 10
   });

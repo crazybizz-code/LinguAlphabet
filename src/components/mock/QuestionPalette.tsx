@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flag } from "lucide-react";
 
 interface PaletteQuestion {
   id: string;
@@ -28,7 +28,7 @@ export function QuestionPalette({ questions, currentIndex, answers, flags, onNav
         onClick={onPrev}
         disabled={currentIndex === 0}
         aria-label="Previous question"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-text-secondary transition-all hover:bg-bg-muted disabled:opacity-30"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-text-secondary transition-all hover:bg-bg-muted disabled:opacity-30"
       >
         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
       </button>
@@ -58,20 +58,22 @@ export function QuestionPalette({ questions, currentIndex, answers, flags, onNav
                   aria-label={`Question ${q.sequenceNumber}${isAnswered ? " (answered)" : ""}${isFlagged ? " (flagged)" : ""}`}
                   aria-current={isCurrent ? "true" : undefined}
                   className={[
-                    "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-all",
+                    "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold transition-all",
                     isCurrent
-                      ? "ring-2 ring-primary ring-offset-1 " + (isAnswered ? "bg-primary text-white" : "bg-bg-card text-primary border border-primary")
+                      ? "ring-2 ring-primary ring-offset-1 " + (isAnswered ? "bg-[#0F172A] text-white" : "bg-bg-card text-primary border border-primary")
                       : isAnswered
-                      ? "bg-primary text-white"
+                      ? "bg-[#0F172A] text-white"
                       : "border border-border bg-bg-card text-text-secondary hover:border-primary/40",
                   ].join(" ")}
                 >
                   {q.sequenceNumber}
                   {isFlagged && (
                     <span
-                      className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-bg-card"
+                      className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary ring-2 ring-bg-card"
                       aria-hidden="true"
-                    />
+                    >
+                      <Flag className="h-2 w-2 fill-white text-white" aria-hidden="true" />
+                    </span>
                   )}
                 </button>
               </div>
@@ -84,7 +86,7 @@ export function QuestionPalette({ questions, currentIndex, answers, flags, onNav
         onClick={onNext}
         disabled={currentIndex === questions.length - 1}
         aria-label="Next question"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border text-text-secondary transition-all hover:bg-bg-muted disabled:opacity-30"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border text-text-secondary transition-all hover:bg-bg-muted disabled:opacity-30"
       >
         <ChevronRight className="h-4 w-4" aria-hidden="true" />
       </button>

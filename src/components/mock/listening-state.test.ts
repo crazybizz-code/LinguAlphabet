@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ClientQuestion } from "./types";
 import {
   buildListeningSections,
+  assertProductionListeningSections,
   flattenListeningQuestions,
   getListeningLocation,
 } from "./listening-state";
@@ -71,6 +72,20 @@ describe("Listening section runtime model", () => {
     expect(getListeningLocation(sections, 9)?.section.sectionId).toBe("s1");
   });
 
+  it("crosses every section boundary in both directions and ends at Q40", () => {
+    const { sections } = runtime();
+    expect(getListeningLocation(sections, 19)?.section.sectionId).toBe("s2");
+    expect(getListeningLocation(sections, 20)?.section.sectionId).toBe("s3");
+    expect(getListeningLocation(sections, 20 - 1)?.question.sequenceNumber).toBe(20);
+    expect(getListeningLocation(sections, 20)?.question.sequenceNumber).toBe(21);
+    expect(getListeningLocation(sections, 29)?.section.sectionId).toBe("s3");
+    expect(getListeningLocation(sections, 30)?.section.sectionId).toBe("s4");
+    expect(getListeningLocation(sections, 30 - 1)?.question.sequenceNumber).toBe(30);
+    expect(getListeningLocation(sections, 30)?.question.sequenceNumber).toBe(31);
+    expect(getListeningLocation(sections, 39)?.question.sequenceNumber).toBe(40);
+    expect(getListeningLocation(sections, 40)).toBeNull();
+  });
+
   it("preserves section order, global question order, and block alignment", () => {
     const { questions, sections } = runtime();
     expect(sections.map((section) => section.sectionId)).toEqual(["s1", "s2", "s3", "s4"]);
@@ -103,5 +118,20 @@ describe("Listening section runtime model", () => {
     expect(hydrated.q1).toBe("Alice");
     expect(hydrated.q8).toBe("Tuesday");
     expect(hydrated.q10).toBeNull();
+  });
+
+  it("accepts the complete production Q1-Q40 client structure", () => {
+    const { sections } = runtime();
+    expect(() => assertProductionListeningSections(sections)).not.toThrow();
+  });
+
+  it("fails closed for missing section audio or a malformed question block", () => {
+    const { sections } = runtime();
+    expect(() => assertProductionListeningSections([
+      { ...sections[0], audioUrl: null }, ...sections.slice(1),
+    ])).toThrow(/no production audio URL/i);
+    expect(() => assertProductionListeningSections([
+      { ...sections[0], orderedQuestions: sections[0].orderedQuestions.slice(0, 9) }, ...sections.slice(1),
+    ])).toThrow(/exactly 10 questions/i);
   });
 });

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Headphones, Monitor, ChevronRight } from "lucide-react";
+import { Headphones, Monitor } from "lucide-react";
 import Link from "next/link";
 import { ListeningSectionPanel } from "./ListeningSectionPanel";
 import { QuestionPalette } from "./QuestionPalette";
@@ -13,6 +13,7 @@ import {
   type ClientListeningSection,
 } from "./listening-state";
 import { encodeChooseTwoResponses } from "./listening-choose-two";
+import { ListeningSaveCoordinator } from "./listening-save-coordinator";
 
 interface Props {
   attemptId: string;
@@ -41,18 +42,27 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
   const [playedAudioSectionIds, setPlayedAudioSectionIds] = useState<Set<string>>(new Set());
   // Mark-for-review flags — session-only (sessionStorage), no schema change; mirrors the
   // existing timer-anchor persistence pattern below.
-  const [flagged, setFlagged] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
-    try {
-      const raw = sessionStorage.getItem(`mock_listening_flags_${attemptId}`);
-      return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
-    } catch {
-      return {};
-    }
-  });
+  const [flagged, setFlagged] = useState<Record<string, boolean>>({});
   const startTimeRef = useRef<number | null>(null);
   const timedOutRef = useRef(false);
   const chooseTwoSaveQueuesRef = useRef<Map<string, Promise<void>>>(new Map());
+  const saveCoordinatorRef = useRef(new ListeningSaveCoordinator());
+
+  // The exam shell is server-rendered, so reading sessionStorage inside the
+  // useState initializer is not reliable on a hard reload: React hydrates the
+  // server's empty snapshot. Restore review flags after mount instead. This
+  // remains session-only and does not introduce a database contract.
+  useEffect(() => {
+    const restoreId = window.setTimeout(() => {
+      try {
+        const raw = sessionStorage.getItem(`mock_listening_flags_${attemptId}`);
+        setFlagged(raw ? (JSON.parse(raw) as Record<string, boolean>) : {});
+      } catch {
+        setFlagged({});
+      }
+    }, 0);
+    return () => window.clearTimeout(restoreId);
+  }, [attemptId]);
 
   // Timer
   useEffect(() => {
@@ -86,7 +96,7 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
     (questionId: string, answer: string | null) => {
       const q = questions.find((q) => q.id === questionId);
       if (!q) return;
-      return fetch("/api/mock/answer", {
+      const operation = fetch("/api/mock/answer", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -96,7 +106,18 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
           userAnswer: answer,
           sequenceNumber: q.sequenceNumber,
         }),
-      }).then(() => undefined).catch(console.error);
+      }).then(async (response) => {
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({})) as { error?: string };
+          throw new Error(data.error ?? "Failed to save Listening answer");
+        }
+      });
+      const tracked = saveCoordinatorRef.current.track(operation);
+      // Keep the existing non-blocking autosave interaction. The tracked
+      // rejection is still observed here, while handleSubmit() separately
+      // drains the coordinator and refuses to submit after a failed save.
+      void tracked.catch(console.error);
+      return tracked;
     },
     [attemptId, questions],
   );
@@ -113,6 +134,12 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
     sessionStorage.removeItem(`mock_listening_start_${attemptId}`);
     sessionStorage.removeItem(`mock_listening_flags_${attemptId}`);
     try {
+      // A choose-two snapshot may be queued behind an older snapshot and
+      // therefore not yet have started its two HTTP requests. Await the
+      // queue tails first, then every ordinary/grouped request currently in
+      // flight. Submission never races the last answer.
+      await Promise.all([...chooseTwoSaveQueuesRef.current.values()]);
+      await saveCoordinatorRef.current.drain();
       const res = await fetch("/api/mock/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -218,10 +245,9 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-primary-dark disabled:opacity-60"
+              className="rounded-xl bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
             >
               {submitting ? "Submitting…" : "Submit Mock"}
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </header>

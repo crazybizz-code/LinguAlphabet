@@ -2,6 +2,7 @@
 
 import { Check, Flag } from "lucide-react";
 import { QuestionRenderer } from "./QuestionRenderer";
+import { ListeningFlowchartGroup, isListeningFlowchartGroup } from "./ListeningFlowchartGroup";
 import type { ClientListeningQuestionGroup } from "./listening-state";
 import {
   chooseTwoOptionPool,
@@ -60,6 +61,7 @@ export function ListeningQuestionGroup({
   onToggleFlag,
 }: Props) {
   const chooseTwo = isClientChooseTwoGroup(group);
+  const flowchart = isListeningFlowchartGroup(group);
   const range = group.questions.map((question) => question.sequenceNumber);
 
   return (
@@ -79,6 +81,16 @@ export function ListeningQuestionGroup({
           answers={answers}
           flags={flags}
           onChange={onChooseTwoChange}
+          onNavigate={onNavigate}
+          onToggleFlag={onToggleFlag}
+        />
+      ) : flowchart ? (
+        <ListeningFlowchartGroup
+          group={group}
+          currentQuestionId={currentQuestionId}
+          answers={answers}
+          flags={flags}
+          onSelect={onSelect}
           onNavigate={onNavigate}
           onToggleFlag={onToggleFlag}
         />

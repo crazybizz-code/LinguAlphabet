@@ -71,7 +71,7 @@ export interface MockQuestionSet {
   listeningSectionIds: string[];
 }
 
-type ParentRow = { id: string; difficulty: string | null };
+type ParentRow = { id: string; difficulty: string | null; audio_url?: string | null };
 type QuestionRow = { id: string; parent_id: string; created_at: string | null; mock_sequence: number | null };
 
 interface QuestionGroup {
@@ -197,14 +197,27 @@ async function loadGroups(
 ): Promise<QuestionGroup[]> {
   const supabase = createServiceClient();
 
-  let parentQuery = supabase.from(parentTable).select("id, difficulty").eq("approved", true).eq("deprecated", false);
+  let parentQuery = supabase
+    .from(parentTable)
+    .select(parentTable === "mock_listening_sections" ? "id, difficulty, audio_url" : "id, difficulty")
+    .eq("approved", true)
+    .eq("deprecated", false);
   if (levels) parentQuery = parentQuery.in("difficulty", levels);
   const { data: parentRows, error: parentError } = await parentQuery;
   if (parentError) throw new Error(`Mock assembly failed: could not load approved ${skill} parents (${parentError.message}).`);
-  const parents = (parentRows ?? []) as ParentRow[];
+  const parents = (parentRows ?? []) as unknown as ParentRow[];
   if (parents.length === 0) return [];
 
-  const parentIds = parents.map((p) => p.id);
+  // An approved Listening section without its section-level recording is
+  // not production-ready and must never enter an attempt. Authored content
+  // may legitimately keep audio_url nullable before publication; the
+  // production assembler is intentionally stricter than that authoring
+  // contract.
+  const eligibleParents = skill === "listening"
+    ? parents.filter((parent) => typeof parent.audio_url === "string" && parent.audio_url.trim().length > 0)
+    : parents;
+  const parentIds = eligibleParents.map((p) => p.id);
+  if (parentIds.length === 0) return [];
   const { data: questionRows, error: questionError } = await supabase
     .from("assessment_questions")
     .select(`id, ${parentIdColumn}, mock_sequence, created_at`)
@@ -377,7 +390,7 @@ async function validateListeningSelection(listening: { groupIds: string[]; quest
   const supabase = createServiceClient();
   const parentResult = await supabase
     .from("mock_listening_sections")
-    .select("id, title, difficulty, transcript")
+    .select("id, title, difficulty, transcript, audio_url")
     .in("id", listening.groupIds);
   if (parentResult.error) {
     throw new Error(`Listening mock assembly failed: could not hydrate selected sections (${parentResult.error.message}).`);
@@ -401,6 +414,25 @@ async function validateListeningSelection(listening: { groupIds: string[]; quest
       difficulty: row.difficulty,
       bodyText: row.transcript,
     }));
+
+  const missingAudio = listening.groupIds.filter((id) => {
+    const row = parentsById.get(id);
+    return !row || typeof row.audio_url !== "string" || row.audio_url.trim().length === 0;
+  });
+  if (missingAudio.length > 0) {
+    throw new Error(`Listening mock assembly failed: selected section(s) have no production audio_url: ${missingAudio.join(", ")}.`);
+  }
+
+  const questionsById = new Map(
+    ((questionResult.data ?? []) as AssembledQuestionRow[]).map((row) => [row.id, row]),
+  );
+  const orderedSequences = listening.questionIds.map((id) => questionsById.get(id)?.mock_sequence ?? null);
+  const expectedSequences = Array.from({ length: LISTENING_QUESTION_COUNT }, (_, index) => index + 1);
+  if (orderedSequences.some((sequence, index) => sequence !== expectedSequences[index])) {
+    throw new Error(
+      "Listening mock assembly failed: selected questions must have one gap-free global mock_sequence run from 1 through 40 aligned to their section blocks.",
+    );
+  }
 
   const result = validateAssembledListening(
     orderedParents,

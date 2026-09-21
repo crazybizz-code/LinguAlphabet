@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service-client";
 import { MockListeningClient } from "@/components/mock/MockListeningClient";
 import type { ClientQuestion } from "@/components/mock/types";
-import { buildListeningSections } from "@/components/mock/listening-state";
+import { assertProductionListeningSections, buildListeningSections } from "@/components/mock/listening-state";
 import { decodeWordLimit, isReadingOnlyAttempt } from "@/lib/mock/engine";
 import type { MockOptionPoolItem } from "@/lib/mock/content/types";
 
@@ -125,6 +125,7 @@ export default async function MockListeningPage({ params }: Props) {
       audioUrl: section.audio_url,
     })),
   );
+  assertProductionListeningSections(sections);
 
   return (
     <MockListeningClient
