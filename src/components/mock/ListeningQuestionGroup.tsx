@@ -105,7 +105,7 @@ export function ListeningQuestionGroup({
                 id={`listening-question-${question.sequenceNumber}`}
                 className={[
                   "rounded-xl border p-4 transition-colors",
-                  isCurrent ? "border-primary bg-primary/[0.03]" : "border-border/60 bg-white",
+                  isCurrent ? "border-primary bg-primary/[0.03]" : "border-border/60 bg-bg-card",
                 ].join(" ")}
                 aria-current={isCurrent ? "true" : undefined}
               >

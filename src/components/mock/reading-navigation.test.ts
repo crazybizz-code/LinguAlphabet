@@ -70,7 +70,14 @@ describe("reading navigation — Part model", () => {
 
   it("the palette exposes answered vs unanswered state", () => {
     expect(readingClient).toContain("const isAnswered = answers[q.id] != null && answers[q.id] !== \"\";");
-    expect(readingClient).toContain('aria-label={`Question ${q.sequenceNumber}${isAnswered ? ", answered" : ", not answered"}`}');
+    expect(readingClient).toContain('aria-label={`Question ${q.sequenceNumber}${isAnswered ? ", answered" : ", not answered"}${flagged[q.id] ? ", flagged" : ""}`}');
+  });
+
+  it("the palette marks flagged questions with a visible badge, not a text decoration", () => {
+    // An underline on a 28px bubble is not a reliable review signal under exam
+    // time pressure; this mirrors the badge QuestionPalette already uses.
+    expect(readingClient).toContain("{flagged[q.id] && (");
+    expect(readingClient).not.toContain("underline decoration-2");
   });
 });
 

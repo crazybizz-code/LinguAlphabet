@@ -217,7 +217,7 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
       {/* Desktop exam shell */}
       <div className="fixed inset-0 z-50 hidden flex-col bg-bg lg:flex">
         {/* Header — 60 px */}
-        <header className="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-border bg-white px-6">
+        <header className="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-border bg-bg-card px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0F172A]">
               <Headphones className="h-4 w-4 text-white" aria-hidden="true" />
@@ -234,6 +234,7 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
               isLowTime ? "text-red-500" : "text-text-primary",
             ].join(" ")}
             aria-live="polite"
+            aria-label={`Time remaining: ${formatTime(timeLeft)}`}
           >
             {formatTime(timeLeft)}
           </span>

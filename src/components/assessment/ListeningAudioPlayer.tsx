@@ -74,11 +74,11 @@ export function ListeningAudioPlayer({
   const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
   return (
-    <div className="rounded-2xl border border-orange-100 bg-orange-50/40 p-5">
+    <div className="rounded-2xl border border-primary-light bg-primary-lighter/40 p-5">
       <div className="flex items-center gap-2">
         <p className="text-sm font-bold text-text-primary">Audio Recording</p>
         {playing ? (
-          <span className="flex items-center gap-1.5 rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-primary-strong">
+          <span className="flex items-center gap-1.5 rounded-full bg-primary-lighter px-2 py-0.5 text-[10px] font-semibold text-primary-strong">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
             Playing…
           </span>
@@ -111,7 +111,7 @@ export function ListeningAudioPlayer({
         </button>
 
         <div className="flex-1">
-          <div className="relative h-2 overflow-hidden rounded-full bg-orange-100">
+          <div className="relative h-2 overflow-hidden rounded-full bg-primary-light">
             <div
               className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-orange-400"
               style={{ width: `${progressPct}%` }}

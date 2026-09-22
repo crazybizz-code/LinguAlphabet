@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, Flag } from "lucide-react";
+import { ArrowDown, ChevronDown, Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ClientListeningQuestionGroup } from "./listening-state";
 
@@ -74,7 +74,7 @@ export function ListeningFlowchartGroup({
                 id={`listening-question-${question.sequenceNumber}`}
                 aria-current={isCurrent ? "step" : undefined}
                 className={cn(
-                  "rounded-2xl border bg-white p-4 transition-colors",
+                  "rounded-2xl border bg-bg-card p-4 transition-colors",
                   isCurrent ? "border-primary bg-primary/[0.03]" : "border-border/60",
                 )}
               >
@@ -108,20 +108,26 @@ export function ListeningFlowchartGroup({
 
                 <label className="mt-4 flex items-center gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Answer</span>
-                  <select
-                    aria-label={`Answer for question ${question.sequenceNumber}`}
-                    value={answers[question.id] ?? ""}
-                    onChange={(event) => {
-                      onNavigate(question.id);
-                      onSelect(question.id, event.target.value);
-                    }}
-                    className="min-h-11 min-w-24 rounded-xl border border-border bg-bg-card px-3 py-2 text-sm font-semibold text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="" disabled>Select letter</option>
-                    {optionPool.map((option) => (
-                      <option key={option.id} value={option.id}>{option.id}</option>
-                    ))}
-                  </select>
+                  <span className="relative inline-flex items-center">
+                    <select
+                      aria-label={`Answer for question ${question.sequenceNumber}`}
+                      value={answers[question.id] ?? ""}
+                      onChange={(event) => {
+                        onNavigate(question.id);
+                        onSelect(question.id, event.target.value);
+                      }}
+                      className="min-h-11 min-w-24 appearance-none rounded-xl border border-border bg-bg-card py-2 pl-3 pr-9 text-sm font-semibold text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="" disabled>Select letter</option>
+                      {optionPool.map((option) => (
+                        <option key={option.id} value={option.id}>{option.id}</option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-3 h-4 w-4 text-text-tertiary"
+                    />
+                  </span>
                 </label>
               </article>
 

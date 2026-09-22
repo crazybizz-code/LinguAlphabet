@@ -268,7 +268,7 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
                         rendered once at the group's first question -- never
                         repeated per question. */}
                     {startsGroup && q.groupInstructions && (
-                      <div className="mb-3 rounded-xl border border-border/60 bg-surface-secondary/60 px-4 py-3">
+                      <div className="mb-3 rounded-xl border border-border/60 bg-bg-muted px-4 py-3">
                         <p className="whitespace-pre-line text-sm font-medium leading-relaxed text-text-primary">
                           {q.groupInstructions}
                         </p>
@@ -278,8 +278,8 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
                       id={`q-block-${q.id}`}
                       onFocusCapture={() => setActiveQuestionId(q.id)}
                       className={[
-                        "mb-4 rounded-xl p-3 transition-shadow",
-                        isActive ? "outline outline-2 outline-primary" : "outline-none",
+                        "mb-4 rounded-xl p-3 transition-all",
+                        isActive ? "bg-primary/[0.03] ring-2 ring-primary" : "ring-0",
                       ].join(" ")}
                     >
                       <div className="mb-2 flex items-center justify-between">
@@ -353,16 +353,27 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
                         <button
                           key={q.id}
                           onClick={() => goToQuestion(q.id)}
-                          aria-label={`Question ${q.sequenceNumber}${isAnswered ? ", answered" : ", not answered"}`}
+                          aria-label={`Question ${q.sequenceNumber}${isAnswered ? ", answered" : ", not answered"}${flagged[q.id] ? ", flagged" : ""}`}
                           aria-current={isActive ? "true" : undefined}
                           className={[
-                            "h-7 w-7 rounded-md text-[11px] font-semibold transition-all",
+                            "relative flex h-7 w-7 items-center justify-center rounded-md text-[11px] font-semibold transition-all",
                             isActive ? "ring-2 ring-primary ring-offset-1" : "",
-                            isAnswered ? "bg-primary/15 text-primary" : "border border-border text-text-tertiary",
-                            flagged[q.id] ? "underline decoration-2" : "",
+                            isAnswered
+                              ? "bg-[#0F172A] text-white"
+                              : isActive
+                                ? "border border-primary bg-bg-card text-primary"
+                                : "border border-border text-text-tertiary",
                           ].join(" ")}
                         >
                           {q.sequenceNumber}
+                          {flagged[q.id] && (
+                            <span
+                              className="absolute -right-1 -top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary ring-2 ring-bg-card"
+                              aria-hidden="true"
+                            >
+                              <Flag className="h-2 w-2 fill-white text-white" aria-hidden="true" />
+                            </span>
+                          )}
                         </button>
                       );
                     })}
