@@ -1,8 +1,14 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Check, Flag } from "lucide-react";
 import { QuestionRenderer } from "./QuestionRenderer";
 import { ListeningFlowchartGroup, isListeningFlowchartGroup } from "./ListeningFlowchartGroup";
+import {
+  ListeningPaperCompletion,
+  isPaperCompletionGroup,
+  paperCompletionLayout,
+} from "./ListeningPaperCompletion";
 import type { ClientListeningQuestionGroup } from "./listening-state";
 import {
   chooseTwoOptionPool,
@@ -20,6 +26,25 @@ interface Props {
   onChooseTwoChange: (group: ClientListeningQuestionGroup, selections: string[]) => void;
   onNavigate: (questionId: string) => void;
   onToggleFlag: (questionId: string) => void;
+  /** "paper" renders a free-text completion group as one continuous
+   * exam-paper block; any other group type keeps its card renderer. */
+  variant?: "card" | "paper";
+}
+
+// Runs of authored capitals in an instruction ("NO MORE THAN TWO WORDS",
+// "ONE WORD AND/OR A NUMBER"), emphasised as a printed IELTS paper does.
+const EMPHASIS_RUN = /\b[A-Z]{2,}(?:\/[A-Z]{2,})?(?:\s+(?:[A-Z]{2,}(?:\/[A-Z]{2,})?|A(?=\s+[A-Z]{2,})))*/g;
+
+function PaperInstructionLine({ line }: { line: string }) {
+  const parts: ReactNode[] = [];
+  let cursor = 0;
+  for (const match of line.matchAll(EMPHASIS_RUN)) {
+    if (match.index > cursor) parts.push(line.slice(cursor, match.index));
+    parts.push(<strong key={match.index} className="font-bold text-text-primary">{match[0]}</strong>);
+    cursor = match.index + match[0].length;
+  }
+  if (cursor < line.length) parts.push(line.slice(cursor));
+  return <p>{parts}</p>;
 }
 
 function groupHeading(instructions: string | null, first: number, last: number) {
@@ -70,11 +95,44 @@ export function ListeningQuestionGroup({
   onChooseTwoChange,
   onNavigate,
   onToggleFlag,
+  variant = "card",
 }: Props) {
   const chooseTwo = isClientChooseTwoGroup(group);
   const flowchart = isListeningFlowchartGroup(group);
   const range = group.questions.map((question) => question.sequenceNumber);
   const heading = groupHeading(group.instructions, range[0], range[range.length - 1]);
+
+  if (variant === "paper" && isPaperCompletionGroup(group)) {
+    const headingId = `listening-group-${range[0]}-heading`;
+    return (
+      <section
+        className="border-t border-slate-200 pt-5 first:border-t-0 first:pt-0"
+        aria-label={group.groupId ? `Question group ${group.groupId}` : undefined}
+        aria-describedby={headingId}
+      >
+        <header id={headingId} className="mb-4">
+          <h2 className="text-[15px] font-bold text-text-primary">{heading.range}</h2>
+          {heading.instructions && (
+            <div className="mt-1 space-y-0.5 text-sm leading-relaxed text-text-secondary">
+              {heading.instructions.split("\n").filter((line) => line.trim()).map((line, index) => (
+                <PaperInstructionLine key={index} line={line} />
+              ))}
+            </div>
+          )}
+        </header>
+        <ListeningPaperCompletion
+          group={group}
+          layout={paperCompletionLayout(group.instructions)}
+          currentQuestionId={currentQuestionId}
+          answers={answers}
+          flags={flags}
+          onSelect={onSelect}
+          onNavigate={onNavigate}
+          onToggleFlag={onToggleFlag}
+        />
+      </section>
+    );
+  }
 
   return (
     <section

@@ -65,7 +65,9 @@ describe("ListeningSectionPanel", () => {
     expect(count(html, "Complete the table.")).toBe(1);
     expect(count(html, "Question group form")).toBe(1);
     expect(count(html, "Question group table")).toBe(1);
-    expect(html).toContain("Question 1");
-    expect(html).toContain("Question 10");
+    // Section 1 uses the exam-paper layout: each blank carries its number
+    // (announced as "Question N") instead of a per-question card heading.
+    expect(html).toContain('<span class="sr-only">Question </span>1<');
+    expect(html).toContain('<span class="sr-only">Question </span>10<');
   });
 });
