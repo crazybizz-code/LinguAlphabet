@@ -74,11 +74,11 @@ export function ListeningAudioPlayer({
   const progressPct = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
   return (
-    <div className="rounded-2xl border border-orange-100 bg-orange-50/40 p-5">
-      <div className="flex items-center gap-2">
-        <p className="text-sm font-bold text-text-primary">Audio Recording</p>
+    <div className="rounded-2xl border border-primary-light bg-primary-lighter/40 p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-text-primary">Audio recording</p>
         {playing ? (
-          <span className="flex items-center gap-1.5 rounded-full bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-primary-strong">
+          <span className="flex items-center gap-1.5 rounded-full bg-primary-lighter px-2 py-0.5 text-[10px] font-semibold text-primary-strong">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
             Playing…
           </span>
@@ -95,25 +95,25 @@ export function ListeningAudioPlayer({
         )}
       </div>
 
-      <div className="mt-4 flex items-center gap-4">
+      <div className="mt-3 flex items-center gap-3">
         <button
           onClick={handlePlay}
           disabled={played}
           aria-label={played ? "Already played" : "Play audio"}
           className={[
-            "flex h-14 w-14 shrink-0 items-center justify-center rounded-full shadow-lg transition-all",
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full shadow-sm transition-all",
             played
               ? "cursor-not-allowed bg-bg-muted text-text-tertiary"
-              : "bg-primary text-white shadow-primary/30 hover:scale-105 active:scale-95",
+              : "bg-primary text-white shadow-primary/20 hover:bg-primary-dark active:scale-95",
           ].join(" ")}
         >
-          <Play className="h-6 w-6 fill-current" aria-hidden="true" />
+          <Play className="h-4.5 w-4.5 fill-current" aria-hidden="true" />
         </button>
 
         <div className="flex-1">
-          <div className="relative h-2 overflow-hidden rounded-full bg-orange-100">
+          <div className="relative h-1.5 overflow-hidden rounded-full bg-primary-light">
             <div
-              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-orange-400"
+              className="absolute inset-y-0 left-0 rounded-full bg-primary"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -125,7 +125,7 @@ export function ListeningAudioPlayer({
       </div>
 
       {/* Volume control */}
-      <div className="mt-3 flex items-center gap-3">
+      <div className="mt-2.5 flex items-center gap-2.5 border-t border-primary-light/80 pt-2.5">
         <Volume2 className="h-3.5 w-3.5 shrink-0 text-text-tertiary" aria-hidden="true" />
         <input
           type="range"
@@ -134,7 +134,7 @@ export function ListeningAudioPlayer({
           step="0.05"
           value={volume}
           onChange={handleVolumeChange}
-          className="h-1.5 flex-1 cursor-pointer accent-primary"
+          className="h-1 flex-1 cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="Volume"
         />
         <span className="w-8 text-right text-[11px] tabular-nums text-text-tertiary">
@@ -143,7 +143,7 @@ export function ListeningAudioPlayer({
       </div>
 
       {!played && (
-        <p className="mt-3 text-[11px] text-text-tertiary">
+        <p className="mt-2 text-[11px] leading-relaxed text-text-tertiary">
           {instruction ?? "Press play to begin. The recording can only be played once — there is no pause, rewind, or seek."}
         </p>
       )}

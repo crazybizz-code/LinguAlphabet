@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, Flag, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookOpen, Flag } from "lucide-react";
 import { QuestionRenderer } from "./QuestionRenderer";
 import { PassageHighlighter } from "./PassageHighlighter";
+import { QuestionPalette } from "./QuestionPalette";
 import { buildReadingParts, countAnsweredQuestions, findReadingPartIndex } from "./reading-state";
 import type { ClientQuestion } from "./types";
 
@@ -25,6 +26,14 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function splitGroupInstructions(instructions: string) {
+  const lines = instructions.split("\n");
+  const range = /^Questions?\s+\d+(?:\s*[–-]\s*\d+)?\s*:?$/i.test(lines[0]?.trim() ?? "")
+    ? lines.shift()?.trim().replace(/:$/, "") ?? null
+    : null;
+  return { range, detail: lines.join("\n").trim() };
+}
+
 /**
  * Groups the flat question list into Parts by structural passage, preserving
  * the assembled order. Matches the reference's Part model
@@ -35,6 +44,11 @@ function formatTime(seconds: number): string {
 export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimitSeconds, readingOnly = false }: Props) {
   const router = useRouter();
   const parts = useMemo(() => buildReadingParts(questions), [questions]);
+  const paletteQuestions = useMemo(() => questions.map((question) => ({
+    id: question.id,
+    sequenceNumber: question.sequenceNumber,
+    sectionId: question.passageId,
+  })), [questions]);
 
   const [activePart, setActivePart] = useState(0);
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(questions[0]?.id ?? null);
@@ -176,30 +190,33 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-bg">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-bg">
       {/* Header */}
-      <header className="flex h-[60px] shrink-0 items-center justify-between gap-3 border-b border-border bg-bg-card px-4 sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
+      <header className="grid h-[60px] shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border/80 bg-bg-card px-6 max-md:h-14 max-md:px-3">
+        <div className="flex min-w-0 items-center gap-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0F172A]">
             <BookOpen className="h-4 w-4 text-white" aria-hidden="true" />
           </div>
-          <span className="hidden truncate text-sm font-semibold text-text-primary sm:block">Full Mock · Reading</span>
-          <span className="hidden text-xs text-text-tertiary md:block">{answeredCount}/{questions.length} answered</span>
+          <span className="truncate text-sm font-semibold text-text-primary max-md:hidden">Full Mock · Reading</span>
+          <span className="text-xs text-text-tertiary max-lg:hidden">{answeredCount}/{questions.length} answered</span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <PassageHighlighter getContainer={getActivePassage} containerKey={activePart} />
-          <span
-            className={["font-mono text-lg font-bold tabular-nums", isLowTime ? "text-red-500" : "text-text-primary"].join(" ")}
-            aria-live="polite"
-            aria-label={`Time remaining: ${formatTime(timeLeft)}`}
-          >
-            {formatTime(timeLeft)}
-          </span>
+        <span
+          className={["font-mono text-lg font-bold tabular-nums max-md:text-base", isLowTime ? "text-red-500" : "text-text-primary"].join(" ")}
+          aria-live="polite"
+          aria-label={`Time remaining: ${formatTime(timeLeft)}`}
+        >
+          {formatTime(timeLeft)}
+        </span>
+
+        <div className="flex min-w-0 items-center justify-end gap-3 max-md:gap-2">
+          <div className="max-md:hidden">
+            <PassageHighlighter getContainer={getActivePassage} containerKey={activePart} />
+          </div>
           <button
             onClick={handleFinish}
             disabled={finishing}
-            className="rounded-xl bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
+            className="min-h-9 shrink-0 rounded-xl bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 max-md:px-3 max-md:text-xs"
           >
             {readingOnly ? "Finish" : "Next: Listening →"}
           </button>
@@ -207,7 +224,7 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
       </header>
 
       {/* Mobile pane switch — the reference is desktop-only, so this is ours */}
-      <div className="flex shrink-0 border-b border-border bg-bg-card lg:hidden">
+      <div className="hidden shrink-0 border-b border-border bg-bg-card max-lg:flex">
         {(["passage", "questions"] as const).map((pane) => (
           <button
             key={pane}
@@ -223,7 +240,7 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
       </div>
 
       {/* Body — two panels on desktop, one at a time on small screens */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 overflow-hidden">
         {parts.map((part, i) => (
           <div
             key={part.passageId ?? i}
@@ -235,14 +252,14 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
             <div
               ref={(el) => { passageRefs.current[i] = el; }}
               className={[
-                "overflow-y-auto p-5 sm:p-6 lg:w-1/2 lg:border-r lg:border-border/60",
-                mobilePane === "passage" ? "w-full" : "hidden lg:block",
+                "w-1/2 overflow-y-auto border-r border-border/60 px-8 py-6 max-lg:border-r-0 max-lg:p-6 max-md:p-4",
+                mobilePane === "passage" ? "max-lg:w-full" : "max-lg:hidden",
               ].join(" ")}
             >
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+              <p className="mb-1 text-[11px] font-semibold tracking-wide text-text-tertiary">
                 Reading Passage {i + 1}
               </p>
-              <h2 className="mb-4 text-lg font-bold text-text-primary">{part.title}</h2>
+              <h2 className="mb-4 text-xl font-bold tracking-tight text-text-primary">{part.title}</h2>
               {part.passage ? (
                 <div className="whitespace-pre-line text-sm leading-[1.85] text-text-primary">{part.passage}</div>
               ) : (
@@ -253,8 +270,8 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
             {/* Questions — the whole Part, scrollable */}
             <div
               className={[
-                "overflow-y-auto p-5 sm:p-6 lg:w-1/2",
-                mobilePane === "questions" ? "w-full" : "hidden lg:block",
+                "w-1/2 overflow-y-auto px-8 py-6 max-lg:p-6 max-md:p-4",
+                mobilePane === "questions" ? "max-lg:w-full" : "max-lg:hidden",
               ].join(" ")}
             >
               {part.questions.map((q, qi) => {
@@ -268,29 +285,39 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
                         rendered once at the group's first question -- never
                         repeated per question. */}
                     {startsGroup && q.groupInstructions && (
-                      <div className="mb-3 rounded-xl border border-border/60 bg-surface-secondary/60 px-4 py-3">
-                        <p className="whitespace-pre-line text-sm font-medium leading-relaxed text-text-primary">
-                          {q.groupInstructions}
-                        </p>
-                      </div>
+                      (() => {
+                        const instruction = splitGroupInstructions(q.groupInstructions);
+                        return (
+                          <div className="mb-3 rounded-xl border border-border/70 bg-bg-muted px-4 py-3">
+                            {instruction.range && <p className="text-xs font-semibold text-text-primary">{instruction.range}</p>}
+                            {instruction.detail && (
+                              <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-text-secondary">
+                                {instruction.detail}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()
                     )}
                     <div
                       id={`q-block-${q.id}`}
                       onFocusCapture={() => setActiveQuestionId(q.id)}
                       className={[
-                        "mb-4 rounded-xl p-3 transition-shadow",
-                        isActive ? "outline outline-2 outline-primary" : "outline-none",
+                        "mb-4 rounded-xl border p-4 transition-all",
+                        isActive
+                          ? "border-primary/40 bg-primary/[0.03] ring-2 ring-primary/30"
+                          : "border-border/60 bg-bg-card ring-0",
                       ].join(" ")}
                     >
                       <div className="mb-2 flex items-center justify-between">
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+                        <span className="text-xs font-semibold text-text-tertiary">
                           Question {q.sequenceNumber}
                         </span>
                         <button
                           onClick={() => toggleFlag(q.id)}
                           aria-label={flagged[q.id] ? "Remove flag" : "Flag question"}
                           className={[
-                            "flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all",
+                            "flex min-h-8 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
                             flagged[q.id] ? "border-primary bg-primary/10 text-primary" : "border-border text-text-secondary hover:bg-bg-muted",
                           ].join(" ")}
                         >
@@ -312,75 +339,17 @@ export function MockReadingClient({ attemptId, questions, savedAnswers, timeLimi
         ))}
       </div>
 
-      {/* Part tabs + palette */}
-      <footer className="shrink-0 border-t border-border/60 bg-bg-card">
-        <div className="flex items-center gap-2 overflow-x-auto px-3 py-2">
-          <button
-            onClick={goPrev}
-            disabled={flatIndex <= 0}
-            aria-label="Previous question"
-            className="shrink-0 rounded-lg border border-border p-1.5 text-text-secondary disabled:opacity-40"
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          </button>
-
-          {parts.map((part, i) => {
-            const done = countAnsweredQuestions(part.questions, answers);
-            const selected = i === activePart;
-            return (
-              <div key={part.passageId ?? i} className="flex shrink-0 items-center gap-1.5" role="tablist">
-                <button
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => goToQuestion(part.questions[0].id)}
-                  className={[
-                    "flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors",
-                    selected ? "bg-primary text-white" : "text-text-secondary hover:bg-bg-muted",
-                  ].join(" ")}
-                >
-                  <span>Part {i + 1}</span>
-                  <span className={selected ? "text-white/80" : "text-text-tertiary"}>
-                    {done} of {part.questions.length}
-                  </span>
-                </button>
-
-                {selected && (
-                  <div className="flex items-center gap-1">
-                    {part.questions.map((q) => {
-                      const isAnswered = answers[q.id] != null && answers[q.id] !== "";
-                      const isActive = q.id === activeQuestionId;
-                      return (
-                        <button
-                          key={q.id}
-                          onClick={() => goToQuestion(q.id)}
-                          aria-label={`Question ${q.sequenceNumber}${isAnswered ? ", answered" : ", not answered"}`}
-                          aria-current={isActive ? "true" : undefined}
-                          className={[
-                            "h-7 w-7 rounded-md text-[11px] font-semibold transition-all",
-                            isActive ? "ring-2 ring-primary ring-offset-1" : "",
-                            isAnswered ? "bg-primary/15 text-primary" : "border border-border text-text-tertiary",
-                            flagged[q.id] ? "underline decoration-2" : "",
-                          ].join(" ")}
-                        >
-                          {q.sequenceNumber}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-
-          <button
-            onClick={goNext}
-            disabled={flatIndex >= questions.length - 1}
-            aria-label="Next question"
-            className="shrink-0 rounded-lg border border-border p-1.5 text-text-secondary disabled:opacity-40"
-          >
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
+      <footer className="flex h-14 shrink-0 items-center border-t border-border/60 bg-bg-card shadow-[0_-8px_24px_rgba(15,23,42,0.04)]">
+        <QuestionPalette
+          questions={paletteQuestions}
+          currentIndex={Math.max(0, flatIndex)}
+          answers={answers}
+          flags={flagged}
+          groupLabelPrefix="P"
+          onNavigate={(index) => goToQuestion(questions[index].id)}
+          onPrev={goPrev}
+          onNext={goNext}
+        />
       </footer>
     </div>
   );

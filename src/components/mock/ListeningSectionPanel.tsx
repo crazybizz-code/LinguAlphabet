@@ -35,18 +35,18 @@ export function ListeningSectionPanel({
   const firstQuestion = section.orderedQuestions[0];
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-8 py-6">
-      <div className="mb-5">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">
+    <div className="mx-auto w-full max-w-4xl px-8 py-5 max-lg:px-6 max-md:px-4">
+      <div className="mb-4">
+        <p className="text-[11px] font-semibold tracking-wide text-text-tertiary">
           Listening Section {sectionNumber}
         </p>
-        <h1 className="mt-1 text-lg font-bold text-text-primary">
+        <h1 className="mt-1 text-xl font-bold tracking-tight text-text-primary">
           {section.title ?? `Section ${sectionNumber}`}
         </h1>
       </div>
 
       {section.audioUrl && (
-        <div className="mb-6 space-y-4">
+        <div className="mb-5 space-y-3">
           <ListeningInstructions
             sectionInstruction={firstQuestion?.sectionInstruction}
             audioInstruction={firstQuestion?.audioInstruction}
@@ -61,7 +61,7 @@ export function ListeningSectionPanel({
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-5 pb-3">
         {section.questionGroups.map((group) => (
           <ListeningQuestionGroup
             key={group.key}

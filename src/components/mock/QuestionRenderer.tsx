@@ -48,16 +48,16 @@ function ChoiceList({
             key={choice.value}
             onClick={() => onPick(choice.value)}
             className={[
-              "flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition-all",
+              "flex min-h-11 items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-1",
               isSelected
-                ? "border-primary bg-primary text-white"
-                : "border-border bg-bg-card text-text-primary hover:border-primary/40 hover:bg-primary/5",
+                ? "border-primary/50 bg-primary/[0.08] text-text-primary"
+                : "border-border bg-bg-card text-text-primary hover:border-slate-300 hover:bg-slate-50",
             ].join(" ")}
           >
             <span
               className={[
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
-                isSelected ? "bg-white/20 text-white" : "bg-border/60 text-text-secondary",
+                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold",
+                isSelected ? "border-primary bg-primary text-white" : "border-border bg-slate-50 text-text-secondary",
               ].join(" ")}
             >
               {choice.label}
@@ -71,7 +71,7 @@ function ChoiceList({
 }
 
 function QuestionStem({ text }: { text: string }) {
-  return <p className="mb-4 text-base font-medium leading-relaxed text-text-primary">{text}</p>;
+  return <p className="mb-3.5 text-[15px] font-medium leading-7 text-text-primary">{text}</p>;
 }
 
 /**
@@ -121,7 +121,7 @@ export function QuestionRenderer({ question, selectedAnswer, onSelect }: Props) 
       <div>
         <QuestionStem text={question.question} />
         {limit && (
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
+          <p className="mb-2 text-xs font-medium text-text-secondary">
             {wordLimitLabel(limit.maxWords, limit.allowNumber)}
           </p>
         )}
@@ -132,7 +132,7 @@ export function QuestionRenderer({ question, selectedAnswer, onSelect }: Props) 
           placeholder="Type your answer…"
           aria-invalid={overLimit || undefined}
           className={[
-            "w-full rounded-xl border bg-bg-card px-4 py-3 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2",
+            "min-h-11 w-full rounded-xl border bg-bg-card px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2",
             overLimit
               ? "border-danger focus:border-danger focus:ring-danger/20"
               : "border-border focus:border-primary focus:ring-primary/20",

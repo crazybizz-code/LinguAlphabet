@@ -22,6 +22,17 @@ interface Props {
   onToggleFlag: (questionId: string) => void;
 }
 
+function groupHeading(instructions: string | null, first: number, last: number) {
+  const lines = (instructions ?? "").split("\n");
+  const authoredRange = /^Questions?\s+\d+(?:\s*[–-]\s*\d+)?\s*:?$/i.test(lines[0]?.trim() ?? "")
+    ? lines.shift()?.trim().replace(/:$/, "")
+    : null;
+  return {
+    range: authoredRange ?? `Questions ${first}${first === last ? "" : `–${last}`}`,
+    instructions: lines.join("\n").trim(),
+  };
+}
+
 function FlagButton({ questionId, number, flagged, onNavigate, onToggleFlag }: {
   questionId: string;
   number: number;
@@ -38,7 +49,7 @@ function FlagButton({ questionId, number, flagged, onNavigate, onToggleFlag }: {
         onToggleFlag(questionId);
       }}
       className={[
-        "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all",
+        "flex min-h-8 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
         flagged
           ? "border-primary bg-primary/10 text-primary"
           : "border-border text-text-secondary hover:bg-bg-muted",
@@ -63,17 +74,21 @@ export function ListeningQuestionGroup({
   const chooseTwo = isClientChooseTwoGroup(group);
   const flowchart = isListeningFlowchartGroup(group);
   const range = group.questions.map((question) => question.sequenceNumber);
+  const heading = groupHeading(group.instructions, range[0], range[range.length - 1]);
 
   return (
     <section
-      className="rounded-2xl border border-border bg-bg-card p-5"
+      className="rounded-2xl border border-border/80 bg-bg-card p-5 shadow-[0_8px_24px_rgba(15,23,42,0.035)] max-md:p-4"
       aria-label={group.groupId ? `Question group ${group.groupId}` : undefined}
     >
-      {group.instructions && (
-        <p className="mb-5 whitespace-pre-line text-sm font-medium leading-relaxed text-text-primary">
-          {group.instructions}
-        </p>
-      )}
+      <header className="mb-4 border-b border-border/60 pb-3">
+        <p className="text-xs font-semibold text-text-primary">{heading.range}</p>
+        {heading.instructions && (
+          <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-text-secondary">
+            {heading.instructions}
+          </p>
+        )}
+      </header>
 
       {chooseTwo ? (
         <ChooseTwoGroup
@@ -95,7 +110,7 @@ export function ListeningQuestionGroup({
           onToggleFlag={onToggleFlag}
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {group.questions.map((question) => {
             const isCurrent = question.id === currentQuestionId;
             const isFlagged = Boolean(flags[question.id]);
@@ -105,12 +120,12 @@ export function ListeningQuestionGroup({
                 id={`listening-question-${question.sequenceNumber}`}
                 className={[
                   "rounded-xl border p-4 transition-colors",
-                  isCurrent ? "border-primary bg-primary/[0.03]" : "border-border/60 bg-white",
+                  isCurrent ? "border-primary/40 bg-primary/[0.025]" : "border-border/60 bg-bg-card",
                 ].join(" ")}
                 aria-current={isCurrent ? "true" : undefined}
               >
                 <div className="mb-3 flex items-center justify-between gap-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">
+                  <p className="text-xs font-semibold text-text-tertiary">
                     Question {question.sequenceNumber}
                   </p>
                   <FlagButton
@@ -165,16 +180,13 @@ function ChooseTwoGroup({
   const selected = hydrateChooseTwoSelections(group, answers);
   const pool = chooseTwoOptionPool(group);
   const first = group.questions[0];
-  const last = group.questions[group.questions.length - 1];
 
   return (
     <div id={`listening-question-${first.sequenceNumber}`}>
-      <div className="mb-4 flex items-start justify-between gap-4">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-tertiary">
-            Questions {first.sequenceNumber}–{last.sequenceNumber}
-          </p>
-          <p className="mt-1 text-sm text-text-secondary">Choose exactly two answers. {selected.length}/2 selected.</p>
+          <p className="text-sm text-text-secondary">Choose exactly two answers.</p>
+          <p className="mt-1 text-xs font-semibold text-primary">{selected.length}/2 selected</p>
         </div>
         <div className="flex gap-2" aria-label="Review flags for this question group">
           {group.questions.map((question) => (
@@ -203,17 +215,17 @@ function ChooseTwoGroup({
               disabled={selectionLimitReached}
               onClick={() => onChange(group, toggleChooseTwoSelection(group, selected, option.id))}
               className={[
-                "flex items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition-all",
+                "flex min-h-11 items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-1",
                 isSelected
-                  ? "border-primary bg-primary text-white"
+                  ? "border-primary/50 bg-primary/[0.08] text-text-primary"
                   : selectionLimitReached
                     ? "cursor-not-allowed border-border bg-bg-muted text-text-tertiary opacity-60"
-                    : "border-border bg-bg-card text-text-primary hover:border-primary/40 hover:bg-primary/5",
+                    : "border-border bg-bg-card text-text-primary hover:border-slate-300 hover:bg-slate-50",
               ].join(" ")}
             >
               <span className={[
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-xs font-bold",
-                isSelected ? "bg-white/20 text-white" : "bg-border/60 text-text-secondary",
+                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-xs font-bold",
+                isSelected ? "border-primary bg-primary text-white" : "border-border bg-slate-50 text-text-secondary",
               ].join(" ")}>
                 {isSelected ? <Check className="h-4 w-4" aria-hidden="true" /> : option.id}
               </span>

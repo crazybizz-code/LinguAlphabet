@@ -57,20 +57,20 @@ describe("reading navigation — Part model", () => {
     expect(readingClient).toContain("goToQuestion(questions[flatIndex + 1].id)");
   });
 
-  it("renders Part tabs with live answered counts", () => {
-    expect(readingClient).toContain('role="tab"');
-    expect(readingClient).toContain("{done} of {part.questions.length}");
-    expect(readingClient).toContain("const done = countAnsweredQuestions(part.questions, answers);");
+  it("renders the shared compact navigator with passage grouping", () => {
+    expect(readingClient).toContain("<QuestionPalette");
+    expect(readingClient).toContain('groupLabelPrefix="P"');
+    expect(readingClient).toContain("sectionId: question.passageId");
   });
 
-  it("marks the current Part and current question visually", () => {
-    expect(readingClient).toContain('aria-selected={selected}');
-    expect(readingClient).toContain('aria-current={isActive ? "true" : undefined}');
+  it("passes the global current question to the shared navigator", () => {
+    expect(readingClient).toContain("currentIndex={Math.max(0, flatIndex)}");
+    expect(readingClient).toContain("onNavigate={(index) => goToQuestion(questions[index].id)}");
   });
 
-  it("the palette exposes answered vs unanswered state", () => {
-    expect(readingClient).toContain("const isAnswered = answers[q.id] != null && answers[q.id] !== \"\";");
-    expect(readingClient).toContain('aria-label={`Question ${q.sequenceNumber}${isAnswered ? ", answered" : ", not answered"}`}');
+  it("passes answer and review state to the shared navigator", () => {
+    expect(readingClient).toContain("answers={answers}");
+    expect(readingClient).toContain("flags={flagged}");
   });
 });
 
@@ -169,14 +169,17 @@ describe("reading — responsive behaviour", () => {
   });
 
   it("keeps the two-panel split as the desktop target", () => {
-    expect(readingClient).toContain("lg:w-1/2");
-    expect(readingClient).toContain("lg:border-r");
+    expect(readingClient).toContain("w-1/2");
+    expect(readingClient).toContain("border-r");
+    expect(readingClient).toContain("max-lg:w-full");
+    expect(readingClient).toContain("max-lg:border-r-0");
   });
 
   it("offers a passage/questions switch below desktop", () => {
     expect(readingClient).toContain('mobilePane === "passage"');
     expect(readingClient).toContain('mobilePane === "questions"');
-    expect(readingClient).toContain("lg:hidden");
+    expect(readingClient).toContain("max-lg:hidden");
+    expect(readingClient).toContain("max-lg:flex");
   });
 });
 
@@ -274,7 +277,8 @@ describe("group instructions — persistence path", () => {
 
   it("HOP: the runtime renders it once per group, not per question", () => {
     expect(readingClient).toContain("{startsGroup && q.groupInstructions && (");
-    expect(readingClient).toContain("{q.groupInstructions}");
+    expect(readingClient).toContain("splitGroupInstructions(q.groupInstructions)");
+    expect(readingClient).toContain("{instruction.detail}");
     // Guarded by startsGroup, which is only true at a group's first question.
     expect(readingClient).toContain("const startsGroup = q.groupId != null && q.groupId !== prevGroup;");
   });

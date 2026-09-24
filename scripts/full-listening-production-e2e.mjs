@@ -12,6 +12,7 @@ import { createClient } from "@supabase/supabase-js";
 const BASE_URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";
 const ARTIFACT_DIR = "D:/Podcat app/full-listening-e2e-artifacts";
 const PASSWORD = "FullListeningV1!2026";
+const CAPTURE_VISUALS = process.env.E2E_CAPTURE_VISUALS === "1";
 
 function loadEnv(path) {
   const out = {};
@@ -85,6 +86,7 @@ let attemptId;
 const email = `full-listening-v1-e2e-${Date.now()}@example.com`;
 const consoleErrors = [];
 const audioRequests = new Map();
+const failedResponses = [];
 
 try {
   mkdirSync(ARTIFACT_DIR, { recursive: true });
@@ -119,6 +121,7 @@ try {
     if (message.type() === "error") consoleErrors.push(message.text());
   });
   page.on("response", (response) => {
+    if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`);
     if (/mock-listening\/full-v1\/section-[1-4]\.mp3/.test(response.url())) {
       audioRequests.set(response.url(), response.status());
     }
@@ -154,6 +157,34 @@ try {
   check("full attempt membership", attempt.listening_question_ids.length === 40, `${attempt.listening_question_ids.length} Listening questions`);
   check("Reading regression membership", attempt.reading_question_ids.length === 40 && attempt.reading_passage_ids.length === 3, `${attempt.reading_question_ids.length} questions / ${attempt.reading_passage_ids.length} passages`);
   check("four persisted sections", attempt.listening_section_ids.length === 4, `${attempt.listening_section_ids.length} sections`);
+
+  if (CAPTURE_VISUALS) {
+    await page.getByText("Question 1", { exact: true }).first().waitFor();
+    await page.getByRole("button", { name: /An environmental argument for looking backwards/ }).first().click();
+    await page.getByRole("button", { name: "Flag question" }).first().click();
+    await page.getByRole("button", { name: /An environmental argument for looking backwards/ }).nth(1).click();
+    await page.getByRole("button", { name: "Flag question" }).first().click();
+    await page.getByRole("button", { name: "Question 1 (answered) (flagged)" }).click();
+    await page.getByRole("button", { name: "Question 1 (answered) (flagged)" }).waitFor();
+    await page.screenshot({ path: `${ARTIFACT_DIR}/reading-desktop.png`, fullPage: false });
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await page.getByRole("button", { name: /questions/i }).click();
+    check("Reading tablet width", await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "no horizontal page overflow");
+    await page.screenshot({ path: `${ARTIFACT_DIR}/reading-tablet.png`, fullPage: false });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole("button", { name: /questions/i }).click();
+    check("Reading mobile width", await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "no horizontal page overflow");
+    await page.screenshot({ path: `${ARTIFACT_DIR}/reading-mobile.png`, fullPage: false });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.getByRole("button", { name: "Question 3", exact: true }).click();
+    await page.screenshot({ path: `${ARTIFACT_DIR}/reading-active-unanswered-desktop.png`, fullPage: false });
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/reading-active-unanswered-tablet.png`, fullPage: false });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: `${ARTIFACT_DIR}/reading-active-unanswered-mobile.png`, fullPage: false });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.getByRole("button", { name: "Question 1 (answered) (flagged)" }).click();
+  }
 
   const { data: sections, error: sectionsError } = await admin
     .from("mock_listening_sections")
@@ -197,6 +228,18 @@ try {
   check("no answer-key leakage", !htmlBeforeSubmission.includes("correct_answer") && !htmlBeforeSubmission.includes("accepted_answers") && !htmlBeforeSubmission.includes('"correctAnswer"'), "learner DOM contains no answer fields");
   check("Q1-Q40 palette", await page.locator('footer button[aria-label^="Question "]').count() === 40, "40 global navigation buttons");
 
+  if (CAPTURE_VISUALS) {
+    await page.screenshot({ path: `${ARTIFACT_DIR}/listening-desktop.png`, fullPage: false });
+    await page.setViewportSize({ width: 820, height: 1180 });
+    check("Listening tablet width", await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "no horizontal page overflow");
+    await page.screenshot({ path: `${ARTIFACT_DIR}/listening-tablet.png`, fullPage: false });
+    await page.setViewportSize({ width: 390, height: 844 });
+    check("Listening mobile width", await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "no horizontal page overflow");
+    check("Listening mobile navigator", await page.locator('footer button[aria-label^="Question "]').count() === 40, "all 40 questions remain accessible");
+    await page.screenshot({ path: `${ARTIFACT_DIR}/listening-mobile.png`, fullPage: false });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+  }
+
   // Audio: exercise every real public URL. Moving to another section unmounts
   // the prior player, while moving inside a section preserves its identity.
   for (const sectionNumber of [1, 2, 3, 4]) {
@@ -205,6 +248,12 @@ try {
     await page.getByText(`Listening Section ${sectionNumber}`).waitFor();
     const expectedGroupCount = [2, 3, 2, 2][sectionNumber - 1];
     check(`Section ${sectionNumber} groups`, await page.locator('section[aria-label^="Question group "]').count() === expectedGroupCount, `${expectedGroupCount} grouped blocks rendered`);
+    if (CAPTURE_VISUALS && sectionNumber === 4) {
+      const flowchartSelects = page.locator('select[aria-label^="Answer for question "]');
+      const customChevrons = page.locator('select[aria-label^="Answer for question "] + svg');
+      check("flowchart custom chevrons", await flowchartSelects.count() === await customChevrons.count(), "one custom chevron per select");
+      await page.screenshot({ path: `${ARTIFACT_DIR}/listening-flowchart-desktop.png`, fullPage: false });
+    }
     const expectedUrl = orderedSections[sectionNumber - 1].audio_url;
     await page.getByRole("button", { name: "Play audio" }).click();
     await page.waitForTimeout(750);
@@ -313,7 +362,21 @@ try {
   check("choose-two unordered grading", responses.slice(10, 14).every((response) => response.is_correct === true), "both choose-two groups awarded 4/4");
   check("score ceiling", responses.filter((response) => response.is_correct).length === 38, "38 correct, never above 40");
 
-  const relevantConsoleErrors = consoleErrors.filter((message) => !/favicon|AbortError|play\(\) request was interrupted/i.test(message));
+  const isLocalRun = ["localhost", "127.0.0.1"].includes(new URL(BASE_URL).hostname);
+  const ignoredLocalResponses = isLocalRun
+    ? failedResponses.filter((response) => response.includes("/_vercel/insights/script.js"))
+    : [];
+  const unexpectedFailedResponses = failedResponses.filter((response) => !ignoredLocalResponses.includes(response));
+  const relevantConsoleErrors = consoleErrors.filter((message) => {
+    if (/favicon|AbortError|play\(\) request was interrupted/i.test(message)) return false;
+    if (isLocalRun && message.includes("/_vercel/insights/script.js")) return false;
+    return !(
+      ignoredLocalResponses.length > 0
+      && unexpectedFailedResponses.length === 0
+      && message === "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    );
+  });
+  check("browser HTTP responses", unexpectedFailedResponses.length === 0, unexpectedFailedResponses.length ? unexpectedFailedResponses.join(" | ") : "no relevant failed responses");
   check("browser console", relevantConsoleErrors.length === 0, relevantConsoleErrors.length ? relevantConsoleErrors.join(" | ") : "no relevant errors");
   check("all four audio requests", audioRequests.size === 4, `${audioRequests.size}/4 production URLs requested`);
 

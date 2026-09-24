@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Headphones, Monitor } from "lucide-react";
-import Link from "next/link";
+import { Headphones } from "lucide-react";
 import { ListeningSectionPanel } from "./ListeningSectionPanel";
 import { QuestionPalette } from "./QuestionPalette";
 import {
@@ -47,6 +46,8 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
   const timedOutRef = useRef(false);
   const chooseTwoSaveQueuesRef = useRef<Map<string, Promise<void>>>(new Map());
   const saveCoordinatorRef = useRef(new ListeningSaveCoordinator());
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const previousSectionIdRef = useRef<string | null>(null);
 
   // The exam shell is server-rendered, so reading sessionStorage inside the
   // useState initializer is not reliable on a hard reload: React hydrates the
@@ -167,8 +168,16 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
   const currentLocation = getListeningLocation(sections, currentIndex);
   const currentQuestion = currentLocation?.question;
   const activeSection = currentLocation?.section;
+  const activeSectionId = activeSection?.sectionId ?? null;
   const answeredCount = questions.filter((q) => Boolean(answers[q.id])).length;
   const isLowTime = timeLeft <= 300;
+
+  useEffect(() => {
+    if (activeSectionId && previousSectionIdRef.current && previousSectionIdRef.current !== activeSectionId) {
+      contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    previousSectionIdRef.current = activeSectionId;
+  }, [activeSectionId]);
 
   function navigateToQuestion(questionId: string) {
     const index = questions.findIndex((question) => question.id === questionId);
@@ -199,53 +208,37 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
   }
 
   return (
-    <>
-      {/* Mobile warning */}
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-bg p-8 lg:hidden">
-        <Monitor className="h-14 w-14 text-text-tertiary" aria-hidden="true" />
-        <div className="text-center">
-          <h2 className="text-lg font-bold text-text-primary">Desktop Required</h2>
-          <p className="mt-2 max-w-xs text-sm text-text-secondary">
-            The mock exam requires a screen at least 1024 px wide. Please open it on a laptop or desktop.
-          </p>
-        </div>
-        <Link href="/mock" className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white">
-          Back to Mock
-        </Link>
-      </div>
-
-      {/* Desktop exam shell */}
-      <div className="fixed inset-0 z-50 hidden flex-col bg-bg lg:flex">
-        {/* Header — 60 px */}
-        <header className="flex h-[60px] shrink-0 items-center justify-between gap-4 border-b border-border bg-white px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0F172A]">
+    <div className="fixed inset-0 z-[60] flex min-h-dvh flex-col bg-bg">
+        <header className="grid h-[60px] shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border/80 bg-bg-card px-6 max-md:h-14 max-md:px-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0F172A]">
               <Headphones className="h-4 w-4 text-white" aria-hidden="true" />
             </div>
-            <span className="text-sm font-semibold text-text-primary">Full Mock · Listening</span>
-            <span className="text-xs text-text-tertiary">
+            <span className="truncate text-sm font-semibold text-text-primary max-md:hidden">Full Mock · Listening</span>
+            <span className="text-xs text-text-tertiary max-lg:hidden">
               {answeredCount}/{questions.length} answered
             </span>
           </div>
 
           <span
             className={[
-              "font-mono text-lg font-bold tabular-nums",
+              "font-mono text-lg font-bold tabular-nums max-md:text-base",
               isLowTime ? "text-red-500" : "text-text-primary",
             ].join(" ")}
             aria-live="polite"
+            aria-label={`Time remaining: ${formatTime(timeLeft)}`}
           >
             {formatTime(timeLeft)}
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center justify-end gap-2">
             {submitError && (
-              <span className="text-xs text-red-500">{submitError}</span>
+              <span className="max-w-48 truncate text-xs text-red-500 max-lg:hidden">{submitError}</span>
             )}
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="rounded-xl bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
+              className="min-h-9 shrink-0 rounded-xl bg-[#0F172A] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60 max-md:px-3 max-md:text-xs"
             >
               {submitting ? "Submitting…" : "Submit Mock"}
             </button>
@@ -254,7 +247,7 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
 
         {/* Content */}
         {currentQuestion && activeSection && currentLocation && (
-          <div className="flex min-h-0 flex-1 overflow-y-auto">
+          <div ref={contentRef} className="flex min-h-0 flex-1 overflow-y-auto scroll-smooth">
             <ListeningSectionPanel
               section={activeSection}
               sectionNumber={currentLocation.sectionIndex + 1}
@@ -271,8 +264,7 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
           </div>
         )}
 
-        {/* Palette footer — 70 px */}
-        <footer className="flex h-[70px] shrink-0 items-center border-t border-border/60 bg-bg-card">
+        <footer className="flex h-14 shrink-0 items-center border-t border-border/60 bg-bg-card shadow-[0_-8px_24px_rgba(15,23,42,0.04)]">
           <QuestionPalette
             questions={questions}
             currentIndex={currentIndex}
@@ -283,7 +275,6 @@ export function MockListeningClient({ attemptId, sections, savedAnswers, timeLim
             onNext={() => setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))}
           />
         </footer>
-      </div>
-    </>
+    </div>
   );
 }

@@ -22,6 +22,34 @@ describe("QuestionPalette", () => {
     expect(html).not.toContain(">S1<");
   });
 
+  it("preserves answered fill when the current question is active", () => {
+    const answeredActive = renderToStaticMarkup(
+      <QuestionPalette
+        questions={[{ id: "r1", sequenceNumber: 1 }]}
+        currentIndex={0}
+        answers={{ r1: "A" }}
+        flags={{ r1: true }}
+        onNavigate={() => undefined}
+        onPrev={() => undefined}
+        onNext={() => undefined}
+      />,
+    );
+    const unansweredActive = renderToStaticMarkup(
+      <QuestionPalette
+        questions={[{ id: "r1", sequenceNumber: 1 }]}
+        currentIndex={0}
+        answers={{}}
+        onNavigate={() => undefined}
+        onPrev={() => undefined}
+        onNext={() => undefined}
+      />,
+    );
+
+    expect(answeredActive).toContain("bg-slate-800 text-white shadow-sm ring-2 ring-primary ring-offset-2");
+    expect(answeredActive).toContain('aria-label="Question 1 (answered) (flagged)"');
+    expect(unansweredActive).toContain("border border-primary bg-bg-card text-primary shadow-sm ring-2 ring-primary ring-offset-2");
+  });
+
   it("marks Listening section boundaries while keeping all 40 questions navigable", () => {
     const questions = Array.from({ length: 40 }, (_, index) => ({
       id: `q${index + 1}`,
@@ -46,6 +74,31 @@ describe("QuestionPalette", () => {
     expect(countOccurrences(html, ">S2<")).toBe(1);
     expect(countOccurrences(html, ">S3<")).toBe(1);
     expect(countOccurrences(html, ">S4<")).toBe(1);
+    expect(html).toContain("scrollbar-width:none");
+  });
+
+  it("uses passage labels for the Reading navigator", () => {
+    const html = renderToStaticMarkup(
+      <QuestionPalette
+        questions={[
+          { id: "r1", sequenceNumber: 1, sectionId: "p1" },
+          { id: "r2", sequenceNumber: 2, sectionId: "p1" },
+          { id: "r3", sequenceNumber: 3, sectionId: "p2" },
+        ]}
+        currentIndex={2}
+        answers={{ r1: "A" }}
+        flags={{ r2: true }}
+        groupLabelPrefix="P"
+        onNavigate={() => undefined}
+        onPrev={() => undefined}
+        onNext={() => undefined}
+      />,
+    );
+
+    expect(countOccurrences(html, ">P1<")).toBe(1);
+    expect(countOccurrences(html, ">P2<")).toBe(1);
+    expect(html).toContain('aria-label="Question 1 (answered)"');
+    expect(html).toContain('aria-label="Question 2 (flagged)"');
   });
 });
 

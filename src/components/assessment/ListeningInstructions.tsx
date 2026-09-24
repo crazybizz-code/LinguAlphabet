@@ -11,15 +11,15 @@ export function ListeningInstructions({ sectionInstruction, audioInstruction }: 
   const caption =
     audioInstruction ?? "The recording can only be played once. There is no pause, rewind, or replay.";
   return (
-    <div className="rounded-2xl border border-border bg-bg-card p-4">
+    <div className="rounded-2xl border border-border/80 bg-bg-card px-4 py-3">
       <div className="flex items-start gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-50 text-primary">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-primary">
           <Headphones className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-text-tertiary">Listening instructions</p>
-          <p className="mt-1 text-sm font-medium leading-relaxed text-text-primary">{instruction}</p>
-          <p className="mt-2 flex items-start gap-1.5 text-xs leading-relaxed text-text-secondary">
+          <p className="text-[11px] font-semibold text-text-tertiary">Listening instructions</p>
+          <p className="mt-0.5 text-sm leading-relaxed text-text-primary">{instruction}</p>
+          <p className="mt-1.5 flex items-start gap-1.5 text-[11px] leading-relaxed text-text-secondary">
             <Info className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" aria-hidden="true" />
             {caption}
           </p>

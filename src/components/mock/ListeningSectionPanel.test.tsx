@@ -60,7 +60,7 @@ describe("ListeningSectionPanel", () => {
       />,
     );
 
-    expect(count(html, "Audio Recording")).toBe(1);
+    expect(count(html, "Audio recording")).toBe(1);
     expect(count(html, "Complete the form.")).toBe(1);
     expect(count(html, "Complete the table.")).toBe(1);
     expect(count(html, "Question group form")).toBe(1);
