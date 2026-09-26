@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import { createServiceClient } from "@/lib/supabase/service-client";
 import type { DailyMissionSlot, LearnerContext, MissionSlotContentType } from "../types";
 import { ruleBasedLearningBrain } from "../rule-engine";
 import { continueLearningStrategy } from "./continue-learning";
@@ -32,7 +33,6 @@ function todayIsoDate(): string {
  * "infinite generator" bug this plan replaces).
  */
 async function resolveSlot(params: {
-  supabase: Client;
   userId: string;
   today: string;
   contentType: MissionSlotContentType;
@@ -43,7 +43,7 @@ async function resolveSlot(params: {
   context: LearnerContext;
   existingRow: DailyMissionRow | undefined;
 }): Promise<DailyMissionSlot> {
-  const { supabase, userId, today, contentType, byId, catalogForType, rankedForType, progressRows, context, existingRow } = params;
+  const { userId, today, contentType, byId, catalogForType, rankedForType, progressRows, context, existingRow } = params;
 
   const assignedContent = existingRow ? byId.get(existingRow.content_item_id) : undefined;
   const assignmentCompleted = assignedContent ? context.completedContentIds.has(assignedContent.id) : false;
@@ -68,7 +68,11 @@ async function resolveSlot(params: {
 
   if (mission) {
     try {
-      await supabase.from("daily_missions").upsert({
+      // Service role: a mission row upgrades a completion to mission XP and
+      // advances the streak, so learners hold no write privilege on
+      // daily_missions (supabase/security-remediation-2026-09.sql). `userId`
+      // is the server-authenticated learner the caller resolved.
+      await createServiceClient().from("daily_missions").upsert({
         user_id: userId,
         mission_date: today,
         content_type: contentType,
@@ -120,7 +124,6 @@ export const dailyMissionGenerator = {
     const missions = await Promise.all(
       SLOT_TYPES.map((contentType) =>
         resolveSlot({
-          supabase,
           userId,
           today,
           contentType,

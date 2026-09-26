@@ -2,7 +2,10 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service-client";
+import { getArticleById, getPodcastById } from "@/lib/content/queries";
 import { createSignalRepository, type LearningSignal } from "@/ai/data";
 import { recordEvent } from "@/lib/analytics/record";
 import { applyXp, computeXpEarned } from "./xp";
@@ -157,18 +160,59 @@ async function recordCompletionAnalytics(
  * which completion signal to write — everything else about the function
  * is unchanged.
  */
-export async function completeMission(params: {
+const CompleteMissionInput = z.object({
+  contentId: z.string().min(1).max(200),
+  contentType: z.enum(["article", "podcast"]),
+  correctAnswers: z.number().int().min(0),
+});
+
+/**
+ * The completion facts XP is computed from, re-derived on the server.
+ *
+ * Security (pentest V-03): this is a Server Action, so its arguments are
+ * whatever the caller POSTs — not necessarily what LearningSessionView
+ * sent. The quiz size and session length therefore come from the published
+ * content item itself, and the learner-reported score is clamped to that
+ * quiz. What remains client-reported is only which of the quiz's own
+ * questions they got right, which this action has no way to re-grade.
+ */
+async function resolveCompletionFacts(
+  supabase: SupabaseClient<Database>,
+  input: z.infer<typeof CompleteMissionInput>,
+): Promise<{ estimatedMinutes: number; quizTotal: number; correctAnswers: number }> {
+  const content =
+    input.contentType === "podcast"
+      ? await getPodcastById(supabase, input.contentId)
+      : await getArticleById(supabase, input.contentId);
+  if (!content) throw new Error("Content not found");
+
+  // Same derivations as the learning-session adapters (./adapters/*).
+  const estimatedMinutes =
+    content.contentType === "podcast" ? Math.round(content.durationSeconds / 60) : content.estimatedTimeMinutes;
+  const quizTotal = content.quiz.length;
+  return { estimatedMinutes, quizTotal, correctAnswers: Math.min(input.correctAnswers, quizTotal) };
+}
+
+export async function completeMission(rawParams: {
   contentId: string;
   contentType: "article" | "podcast";
-  estimatedMinutes: number;
+  /** Ignored — re-derived from the content item (see resolveCompletionFacts). Kept for call-site compatibility. */
+  estimatedMinutes?: number;
   correctAnswers: number;
-  quizTotal: number;
+  /** Ignored — re-derived from the content item (see resolveCompletionFacts). Kept for call-site compatibility. */
+  quizTotal?: number;
 }): Promise<CompleteMissionResult> {
+  const input = CompleteMissionInput.safeParse(rawParams);
+  if (!input.success) throw new Error("Invalid completion");
+
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+
+  const facts = await resolveCompletionFacts(supabase, input.data);
+  const params = { contentId: input.data.contentId, contentType: input.data.contentType, ...facts };
 
   const today = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString();
@@ -210,8 +254,13 @@ export async function completeMission(params: {
     streakContinued: streakResult.streakContinued,
   });
 
-  await Promise.all([
-    supabase.from("progress").upsert(
+  // Progression columns are server-only in the database (learners hold no
+  // write privilege on progress, and only self-reported profile columns —
+  // supabase/security-remediation-2026-09.sql), so these writes use the
+  // service role, scoped explicitly to the user authenticated above.
+  const service = createServiceClient();
+  const [progressWrite, profileWrite] = await Promise.all([
+    service.from("progress").upsert(
       {
         user_id: user.id,
         content_item_id: params.contentId,
@@ -224,7 +273,7 @@ export async function completeMission(params: {
       },
       { onConflict: "user_id,content_item_id" },
     ),
-    supabase
+    service
       .from("profiles")
       .update({
         xp: xpResult.newXp,
@@ -244,6 +293,12 @@ export async function completeMission(params: {
       })
       .eq("user_id", user.id),
   ]);
+  // Previously unchecked, which hid a missing profiles.streak_shields column
+  // in production: every XP/streak write failed while the learner was told
+  // they had earned XP. Fail loudly so LearningSessionView's retry/fallback
+  // path engages instead of reporting a success that wasn't persisted.
+  if (progressWrite.error) throw new Error(`Failed to record progress: ${progressWrite.error.message}`);
+  if (profileWrite.error) throw new Error(`Failed to award XP: ${profileWrite.error.message}`);
 
   await recordCompletionSignals(supabase, user.id, params);
   await recordCompletionAnalytics(supabase, user.id, {

@@ -1,10 +1,16 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
+import { legacyHostRedirect } from "@/lib/auth/origin";
 
 // Next.js 16 renamed the "middleware" file convention to "proxy" — this
 // is that file, not legacy Express-style middleware. Keep the export
 // named `proxy` (not `middleware`) or Next.js won't pick it up.
 export async function proxy(request: NextRequest) {
+  // Pentest V-04: learners on the retired host are moved to the canonical
+  // origin before they can start an auth flow there (see lib/auth/origin.ts).
+  const canonical = legacyHostRedirect(request.nextUrl, request.method);
+  if (canonical) return NextResponse.redirect(canonical, 308);
+
   return await updateSession(request);
 }
 

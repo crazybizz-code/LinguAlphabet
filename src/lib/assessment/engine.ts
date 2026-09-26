@@ -179,10 +179,91 @@ async function loadAdaptiveState(
  * client. The server retains and uses the real values internally for
  * grading (fetchQuestionById, computePlacementResult) — only the payload
  * handed back to the learner is redacted. Mirrors the same pattern already
- * used by src/lib/practice/engine.ts's startPracticeSession.
+ * used by src/lib/practice/engine.ts's startPracticeSession, including its
+ * listening rule: while real audio can be played the transcript is answer-
+ * bearing and never leaves the server; without audio it is the only content
+ * that exists and passes through as a reading stand-in.
  */
-function stripAnswer(question: AssessmentQuestion): AssessmentQuestion {
-  return { ...question, correctAnswer: "", explanation: null };
+export function stripAnswer(question: AssessmentQuestion): AssessmentQuestion {
+  const hidesTranscript = question.skill === "listening" && question.audioUrl !== null;
+  return {
+    ...question,
+    correctAnswer: "",
+    explanation: null,
+    passage: hidesTranscript ? null : question.passage,
+    passageTitle: hidesTranscript ? null : question.passageTitle,
+  };
+}
+
+// ── Flow errors ────────────────────────────────────────────────────────────
+
+/** An expected, learner-safe rejection; `status` is the HTTP status the route returns. */
+export class PlacementFlowError extends Error {
+  constructor(
+    message: string,
+    readonly status: 400 | 404 | 409,
+  ) {
+    super(message);
+    this.name = "PlacementFlowError";
+  }
+}
+
+// ── Next-step resolution ──────────────────────────────────────────────────
+
+type NextStep = { done: true } | { done: false; question: AssessmentQuestion };
+
+/**
+ * The single definition of "what comes next" for an attempt — used both
+ * when recording an answer and when finalising, so /complete can verify
+ * the session genuinely reached its end instead of trusting the client's
+ * word that it did.
+ */
+async function resolveNextStep(reading: SkillState, listening: SkillState): Promise<NextStep> {
+  if (isSessionComplete(reading, listening)) return { done: true };
+
+  const pool = await loadQuestionPool();
+  const answeredIds = new Set([...reading.responses, ...listening.responses].map((r) => r.questionId));
+
+  const next = selectNext(reading, listening, pool, answeredIds);
+  if (!next) return { done: true };
+
+  const question = await fetchQuestionForSlot(next.skill, next.targetLevel, [...answeredIds]);
+  return question ? { done: false, question } : { done: true };
+}
+
+interface AttemptRow {
+  id: string;
+  user_id: string;
+  status: string;
+  pending_question_id: string | null;
+}
+
+async function loadOwnedAttempt(attemptId: string, userId: string): Promise<AttemptRow> {
+  const supabase = createServiceClient();
+  const { data: attempt } = await supabase
+    .from("placement_attempts")
+    .select("id, user_id, status, pending_question_id")
+    .eq("id", attemptId)
+    .maybeSingle();
+
+  // Same response for "doesn't exist" and "isn't yours" — never confirm
+  // that another learner's attempt id is real.
+  if (!attempt || attempt.user_id !== userId) throw new PlacementFlowError("Attempt not found", 404);
+  return attempt as AttemptRow;
+}
+
+/** Serves `question` as the attempt's pending question, only if nothing else claimed the slot first. */
+async function setPendingQuestion(attemptId: string, questionId: string): Promise<void> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("placement_attempts")
+    .update({ pending_question_id: questionId })
+    .eq("id", attemptId)
+    .eq("status", "in_progress")
+    .is("pending_question_id", null)
+    .select("id");
+  if (error) throw new Error(`Failed to serve next question: ${error.message}`);
+  if (!data || data.length === 0) throw new PlacementFlowError("This answer was already recorded", 409);
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────
@@ -198,15 +279,6 @@ export async function startAssessment(
 ): Promise<StartResponse> {
   const supabase = createServiceClient();
 
-  // Create the attempt row
-  const { data: attempt, error } = await supabase
-    .from("placement_attempts")
-    .insert({ user_id: userId, status: "in_progress" })
-    .select("id")
-    .single();
-
-  if (error || !attempt) throw new Error("Failed to create placement attempt");
-
   // Select the first question (Reading, at the estimated starting level)
   const startAbility = currentBand
     ? bandToAbilityIndex(currentBand)
@@ -218,6 +290,16 @@ export async function startAssessment(
   const firstQuestion = await fetchQuestionForSlot("reading", startLevel as CefrLevel, []);
   if (!firstQuestion) throw new Error("No approved questions available");
 
+  // The attempt is created already bound to the question it serves, so the
+  // first /answer can be verified exactly like every later one.
+  const { data: attempt, error } = await supabase
+    .from("placement_attempts")
+    .insert({ user_id: userId, status: "in_progress", pending_question_id: firstQuestion.id })
+    .select("id")
+    .single();
+
+  if (error || !attempt) throw new Error("Failed to create placement attempt");
+
   return {
     attemptId: attempt.id,
     firstQuestion: stripAnswer(firstQuestion),
@@ -226,11 +308,43 @@ export async function startAssessment(
 }
 
 /**
+ * Where the attempt stands right now, without recording anything. Serves a
+ * client retrying an answer the server already recorded (the response was
+ * lost in transit), and self-heals the rare crash between recording an
+ * answer and serving the next question.
+ */
+async function currentStep(attempt: AttemptRow, currentBand: number | null, englishLevel: string | null): Promise<AnswerResponse> {
+  const { reading, listening } = await loadAdaptiveState(attempt.id, currentBand, englishLevel);
+  const questionsAnswered = reading.responses.length + listening.responses.length;
+
+  if (attempt.pending_question_id) {
+    const pending = await fetchQuestionById(attempt.pending_question_id);
+    if (!pending) throw new Error("Question not found");
+    return { done: false, nextQuestion: stripAnswer(pending), questionsAnswered, estimatedTotal: ESTIMATED_TOTAL_QUESTIONS };
+  }
+
+  const step = await resolveNextStep(reading, listening);
+  if (step.done) return { done: true, result: computePlacementResult(attempt.id, reading, listening) };
+
+  await setPendingQuestion(attempt.id, step.question.id);
+  return { done: false, nextQuestion: stripAnswer(step.question), questionsAnswered, estimatedTotal: ESTIMATED_TOTAL_QUESTIONS };
+}
+
+/**
  * Record an answer and return the next question (or signal completion).
  * Reconstructs full adaptive state from DB on each call — stateless and crash-safe.
+ *
+ * Security (pentest V-02): the answer is accepted only if the attempt
+ * belongs to the caller, is still in progress, and `questionId` is the
+ * question the server itself served (`pending_question_id`). Without that
+ * binding a learner could answer questions of their own choosing — e.g.
+ * hard ones whose answers they saw in Practice review — and steer their
+ * band. The pending slot is claimed with a conditional update, so two
+ * concurrent submissions for the same question cannot both be recorded.
  */
 export async function recordAnswer(input: {
   attemptId: string;
+  userId: string;
   questionId: string;
   userAnswer: string;
   timeTakenSeconds: number | null;
@@ -239,18 +353,33 @@ export async function recordAnswer(input: {
 }): Promise<AnswerResponse> {
   const supabase = createServiceClient();
 
-  // Verify attempt exists and is still in progress
-  const { data: attempt } = await supabase
-    .from("placement_attempts")
-    .select("id, status, user_id")
-    .eq("id", input.attemptId)
-    .single();
+  const attempt = await loadOwnedAttempt(input.attemptId, input.userId);
+  if (attempt.status !== "in_progress") throw new PlacementFlowError("Attempt already completed", 409);
 
-  if (!attempt || attempt.status !== "in_progress") {
-    throw new Error("Attempt not found or already completed");
+  if (attempt.pending_question_id !== input.questionId) {
+    const { data: existing } = await supabase
+      .from("placement_responses")
+      .select("id")
+      .eq("attempt_id", input.attemptId)
+      .eq("question_id", input.questionId)
+      .limit(1);
+    if (existing && existing.length > 0) {
+      return currentStep(attempt, input.currentBand, input.englishLevel);
+    }
+    throw new PlacementFlowError("This question is not the current question for this attempt", 409);
   }
 
-  // Fetch the question to check the answer
+  // Claim the pending question atomically before grading.
+  const { data: claimed, error: claimError } = await supabase
+    .from("placement_attempts")
+    .update({ pending_question_id: null })
+    .eq("id", input.attemptId)
+    .eq("status", "in_progress")
+    .eq("pending_question_id", input.questionId)
+    .select("id");
+  if (claimError) throw new Error(`Failed to record answer: ${claimError.message}`);
+  if (!claimed || claimed.length === 0) throw new PlacementFlowError("This answer was already recorded", 409);
+
   const question = await fetchQuestionById(input.questionId);
   if (!question) throw new Error("Question not found");
 
@@ -265,8 +394,7 @@ export async function recordAnswer(input: {
 
   const sequenceNumber = (count ?? 0) + 1;
 
-  // Record the response
-  await supabase.from("placement_responses").insert({
+  const { error: insertError } = await supabase.from("placement_responses").insert({
     attempt_id: input.attemptId,
     question_id: input.questionId,
     user_answer: input.userAnswer,
@@ -274,6 +402,15 @@ export async function recordAnswer(input: {
     time_taken_seconds: input.timeTakenSeconds,
     sequence_number: sequenceNumber,
   });
+  if (insertError) {
+    // Put the question back so the learner's retry can succeed.
+    await supabase
+      .from("placement_attempts")
+      .update({ pending_question_id: input.questionId })
+      .eq("id", input.attemptId)
+      .is("pending_question_id", null);
+    throw new Error(`Failed to record answer: ${insertError.message}`);
+  }
 
   // Reconstruct adaptive state (now includes the response just inserted)
   const { reading, listening } = await loadAdaptiveState(
@@ -282,35 +419,18 @@ export async function recordAnswer(input: {
     input.englishLevel,
   );
 
-  const totalAnswered = reading.responses.length + listening.responses.length;
-
-  // Check if session is complete
-  if (isSessionComplete(reading, listening)) {
+  const step = await resolveNextStep(reading, listening);
+  if (step.done) {
     const result = computePlacementResult(input.attemptId, reading, listening);
     return { done: true, result };
   }
 
-  // Select next question
-  const pool = await loadQuestionPool();
-  const answeredIds = new Set([...reading.responses, ...listening.responses].map((r) => r.questionId));
-
-  const next = selectNext(reading, listening, pool, answeredIds);
-  if (!next) {
-    // No more questions available — force completion
-    const result = computePlacementResult(input.attemptId, reading, listening);
-    return { done: true, result };
-  }
-
-  const nextQuestion = await fetchQuestionForSlot(next.skill, next.targetLevel, [...answeredIds]);
-  if (!nextQuestion) {
-    const result = computePlacementResult(input.attemptId, reading, listening);
-    return { done: true, result };
-  }
+  await setPendingQuestion(input.attemptId, step.question.id);
 
   return {
     done: false,
-    nextQuestion: stripAnswer(nextQuestion),
-    questionsAnswered: totalAnswered,
+    nextQuestion: stripAnswer(step.question),
+    questionsAnswered: reading.responses.length + listening.responses.length,
     estimatedTotal: ESTIMATED_TOTAL_QUESTIONS,
   };
 }
@@ -318,14 +438,28 @@ export async function recordAnswer(input: {
 /**
  * Finalise the attempt: persist results, update profile, mark placement_completed.
  * Called by the /complete route after the client receives done:true.
+ *
+ * Security (pentest V-02): the result is computed here from the server's
+ * own recorded responses — the client sends nothing but the attempt id —
+ * and only once the server's own next-step logic agrees the session is
+ * over. The terminal write goes through finalize_placement_attempt(), a
+ * service_role-only function that updates the attempt and the profile in
+ * one transaction and only while the attempt is still in progress.
+ *
+ * Returns `alreadyCompleted: true` (and writes nothing) when the attempt
+ * was finalised by an earlier call, so a retried /complete is harmless.
  */
 export async function finaliseAssessment(input: {
   attemptId: string;
   userId: string;
   currentBand: number | null;
   englishLevel: string | null;
-}): Promise<void> {
+}): Promise<{ alreadyCompleted: boolean }> {
   const supabase = createServiceClient();
+
+  const attempt = await loadOwnedAttempt(input.attemptId, input.userId);
+  if (attempt.status === "completed") return { alreadyCompleted: true };
+  if (attempt.status !== "in_progress") throw new PlacementFlowError("Attempt is not active", 409);
 
   const { reading, listening } = await loadAdaptiveState(
     input.attemptId,
@@ -333,35 +467,33 @@ export async function finaliseAssessment(input: {
     input.englishLevel,
   );
 
+  if (attempt.pending_question_id !== null || !(await resolveNextStep(reading, listening)).done) {
+    throw new PlacementFlowError("Assessment is not finished yet", 409);
+  }
+
   const result = computePlacementResult(input.attemptId, reading, listening);
 
-  // Persist result to placement_attempts
-  await supabase.from("placement_attempts").update({
-    status: "completed",
-    completed_at: new Date().toISOString(),
-    overall_cefr_level: result.overallCefrLevel,
-    reading_cefr_level: result.readingLevel,
-    listening_cefr_level: result.listeningLevel,
-    estimated_band: result.estimatedBand,
-    confidence_score: result.confidenceScore,
-    weak_areas: result.weakAreas,
-    raw_scores: result.rawScores,
-    adaptive_path: [...reading.responses, ...listening.responses].map((r) => ({
-      questionId: r.questionId,
-      skill: r.skill,
-      difficulty: r.difficulty,
-      correct: r.isCorrect,
-    })),
-  }).eq("id", input.attemptId);
+  const { data: finalised, error } = await supabase.rpc("finalize_placement_attempt", {
+    p_attempt_id: input.attemptId,
+    p_user_id: input.userId,
+    p_result: {
+      overall_cefr_level: result.overallCefrLevel,
+      reading_cefr_level: result.readingLevel,
+      listening_cefr_level: result.listeningLevel,
+      estimated_band: result.estimatedBand,
+      confidence_score: result.confidenceScore,
+      weak_areas: result.weakAreas,
+      raw_scores: result.rawScores,
+      adaptive_path: [...reading.responses, ...listening.responses].map((r) => ({
+        questionId: r.questionId,
+        skill: r.skill,
+        difficulty: r.difficulty,
+        correct: r.isCorrect,
+      })),
+    },
+  });
+  if (error) throw new Error(`Failed to finalise placement attempt: ${error.message}`);
 
-  // Update profile with assessed levels (never overwrites self-reported current_band)
-  await supabase.from("profiles").update({
-    assessed_cefr_level: result.overallCefrLevel,
-    assessed_band: result.estimatedBand,
-    assessed_reading_level: result.readingLevel,
-    assessed_listening_level: result.listeningLevel,
-    weak_areas: result.weakAreas,
-    assessment_confidence: result.confidenceScore,
-    placement_completed: true,
-  }).eq("user_id", input.userId);
+  // false = a concurrent /complete finalised it between our read and write.
+  return { alreadyCompleted: finalised !== true };
 }

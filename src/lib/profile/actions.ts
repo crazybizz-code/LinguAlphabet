@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service-client";
 import { bandToCefr } from "@/lib/onboarding/types";
 import type { Database } from "@/types/supabase";
 
@@ -100,7 +101,10 @@ export async function updateLearningProfile(update: LearningProfileUpdate): Prom
       .map((assignment) => assignment.content_type);
 
     if (unfinishedTypes.length > 0) {
-      await supabase
+      // Service role: learners hold no write privilege on daily_missions
+      // (supabase/security-remediation-2026-09.sql). Scoped to the
+      // authenticated user above.
+      await createServiceClient()
         .from("daily_missions")
         .delete()
         .eq("user_id", user.id)

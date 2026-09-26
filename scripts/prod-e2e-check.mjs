@@ -14,12 +14,12 @@
 //
 // Setup:  npm install --no-save playwright && npx playwright install chromium
 // Run:    LINGU_EMAIL=you@example.com LINGU_PASSWORD=... node scripts/prod-e2e-check.mjs
-// Optional: LINGU_BASE_URL to override https://lingu-alphabet.vercel.app
+// Optional: LINGU_BASE_URL to override https://app.linguabc.xyz (the canonical origin)
 
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 
-const BASE = process.env.LINGU_BASE_URL ?? "https://lingu-alphabet.vercel.app";
+const BASE = process.env.LINGU_BASE_URL ?? "https://app.linguabc.xyz";
 const EMAIL = process.env.LINGU_EMAIL;
 const PASSWORD = process.env.LINGU_PASSWORD;
 const SHOTS = "./prod-e2e-shots";

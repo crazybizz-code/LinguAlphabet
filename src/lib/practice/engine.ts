@@ -167,6 +167,9 @@ export async function startPracticeSession(input: PracticeStartInput): Promise<P
       practice_type: input.practiceType,
       target_cefr_level: input.targetCefrLevel,
       question_count: questions.length,
+      // The served set — completePracticeSession grades (and reveals answers
+      // for) these ids only.
+      question_ids: questions.map((q) => q.id),
     })
     .select("id")
     .single();
@@ -209,15 +212,35 @@ export async function completePracticeSession(input: PracticeCompleteInput): Pro
   // Fetch the session (verify ownership + get metadata)
   const { data: session } = await supabase
     .from("practice_sessions")
-    .select("id, user_id, target_cefr_level, question_count, practice_type, status")
+    .select("id, user_id, target_cefr_level, question_count, practice_type, status, question_ids")
     .eq("id", input.sessionId)
     .single();
 
   if (!session || session.user_id !== input.userId) throw new Error("Session not found");
   if (session.status !== "in_progress") throw new Error("Session already completed");
 
+  // Security (pentest V-01/V-03): the results below include each question's
+  // correct answer and explanation, and the score feeds progression. So only
+  // questions this session actually served may be graded, each at most once
+  // — otherwise any question id (e.g. from a live mock attempt) could be
+  // submitted here to harvest its answer key, or repeated to inflate a score.
+  // The client submits every served question (unanswered ones as null), so
+  // the submitted set must equal the served set exactly — which also stops a
+  // score being computed over a hand-picked subset. Sessions created before
+  // question_ids existed can't be verified and must be restarted.
+  const servedIds = new Set(session.question_ids ?? []);
+  if (servedIds.size === 0) throw new Error("This practice session has expired. Please start a new one.");
+  const submittedIds = input.responses.map((r) => r.questionId);
+  if (
+    submittedIds.length !== servedIds.size ||
+    new Set(submittedIds).size !== submittedIds.length ||
+    submittedIds.some((id) => !servedIds.has(id))
+  ) {
+    throw new Error("Responses do not match this practice session's questions");
+  }
+
   // Fetch question text, correct answers, and explanations for this session's questions
-  const questionIds = input.responses.map((r) => r.questionId);
+  const questionIds = submittedIds;
   const { data: questions } = await supabase
     .from("assessment_questions")
     .select("id, question, correct_answer, explanation")
@@ -275,13 +298,9 @@ export async function completePracticeSession(input: PracticeCompleteInput): Pro
     weakAreas.push(`${session.practice_type}_detail`);
   }
 
-  // Insert responses
-  if (responseRows.length > 0) {
-    await supabase.from("practice_responses").insert(responseRows);
-  }
-
-  // Update session to completed
-  await supabase
+  // Update session to completed — conditionally, so of two concurrent
+  // submissions only one completes the session and emits its side effects.
+  const { data: completedRows, error: completeError } = await supabase
     .from("practice_sessions")
     .update({
       status: "completed",
@@ -291,7 +310,16 @@ export async function completePracticeSession(input: PracticeCompleteInput): Pro
       weak_areas: weakAreas,
       completed_at: new Date().toISOString(),
     })
-    .eq("id", input.sessionId);
+    .eq("id", input.sessionId)
+    .eq("status", "in_progress")
+    .select("id");
+  if (completeError) throw new Error(`Failed to complete practice session: ${completeError.message}`);
+  if (!completedRows || completedRows.length === 0) throw new Error("Session already completed");
+
+  // Insert responses
+  if (responseRows.length > 0) {
+    await supabase.from("practice_responses").insert(responseRows);
+  }
 
   // Append learning signal
   await supabase.from("learning_signals").insert({

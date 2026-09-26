@@ -697,6 +697,8 @@ export interface Database {
           weak_areas: string[];
           raw_scores: Json | null;
           adaptive_path: Json | null;
+          /** The question the server last served; /answer accepts only this id. Server-only (supabase/security-remediation-2026-09.sql). */
+          pending_question_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -713,6 +715,7 @@ export interface Database {
           weak_areas?: string[];
           raw_scores?: Json | null;
           adaptive_path?: Json | null;
+          pending_question_id?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["placement_attempts"]["Insert"]>;
@@ -847,6 +850,8 @@ export interface Database {
           correct_count: number;
           score_pct: number | null;
           weak_areas: string[];
+          /** The question set served at start; completion grades only these. Null for sessions created before supabase/security-remediation-2026-09.sql. */
+          question_ids: string[] | null;
           started_at: string;
           completed_at: string | null;
           created_at: string;
@@ -862,6 +867,7 @@ export interface Database {
           correct_count?: number;
           score_pct?: number | null;
           weak_areas?: string[];
+          question_ids?: string[] | null;
           started_at?: string;
           completed_at?: string | null;
           created_at?: string;
@@ -1039,6 +1045,12 @@ export interface Database {
         Relationships: [];
       };
     };
-    Functions: Record<string, never>;
+    Functions: {
+      /** service_role only — atomic, write-once terminal placement result (supabase/security-remediation-2026-09.sql). */
+      finalize_placement_attempt: {
+        Args: { p_attempt_id: string; p_user_id: string; p_result: Json };
+        Returns: boolean;
+      };
+    };
   };
 }

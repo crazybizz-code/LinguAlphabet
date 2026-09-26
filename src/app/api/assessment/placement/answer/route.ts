@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
-import { recordAnswer } from "@/lib/assessment/engine";
+import { PlacementFlowError, recordAnswer } from "@/lib/assessment/engine";
 
 export const runtime = "nodejs";
 
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const result = await recordAnswer({
       attemptId: parsed.data.attemptId,
+      userId: user.id,
       questionId: parsed.data.questionId,
       userAnswer: parsed.data.userAnswer,
       timeTakenSeconds: parsed.data.timeTakenSeconds ?? null,
@@ -43,6 +44,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(result);
   } catch (err) {
+    if (err instanceof PlacementFlowError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     const message = err instanceof Error ? err.message : "Internal error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

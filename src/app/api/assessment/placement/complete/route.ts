@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient, getAuthenticatedUser } from "@/lib/supabase/server";
-import { finaliseAssessment } from "@/lib/assessment/engine";
+import { finaliseAssessment, PlacementFlowError } from "@/lib/assessment/engine";
 import { generateLearningPlan } from "@/lib/planning/generator";
 import type { CefrLevel } from "@/types/content";
 
@@ -38,13 +38,27 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       .eq("user_id", user.id)
       .single();
 
-    // Finalise the attempt (updates profile.assessed_cefr_level etc.)
-    await finaliseAssessment({
+    // Finalise the attempt (updates profile.assessed_cefr_level etc.).
+    // Verifies ownership and that the server's own flow reached the end.
+    const { alreadyCompleted } = await finaliseAssessment({
       attemptId: parsed.data.attemptId,
       userId: user.id,
       currentBand: profile?.current_band ?? null,
       englishLevel: profile?.english_level ?? null,
     });
+
+    // A retried /complete (e.g. after a dropped response) reuses the plan the
+    // first call generated instead of superseding it with an identical one.
+    if (alreadyCompleted) {
+      const { data: existingPlan } = await supabase
+        .from("learning_plans")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("placement_attempt_id", parsed.data.attemptId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (existingPlan) return NextResponse.json({ success: true, planId: existingPlan.id });
+    }
 
     // Re-read the now-updated profile to get assessed level for plan generation
     const { data: updatedProfile } = await supabase
@@ -71,6 +85,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ success: true, planId });
   } catch (err) {
+    if (err instanceof PlacementFlowError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
     const message = err instanceof Error ? err.message : "Internal error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
